@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<link href="default.css" type="text/css" rel="stylesheet">
+<title>Blop - Frequently Asked Questions</title>
+</head>
+<body>
+
+<dl>
+
+
+<dt><a name="complex">Are complex number supported by blop?</a></dt>
+<dd>Yes. In fact,  since complex numbers are part  of the C++ library,
+and they  are supported by  CINT itself, there  is no extra  effort in
+blop to add anything to this. However, there are problems with the
+math functions on complex numbers. 
+You should define them yourself:
+<pre>
+template &lt;class T&gt;
+T abs(const complex&lt;T&gt; &amp;a)
+{
+    return sqrt(a.real()*a.real() + a.imag()*a.imag());
+}
+
+template &lt;class T&gt;
+T phase(const complex&lt;T&gt; &amp;a)
+{
+    return atan2(a.imag(), a.real());
+}
+
+template &lt;class T&gt;
+complex&lt;T&gt; sqrt(const complex&lt;T&gt; &amp;a)
+{
+    const T amp = abs(a);
+    const T pha = phase(a);
+    complex&lt;T&gt; result(sqrt(amp)*cos(pha/2),sqrt(amp)*sin(pha/2));
+    return result;
+}
+</pre>
+
+
+<p>The  script  below plots  the  magnitude  and  phase of  a  complex
+impedance as a function of frequency:
+<pre>
+#include &lt;complex&gt;
+double abs(const complex&lt;double&gt; &amp;a) {return sqrt(a.real()*a.real() + a.imag()*a.imag());}
+
+complex&lt;double&gt; Z(double omega)
+{
+    double R1 = 100;
+    double R2 = 50;
+    double C  = 0.001;
+    complex&lt;double&gt; i(0,1); // imaginary unit
+
+    // R2 connected in parallel with C, and they are connected
+    // in serial with R1
+    return R1 + 1/(i*omega*C + 1/R2);
+}
+
+// return phase in degrees
+double phase(double omega)
+{
+    return atan2(Z(omega).imag(), Z(omega).real()) * 180.0 / 3.1415;
+}
+
+// return magnitude
+double mag(double omega)
+{
+    return abs(Z(omega));
+}
+
+main()
+{
+    frame::current().mirror_y1(false).mirror_y2(false);
+    frame::current().x1axis()->logscale(true);
+    set::x1title("$\\omega$ [Hz]");
+    set::y1title("Magnitude [$\\Omega$]");
+    set::y2title("Phase [degree]");
+    set::x1range(1,1000);
+    plot (_1, cfunc(mag)  ).legend("Magnitude (left axis)").lw(5*LW).ac(red);
+    mplot(_1, cfunc(phase)).legend("Phase (right axis)").lw(5*LW).ls(dashed).yaxis(axis::y2);
+    eps::print("fff.eps");
+}
+</pre>
+</dd>
+
+</dl>
+
+</body>
+</html>

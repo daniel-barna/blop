@@ -1,0 +1,56 @@
+TITLE: Frame
+PREV: grob.html
+NEXT: container.html
+==>
+
+<div class=prguide><u>Practical Guide:</u><br>
+<pre>
+... to be done
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+A     box     is     a     rectangular    graphical     object     (<a
+href="grob.html">grob</a>). It provides the following properties:
+
+<pre>
+left    right  width   xcenter   // horizontal direction
+bottom  top    height  ycenter   // vertical   direction
+</pre>
+
+<p>To   obtain  these   properties,  call   the  member   function  of
+<tt>box</tt> with the same name (for example <tt>box::width()</tt>)
+
+<p>To set these  dimensions, the same function with  1 argument can be
+used. However, in every dimension only two dimensions are independent,
+the other  2 depend on them.  For example, if  one sets </tt>left</tt>
+and <tt>right</tt>,  then <tt>width</tt> and  <tt>xcenter</tt> will be
+automatically calculated (always the last 2 operations will take
+effect)  In the following  example <tt>b</tt>  is a  <tt>box</tt> (any
+object derived from the <tt>box</tt> class), placed inside the current pad: 
+
+<pre>
+b.left(2*CM).right(10*CM);   // width and xcenter are calculated automatically
+
+// place a label to the bottom of the box, centered to the
+// center of the box in the horizontal direction
+
+label::pdraw("some text", b.xcenter(), b.bottom())
+            .align(sym::center, sym::top); 
+
+b.width(3*CM);   // the last 2 operations are now 'right' and 'width', so
+                 // the other 2 dimensions are calculated automatically:
+                 // left    = right - width
+                 // xcenter = right - 0.5*width
+</pre>
+
+</div>
+
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="box.h.html">box.h</a>
+   <a href="box.cc.html">box.cc</a>
+</pre>

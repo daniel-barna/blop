@@ -1,0 +1,622 @@
+TITLE: Plotting data
+PREV:  line.html
+NEXT:  plotting-functions.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+plot("datafile",_1,_2+_3);    // plot the sum of the 2nd and 3rd column of 
+                              // 'datafile' vs. the 1st column
+
+plot("&lt;command",_1,_2,_3).ds(errorbars());   // plot the first 3 columns of the output
+                              // of the command 'command', with errorbars
+
+plot("&lt;&lt;
+      1 1
+      2 4
+      3 9 
+      4 16").ds(lines());       // here-document
+
+plot_groups("filename.dat",_B);  // Plot the blocks (separated by double empty lines) of the datafile
+                                 // with individual graphs (i.e. properties such as colors, pointtype etc
+                                 // can be set individually)
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<ul>
+<li><a href="#autodel">   Graphs are automatically deleted!!!</a>
+<li><a href="#file">      Plotting data from a file</a>
+<li><a href="#array">     Plotting data stored in an array</a>
+<li><a href="#dgraph">    Plotting a self-prepared dgraph</a>
+<li><a href="#block">     Plotting a block of a datafile</a>
+<li><a href="#settingsinfile"> Settings in the datafile</a>
+<li><a href="#custom">    Customized plotting of anything</a>
+<li><a href="#many">      Plotting many files (using a filename pattern)</a>
+<li><a href="#groups">    Plotting many graphs from a single file (grouping by value)</a>
+<li><a href="#ignore">    Ignoring data points from the file</a>
+<li><a href="#condition"> Plotting data satisfying a condition</a>
+<li><a href="#permanent"> Making graphs permanent </a>
+<li><a href="#ordering">  Ordering of graphs </a>
+<li><a href="#dup">       Duplicating graphs </a>
+<li><a href="#prev">      Accessing data from previous line</a>
+</ul>
+
+<p><div class=sectiontitle><a name="autodel">Graphs are automatically deleted!!!</a></div>
+
+<p>In the following paragraphs many <tt>plot</tt> commands will be
+described, which plot data from arrays, files, output of commands,
+etc. All of these have the common property, that they set the
+<a href="plottable.h.html#autodel"><tt>autodel</tt></a> flag of the
+resulting graph to <tt>true</tt>. Therefore, whenever the <a
+href="frame.html">frame</a> containing this graph is cleared, this
+graph will be deleted, any pointer to this will be invalid!
+
+<p><div class=sectiontitle><a name="file">Plotting data from a file:</a></div>
+
+<p> Numerical data  from a file (or from the output  of a command) can
+be plotted  using the  <tt>plot</tt> or <tt>mplot</tt>  commands.  The
+difference between  the two is  that <tt>plot</tt> clears  the current
+frame  before it plots  anything, while  <tt>mplot</tt> does  not (the
+initial letter  'm' stands for  'multi-'), so it  can be used  to plot
+several graphs in a frame. Otherwise they function in exactly the same
+way.
+
+<p>  The   first  argument  of   these  functions  is  a   string  (<a
+href="var.html"><tt>var</tt></a>).    If  this   string   begins  with
+'&lt;&lt;', then  the remaining part  of the string is  interpreted as
+the  data  to  be  plotted.  (This  is like  a  here-document  in  the
+shells.  Note, that  there is  a  difference between  running blop  in
+interactive   [when  commands   are   read  from   the  keyboard]   or
+non-interactive  mode [when  blop  processes a  script  file]: in  the
+script file a string can be split into several lines:
+<pre>
+int main()
+{
+  plot("&lt;&lt;
+          1 1
+          2 4
+          3 9").ds(points());
+}
+</pre>
+
+whereas in  the interactive mode  it does not  work: in this  case the
+whole string  is processed as having  no linebreaks, so  there will be
+only one single  point at (1,1)!  In interactive  mode you can provide
+linebreaks with \n  ).  If the string ends with  |, then
+the previous  part of  the string  is interpreted as  a command  to be
+executed by  /bin/sh, and  the data  to be plotted  is taken  from the
+output of  this command.  Otherwise  the string is interpreted  as the
+name of a file, the content of which is to be plotted.
+
+<p>  These functions create  <a href="graph.html">graphs</a>  from the
+supplied    data,    and    put    them   into    the    current    <a
+href="frame.html">frame</a>.   Note that  this does  not result  in an
+immediate  recalculation  of axis  ranges  or  anything  else: only  a
+reference to the created graph  is stored in the frame, and everything
+will be calculated at the last  point, when the canvas is printed to a
+terminal.
+
+<p>  If no  other arguments  are provided  for  the <tt>plot(...)</tt>
+command,  all columns of  the datafile  will be  read into  the graph.
+Otherwise you have to provide  at least 2 further arguments (which are
+ <a href="function.html">functions</a>).   These  determine, which
+columns (or what  combinations of which columns) of  the datafile will
+be read into  the graph.  The number of  these arguments determine the
+number of  columns in the created  graph (for example if  one wants to
+plot data with errorbars, this  drawstyle requires the graph to have 3
+columns  (the x-value,  the  y-value and  the  error), so  one has  to
+provide 3 arguments after  the filename to the <tt>plot</tt> command).
+These functions  will be  called for each  line of the  datafile, with
+their 1st  argument being the  value of the  first field in  the line,
+their 2nd  argument being the value  of the second field  in the line,
+etc.  The special functions  <tt>_1</tt>, <tt>_2</tt>, ...  etc - when
+evaluated  with many  arguments  -,  return their  1st,  2nd, ...  etc
+argument,  so these can  be used  to refer  to the  1st, 2nd,  ... etc
+column   of    the   datafile.    The special function <tt>_0</tt>
+evaluates to the current linenumber (0-based) of the file. 
+See   the    documentation   of   <a
+href="function.html">functions</a>  about the  possibilities  (you can
+plot functions written  in C/C++ as well, so  there are practically no
+limits), and for more details.
+
+<p> The <tt>plot</tt> and  <tt>mplot</tt> functions return a reference
+to the created graph, so  further operations (setting the style of the
+graph)       can        be       called       on        it:       <br>
+<tt>plot("datafile",_1,_2).drawstyle(lines()).linewidth(1.5*MM);</tt><br>
+
+<p>This is a short example how to plot several files from a loop, if
+you have the files 'data_xx.dat', where 'xx' is an index (always two digits):
+<pre>
+color c[] = {black, red, green, blue};
+int i=0; 
+for(var file="data_08.dat"; file(5,6) < 12; file(5,6)++)
+{
+  mplot(file).ds(points()).pointcolor(c[i++]);
+}
+</pre>
+Or another way (in this example you must have the files 'data_8.dat',
+'data_9.dat', 'data_10.dat', etc).
+<pre>
+for(int i = 8; i < 12; ++i)  
+{
+  mplot("data_" & i & ".dat");
+}
+</pre>
+
+<p> If you want to provide the data to be plotted in the script file,
+and you want to reuse it, the recommended way is to store it in a
+variable:
+<pre>
+var data = "&lt;&lt;
+  1 2 3
+  4 5 6
+  7 8 9";
+mplot(data,_1,_2).ds(lines());
+mplot(data,_1,_3).ds(lines());
+</pre>
+
+<p><div class=sectiontitle><a  name="array">Plotting  data   stored  in  an  array</a></div>
+
+<p>Numerical data stored in an <a href="array.html"><tt>array</tt></a> or
+in  a <tt>std::vector&lt;var&gt;</tt>  can  be also  plotted with  the
+following functions:
+
+<pre>
+dgraph &plot(int n, double *x, [double *y, double *z, double *w,]
+	     const function &amp;f1[=unset],
+	     const function &amp;f2=unset,
+	     const function &amp;f3=unset,
+	     const function &amp;f4=unset);
+
+dgraph &plot(int n, var *x, [var *y, var *z, var *w,]
+	     const function &amp;f1[=unset],
+	     const function &amp;f2=unset,
+	     const function &amp;f3=unset,
+	     const function &amp;f4=unset);
+
+dgraph &plot(const vector&lt;var&gt; &x, [const vector&lt;var&gt; &amp;y, const vector&lt;var&gt; &amp;z, const vector&lt;var&gt; &amp;w,]
+	     const function &amp;f1[=unset],
+	     const function &amp;f2=unset,
+	     const function &amp;f3=unset,
+	     const function &amp;f4=unset);
+</pre>
+
+<p>The expression <pre>[double *y, double *z, double *w,]</pre> in the above
+function declarations means, for example, that there is a version of
+this function with only one array (double *x), and also with 2,3 and 4
+arrays. In the case of the function with only a single array, at least
+the first of the transformation functions (f1) must be provided
+(which can have several components...) because one can not plot a
+single column, one needs at least 2 columns to be plotted (x/y values)
+
+<p>All of these functions have  an <tt>mplot</tt> version as well (see
+above). These  functions create a  <tt>dgraph</tt>, store it  into the
+current frame,  and return a reference to  the created <tt>dgraph</tt>
+for further properties to be set.
+
+<p>The arguments <tt>f1</tt> ... <tt>f4</tt>  can be used to carry out
+a transformation on the provided  data values before storing them into
+the dgraph. The special  function <tt>_0</tt> evaluates to the running
+index  in  the  arrays  (0-based), and  <tt>_1</tt>,  <tt>_2</tt>  etc
+evaluate to  the current value  of the <tt>x</tt>, <tt>y</tt>  ... etc
+arrays. See the <a href="function.html">documentation of functions</a>
+to learn more about functions.  The following code for example creates
+a dgraph with 2 columns: 
+
+<pre>array x;
+// ... fill this array somehow
+plot(x,_0*10,_1); // plot the values of the array versus 10 times the index</pre>
+
+<p><a  name="dgraph"><div class=sectiontitle>Plotting a  self-prepared  dgraph</div></a> 
+
+<p>The
+<tt>plot</tt>  and <tt>mplot</tt>  commands also  exist with  a single
+<tt>dgraph</tt>  argument.  In this  case  the  user  can prepare  his
+<tt>dgraph</tt>  in  any  way,  and  then plot  this  graph  by  these
+functions.  In this  case care  has to  be taken  about  the following
+points:
+<ul>
+<li> The  scope of the <tt>dgraph</tt>  should not expire  by the time
+when the  canvas is printed to  a terminal. Otherwise  the canvas (the
+frame in  it) will  have an invalid  pointer to an  already desctucted
+object, causing a segfault:
+<pre>if(some_condition)
+{
+  dgraph g;
+  g.add(1,1);
+  g.add(2,2);
+  mplot(g);   // store a pointer to 'g' in the current frame
+
+}  // the variable 'g' is deleted here (C++), current frame
+   // stores an invalid pointer
+... 
+blopeps::print("output.beps");  // ==> segfault </pre>
+
+<li>Keep in  mind, that  both <tt>plot</tt> and  <tt>mplot</tt> simply
+store a  pointer in the current frame  to the dgraph. That  is, in the
+following code  (which seems  to plot the  same graph twice,  with two
+different styles),  the same graph  is plotted indeed twice,  but with
+the  same  drawstyle  (since  the  second  plot  command  returns  the
+reference to the same dgraph, and the <tt>drawstyle</tt> command on it
+will set (overwrite) its drawstyle:
+<pre>dgraph g;
+g.add(1,1);
+g.add(2,2);
+mplot(g).drawstyle(lines());
+mplot(g).drawstyle(points()); // plots g once more, but overwrites g's drawstyle
+</pre>
+</ul>
+
+<p><a name="block"><div class=sectiontitle>Plotting  a block of  a datafile</div></a>
+
+<p> Blocks
+in a  data file are continuous  regions of data, which  are limited by
+empty  lines.  To  plot  only  a  given  block  of  a  file,  use  the
+<tt>block(int)</tt> member function of <tt>dgraph</tt>:
+<pre>plot("datafile").block(2);</pre>
+The first  part of this  statement will create  a dgraph and  read the
+whole  content of  "datafile" into  this graph,  the second  part will
+remove all data from this graph, which is outside of the 2nd block.
+
+<p><a name="settingsinfile"><div class=sectiontitle>Settings in the datafile</div></a>
+
+<p>
+It is possible to store settings in a datafile. In the future many
+possibilities will be included. These will be single lines in the
+datafile, introduced by a double hashmark, followed by a command. 
+These are currently available:
+
+<dl>
+
+<dt>##LEGEND:</dt>
+<dd>The rest of the line will be used as the legend of the plot</dd>
+
+<dt>##XRANGE:<br>
+##YRANGE:</dt>
+<dd>Two numbers must follow, they specify the x/y range, respectively</dd>
+
+<dt>##TITLES:</dt>
+<dd>The rest of the line will be used to specify the axis titles. For example,
+with the following line:
+<pre>##TITLES: "time [ns]"  "distance" "velocity"</pre>
+if one plots the file containing this line, the axis titles will be
+automatically set:
+<pre>plot("file",_1,_3);    // xtitle: "time [ns]", ytitle: "velocity"
+plot("file",_1,_3*_3); // xtitle: "time [ns]", ytitle: "velocity*velocity"</pre>
+The titles specified on this line are transformed to LaTeX using the
+<a href="bloputils.h.html#tolatex"><tt>tolatex</tt></a> function (that is,
+all LaTeX-specific control characters, like $, _, etc are escaped)
+</dd>
+
+<dt>##LTITLES:</dt>
+<dd>The same as ##TITLES:, but the LaTeX control characters are not
+escaped. The text can contain any valid LaTeX input </dd>
+
+
+</dl>
+
+<p><a name="custom"><div class='sectiontitle'>Customized plotting of anything</div></a>
+
+<p>Let me first show the problem which has lead to this feature. I had
+a compiled simulation program, which produced a lot of data (values on
+a  3D  mesh).  At  the  end  of the  simulation  I  wanted  to make  a
+possibility to visualize  it: plot 1D or 2D graphs  (data along a line
+or a plane of the 3D space). One option would be to dump all this data
+into  a file,  which  contains the  following  columns: x  y z  value.
+Visualizing this data  afterwards from a blop script  is possible; for
+example   to  show   data  on   a  x-y   plane,  one   could   use  <a
+href="plotting-data.html#condition">conditional
+plotting</a> (plot data  of columns 1,2,4 requiring that  the value of
+the 3rd column (z) has  a certain value).  This is, however, extremely
+slow: blop will first of  all read the whole file (unnecessarily), and
+reject those lines, which do  not fit the condition.  Second, there is
+a lot  of double&lt;-&gt;string  conversion. Another problem  is, that
+the coordinates  might not be chosen  to be on  an equal-distance mesh
+with 'easy' values.  That is, the z values  are for example 1.423e-32,
+0.53689, 1.07378, etc. It is  difficult to remember these numbers (and
+to guess correctly the exact format, in which it was written out), and
+to          impose          the         constraint          correctly:
+<pre>plot_if("datafile",_3==0.53689,_1,_2,_4).ds(cboxes());</pre>
+
+<p>
+So it  would be  better to  plot data directly  from memory,  from the
+compiled program. If the data is stored in a 3D array, one can fix the
+index of the z coordinate, and  loop over only the necessary values in
+the  so-specified x-y plane.  No problem,  one can  do this,  create a
+graph and plot  it from the compiled program. However,  I want to have
+the  possibility  to set  the  scale,  set  the axis  titles,  colors,
+pointstyles, etc  - <u>interactively</u>. That  is, at the end  of the
+simulation      I      want      to      run     the      blop      <a
+href='cint.html'>interpreter           from          the
+compiledprogram</a>. But the interpreter knows nothing about functions
+and data in the compiled program. One would need a mechanism to make a
+link   between   the  compiled   program's   data/functions  and   the
+interpreter. This can be done in the following way:
+<ul>
+<li>Create  a class  in the  compiled program,  which is  derived from
+<tt>plotcmd_interpreter</tt>.   This   class   has   to   define   the
+<tt>plottable&nbsp;*run(const&nbsp;var&nbsp;&amp;cmd)</tt>       member
+function:
+<pre>class myinterpreter : public plotcmd_interpreter
+{
+  public:
+    plottable *run(const var &cmd);
+};</pre>
+<li>This <tt>run</tt>  function should do  the real job:  depending on
+its argument (<tt>cmd</tt>),  it should read data from  the memory, or
+do    whatsoever,    and   create    a    graph    (normally   a    <a
+href="dgraph.h.html"><tt>dgraph</tt></a>), and  return its pointer. It
+can also return a 0-pointer. 
+<li>Set this interpreter to be used:
+<pre>plotcmd_interpreter::set(new myinterpreter);</pre>
+<li>Now everything is  set up. One can start  the interpreter from the
+compiled program:
+<pre>G__setothermain(0);
+G__main(argc, argv);</pre>
+Within this interpreter one can then call the
+<pre>plotcmd(const var &cmd);
+mplotcmd(const var &cmd);</pre>
+functions.   These   will   do   exactly  what   one   expects:   call
+myinterpreter's run function, and plot the graph that it has created
+</ul>
+
+
+
+<p><a name="many"><div class=sectiontitle>Plotting many files (using a filename pattern)</div></a>
+
+<p>Several data files can be plotted with a single command, using a
+filename pattern, which is evaluated by the shell (using the command
+<tt>echo pattern</tt>). The returned object (<tt>plottables</tt>, in
+plural) is a 'collection' of graphs, calling style-changing functions
+on it (for example <tt>drawstyle</tt>, etc) changes all the graphs' style).
+
+<pre>plottables &plot_many(const var &filename_pattern,
+                      const function &f1, 	  
+                      const function &f2=unset, 	  
+                      const function &f3=unset, 	  
+                      const function &f4=unset, 	  
+                      const function &f5=unset, 	  
+                      const function &f6=unset);
+plottables &mplot_many(const var &filename_pattern,
+                      const function &f1, 	  
+                      const function &f2=unset, 	  
+                      const function &f3=unset, 	  
+                      const function &f4=unset, 	  
+                      const function &f5=unset, 	  
+                      const function &f6=unset);</pre>
+
+By default (if you do not call any color-changing function), they are
+displayed with automatically alternating colors. For example, plot all
+.dat files with linespoints, and a sequence of colors:
+<pre>plot_many("*.dat").ds(linespoints())</pre>
+
+<p><a name="groups"><div class=sectiontitle>Plotting many graphs from a single file (grouping by values)</div></a>
+
+<p>Imagine the situation that a data file contains the x,y values in
+the first two columns, and a parameter in the third column. We would
+like to plot the x,y values for each value of this parameter
+separately. This can be done in a complicated loop (selecting those
+lines from the file, where the 3rd column takes a certain value). But
+this is cumbersome. There is an easier way to do this in blop:
+
+<pre>plot_groups(const var  &filename,
+          const function &grouping_value,
+          const function &f1 = unset, ..., const function &f6 = unset);</pre>
+<pre>mplot_groups(const var  &filename,
+          const function &grouping_value,
+          const function &f1 = unset, ..., const function &f6 = unset);</pre>
+
+functions  are the  solution!!!  The argument  <tt>grouping_value</tt>
+specifies the function, which will be called on each dataline, and the
+returned  value will  be used  to identify  the different  groups. For
+example  if  <tt>grouping_value</tt>  is  <tt>_3</tt>,  then  the  3rd
+column's values will identify the groups. This value will be also used
+as the legend of the graphs. Using <tt>_b</tt> or <tt>_B</tt> as the
+grouping value (block numbers) one can plot the data blocks of a file
+(separated by single or double empty lines, respectively) with
+individual graphs. 
+
+<p>To additionally impose a condition on the lines of the datafile, use the
+following functions:
+
+<pre>plot_groups_if(const var  &filename,
+             const function &grouping_value,
+             const function &condition,
+             const function &f1 = unset, ..., 
+             const function &f6 = unset);</pre>
+<pre>mplot_groups_if(const var  &filename,
+             const function &grouping_value,
+             const function &condition,
+             const function &f1 = unset, ..., 
+             const function &f6 = unset);</pre>
+
+The function '<tt>condition</tt>' will be evaluated on each line, and
+only those lines will be accepted, for which this function returns non-0
+
+<p>If one wants to plot for example the first two columns (y versus x) 
+for different values of the 3rd column separately, but only for a
+certain set of the values of the 3rd column, one can use the
+<a href="function.html#contained_in"><tt>contained_in</tt></a> function as the condition:
+
+<pre>plot_many("filename", _3, contained_in(split("1 2 3 4"))(_3), _1, _2);</pre>
+
+Well, this example would not run interactively due to some bugs in
+CINT, but a workaround for this is to write:
+
+<pre>function condition = contained_in(split("1 2 3 4"));
+condition = condition(_3);</pre>
+
+What is this all, please? Let's go step by step:
+<ul>
+<li>The split("1 2 3 4") command produces an array consisting of these
+4 numbers
+<li>The <tt>contained_in</tt> function's argument should be a
+<tt>function</tt> (blop's function), so this array will be
+automatically converted to a function (via its constructor), which
+will have these constants as its return-values
+</ul>
+
+<p>Currently the user can not specify the drawstyle of these graphs,
+they are automatically determined in a sequential order (color and
+pointtype changes). Later versions will allow this somehow.
+
+
+
+<p><a name="ignore"><div class=sectiontitle>Ignoring data points from the file</div></a>
+
+<p>One often wants to ignore certain data points in a datafile. For
+example, if one plots the output file of a C program, it might contain
+values like <tt>nan</tt> or <tt>inf</tt>, which - in most cases -
+should be simply ignored. Values to be ignored can be added one-by-one
+to a global list by calling
+<pre>ignore::add("value");</pre>
+After this call any subsequent <tt>plot("filename",...)</tt> commands
+will feel this effect. By default, the following values are contained
+in the ignore list: nan, inf, -inf. 
+
+
+<p><a name="condition"><div class=sectiontitle>Plotting     data      satisfying     a
+condition:</div></a>  can   be  done  using   the  following functions. 
+
+<pre>plot_if(const var &filename, const function &condition, const function &col1, const function &col2 [,const function &col3, const function &col4]);
+mplot_if(const var &filename, const function &condition, const function &col1, const function &col2 [,const function &col3, const function &col4]);</pre>
+
+The second  argument (a function) will  be called on each  data row of
+the file (the 1st argument being  the first entry in the row, etc). If
+this function returns non-0 value, that data row will be plotted. 
+
+<p>In the case of many drawstyles the 'continuity' of the input data
+is also important. For example the <tt>lines</tt> style will normally
+break the continuous line at empty lines of data. In the case when one
+plots data with a condition, the following happens:
+<ul>
+<li>At empty lines, commented lines (beginning with #), and lines
+containing a value to be <a href="#ignore">ignored</a> the data is
+broken, as for normal plotting
+<li>At lines not satisfying the condition the data will be broken
+according to a flag, which can be set via the static
+<tt>dgraph::falsecondition_break(bool)</tt> function. The default
+value is false for this.
+</ul>
+
+Be careful, however, setting this flag to true. If your data is the
+following, for example:
+<pre>0 0 123
+0 1 234
+1 0 342
+1 1 342
+2 0 12
+2 1 43</pre>
+then the following piece of code (which plots column 3 vs column 1 for
+those lines, where col2 == 0) will produce an empty plot:
+<pre>dgraph::falsecondition_break(true);
+plot_if("data",_2==0.0,_1,_3).ds(lines());</pre>
+Why? Because the data is non-continuous in the 2nd column, and every
+second line will be skipped due to a false condition, producing a
+breakpoint in the data - and also in the line to be plotted. However,
+a line with only single separated points can not be drawn. It requires
+at least 2 consecutive points without an intermediate breakpoint;
+
+<p>In the example below the 3rd column of the file is plotted vs.  the
+2nd column, for  those rows, where the entry in  the first column (_1)
+is less than 2.
+
+<pre>plot_if("filename", _1&lt;2, _2, _3).drawstyle(points());</pre>
+
+Such conditions, which could not be realized this way, can be done for
+example using auxiliary programs, such as awk:
+
+<pre>plot("awk 'some_condition {print}' filename |");</pre>
+
+
+<p><div class='sectiontitle'><a name="permanent">Making graphs permanent</a></div>
+
+<p>As explained somewhere else, every <tt>plot(...)</tt> command clears
+the previously plotted graphs, and one needs to call
+<tt>mplot(...)</tt> in order to plot over existing graphs. Imagine,
+however, the situation, that you have a reference curve, which you
+would like to have always on your figure, and plot other curves on top
+of this. Then you should first <tt>plot(...)</tt> your reference curve
+(this clears all previous graphs), and then <tt>mplot(...)</tt> your
+other curve. This is cumbersome. 
+
+<p>To make your life easier, blop can make graphs permanent: they will
+not be erased at the <tt>plot(...)</tt> commands (only the
+non-permanent graphs). Therefore, plot your reference curve like this:
+
+<pre>plot("datafile").permanent(true);</pre>
+
+After this, every subsequent <tt>plot(...)</tt> commands will erase
+all other graphs, except this one. 
+
+<p><div class='sectiontitle'><a name="ordering">Ordering of graphs</a></div>
+
+<p>Normally, graphs are plotted on top of each other in the same order
+as they are plotted. You can change this:
+
+<pre>plot("datafile").level(10);</pre>
+
+Graphs with higher level will be plotted on the top of other graphs
+with lower levels. The default level is 10. 
+
+<p><div class='sectiontitle'><a name="dup">Duplicating graphs</a></div>
+
+<p>The drawstyles in blop are usually written for a single purpose:
+draw the graph with lines or points or histogram, etc - but not
+combined. If one wants to have a combined effect (like plotting data
+with a histogram style AND also errorbars), one has to plot the same
+data twice, once with both drawstyles. To make this task easier, the
+graphs implement the <tt>dup</tt> member function: this funcion
+duplicates the given graph with its current settings, and adds it to
+the same frame. It returns a reference to the duplicate, so any
+further settings influence the second instance. For example, to plot
+data with histogram and errorbars:
+
+<pre>plot("datafile",_1,_2,_3).ds(histo()).dup().ds(syerrorbars());</pre>
+
+Note that in the plot command you need to specify all columns which
+are needed by any of the two drawstyles. The histo drawstyle only
+needs the first two columns, so it will ignore the 3rd one. It will
+only be used by syerrorbars (of course one can omit the specification
+of the columns, then all columns of the datafile will be read and
+available for the drawstyles) This will of course create a legend for
+both instances, you may want to set one of those to empty:
+
+<pre>plot("datafile",_1,_2,_3).ds(histo()).legend("some data")
+    .dup().ds(syerrorbars()).legend("");</pre>
+
+Or, alternatively, you can switch to <a
+href="legendbox.html#multi">multilegend mode</a> (in this case set the
+legend for the first instance - that is, before the .dup() command -
+so that the second instance inherits this legend)
+
+<pre>set::multilegend(true);
+plot("datafile").ds(histo()).legend("some data").dup().ds(syerrorbars());</pre>
+
+
+
+<p><div class='sectiontitle'><a name="prev">Accessing data from previous line</a></div>
+
+One often wants to refer to the data from the previous line(s) of a data
+file, for example plot the difference between subsequent numbers in
+the second column, as a function of the first column. This can be done
+using the special function <tt>PREV</tt>:
+
+<pre>plot(datafilename,_1,_2-_2(PREV(1)));</pre>
+
+<tt>PREV(n)</tt> creates a function, which returns its arguments from
+the <tt>n</tt>th previous call. When evaluated on a data file, this
+would be the <tt>n</tt>th previous line. The value of <tt>n</tt>
+defaults to 1. <tt>_2(PREV(2))</tt> is then just an argument substitution:
+evaluate the 2nd value from the previous line.
+
+</div>
+<hr>
+<pre class=implementation>
+Source files (to see a list of all plot, mplot, plot_if, mplot_if functions)
+   <a href="plot.h.html">plot.h</a>
+   <a href="plot.cc.html">plot.cc</a>
+</pre>

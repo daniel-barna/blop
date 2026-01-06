@@ -1,0 +1,193 @@
+#!/bin/bash
+
+# short description: convert .beps files to .png
+
+. @config@
+
+resolution=200
+transparent="";
+inputfile=""
+outputfile=""
+quiet=false;
+
+help()
+{
+cat <<EOF
+
+Usage: beps2png [any beps2eps option] [-t|--transparent <color>] inputfile [outputfile]
+
+   -t|--transparent <color>   the provided color (for example: ffffff) 
+                          is taken to be transparent
+
+   -r <number>            specify the resolution of the png file in dpi
+                          default is $resolution
+
+   for the beps2eps options say: beps2eps --help
+
+   Return code:
+     0   - in case of success
+     1   - no inputfile specified
+     2   - inputfile does not exist
+     3   - mktemp failed
+     6   - convert failed
+     or the error code of beps2eps, if that failed
+EOF
+}
+
+if [ $# -lt 1 ] ; then
+    echo Filename expected 1>&2
+    help;
+    exit 1;
+fi
+
+if [ "$1" = "--help" ] ; then
+    help;
+    exit;
+fi
+
+if [ "$1" = "-h" -a $# = 1 ] ; then
+    help;
+    exit;
+fi
+
+tmpfiles=""
+abort()
+{
+    if [ "$tmpfiles" != "" ] ; then rm -f $tmpfiles; fi
+    exit $1
+}
+trap abort 0 1 2 3 7 13 15
+
+beps2eps_options=();
+
+
+
+
+
+while [ $# -gt 0 ] ; do
+    # ask beps2eps if it accepts this cmd line arg
+    resp=`beps2eps --cmd-line-arg-accepted $1`
+    # if yes, store it into the beps2eps_options variable
+    if [ "$resp" != "" ] ; then
+        #echo beps2eps accepts argument $1, needs $resp more
+        beps2eps_options+=("$1");
+        for i in `seq 1 $resp`; do
+            shift;
+            beps2eps_options+=("$1");
+        done
+    else
+        case $1 in
+            -t|--transparent) 
+                case $2 in
+                    \#*) transparent="-transparent $2";;
+                    *) transparent="-transparent #$2";;
+                esac
+                shift;;
+            -r) resolution=$2; shift;;
+            *)  if [ "$inputfile" = "" ] ; then
+                    inputfile=$1
+                else
+                    outputfile=$1
+                fi ;;
+        esac
+    fi
+    shift;
+done
+
+if [ "$inputfile" = "" ] ; then
+  echo No inputfile specified
+  abort 1;
+fi
+
+if [ ! -e "$inputfile" ] ; then
+  echo Inputfile "$inputfile" does not exist
+  abort 2;
+fi
+
+if [ "$outputfile" = "" ] ; then
+  outputfile=`basename $inputfile .beps`.png
+fi
+
+input_full=`readlink -f "$inputfile"`
+output_full=`readlink -f "$outputfile"`
+if [ "$input_full" = "$output_full" ] ; then
+   echo "ERROR: both input and output point to the same file"
+   abort 3   
+fi
+
+tmp1=`mktemp /tmp/beps2png-1-XXXXXX`
+if [ $? -ne 0 ] ; then
+  echo Temprary file creation failed
+  abort 3;
+fi
+tmpfiles="$tmpfiles $tmp1"
+
+if [ $quiet = true ] ; then
+  beps2eps_output=$(beps2eps "${beps2eps_options[@]}" "$inputfile" "$tmp1" 2>&1)
+  beps2eps_code=$?
+else
+  beps2eps "${beps2eps_options[@]}" "$inputfile" "$tmp1"
+  beps2eps_code=$?
+fi
+
+if [ $beps2eps_code -ne 0 ] ; then
+  echo $beps2eps_output
+  echo %%%
+  echo %%% beps2eps failed
+  echo %%%
+  abort $beps2eps_code
+fi
+
+convert $transparent -density $resolution "$tmp1" png:"$outputfile"
+if [ $? != 0 ] ;then
+  echo The following command failed:
+  echo convert $transparent -density $resolution $tmp1 $outputfile
+  abort 6
+fi
+rm -f $tmpfiles
+exit 0;
+
+# old code. never managed to make the png size be correct..... so switched instead to 'convert'
+
+tmp2=`mktemp /tmp/beps2png-2-XXXXXX`
+tmpfiles="$tmpfiles $tmp2"
+if [ $? -ne 0 ] ; then
+  exit 3;
+fi
+
+# get the bounding box from the intermediary .eps file
+width=`awk '$1=="%%BoundingBox:" {print $4-$2; exit;}' $tmp1`
+height=`awk '$1=="%%BoundingBox:" {print $5-$3; exit;}' $tmp1`
+PAPERSIZE="-dDEVICEWIDTHPOINTS=$width -dDEVICEHEIGHTPOINTS=$height"
+
+echo papersize = $PAPERSIZE
+
+if [ $quiet = false ] ; then
+             gs -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1
+else
+  gs_output=`gs -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1 2>&1`
+fi
+
+if [ $? -ne 0 ] ; then
+  echo $gs_output
+  echo %%%
+  echo %%% gs failed
+  echo %%%
+  exit 6
+fi
+
+#pnmcrop -white $tmp2 | pnmtopng $transparent  > $outputfile
+cat $tmp2 | pnmtopng $transparent  > $outputfile
+
+if [ $? -ne 0 ] ; then
+  echo %%%
+  echo %%% pnmcrop or pnmtopng failed
+  echo %%%
+  exit 7
+fi
+
+rm -f $tmpfiles
+
+exit 0;
+
+

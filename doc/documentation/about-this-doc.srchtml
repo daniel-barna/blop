@@ -1,0 +1,42 @@
+TITLE: About this documentation
+PREV: NONE
+NEXT: design-concepts.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<p>  (Almost)  every  section  in  this documentation  begins  with  a
+practical guide (in  this font color). This is  a <u>short</u> section
+with a few  typical examples, which - by intuition  - make it possible
+to figure out how to do the most usual tasks, without having to browse
+the whole section with more details.
+
+</div>
+<hr>
+
+<div class=description>
+
+<p> The second part of the  sections is a more detailed explanation of
+the  given class  or  topic. Reading  this  part should  be enough  to
+understand the usage of everything.
+
+</div>
+<hr>
+
+<div class=implementation>
+
+<p>The third  part gives you  details of the implementation,  and such
+details, which  are usually  not needed in  the daily work.  Skip this
+part, unless you want to figure  out how blop works in the background,
+you want  to discover the solution for  a bug, you want  to write some
+extensions, etc. Also, this section gives links to the source files.
+
+</div>
+
+<hr>
+
+Fonts:
+<ul>
+<li>Normal text is typeset with this font
+<li><tt>Piece of code</tt>, or a <tt>function</tt> or <tt>variable</tt> name is typeset in this font
+</ul>

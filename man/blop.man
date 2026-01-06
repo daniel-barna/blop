@@ -1,0 +1,26 @@
+.TH blop 1 10.10.2006 D.Barna Blop plotting utility
+.SH NAME
+Blop \- A LaTeX oriented plotter
+.SH SYNOPSIS
+.B blop 
+[-h|--help] [-x c++command] [-s variable=value] c++script1.C c++script2.C ...
+.SH DESCRIPTION
+.
+.br
+For more information, type at the shell prompt:
+.br 
+blop -h documentation   -- to see the documentation
+.br 
+blop -h                 -- to get a quick description on cmd
+                           line arguments
+.PP
+Or see the webpage;
+See http://blopplot.sourceforge.net
+
+.SH AUTHOR
+Daniel Barna <barnad@users.sourceforge.net>
+
+.SH BUG REPORTS
+.hlm 0
+Report bugs, and send feqture request to the mailing list:
+http://blopplot.sourceforge.net/mailing.html

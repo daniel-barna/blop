@@ -1,0 +1,302 @@
+#include "svg.h"
+#include "blop_bookkeeper.h"
+#include <iostream>
+using namespace std;
+
+namespace blop
+{
+    void svg::open(const var &filename)
+    {
+	file1_.close();
+	file2_.close();
+	filename1_ = filename.str();
+	filename2_ = blop_bookkeeper::tmpfile("svg-XXXXXX");
+	file1_.open(filename1_.c_str());
+	file2_.open(filename2_.c_str());
+    }
+
+    svg::svg(const var &filename, double width, double height)
+	: width_(width), height_(height)
+    {
+	open(filename);
+    }
+
+    svg::svg(const svg &rhs)
+    {
+	cerr<<"This should not be called"<<endl;
+    }
+
+    svg::~svg()
+    {
+    }
+
+    int svg::newlength()
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::overwrite(int i, double f1,const terminal::id &i1)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+    int  svg::overwrite(int id,
+			double f1,const terminal::id &i1,
+			double f2,const terminal::id &i2)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+
+    int  svg::lincombi(double_id f,const terminal::id &i)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::lincombi(double_id f1,const terminal::id &i1,
+		       double_id f2,const terminal::id &i2)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+	
+    int  svg::lincombi(const std::vector<double> &f,
+		       const std::vector<blop::terminal::id> &id)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }	
+	
+
+    int  svg::maxlength(const std::vector<blop::terminal::id> &id)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::minlength(const std::vector<blop::terminal::id> &id)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+
+    int  svg::textwidth (const string &,double angle)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::textheight(const string &,double angle)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::textlheight(const string &,double angle)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+    int  svg::textsize  (const string &,double angle)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+    int svg::max_textwidth (const std::vector<std::string>&)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int svg::max_textheight(const std::vector<std::string>&)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int svg::max_textlheight(const std::vector<std::string>&)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+    void svg::write_header_()
+    {
+	file1_<<"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>"<<endl;
+	file1_<<"<!-- Created with blop (http://blopplot.sourceforge.net/) -->"<<endl;
+	file1_<<"<svg"<<endl;
+	file1_<<"   xmlns:svg=\"http://www.w3.org/2000/svg\""<<endl;
+	file1_<<"   xmlns=\"http://www.w3.org/2000/svg\""<<endl;
+	file1_<<"   version=\"1.0\""<<endl;
+	file1_<<"   width=\""<<width_<<"\""<<endl;
+	file1_<<"   height=\""<<height_<<"\""<<endl;
+	file1_<<"   id=\"blop_svg\">"<<endl;
+
+        file1_<<"  <script type=\"text/ecmascript\" id=\"blop_svg_script\">"<<endl;
+        file1_<<"    function textwidth(txtid)"<<endl;
+	file1_<<"    {"<<endl;
+	file1_<<"       document.getElementById(txtid).....";
+	file1_<<"    }"<<endl;
+	file1_<<"  </script>"<<endl;
+	
+    }
+
+    void svg::picture_begin()
+    {
+	max_length_index_ = 0;
+	max_text_index_ = 0;
+	max_line_index_ = 0;
+
+	write_header_();
+
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::picture_end()
+    {
+	file2_<<"</svg>"<<endl;
+	file2_.close();
+	ifstream f(filename2_.c_str());
+	string line;
+	while(getline(f,line)) file1_<<line<<endl;
+	file1_.close();
+    }
+
+    void svg::subpicture_begin(const coord &lower_left,
+			       const coord &upper_right)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::subpicture_end()
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+
+    void svg::draw_dot(const coord &pos)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::draw_text(const coord &position,
+			const string &s,
+			int xalign,
+			int yalign,
+			const blop::terminal::id &dx,
+			const blop::terminal::id &dy,
+			bool rotatedsystem)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::draw_arc(const coord &center, const id &r,
+		       double ang1,
+		       double ang2)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }	
+    void svg::fill_arc(const coord &center, const id &r,
+		       double ang1,
+		       double ang2)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+
+    void svg::draw_line   (const coord &c1,const coord &c2)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::draw_lines  (const std::vector<blop::terminal::coord> &c)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::draw_rlines (const blop::terminal::coord &start,
+			   const std::vector<blop::terminal::id> &x,
+			   const std::vector<blop::terminal::id> &y)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::fill_polygon(const std::vector<blop::terminal::coord> &c)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::reset_transformation()
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::translate(const id &, const id &)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::rotate   (double angle)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::rotate   (const id &, const id &)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }	
+    void svg::scale    (double s)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::scale    (double xscale, double yscale)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::scale    (const id &xfrom, const id &xto,
+			const id &yfrom, const id &yto)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+
+    void svg::set_color(const color &c)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::set_linewidth(const id &)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+    void svg::set_linestyle(sym::linestyle)
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+
+
+    int  svg::atan(const id &x,const id &y)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::add_dbl(const double_id &, const double_id &)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::sin_dbl(int)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::cos_dbl(int)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+    int  svg::neg_dbl(int)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return 0;
+    }
+
+    bool svg::clip(const coord &lower_left,
+		   const coord &upper_right)
+    {
+	cerr<<"not yet implemented"<<endl;
+	return false;
+    }
+
+    void svg::noclip()
+    {
+	cerr<<"not yet implemented"<<endl;
+    }
+
+}
+

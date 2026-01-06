@@ -1,0 +1,137 @@
+#include "warning.h"
+#include "spline.h"
+#include "constants.h"
+
+namespace blop
+{
+
+    void spline_derivs(const double x[],const double y[], int n,
+		       double yp1, double ypn, double y2[])
+    {
+	int i,k;
+	double p,qn,sig,un,*u;
+	u = new double[n+2];
+
+	if(yp1 > 0.99e30) y2[0] = u[0] = 0.0;
+	else
+	{
+	    y2[0] = -0.5;
+	    u[0] = (3/(x[1]-x[0])) * ((y[1]-y[0])/(x[1]-x[0])-yp1);
+	}
+	
+	for(i=1; i<n-1; ++i)
+	{
+	    sig=(x[i]-x[i-1])/(x[i+1]-x[i-1]);
+	    p = sig*y2[i-1]+2;
+	    y2[i] = (sig-1)/p;
+	    u[i] = (y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
+	    u[i] = (6*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p;
+	}
+	if(ypn > 0.99e30) qn = un = 0;
+	else
+	{
+	    qn = 0.5;
+	    un = (3/(x[n-1]-x[n-2]))*(ypn-(y[n-1]-y[n-2])/(x[n-1]-x[n-2]));
+	}
+	y2[n-1] = (un-qn*u[n-2])/(qn*y2[n-2]+1);
+
+	// eddig
+	for(k=n-2; k>=0; --k)
+	{
+	    y2[k] = y2[k]*y2[k+1]+u[k];
+	}
+	delete [] u;
+    }
+
+    function make_spline(const array &x, const array &y)
+    {
+	int n = min(x.size(),y.size());
+	double *xa = new double[n];
+	double *ya = new double[n];
+	for(int i=0; i<n; ++i)
+	{
+	    xa[i] = x[i].dbl();
+	    ya[i] = y[i].dbl();
+	}
+	function result = make_spline(xa,ya,n);
+
+	delete [] xa;
+	delete [] ya;
+
+	return result;
+    }
+
+    function make_spline(const vector<double> &x, const vector<double> &y)
+    {
+	int n = min(x.size(),y.size());
+	double *xa = new double[n];
+	double *ya = new double[n];
+	for(int i=0; i<n; ++i)
+	{
+	    xa[i] = x[i];
+	    ya[i] = y[i];
+	}
+	function result = make_spline(xa,ya,n);
+
+	delete [] xa;
+	delete [] ya;
+
+	return result;
+    }
+
+
+    function make_spline(const double xa_orig[], const double ya_orig[], int n_orig)
+    {
+	double *xa = new double[n_orig];
+	double *ya = new double[n_orig];
+
+	int n = 0;
+	for(int i=0; i<n_orig; ++i)
+	{
+	    if(xa_orig[i] != unset && ya_orig[i] != unset)
+	    {
+		xa[n] = xa_orig[i];
+		ya[n] = ya_orig[i];
+		++n;
+	    }
+	}
+
+	if(n < 3)
+	{
+	    warning::print("Less than 3 points: no spline is prepared",
+			   "make_spline(...)");
+	    delete [] xa;
+	    delete [] ya;
+	    return function(0);
+	}
+
+	double *y2a = new double[n];
+
+	double yp1 = (ya[1]-ya[0])  /(xa[1]-xa[0]);
+	double ypn = (ya[n-1]-ya[n-2])/(xa[n-1]-xa[n-2]);
+	spline_derivs(xa,ya,n,yp1,ypn,y2a);
+
+	function result(0.0);
+
+	for(int klo=0; klo<n-1; ++klo)
+	{
+	    int khi = klo+1;
+
+	    double h = xa[khi] - xa[klo];
+	    function a = (xa[khi] - _1)/h;
+	    function b = (_1 - xa[klo])/h;
+
+	    result += charfunc(xa[klo],xa[khi],klo==0,true) *
+		( a*ya[klo] + b*ya[khi] + ((a*a*a-a)*y2a[klo]+(b*b*b-b)*y2a[khi])*h*h/6 );
+	}
+
+	delete [] y2a;
+	delete [] xa;
+	delete [] ya;
+
+	return result;
+    }
+
+
+
+}

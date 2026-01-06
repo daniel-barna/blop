@@ -1,0 +1,37 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{../../../latex/blopeps}
+\usepackage{color}
+\usepackage{pst-node}
+\usepackage[hscale=0.95,vscale=0.95,dvips,a4paper]{geometry}
+\pagestyle{empty}
+
+\begin{document}
+\large
+\parindent=0cm
+
+\begin{minipage}{0.96\linewidth}
+
+\rnode{frameB}{Frame} \hfill 
+\rnode{padlabelB}{Label} \hfill
+\rnode{padB}{Pad}
+\vspace*{1cm}
+
+\fbox{\blopeps[height=0.7\textheight,width=\linewidth]{object-hierarchy.beps}}
+\vspace*{1cm}
+
+\rnode{canvasB}{Canvas} \hspace*{6cm} 
+\rnode{graphB}{Graph} \hfill
+\rnode{legendB}{Legend}
+
+\nccurve[angleA=100]{->}{frameA}{frameB}
+\nccurve[angleA=90,angleB=200]{->}{padlabelA}{padlabelB}
+\nccurve[angleA=100,angleB=200]{->}{padA1}{padB}
+\nccurve[angleA=100,angleB=220]{->}{padA2}{padB}
+\nccurve[angleA=270]{->}{canvasA}{canvasB}
+\nccurve[angleA=300,angleB=160]{graphA1}{graphB}
+\nccurve[angleA=260,angleB=170]{graphA2}{graphB}
+\nccurve[angleA=300,angleB=90]{legendA}{legendB}
+\end{minipage}
+
+
+\end{document}

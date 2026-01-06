@@ -1,0 +1,114 @@
+#!/bin/sh
+
+# short description: load blop help files into a browser
+
+#. @config@
+
+raise_window()
+{
+  if which wmctrl >/dev/null 2>&1 ; then
+    wmctrl -a "$1"
+  else
+    echo "Install wmctrl to automatically raise the browser window and"
+    echo "switch to that desktop"
+  fi
+}
+
+check_app()
+{
+  URL="$1"
+  proc="$2"
+  exec="$3"
+  if [ "$exec" = "" ] ; then exec="$proc"; fi
+  if pgrep -u $USER $proc >/dev/null 2>&1  ; then
+    $exec "$URL" &
+    raise_window $proc
+    exit
+  fi
+}
+
+if [ $# -ne 1 ] ; then
+  echo 1 argument required for blop-helpviewer
+  exit 1
+fi
+
+url="file://$1"
+file=`echo $1 | sed 's/#.*//g'`
+
+if [ "$BLOP_HELPVIEWER" != "" ] ; then
+  cmd=`echo $BLOP_HELPVIEWER | sed "s|%f|$url|g"`
+  $cmd
+  exit
+fi
+
+if [ "$DISPLAY" != "" ] ; then
+  # The user seems to be running an X session. The policy is to try to figure out
+  # whether the user has a running browser. If yes, open in that. Otherwise find
+  # browsers available on the machine, preferring system prefs.
+
+  check_app "$url" chromium-browse chromium-browser
+  check_app "$url" chrome google-chrome
+  check_app "$url" firefox
+  #  ( firefox -remote "openURL(file://$1)" >/dev/null 2>&1 || firefox "file://$1" ) &
+  check_app "$url" rekonq
+  check_app "$url" gnome-help-browser
+  check_app "$url" epiphany-browser
+  check_app "$url" konqueror
+
+  if which xdg-mime >/dev/null 2>&1 && which xdg-open >/dev/null 2>&1 ; then
+    desktop=`xdg-mime query default text/html`
+    if [ "$desktop" != "" ] ; then
+      # open by xdg-open
+      xdg-open "$url" &
+      # and then try to figure out from the desktop file, which app is actually 
+      # launched, so that we can raise that window.
+      if [ -e "/usr/share/applications/$desktop" ] ; then
+        exec=`awk -F= '$1=="Exec" {print $2}' "/usr/share/applications/$desktop" | sed 's/ .*//g'`
+        if [ "$exec" != "" ] ; then
+          proc="$exec"
+          if [ "$proc" = "google-chrome" ] ; then proc=chrome; fi
+          sleep 3s
+          raise_window $proc
+        fi
+      fi
+      exit
+    fi
+  fi
+
+  if which x-www-browser > /dev/null 2>&1 ; then
+    x-www-browser "file://$1" &
+    exit
+  fi
+
+  if which firefox > /dev/null 2>&1 ; then
+    ( firefox -remote "openURL(file://$1)" >/dev/null 2>&1 || firefox "file://$1" ) &
+    exit
+  fi
+
+  if which mozilla > /dev/null 2>&1 ; then
+    ( mozilla -remote "openURL(file://$1)" >/dev/null 2>&1 || mozilla "file://$1" ) &
+    exit
+  fi
+
+  if which gnome-help-browser > /dev/null 2>&1 ; then
+    gnome-help-browser "$1" &
+    exit
+  fi
+
+  if which google-chrome >/dev/null 2>&1 ; then
+    google-chrome "file://$1" &
+    exit
+  fi
+fi
+
+if which lynx >/dev/null 2>&1 ; then
+  lynx $1
+  exit
+fi
+
+if which less >/dev/null 2>&1 ; then
+  less $1
+  exit
+fi
+
+cat $1

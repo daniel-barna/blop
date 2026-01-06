@@ -1,0 +1,36 @@
+TITLE: Let an axis show transformed values of another one
+PREV: axis-cut.html
+NEXT: axis-pos.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+double g = 10; // gravitational constant
+
+set::xtitle("Time [s]");
+set::y1title("Velocity [m/s]");
+set::y2title("Length of fall [m]");
+
+// v = g*t, this is plotted on the y1 axis with plot(_1,g*_1)
+// the length of fall, s = v*v/2/g, v = sqrt(2*g*s)
+// this is the general form:
+frame::current().y2axis()->transform(frame::current().y1axis(), _1*_1/2/g, sqrt(2*g*_1));
+
+// The short-hand version:
+set::y2transform(_1*_1/2/g,sqrt(2*g*_1));
+
+plot(_1,g*_1).legend("Velocity and distance of falling object");
+
+</pre>
+</div>
+
+<hr>
+<div class=description>
+.... under development
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="axis.h.html">axis.h</a>
+   <a href="axis.cc.html">axis.cc</a>
+</pre>

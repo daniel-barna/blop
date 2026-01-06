@@ -1,0 +1,513 @@
+To plot the rows of a datafile fulfilling certain conditions, use plot_if
+For example to plot column 2 versus column 1, where the value of column 3
+is larger than 0 and column 4 is larger than 10:
+plot_if("datafile", _3>0 && _4>10, _1,_2);
+for more info say: blop -h plot_if
+
+%
+To loop over the following datafiles: data1.dat, data2.dat, data3.dat:
+for(var file="data1.dat"; data(4,4)<4; ++data(4,4))
+{
+  mplot(file);
+}
+To see more on substrings, say: blop -h substring
+
+%
+Graphs are normally overlaid on top of each other 
+in the same order as they are plotted. To change this,
+You can use the level(int) member function:
+
+plot("datafile1").ds(points);    // default level is 0
+plot("datafile2").ds(histo).level(-1); 
+
+The second graph (histogram) will appear below the first one
+
+%
+If you want to plot a datafile twice, with two different
+styles, use the .dup() function:
+
+plot("datafile").ds(histo).dup().ds(syerrorbars);
+
+For more on this, see: blop -h dup
+
+%
+To plot a 2D curve satisfying a constraint (for example an
+ellipse: A*x^2 + B*y^2 + C*x*y = E), use the isolines drawstyle:
+
+plot(_1,_2,A*_1*_1+B*_2*_2+C*_1*_2-E).ds(isolines.at(0));
+
+For more info on this, say: blop -h isolines
+
+%
+To switch off the color samples of the cbox, scbox or mosaic
+drawstyle (on the right), use the .legend(bool) function of
+that style:
+
+plot("datafile").ds(cbox.legend(false));
+
+To see more about cbox, say: blop -h cbox
+
+%
+You can create multiple pads (rectangular regions):
+
+mpad &p = mpad::mknew(3,3); // Divide your picture into 3x3
+p.cd(1,1);                  // change to the lower left one
+plot("something");
+p.cd(3,3);                  // change to upper right
+plot("somethingelse");
+
+To learn more about mpads, say: blop -h mpad
+
+%
+To automatically loop over a mpad or mframe, use their cd_next()
+function:
+
+mpad &p = mpad::mknew(3,3);
+for(var i=1; i<=9; ++i, p.cd_next())
+{
+  plot("filename" & i & ".dat");
+}
+
+To learn more about mpad or mframe, say: 
+blop -h mpad
+blop -h mframe
+
+%
+If several graphs have the same legend, you can contract them
+in the legendbox using the multilegend mode (the samples from 
+the different graphs will be put into a common single line)
+
+set::multilegend(true);
+plot("file1").ds(points).pt(fcircle).legend("DATA");
+plot("file2").ds(points).pt(fcircle).legend("DATA");
+
+To learn more about this, say: blop -h multilegend
+
+%
+You can set the names of columns in the datafiles: the file
+should contain a line like that:
+##TITLES: "name of 1st column"  2nd-column "third column"
+In this case the titles of the x- and y-axes will be automatically
+set, based on which column you are plotting. To learn more:
+blop -h columntitle
+
+%
+You can plot many different graphs from the same datafile
+with a single command:
+plot_many("datafile",_3 & " " & _4, _1, _2);
+This, for example, plots the 2nd column versus 1st colum, 
+and differentiates between subsets of the data (putting them
+into different graphs) based on the value of the 3rd column 
+and 4th column, putting a space between. This will also be
+the legend of the different graphs.
+to learn more, say: blop -h plot_many
+
+%
+If your data spans a huge range, with a large unused gap, why 
+don't you cut out this gap?
+
+frame::current().x1axis()->cut(100,1000); // cut out this range
+plot("data_spanning_huge_range_with_no_data_between_100_and_1000.dat");
+
+to learn more about this feature, say: blop -h cut
+
+%
+There is a universal variable type in blop, which mimics perl's 
+data type: it can be used both as a number or as a string:
+
+var a = 1.23;
+a += 2.3;          // increase by a number
+++a;               // increment by 1
+a &= "some text";  // append a string
+
+to learn more, say: blop -h var
+
+%
+You can replace all occurences of a substring in a variable
+of type 'var':
+
+var a = "file1.dat file2.dat file2.dat";
+a.replace(".dat",".eps");
+
+To learn more, say: blop -h replace
+
+%
+Blop's 'array' type gives some more advantage over
+std::vector of C++. It has an associated iterator,
+which stores the current looping position. 
+
+array a = split("1 3 5 7 9 12 13 14");
+for(a.setfirst(); a; ++a) cerr<<a()<<endl;
+
+to learn more about arrays, say: blop -h array
+
+%
+You can access a substring of a string via the () operator
+(In contrary to the C++ string::substr function, this takes
+indices to the first and last character, and not to the first
+character and the length):
+
+var a = "Apple";
+
+a(1,3) evaluates to: "ppl"
+This substring can also be modified:
+
+a(1,3) = "sk m";
+The value of 'a' is now: "Ask me"
+
+to learn more, say: blop -h substring
+
+%
+Blop's 'array' type gives some more advantage over
+std::vector of C++. It can be initialized for example
+to an arbitrary length:
+
+array a = array::make(1)(3)(5)(7)(11);
+
+to learn more about arrays, say: blop -h array
+
+%
+You can join the elements of an array:
+
+array a = split("1 3 5 7");
+var result = join(a,",");  // join, using comma as separator
+
+to learn more about joining arrays, vector, say: blop -h join
+
+%
+You can replace all occurences of a substring in all elements
+of an array:
+
+array a = split("filename1.dat filename2.dat filename3.dat");
+a.replace(".dat",".eps");
+
+to learn more about arrays, say: blop -h array
+ 
+%
+Blop uses (and you can also use) the following functions to 
+open input/output streams:
+
+std::istream *openin(const var &infile)
+std::ostream *openout(const var &outfile)
+
+If infile begins with <<, the rest of the string is interpreted
+as a here-document (a la shell): reading from the opened
+input stream will read from this string.
+
+If infile ends with |, the preceding part of it is interpred
+as a command to be executed, reading from the stream reads
+the stdout of that program
+
+If outfile starts with |, the rest of it is interpreted as 
+a command to be executed (pipe)
+
+If outfile or infile starts with scp://, the file is 
+down/uploaded from the remote location
+
+In other cases infile and outfile is interpreted as normal
+filenames. 
+To see the documentation, say: 
+blop -h openin
+or
+blop -h openout
+
+%
+The functions x1len(double), y1len(double), x2len(double,
+y2len(double) return a length, which is the distance from
+the start point of the given axis to the location of the
+given value along that axis. You can use this to position
+any object at a given value within a frame:
+
+text::fdraw("This is drawn at (1,3)",x1len(1),y1len(3));
+
+%
+External commands executed via the 'shell(const var &command)'
+function are executed within the same shell process. For example
+the following code lists the /tmp directory
+
+shell("cd /tmp");
+shell("ls");
+
+%
+To read the full output of a command, use the 'readcmd(const var &cmd)'
+function:
+
+var files = readcmd("ls");
+
+to learn more about this function, say: blop -h readcmd
+
+%
+To read the full content of a file, use the 'readfile(const var &filename)'
+function:
+
+var content_of_file = readfile("filename");
+
+To learn more, say: blop -h readfile
+
+%
+To split a string into an array, use the split command:
+
+array a = split("1 3 4 6 8 9");
+
+To learn more about this function, say: blop -h split
+
+%
+To read a whole line from an input stream into an array
+(that is, split it immediately), use the following function:
+
+istream *input = openin("ls -l|");
+array a;
+while(getline(*input,a)) { cerr<<"file '"<<a[7]<<"' has size: "<<a[4]<<endl; }
+
+To learn more about this getline function, say: blop -h getline
+
+%
+To transform a text to latex (that is, escape all LaTeX-specific
+control caracters like _, $, etc), use the tolatex function:
+
+var text = tolatex("Cost_of_something: 400$");
+
+%
+To sort an array, use its .sort_n() or .sort_s() member function
+(sorting as number or string, respectively)
+To learn more about arrays, say: blop -h array
+
+%
+The 'function' object in blop can be used to interactively
+create a function:
+
+function f = _1 + sin(_2);
+
+This function evaluates to its first argument added to the sine
+of its second argument. To evaluate it:
+
+var result = f(1,3.1415);
+
+To learn more about functions, say: blop -h function
+
+%
+A function can have parameters:
+
+function f = PAR(1) * _1;
+f.param(1,10);
+
+Now the 'f' function evaluates to 10*x, if 'x' is its argument
+
+To learn more about functions, say: blop -h function
+
+%
+To interpolate between given point pairs (x,y) with a spline:
+
+double x[] = {1,2,3,4,5,6};
+double y[] = {1,1.2,5,6,3,2};
+function s = make_spline(x,y,6);
+
+To learn more about this, say: blop -h spline
+
+%
+You can create linearly interpolated function between
+given datapoints (x,y):
+
+function interpolatedfunc(const var &filename)
+function interpolatedfunc(const array &x, const array &y);
+function interpolatedfunc(const double x[], const double y[], int n);
+
+To learn more, say: blop -h interpolate
+
+%
+The _0 function (when plotting datafile) evaluates to the actual
+row number in the datafile
+
+%
+The _N function returns the actual number of arguments
+in the current function call
+
+%
+To create a function, which evaluates to 1 within a given
+interval, and 0 outside:
+
+function f = charfunc(0,1);  
+
+To learn more about this, say: blop -h charfunc
+
+%
+The type 'length' is the most important in blop. One can not
+explain it in the tip of the day. Make sure you take the time
+to read the documentation:
+blop -h length
+
+%
+An axis can show transformed values of another axis. I am too 
+lazy to write more, see: blop -h transform
+
+%
+If you want some gap between the sub-frames of an mframe,
+use the 'gap' function:
+
+mframe &f = mframe::mknew(2,2).gap(2*MM);
+
+%
+Blop can make FFT (Fast Fourier Transformation) of 
+digitized data. To see how, say: blop -h fft
+
+%
+The special function _0 evaluates to the linenumber when plotting
+files, or to the running index in arrays, when plotting data stored
+in an array. See
+blop -h plot-data
+to see the documentation
+
+%
+You can plot random numbers (or add random numbers to a function
+being plotted). See
+blop -h random
+to see how.
+
+%
+You can sample a function (or functions) into a dgraph with
+int sample(dgrpah &g, double dx, double from, double to,
+	   const function &f1,
+	   const function &f2=unset,
+	   const function &f3=unset,
+	   const function &f4=unset);
+To see the documentation, say: blop -h sampling
+
+%
+You can change the position of an axis from its default value
+(either side of a frame). To learn more about this, say:
+blop -h axis-pos
+
+%
+You can directly plot remote files downloaded via scp, 
+or from the web: For example
+plot("username@remote.machine.com:dir1/dir2/filename");
+plot("http://www.machine.com/dir/file");
+to learn more about this, say: blop -h streams
+
+%
+You can match a variable of type 'var' to a regular expression.
+For example:
+var s = "Hello world";
+if(s.matches("ll.*")) { cerr<<"Matches!!!!"<<endl; }
+
+There is more! See
+blop -h regexp
+to see the documentation
+
+%
+You can update blop to the latest version very easily. Say:
+blop --update
+(probably as root). To learn more, say: blop -h
+
+%
+You can replace regular expressions: the 
+var::replace_re(const var &pattern, const var &replacement)
+function makes this. \0 in 'replacement' refers to the
+whole matching expression, \1, \2 etc refer to the 
+1st, 2nd etc matching sub-expressions (as in sed, for example)
+To learn more, say: blop -h replace_re
+
+%
+When you include a .beps figure into your LaTeX document, you
+can make an extra annotation on it:
+\blopeps[text={a)},textpos={0.9,0.9}]{figure.beps}
+This puts a label a) onto the figure, close to the right-upper
+corner.
+To learn more about this, say blop -h annotate
+
+%
+Blop-function can have default arguments, for example:
+function f = _1*_2;
+f.def_arg(2,10);     // set the default value for the 2nd arg
+
+To learn more about this, say: blop -h default-argument
+
+%
+To make calculation with physical quantities, the physical units
+and constants are defined in the namespaces 'unit' and 'cons'. 
+Example:
+double frequency = 10*unit::MHz;
+double lambda = cons::c/frequency;
+cerr<<"Wavelength = "<<lambda/unit::cm<<" cm"<<endl;
+
+To learn more about this, say: blop -h units
+
+%
+To have no distortion (i.e. the actual size of the axes
+reflecting their plotted range), you can call the nodistort(true)
+function on a frame:
+
+frame::current().nodistort(true);
+
+To learn more about this, say: blop -h nodistort
+
+%
+By default, all graphs pointtype is set to 'autopoint', which means
+that subsequent graphs drawn in a frame will have changing pointtypes
+in a sequence. To change this to a fixed point-type, you can call
+for example   dgraph::default_pointtype(fsquare());
+
+%
+You can interpolate a function z(x,y) given on an irregular grid using
+Delaunay triangulation:
+delaunay_interpolator d;
+d.add_point(x,y,z); // many times
+cerr<<"interpolated value at (1.2,3.4) = "<<d(1.2,3.4)<<endl;
+
+// or create a blop-function from this interpolator:
+function interpolatedfunc(d);
+
+blop -h delaunay
+
+%
+You can create videos by constructing individual frames:
+video out("video.avi");
+set::xrange(0,10);
+set::yrange(0,10);
+for(double a=0; a<1; a+=0.01)
+{
+  plot(_1,a*_1).legend("");
+  out.print();
+}
+
+For more info, say blop -h video
+
+%
+The script blop-terminal starts blop in a separate terminal window
+if it is not yet running, and activates that window (switches to that
+desktop, raises the window) if it is already running. You can bind
+this command to a global shortcut key to very quickly access your
+blop session
+
+%
+You can create conditional functions with
+ifelse(const function &condition, const function &iftrue, const function &iffalse);
+
+%
+You can create a periodic function, by providing its values in an interval [x1,x2]
+periodic_function(const function &f, double x1, double x2);
+
+
+%
+You can create a multi-page printout like this (mpps (which stands for multi-page postscript)
+can be substituted by mppdf (multi-page pdf))
+mpps out("file.ps");
+plot(_1,_1);
+out.print();
+plot(_1,_1*_1);
+out.print();
+
+%
+The root of a function f (i.e. where f(x)=0) can be calculated like this:
+function f = _1*_1-4;
+double root = find_root(f,0,3);  // returns 2. Solution searched within [0;3]
+
+%
+To set the default ticlength, say:
+axis::default_ticlength(1.5*MM);
+
+%
+To hide a subframe of an mframe, say:
+mframe &mf = mframe::mknew(2,2);
+mf.show_subframe(2,2,false);
+

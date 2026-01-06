@@ -1,0 +1,53 @@
+TITLE: Tips and tricks 
+PREV: tools.html 
+NEXT: known-problems.html
+==> 
+
+<div  class=description>  
+
+<ul>
+<li><a href="#pdf">      Creating a PDF document  </a>
+<li><a href="#multiline">Drawing a multiline text </a>
+</ul>
+
+<hr>
+
+<p><div class=sectiontitle><a name="pdf">Creating a PDF document:</a></div> 
+
+Currently      blop      has      only      one      terminal,      <a
+href="blopeps.html">blopeps</a>, which is  a PostScript-like file, and
+can  be included  in  a LaTeX  document  only if  it  is processed  by
+<tt>latex</tt>, but  not with  <tt>pdflatex</tt>.  This is  usually no
+problem, produce your final PDF document (if this is your desire) with
+the following steps:
+
+<tt>
+<ul>
+<li>latex document.tex
+<li>dvips -z -Ppdf document.dvi -o document.ps
+<li>ps2pdf document.ps
+</ul>
+</tt>
+
+Here the <tt>-z</tt> option  of <tt>dvips</tt> causes hyperlinks to be
+put into the  PostScript file in the form of  comments, which are then
+correctly understood by ps2pdf. The <tt>-Ppdf</tt> option forces dvips
+to put  scalable fonts into  the PostScript file (otherwise  the final
+PDF document will have awful fonts).
+
+<hr>
+
+<div class=sectiontitle><a name="multiline">Drawing a multiline text:</a></div> 
+
+If you want  to place a multiline text somewhere,  where a simple text
+is expected (for  example <a href="frame.html#title">setting a frame's
+title</a>). Since every text is  typeset by LaTeX, you can use LaTeX's
+features to typeset a multiline  text. For this you should be familiar
+with TeX/LaTeX, but we assume you are; this is why you are using blop.
+In  the example  below,  replace  0.75 according  to  your needs  (and
+weather you set the title of a frame which fills your whole figure, or
+a smaller one).
+
+<pre>set::title("\\begin{minipage}{0.75\\blopPW}\\begin{center}First line\\\\Second line\\end{center}\\end{minipage}");
+
+</div>

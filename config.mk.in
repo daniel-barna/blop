@@ -1,0 +1,52 @@
+BLOP_ENABLE_CINT = @BLOP_ENABLE_CINT@
+BLOP_VERSION = @BLOP_VERSION@
+CINT_VERSION = @CINT_VERSION@
+BLOP_ARCH    = @BLOP_ARCH@
+BLOP_CONFIG_OPTIONS = @BLOP_CONFIG_OPTIONS@
+
+USE_CINTSYSDIR = @USE_CINTSYSDIR@
+CINT_INCLUDE_PREFIX = @CINT_INCLUDE_PREFIX@
+
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+datarootdir = @datarootdir@
+BINDIR = @bindir@
+INCDIR = @includedir@
+LIBDIR = @libdir@
+MANDIR = @mandir@
+STYDIR = @stydir@/blop-plot
+DATADIR = @datadir@/blop-plot
+DOCDIR = ${DATADIR}/doc
+PERL = @PERL@
+ECHO = @ECHO@
+CXXFLAGS = @CXXFLAGS@  
+ifeq ($(CXX),g++)
+  CXXFLAGS += -Wall -Wno-long-long -O3
+endif
+#CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+MAKEDEPEND = ${CXX} -M ${CXXFLAGS} 
+CXXSTD = @CXXSTD@
+
+X_CFLAGS = @X_CFLAGS@
+X_LIBS = @X_LIBS@
+LIBS = @LIBS@
+
+HAVE_GTS_H = @HAVE_GTS_H@
+HAVE_GSL = @HAVE_GSL@
+
+MAKE_DEB = @MAKE_DEB@
+MAKE_RPM = @MAKE_RPM@
+
+NCURSES_OR_TERMCAP = @NCURSES_OR_TERMCAP@
+
+FILELIST = $(DESTDIR)$(DATADIR)/installed-files
+
+# make sed use extended regexps.
+ifeq ($(BLOP_ARCH),darwin)
+  SED = sed -E
+  AR = ar rsv 
+else
+  SED = sed -r
+  AR = ar -r 
+endif

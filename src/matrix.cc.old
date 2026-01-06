@@ -1,0 +1,14 @@
+#include "matrix.h"
+#include "var.h"
+
+namespace blop
+{
+
+    template <> int matrix<var>::default_ncols_ = 0;
+    template <> int matrix<var>::default_nrows_ = 0;
+    template <> int matrix<double>::default_ncols_ = 0;
+    template <> int matrix<double>::default_nrows_ = 0;
+    template <> int matrix<int>::default_ncols_ = 0;
+    template <> int matrix<int>::default_nrows_ = 0;
+
+}

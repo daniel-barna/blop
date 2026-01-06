@@ -1,0 +1,13 @@
+ /bloptextmacrobb{ blop@text@start@cmd
+ -349 2213 a 0 TeXcolorgray
+1 0 0 TeXcolorrgb -349 2354 a
+ gsave currentpoint currentpoint translate 90 neg rotate neg exch neg
+exch translate
+ -349 2354 a Fd(Y1)f(Title)-65
+2354 y
+ currentpoint grestore moveto
+ -65 2354 a 0 TeXcolorgray 0 TeXcolorgray -349
+2213 a
+ blop@text@end@cmd } def
+
+

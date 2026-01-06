@@ -1,0 +1,3 @@
+- Fit should be able to select blocks from data (file or dgraph)
+- Check why the commented code in example3.C makes a segfault
+- control separately the drawing on/off of each axis of a frame

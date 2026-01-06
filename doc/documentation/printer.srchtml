@@ -1,0 +1,68 @@
+TITLE: The printer terminal
+PREV: png.html
+NEXT: multi-page-terminals.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+To print the current canvas directly to a printer say:<br>
+<tt>printer::print();</tt><br>
+And to specify the printing command (%f is replaced by the filename)<br>
+<tt>printer::print("lpr -h -Pprintername %f","-w 10cm -h 5cm");</tt>
+</div>
+<hr>
+<div class=description>
+
+<p>The        class       <tt>printer</tt>        is        a       <a
+href="terminal.html">terminal</a> class to  support direct printing to
+a printer. This is done via the <a href="eps.html">eps</a> terminal: a
+temporary  eps file  is  created,  printed to  the  printer, and  then
+removed.
+
+The static <tt>printer::print()</tt> function accepts  two arguments:
+<ul>
+
+<li> The  first is  the printing command.   It must contain  %f, which
+will be replaced  by the name of the (temporary)  file. If no argument
+is  given,  the  default  command  is  used, which  can  be  set  with
+<tt>printer::default_command(var)</tt>.
+
+<li> The second argument specifies the options to be given to the
+<tt>eps</tt> terminal (or, equivalently, to the beps2eps command. See
+<tt>beps2eps --help</tt> to get a help on this)
+
+</ul>
+
+<p>The default command can be set for example in <a
+href="program-invocation.html#initfiles"><tt>$HOME/.blop/bloprc.C</tt></a>.
+In my institute I usually have to work at different places, at
+different PCs. There are many printers, and I want to send print jobs
+to the nearest one. So I have put this into my ~/.blop/bloprc.C (BLOP_USER_INIT is the
+function which is automatically called at program startup)<br>
+
+<pre>
+void BLOP_USER_INIT()
+{
+  const char *hn = getenv("HOST");
+  if(hn == 0) { cerr&lt;&lt;"Could not getenv HOST, no default printer set"&lt;&lt;endl; }
+  else
+  {
+     var host = hn;
+     if(hn.find("machine1") != var::npos) {printer::default_command("lpr -h -Pprinter1");
+     else if(hn.find("machine2") != var::npos)  {printer::default_command("lpr -h -Pprinter2");
+     ...
+     else
+     {
+        cerr&lt;&lt;"Don't know where is this machine: "&lt;&lt;host&lt;&lt;endl;
+        cerr&lt;&lt;"No default printer is set"&lt;&lt;endl;
+     }
+  }
+}
+</pre>
+
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="terminal.h.html">terminal.h</a>
+   <a href="terminal.cc.html">terminal.cc</a>
+</pre>

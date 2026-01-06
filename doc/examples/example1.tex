@@ -1,0 +1,23 @@
+\documentclass[a4paper]{article}
+\usepackage{../../latex/blopeps}
+
+\begin{document}
+
+% make the default pointsize in all figures be 3 mm
+\blopps{3mm}
+
+\parindent=0cm
+
+\begin{center}
+
+This is the figure: \\
+\blopeps{example1.beps}
+
+\large
+The same figure included once more (with larger fonts, smaller symbols, and
+resized): \\
+\blopeps[ps=1.7mm,pw=0.7\linewidth]{example1.beps}
+
+\end{center}
+
+\end{document}

@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# short description: convert .beps files to .pdf
+
+. @config@
+
+
+help()
+{
+cat <<EOF
+
+Usage: beps2pdf [any beps2eps option] inputfile [outputfile]
+
+   for the beps2eps options say: beps2eps --help
+
+   Return code:
+     0   - in case of success
+     1   - no inputfile specified
+     2   - inputfile does not exist
+     3   - mktemp failed
+     6   - gs failed
+
+     or the error code of beps2eps, if that failed
+EOF
+}
+
+keeptemporary="false"
+
+if [ $# -lt 1 ] ; then
+    echo Filename expected 1>&2
+    help;
+    exit 1;
+fi
+
+if [ "$1" = "--help" ] ; then
+    help;
+    exit;
+fi
+
+if [ "$1" = "-h" -a $# = 1 ] ; then
+    help;
+    exit;
+fi
+
+tmpfiles=""
+abort()
+{
+    if [ "$tmpfiles" != "" -a "$keeptemporary" = "false" ] ; then rm -f $tmpfiles; fi
+    exit $1
+}
+trap abort 0 1 2 3 7 13 15
+
+beps2eps_options=();
+inputfile=""
+outputfile=""
+verbose_level=0;
+
+while [ $# -gt 0 ] ; do
+    if [ "$1" = "-k" ] ; then
+        keeptemporary=true
+    fi
+
+    # ask beps2eps if it accepts this cmd line arg
+    resp=`beps2eps --cmd-line-arg-accepted $1`
+    # if yes, store it into the beps2eps_options variable
+    if [ "$resp" != "" ] ; then
+        #echo beps2eps accepts argument $1, needs $resp more
+        beps2eps_options+=("$1");
+        for i in `seq 1 $resp`; do
+            shift;
+            beps2eps_options+=("$1");
+        done
+    else
+        case $1 in
+            -noeps) ;; 
+            -q) verbose_level=0; beps2eps_options+=("-q");;
+            -v) if [[ $2 == [0-9] ]] ; then
+                    verbose_level=$2;
+                    beps2eps_options+=(-v "$2");
+                    shift;
+                else
+                    verbose_level=1;
+                    beps2eps_options+=(-v 1);
+                fi;;
+            *)  if [ "$inputfile" = "" ] ; then
+                    inputfile=$1
+                else
+                    outputfile=$1
+                fi ;;
+        esac
+    fi
+    shift;
+done
+
+if [ "$inputfile" = "" ] ; then
+  echo No inputfile specified 1>&2
+  exit 1;
+fi
+
+if [ "$outputfile" = "" ] ; then
+  outputfile=`basename $inputfile .beps`.pdf
+fi
+
+tmp1=`mktemp /tmp/beps2pdf-1-XXXXXX`
+if [ $? -ne 0 ] ; then
+  exit 3;
+fi
+if [ $verbose_level -gt 0 ] ; then
+  echo beps2eps "${beps2eps_options[@]}" $inputfile $tmp1
+fi
+beps2eps "${beps2eps_options[@]}" $inputfile $tmp1
+beps2eps_code=$?
+
+if [ $beps2eps_code -ne 0 ] ; then
+  echo $beps2eps_output 1>&2
+  echo %%% 1>&2
+  echo %%% beps2eps failed 1>&2
+  echo %%% 1>&2
+  exit $beps2eps_code
+fi
+
+epstopdf_code=0
+
+if which epstopdf >/dev/null 2>&1 ; then
+  if [ $verbose_level -gt 0 ] ; then
+     echo "Using epstopdf .." 1>&2
+     echo epstopdf --outfile=$outputfile $tmp1
+  fi
+  epstopdf --outfile=$outputfile $tmp1
+  epstopdf_code=$?
+else
+  if [ $verbose_level -gt 0 ] ; then
+     echo "epstopdf not found. Using own code instead" 1>&2
+  fi
+  awk 'BEGIN {BBCorrected=0; }                                                                   
+  {                                                                                              
+    if($1 == "%%BoundingBox:" && BBCorrected == 0)                                               
+    {                                                                                            
+       llx = $2; lly = $3; urx = $4; ury = $5;                                                   
+       width = urx - llx;                                                                        
+       height = ury - lly;                                                                       
+       xoffset = -llx;                                                                           
+       yoffset = -lly;                                                                           
+       print "%%BoundingBox: 0 0 ", width, height;                                               
+       print "<< /PageSize ["width" "height"] >> setpagedevice";                                 
+       print "gsave "xoffset" "yoffset" translate";                                              
+       BBCorrected = 1;                                                                          
+    }                                                                                            
+    else { print }                                                                               
+  }' $tmp1  | gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$outputfile -
+  epstopdf_code=$?
+fi
+
+if [ $epstopdf_code -ne 0 ] ; then
+  echo '%%%' 1>&2
+  echo '%%% eps --> pdf conversion failed' 1>&2
+  echo '%%%' 1>&2
+  exit 6
+fi
+
+rm -f $tmp1 
+
+exit 0;
+
+

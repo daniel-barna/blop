@@ -1,0 +1,776 @@
+#ifndef __HIST_H
+#define __HIST_H
+
+
+#include <vector>
+#include <stdlib.h>
+#include "meas.h"
+#include "bloputils.h"
+#include "blopeps.h"
+#include "mpps.h"
+#include "ignore.h"
+#include "function.h"
+
+
+namespace blop
+{
+
+// Forward declaration of class hist:
+    class hist;
+
+    // Class for histogram construction. Also can be used to control histogram 
+    // filling from file.
+    class histopt
+    {
+    protected:
+
+        // These fields are necessary for histogram construction.
+        int dim_;
+        std::vector<double> min_;
+        static double default_min_;
+        static bool default_min_isset_;
+        std::vector<double> max_;
+        static double default_max_;
+        static bool default_max_isset_;
+        std::vector<int> bins_;
+        static int default_bins_;
+        static bool default_bins_isset_;
+        std::vector<double> binsize_;
+        static double default_binsize_;
+        static bool default_binsize_isset_;
+        std::vector<blop::var> axistitle_;
+        var rangetitle_;
+        var legend_;
+        // These datafields are necessary for administering reading from file.
+        function x_, y_;
+        static function default_x_, default_y_;
+        function condition_;
+        static function default_condition_;
+        function x_condition_, y_condition_;
+        static function default_x_condition_, default_y_condition_;
+        int maxlines_;
+        static int default_maxlines_;
+
+        unsigned int buffer_size_;  // number of entries to buffer before setting (automatically) the ranges
+        bool         dont_clear_buffer_;
+        friend class hist;
+
+    public:
+        // Default constructor, copy constructor, destructor.
+        histopt();
+        histopt(const histopt&);
+        ~histopt();
+        // These functions are for histogram construction.
+
+        int dim() const { return dim_; }
+        histopt &dim(int d) { dim_ = d; return *this; }
+
+        histopt& min(const int axis, const double minvalue);
+        double min(const int axis) const;
+        static void default_min(const double minvalue);
+
+        histopt& max(const int axis, const double maxvalue);
+        double max(const int axis) const;
+        static void default_max(const double maxvalue);
+
+        histopt& bins(const int axis, const int nbins);
+        int bins(const int axis) const;
+        static void default_bins(const int nbins);
+
+        histopt& binsize(const int axis, const double binsize);
+        double binsize(const int axis) const;
+        static void default_binsize(const double binsize);
+
+        histopt& axistitle(const int axis, const var &Title);
+        var axistitle(const int axis);
+        histopt& rangetitle(const var &Title);
+        var rangetitle();
+        histopt& legend(const var &Title);
+        var legend();
+
+        // These functions are for input from file.
+        histopt& x(const function &f);
+        histopt& x(const function &f1, const function &f2);
+        histopt& x(const function &f1, const function &f2, const function &f3);
+        const function& x() const { return x_; }
+        static void default_x(const function &f);
+        static void default_x(const function &f1, const function &f2);
+        static void default_x(const function &f1, const function &f2, const function &f3);
+        histopt& y(const function &f);
+        const function& y() const { return y_; }
+        static void default_y(const function &f);
+        histopt &maxlines(const int i) { maxlines_=i; return *this; }
+        int maxlines() const { return maxlines_; }
+        static void default_maxlines(const int i) { default_maxlines_=i; }
+        histopt &condition(const function &f) { condition_ = f; return *this; }
+        const function &condition() const { return condition_; }
+        static void default_condition(const function &f) { default_condition_=f; }
+        histopt &x_condition(const function &f) { x_condition_ = f; return *this; }
+        const function &x_condition() const { return x_condition_; }
+        static void default_x_condition(const function &f) { default_x_condition_=f; }
+        histopt &y_condition(const function &f) { y_condition_ = f; return *this; }
+        const function &y_condition() const { return y_condition_; }
+        static void default_y_condition(const function &f) { default_y_condition_=f; }
+        histopt &xmin(double x)
+        {
+            if(x != unset) x_condition_ = (x<_1);
+            else x_condition_ = unset;
+            return *this;
+        }
+        histopt &xmax(double x)
+        {
+            if(x != unset) x_condition_ = (_1<x);
+            else x_condition_ = unset;
+            return *this;
+        }
+        histopt &xrange(double x1, double x2)
+        {
+            if(x1 == unset && x2 == unset) x_condition_ = unset;
+            if(x1 != unset && x2 != unset) x_condition_ = (x1<_1) && (_1<x2);
+            if(x1 == unset && x2 != unset) x_condition_ = (_1<x2);
+            if(x1 != unset && x2 == unset) x_condition_ = (x1<_1);
+            return *this;
+        }
+        histopt &ymin(double x)
+        {
+            if(x != unset) y_condition_ = (x<_1);
+            else y_condition_ = unset;
+            return *this;
+        }
+        histopt &ymax(double x)
+        {
+            if(x != unset) y_condition_ = (_1<x);
+            else y_condition_ = unset;
+            return *this;
+        }
+        histopt &yrange(double x1, double x2)
+        {
+            if(x1 == unset && x2 == unset) y_condition_ = unset;
+            if(x1 != unset && x2 != unset) y_condition_ = (x1<_1) && (_1<x2);
+            if(x1 == unset && x2 != unset) y_condition_ = (_1<x2);
+            if(x1 != unset && x2 == unset) y_condition_ = (x1<_1);
+            return *this;
+        }
+        friend class hist;
+
+        histopt &buffer_size(unsigned int s) 
+        {
+            buffer_size_ = s;
+            return *this;
+        }
+        unsigned int buffer_size() const { return buffer_size_; }
+
+    };
+
+
+// Class for merging domain side. See next class.
+    class mergeopt_side
+    {
+    protected:
+        double min_;
+        double max_;
+        int merge_;
+    public:
+        mergeopt_side();
+        mergeopt_side(const double Min, const double Max, const int Merge);
+        mergeopt_side(const mergeopt_side&);
+        ~mergeopt_side();
+        bool operator==(const mergeopt_side &m_other) const { return (m_other.min_==min_ && m_other.max_==max_ && m_other.merge_==merge_ ? true : false); }
+        bool operator>(const mergeopt_side &m_other) const { return false; }
+        bool operator<(const mergeopt_side &m_other) const { return false; }
+        friend class hist;
+    };
+// Class for managing the merging of the bins of a multidimensional histogram.
+    class mergeopt : public std::vector<blop::mergeopt_side>
+    {
+    public:
+    mergeopt() : std::vector<blop::mergeopt_side>() {  }
+    mergeopt(const mergeopt &m_other) : std::vector<blop::mergeopt_side>(m_other) {  }
+        // Add a side to the merging scheme.
+        mergeopt& side(const double Min, const double Max, const int Merge);
+    };
+
+
+// Class for histograms. Axis indices are 1-based on the user side!
+    class hist : public plottable
+    {
+    protected:
+        // the number of entries to buffer before we automatically set the ranges and fill the entries. No buffering if 0
+        mutable int                 buffer_size_;  
+        // the buffer. buffer_.size() contains the actual number of entries i the buffer
+        mutable std::vector<double> buffer_;        
+
+        // Graph drawers:
+        static graph_drawer* &default_graph_drawer_1_();
+        static graph_drawer* &default_graph_drawer_2_();
+        void set_graph_drawer_() const;
+        static point_drawer* default_point_drawer_;
+
+        // Dimension of histogram domain:
+        mutable int dim_;
+        // Domain minimum in each direction:
+        mutable std::vector<double> min_;
+        // Domain maximum in each direction:
+        mutable std::vector<double> max_;
+        // Number of domain bins in each direction:
+        mutable std::vector<int> bins_;
+        // Binwidths in each direction:
+        mutable std::vector<double> binsize_;
+        // Title of domain in each direction:
+        mutable std::vector<blop::var> axistitle_;
+        // Title of range:
+        mutable var rangetitle_;
+        // Legend of histogram: it is inherited from class plottable as legend_.
+
+        // Array of multipliers for calculating indices:
+        mutable std::vector<int> mul_;
+
+        // Index array:
+        mutable std::vector<int> ind_;
+
+        // Arrays to store hits and statistical errors:
+        mutable std::vector<blop::meas> h_;  // mutable because flush_buffer() const must modify it
+
+        // Array to store bin merging scheme:
+        mutable std::vector<int> m_;
+	
+        // A datamembers for communication with plottable class:
+        mutable std::vector<unsigned int> sequence_;
+        mutable std::vector<unsigned int> invsequence_;
+        mutable datapoint datapoint_;
+
+        // Technical reinitializer function (never used by user):
+        void reinit_(const int dim, 
+                     const std::vector<double> &dbegin, const std::vector<double> &dend, 
+                     const std::vector<int> &dbins, 
+                     const std::vector<blop::var> &dtitle, const var &rtitle, 
+                     const var &hlegend) const;
+
+    public:
+        void flush_buffer() const;
+
+        static void default_drawstyle_1(const graph_drawer &d);
+        static void default_drawstyle_2(const graph_drawer &d);
+        static void default_pointtype(const point_drawer &);
+
+        // Default constructor.
+        hist();
+        // Constructor with histopt parameter.
+        hist(const histopt&);
+
+        // Special constructors for 1, 2, or 3 dimensional histograms.
+        hist(const double Min, const double Max, const int Bins,
+             const var &Title = "",
+             const var &rTitle="Entries/Bincell",
+             const var &Legend="");
+
+        hist(double min1, double max1, int bins1,
+             double min2, double max2, int bins2);
+        hist(const double Min1, const double Max1, const int Bins1, const var &Title1, 
+             const double Min2, const double Max2, const int Bins2, const var &Title2, 
+             const var &rTitle="Entries/Bincell", const var &Legend="");
+
+        hist(double min1, double max1, int bins1,
+             double min2, double max2, int bins2,
+             double min3, double max3, int bins3);
+        hist(const double Min1, const double Max1, const int Bins1, const var &Title1, 
+             const double Min2, const double Max2, const int Bins2, const var &Title2, 
+             const double Min3, const double Max3, const int Bins3, const var &Title3, 
+             const var &rTitle="Entries/Bincell", const var &Legend="");
+        // Copy constructor.
+        hist(const hist&);
+        // Destructor.
+        ~hist();
+        // Reinitializer function from histopt parameter.
+        void reinit(const histopt&);
+        void reinit(const histopt&) const; // must make it const becuase it is called from get(int) const (via flush_buffer()).
+        // Special reinitializers for 1, 2, or 3 dimensional histograms.
+        void reinit(const double Min, const double Max, const int Bins, const var &Title="", 
+                    const var &rTitle="Entries/Bincell", const var &Legend="");
+        void reinit(const double Min1, const double Max1, const int Bins1, const var &Title1, 
+                    const double Min2, const double Max2, const int Bins2, const var &Title2, 
+                    const var &rTitle="Entries/Bincell", const var &Legend="");
+        void reinit(const double Min1, const double Max1, const int Bins1, const var &Title1, 
+                    const double Min2, const double Max2, const int Bins2, const var &Title2, 
+                    const double Min3, const double Max3, const int Bins3, const var &Title3, 
+                    const var &rTitle="Entries/Bincell", const var &Legend="");
+        // Reinitializer function from an other histogram; analogue of 
+        // copy constructor.
+        void reinit(const hist&);
+
+        // Assignment, increment, sum etc. operators of histograms.
+        const hist& operator=(const hist&);
+        const hist& operator+=(const hist&);
+        const hist& operator-=(const hist&);
+        const hist& operator*=(const hist&);
+        const hist& operator*=(const meas&);
+        const hist& operator*=(const double);
+        const hist& operator/=(const hist&);
+        const hist& operator/=(const meas&);
+        const hist& operator/=(const double);
+
+        // Projection of a histogram. This projects out a specified axis 
+        // (i.e. integration is performed on specified axis). Projection 
+        // assumes that the projection of the given histogram will also 
+        // have rectangular bins. Otherwise, returns error message and empty 
+        // histogram.
+        hist project_out(const int axis) const;
+
+        // This prepares a slice of the histogram. 
+        // The slice is taken at a level plane, defined by a constant 
+        // coordinate surface, at a given axis direction.
+        hist slice(const int axis, const double level) const;
+
+        // Calculate the integral of the histogram.
+        meas integral() const;
+
+        // Transform the histogram with a function.
+        void transform(const function&);
+
+        // Determine if every value of a histogram is not nan or +/-inf.
+        static bool isfinite(const hist&);
+        static bool isinf(const hist&);
+        static bool isnan(const hist&);
+        static bool isset(const hist&);
+        static bool isunset(const hist&);
+        bool isfinite() const;
+        bool isinf() const;
+        bool isnan() const;
+        bool isset() const;
+        bool isunset() const;
+
+        // ---------------  duplicate -----------------------------------
+
+        hist &dup();
+
+
+        // To replace every nan or +/-inf bin value by a given number. 
+        // Can be useful after e.g. division of two histograms, where 
+        // some bins with zero hits cause inf values because of division 
+        // by zero.
+        void mkfinite(const double newvalue=unset);
+
+        // Annulation a histogram. Arguments: the string "reset", if the 
+        // merging is to be also reset.
+        void annulate(const var &reset="");
+
+        // A nested template class to handle vector with 1-based indices:
+        template<class T>
+            class vector_1based : public std::vector<T>
+        {
+        public:
+        vector_1based() : std::vector<T>() {  }
+        vector_1based(const size_type i) : std::vector<T>(i) {  }
+        vector_1based(const vector_1based &v) : std::vector<T>(v) {  }
+            T& operator[](const size_type i)
+            {
+                if ( i>0 && i<=this->size() ) return *(vector<T>::begin()+i-1);
+                else
+                {
+                    warning::print("Index out of range! (1-based indices!!!)", "T& hist::vector_1based<T>::operator[](const size_type)");
+                    if ( !(this->size()>0) ) { std::cerr<<"Empty vector! Exiting to avoid a segfault...\n"; exit(1); }
+                    return *(vector<T>::begin());
+                }
+            }
+            const T& operator[](const size_type i) const 
+            {
+                if ( i>0 && i<=this->size() ) return *(vector<T>::begin()+i-1);
+                else
+                {
+                    warning::print("Index out of range! (1-based indices!!!)", "const T& hist::vector_1based<T>::operator[](const size_type) const");
+                    if ( !(this->size()>0) ) { std::cerr<<"Empty vector! Exiting to avoid a segfault...\n"; exit(1); }
+                    return *(vector<T>::begin());
+                }
+            }
+        };
+
+        // A type for point position.
+        typedef vector_1based<double> point;
+        // A type for a bin cell.
+        typedef vector_1based<blop::meas> cell;
+
+        // Find the bin identifier for a given position.
+        unsigned int bin(const point &pos) const;
+        unsigned int bin(const datapoint &pos) const;
+        // The same, special to 1, 2, 3, or 4 dimensional histograms.
+        unsigned int bin(const double x) const;
+        unsigned int bin(const double x, const double y) const;
+        unsigned int bin(const double x, const double y, const double z) const;
+        unsigned int bin(const double x, const double y, const double z, const double t) const;
+        unsigned int bin(const var &x) const;
+        unsigned int bin(const var &x, const var &y) const;
+        unsigned int bin(const var &x, const var &y, const var &z) const;
+        unsigned int bin(const var &x, const var &y, const var &z, const var &t) const;
+
+        // Find the position for a bin identifier.
+        cell pos(const unsigned int i) const;
+        // The same, but only return projection to a given axis.
+        meas pos(const unsigned int i, const int axis) const;
+
+        // Access to a bin content.
+        meas& operator[](const unsigned int);
+        const meas& operator[](const unsigned int) const;
+
+        double binsize(int axis) const;
+        double binwidth(int axis) const { return binsize(axis); }
+
+        // Add or remove a (weighted) entry to a histogram at a position.
+        hist &fill(const point &pos, const double weight=1.0);
+        const hist& fill(const point &pos, const double weight=1.0) const;
+        hist& remove(const point &pos);
+        hist& remove(const point &pos, const double weight);
+        hist& fill(const datapoint &pos, const var &weight=1.0);
+        hist& remove(const datapoint &pos);
+        hist& remove(const datapoint &pos, const var &weight);
+        // The same, special to 1, 2, or 3 dimensional histograms. If more 
+        // double arguments are given than the dimension of the histogram, 
+        // then the dim+1-th argument is considered as a weight, the rest 
+        // is ignored.
+        hist& fill(const double);
+        hist& fill(const double, const double);
+        hist& fill(const double, const double, const double);
+        hist& fill(const double, const double, const double, const double);
+        hist& remove(const double);
+        hist& remove(const double, const double);
+        hist& remove(const double, const double, const double);
+        hist& remove(const double, const double, const double, const double);
+        hist& fill(const var& x) { fill(x.dbl()); return *this; }
+        hist& fill(const var& x, const var& y) { fill(x.dbl(),y.dbl()); return *this; }
+        hist& fill(const var& x, const var& y, const var& z) { fill(x.dbl(),y.dbl(),z.dbl()); return *this; }
+        hist& fill(const var& x, const var& y, const var& z, const var& w) { fill(x.dbl(),y.dbl(),z.dbl(),w.dbl()); return *this; }
+        hist& remove(const var&);
+        hist& remove(const var&, const var&);
+        hist& remove(const var&, const var&, const var&);
+        hist& remove(const var&, const var&, const var&, const var&);
+
+        // fill a range of a 1D histogram
+        hist& fill_range(double x1, double x2, double weight);
+
+        // Merge the bins of a histogram according to a merging scheme.
+        // Example:
+        // h.merge(mergeopt().side(0.5, 1.0, 2).side(0.0, 0.8, 4));
+        // The class 'mergeopt' stores the geometric scheme of the merging. 
+        // The merging domain is a multidimensional rectangle, and on each 
+        // edge, one can specify that what-fold the bins are to be merged in 
+        // that direction. 
+        // Here, the .side(const double min, const double max, const int merge) 
+        // member function of the class 'mergeopt' specifies this information, 
+        // for each edge. If the integer labeled 'merge' above is 0, then 
+        // the whole domain in that projection is merged into a single bin.
+        hist& merge(const mergeopt&);
+        // The same, but special for 1, 2 and 3 dimensional histograms.
+        hist& merge(const double Min, const double Max, const int Merge);
+        hist& merge(const double Min1, const double Max1, const int Merge1, const double Min2, const double Max2, const int Merge2);
+        hist& merge(const double Min1, const double Max1, const int Merge1, const double Min2, const double Max2, const int Merge2, const double Min3, const double Max3, const int Merge3);
+
+        // Kill a bin (set it to unset), specified by an identifier.
+        hist& killbin(const unsigned int i);
+        // Kill a bin, specified by a geometric point.
+        hist& killpoint(const point &pos);
+        hist& killpoint(const datapoint &pos);
+        // The same, but special to 1, 2, or 3 dimensional histograms.
+        hist& killpoint(const double);
+        hist& killpoint(const double, const double);
+        hist& killpoint(const double, const double, const double);
+        hist& killpoint(const var&);
+        hist& killpoint(const var&, const var&);
+        hist& killpoint(const var&, const var&, const var&);
+
+        // Interpolate a histogram with the bin scheme of an other
+        // histogram (1d only). Arguments: an other histogram 
+        // (possibly with different binning scheme), and the 
+        // interpolation method (spline/linear).
+        hist interpolate(const hist &other_scheme, const std::string &method="linear") const;
+
+        // Get the dimension of the histogram.
+        int dim() const;
+        // Set and get title of domain, range and of the histogram.
+        hist& axistitle(const int axis, const var&);
+        var axistitle(const int axis) const;
+        hist& rangetitle(const var&);
+        var rangetitle() const;
+        hist& legend(const var&);
+        var legend() const;
+        // Get the number of bins in a direction.
+        int bins(const int axis) const;
+
+        // A nested class for writing many histograms into a file.
+        // Typical syntax:
+        // hist::write_many("filename.dat")<<h1<<h2<<h3;
+        class write_many
+        {
+        protected:
+            var dataFileName_;
+            ostream *output_;
+            bool isFlushed_;
+            std::vector<blop::hist*> oHistos_;
+        public:
+            write_many();
+            write_many(ostream &output);
+            write_many(const var &datafilename);
+            ~write_many();
+            write_many& reinit(ostream &output);
+            write_many& reinit(const var &datafilename);
+            write_many& flush();
+            write_many& operator<<(hist&);
+            write_many& put(hist&);
+        };
+        // Function to write a single histogram into a file. E.g.:
+        // h.write("filename.dat");
+        hist& write(ostream &output);
+        hist& write(const var &filename);
+
+        // Function to fill an existing histogram from a datafile.
+        hist& fill_from(istream &input, const histopt &hopt);
+        hist& fill_from(const var &filename, const histopt &hopt);
+        hist& fill_from(const dgraph &g, const histopt &hopt);
+
+        // A nested class for reading many histograms from a file.
+        // Typical syntax:
+        // hist::read_many("filename.dat")>>h1>>h2>>h3;
+        // Or:
+        // hist::read_many("filename.dat")>>h1>>2>>h2>>4>>h3>>7;
+        // to read the 2-nd histogram into h1, the 4-th into h2, and the 
+        // 7-th into h3.
+        class read_many
+        {
+        protected:
+            var dataFileName_;
+            istream *input_;
+            bool isFlushed_;
+            std::vector< std::pair<blop::hist*, int> > iHistos_;
+        public:
+            read_many();
+            read_many(istream &input);
+            read_many(const var &datafilename);
+            ~read_many();
+            read_many& reinit(istream &input);
+            read_many& reinit(const var &datafilename);
+            read_many& flush();
+            read_many& operator>>(hist&);
+            read_many& operator>>(const int number_of_histo);
+            read_many& get(hist&, const int number_of_histo=0);
+            // Get the dimension from a histogram file:
+            static int dim(istream&);
+            static int dim(const var&);
+            // Get the number of histograms from a file:
+            static int numhists(istream&);
+            static int numhists(const var&);
+        };
+        // Function to read a single histogram from file. E.g.:
+        // h.read("filename.dat", 2);
+        // to read the 2-nd histogram into h.
+        hist& read(istream &input, const int number_of_histo=1);
+        hist& read(const var &datafilename, const int number_of_histo=1);
+
+        // Hint functions for plotting.
+        function x_hint() const;
+        function dx_hint() const;
+        function x1_hint() const;
+        function x2_hint() const;
+        function y_hint() const;
+        function dy_hint() const;
+        function y1_hint() const;
+        function y2_hint() const;
+        function z_hint() const;
+        function dz_hint() const;
+        function z1_hint() const;
+        function z2_hint() const;
+
+        // Some communication functions for plotting.
+        // -> Why not 'const datapoint* get(const unsigned int index) const;' ?
+        const datapoint* get(int index) const;
+        size_type size() const;
+
+        // Return the min/max values along the 'd'th dimension
+        double min(int d) const;
+        double max(int d) const;
+
+        var min(const function &fmin, function fret) const;
+        var max(const function &fmax, function fret) const;
+
+        int columns() const;
+        void prepare_for_draw(axis *,axis *, frame *, int count);
+
+        // Explicit conversion to dgraph.
+        dgraph to_dgraph() const;
+
+        // Class to quickly plot many histograms on mpps or blopeps terminals.
+        // (Shorthand version of mplot for histograms. Useful for quick, 
+        // technical-like plotting.)
+        // Syntax: e.g. 
+        // hist h1(0.0, 100.0, 100, "Random variable");
+        // hist h2(0.0, 100.0, 100, "Random variable");
+        // hist h3(0.0, 100.0, 100, "Random variable");
+        // ...
+        // h3=h1+h2;
+        // mpps bm;
+        // bm.open("epsfile.eps");
+        //  hist::qplot(bm).title("Global title")<<h1<<h2<<h3;
+        //  -- here one can plot other histograms also to the same terminal --
+        // bm.close();
+        // One can also plot function -s to this 
+        // terminal with <<. An var after a function 
+        // with & operator is taken to be the legend of the last function. E.g.:
+        // hist h;
+        // ...Some procedure with h...
+        // hist::qplot(bm)<<h<<(1.0/sqrt(2.0*M_PI)*exp(-0.5*_1*_1))<<(const var)"Gaussian model";
+        class qplot
+        {
+        protected:
+            // BLOP multiple paged postscript terminal pointer.
+            mpps *blopMpps_;
+            // BLOP eps file name.
+            var blopEpsName_;
+            // Global title:
+            var globaltitle_;
+            // Maximum and minimum of domain, if one wants to restrict it when plotting.
+            std::vector< std::pair<int, double> > min_;
+            std::vector< std::pair<int, double> > max_;
+            // Maximum and minimum of range, if one wants to restrict it when plotting.
+            std::pair<bool, double> rangemin_;
+            std::pair<bool, double> rangemax_;
+            // Maximum and minimum of range, if one wants to restrict it when plotting with isolines.
+            std::pair<bool, double> isomin_;
+            std::pair<bool, double> isomax_;
+            // Domain and range linear/logarythmic scale switch.
+            std::vector< std::pair<int, bool> > log_;
+            std::pair<bool, bool> rangelog_;
+            std::pair<bool, bool> isolog_;
+            // Vector of histogram pointers and functions and function legends to be plotted.
+        public:
+            class oStuff_t
+            {
+            protected:
+                hist *h;
+                function f;
+                var l;
+            public:
+            oStuff_t() : h(NULL), f(unset), l("__NULL") {  }
+            oStuff_t(const oStuff_t &other) : h(other.h), f(other.f), l(other.l) {  }
+            oStuff_t(hist *hi, const function &func, const var &leg) : h(hi), f(func), l(leg) {  }
+                bool operator==(const oStuff_t&) const { return false; }
+                bool operator<(const oStuff_t &) const { return false; }
+                bool operator>(const oStuff_t &) const { return false; }
+                friend class hist::qplot;
+            };
+        protected:
+            std::vector<blop::hist::qplot::oStuff_t> oStuff_;
+            // Flag for double plot.
+            bool doubleplot_;
+            // Flush flag.
+            bool isFlushed_;
+        public:
+            // Constructor. Plot to blopmpps terminal.
+            qplot(mpps &bm);
+            // Constructor. Plot to blopeps terminal.
+            qplot(const var &blopepsname);
+            // Constructor. Plot to x11_ps terminal.
+            qplot();
+            // Reinitializer. Plot to blopmpps terminal.
+            qplot& reinit(mpps &bm);
+            // Reinitializer. Plot to blopeps terminal.
+            qplot& reinit(const var &blopepsname);
+            // Reinitializer. Plot to x11_ps terminal.
+            qplot& reinit();
+            // The following constructors and reinit functions are for 
+            // plotting exactly two histograms or functions. Useful 
+            // e.g. when comparing two 2 dimensional histogram or function: 
+            // the first one is drawn with color map, the other 
+            // is drawn with isolines.
+            qplot(mpps &blopmpps, hist &h1, hist &h2);
+            qplot(const var &blopepsname, hist &h1, hist &h2);
+            qplot(hist &h1, hist &h2);
+            qplot(mpps &blopmpps, hist &h, const function &f, const var &legend="__NULL");
+            qplot(const var &blopepsname, hist &h, const function &f, const var &legend="__NULL");
+            qplot(hist &h, const function &f, const var &legend="__NULL");
+            qplot(mpps &blopmpps, const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            qplot(const var &blopepsname, const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            qplot(const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            qplot& reinit(mpps &blopmpps, hist &h1, hist &h2);
+            qplot& reinit(const var &blopepsname, hist &h1, hist &h2);
+            qplot& reinit(hist &h1, hist &h2);
+            qplot& reinit(mpps &blopmpps, hist &h, const function &f, const var &legend="__NULL");
+            qplot& reinit(const var &blopepsname, hist &h, const function &f, const var &legend="__NULL");
+            qplot& reinit(hist &h, const function &f, const var &legend="__NULL");
+            qplot& reinit(mpps &blopmpps, const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            qplot& reinit(const var &blopepsname, const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            qplot& reinit(const function &f1, const function &f2, const var &legend1="__NULL", const var &legend2="__NULL");
+            // Destructor. Flushes plot.
+            ~qplot();
+            // Global title.
+            qplot& title(const var &gtitle);
+            // Set minimum or maximum of plotting domain axes.
+            qplot& min(const int axis, const double value);
+            qplot& max(const int axis, const double value);
+            // Set minimum or maximum of plotting range.
+            qplot& rangemin(const double);
+            qplot& rangemax(const double);
+            // Set minimum or maximum of plotting range, when using isolines.
+            qplot& isomin(const double);
+            qplot& isomax(const double);
+            // Set logarythmic/linear scales for plotting domain axes.
+            qplot& log(const int axis, const bool flag);
+            // Set logarythmic/linear scales for plotting range.
+            qplot& rangelog(const bool);
+            // Set logarythmic/linear scales for plotting range, when using isolines.
+            qplot& isolog(const bool);
+            // Append a histogram to the histogram pointer vector.
+            qplot& operator<<(hist &h);
+            qplot& put(hist &h);
+            // Append a function to the function pointer vector.
+            qplot& operator<<(const function &f);
+            qplot& operator<<(const var &functionlegend);
+            qplot& put(const function &f, const var &functionlegend="__NULL");
+            // Color sequence and color mapping functions (hardcoded for now).
+            static color color_sequence(const int);
+            static color color_mapping(double value, double min, double max);
+            // Flush.
+            qplot& flush();
+        };
+
+        // Dummy operators for CINT:
+        bool operator==(const hist &h_other) const { return false; }
+        bool operator>(const hist &h_other) const { return false; }
+        bool operator<(const hist &h_other) const { return false; }
+
+        hist &layer(const var & l) { plottable::layer(l); return *this; }
+    };
+
+// Histogram operations:
+    hist apply(const function&, const hist&);
+    hist operator+(const hist&, const hist&);
+    hist operator-(const hist&, const hist&);
+    hist operator-(const hist&);
+    hist operator*(const hist&, const hist&);
+    hist operator*(const hist&, const meas&);
+    hist operator*(const hist&, const double);
+    hist operator*(const meas&, const hist&);
+    hist operator*(const double, const hist&);
+    hist operator/(const hist &, const hist&);
+    hist operator/(const hist&, const meas&);
+    hist operator/(const hist&, const double);
+    hist operator/(const meas&, const hist&);
+    hist operator/(const double, const hist&);
+    meas integral(const hist&);
+
+// Prepare a histogram from a datafile.
+    hist& mkhist(istream &input, const histopt &hopt=histopt());
+    hist& mkhist(const var &filename, const histopt &hopt=histopt());
+// Prepare a histogram from a datagraph.
+    hist& mkhist(const dgraph &datagraph, const histopt &hopt=histopt());
+
+// Prepare a histogram from a datafile, and directly plot it.
+    hist& histplot(istream &input, const histopt &hopt=histopt());
+    hist& mhistplot(istream &input, const histopt &hopt=histopt());
+    hist& histplot(const var &filename, const histopt &hopt=histopt());
+    hist& mhistplot(const var &filename, const histopt &hopt=histopt());
+// Prepare a histogram from a datagraph, and directly plot it.
+    hist& histplot(const dgraph &datagraph, const histopt &hopt=histopt());
+    hist& mhistplot(const dgraph &datagraph, const histopt &hopt=histopt());
+
+
+}
+
+
+#endif

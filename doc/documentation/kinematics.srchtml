@@ -1,0 +1,24 @@
+TITLE: Kinematics (physics)
+PREV: histograming.html
+NEXT: units.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<pre>
+// Get the momentum of a 100 keV proton
+double momentum = kin(938*unit::MeVc2).Ekin(100*unit::keV).p();
+</pre>
+</div>
+<hr>
+
+<div class=description>
+<tt>blop::phys::kin</tt> is a utility class to calculate kinematic
+variables (momentum, energy, kinematic energy, velocity) from each
+other, given the particle's mass. See example above.
+</div>
+<hr>
+<pre class=implementation>
+Sources:
+   <a href="kinematics.h.html">kinematics.h</a>
+</pre>

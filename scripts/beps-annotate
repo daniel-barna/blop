@@ -1,0 +1,163 @@
+#!@PERL@
+# short description: annotate (put labels on) a .beps figure
+
+print <<EOF;
+Reminder for the author:
+beps-annotate is still using psfrag! it should be updated!
+EOF
+exit();
+
+use POSIX qw(tmpnam);
+
+$infile  = '';
+$outfile = '';
+$text = '';
+$xpos = '0.5';
+$ypos = '0.5';
+$xalign = 'l';
+$yalign = 'b';
+$red   = 0;
+$green = 0;
+$blue  = 0;
+
+sub help
+{
+   print <<EOF;
+   
+   Usage: beps-annotate [options] [infile] [outfile]
+
+   Options:
+
+      -t text     Specify the text
+
+      -x xpos     Specify the position of the text (in fraction of
+      -y ypos     figure width/height)
+
+      -xa left|center|right   specify x alignment
+      -ya bottom|center|top   specify y alignment
+
+      -c color    Specify color
+                  color can be red, blue, black, green
+		  or an rgb combination, like 0.5,0.5,0
+		  (separated by commas)
+
+      If infile is not provided (or if it is - ), then stdin is processed
+      If outfile is not provided, the original file is overwritten
+      If outfile is -, then it is taken to be stdout
+      		  
+EOF
+}
+
+for($i=0; $i<=$#ARGV; ++$i)
+{
+    if   ($ARGV[$i] eq "-t" || $ARGV eq "--text") { $text = $ARGV[++$i]; }
+    elsif($ARGV[$i] eq "-x") { $xpos = $ARGV[++$i]; $xpos = $xpos * 1.0; }
+    elsif($ARGV[$i] eq "-y") { $ypos = $ARGV[++$i]; $ypos = $ypos * 1.0; }
+    elsif($ARGV[$i] eq "-xa")
+    {
+	++$i;
+	if   ($ARGV[$i] eq "left"   || $ARGV[$i] eq "l") { $xalign = l; }
+	elsif($ARGV[$i] eq "right"  || $ARGV[$i] eq "r") { $xalign = r; }
+	elsif($ARGV[$i] eq "center" || $ARGV[$i] eq "c") { $xalign = c; }
+	else
+	{
+	    print STDERR "Bad xalign: " . $ARGV[$i] . "\n";
+	}
+    }
+    elsif($ARGV[$i] eq "-ya")
+    {
+	++$i;
+	if   ($ARGV[$i] eq "bottom" || $ARGV[$i] eq "b") { $xalign = b; }
+	elsif($ARGV[$i] eq "top"    || $ARGV[$i] eq "t") { $xalign = t; }
+	elsif($ARGV[$i] eq "center" || $ARGV[$i] eq "c") { $xalign = c; }
+	else
+	{
+	    print STDERR "Bad yalign: " . $ARGV[$i] . "\n";
+	}
+    }
+    elsif($ARGV[$i] eq "-c" || $ARGV[$i] eq "--color")
+    {
+	++$i;
+	if   ($ARGV[$i] eq "red")   { $red   = 1; }
+	elsif($ARGV[$i] eq "green") { $green = 1; }
+	elsif($ARGV[$i] eq "blue")  { $blue  = 1; }
+	else
+	{
+	    ($red,$green,$blue) = ( $ARGV[$i] =~ /([0-9\.]+),([0-9\.]+),([0-9\.]+)/ );
+	    $red   = $red * 1.0;
+	    $green = $green * 1.0;
+	    $blue = $blue * 1.0;
+	}
+    }
+    elsif($ARGV[$i] eq "-h" || $ARGV[$i] eq "--help") { help(); exit(0); }
+    else
+    {
+	if   ($infile eq '')
+	{
+	    $infile = $ARGV[$i];
+	}
+	else
+	{
+	    $outfile = $ARGV[$i]; 
+	}
+    }
+}
+
+if($text eq "")
+{
+    print STDERR "Text was not specified. Use the -t option!\n";
+    exit(1);
+}
+
+$text =~ s/\}/\\\}/g;
+$text =~ s/\{/\\\{/g;
+
+# if no inputfile specified, read stdint
+if($infile eq '') { $infile = '-'; }
+open(IN,$infile);
+
+$overwrite_original = false;
+if($outfile == '')
+{
+    if($infile eq '-')
+    {
+	$outfile = '-';
+    }
+    else
+    {
+	$outfile = tmpnam();
+	$overwrite_original = true;
+    }
+}
+open(OUT, ">$outfile");
+
+$last_number = 0;
+
+while(<IN>)
+{
+    $print_before = '';
+    $print_after  = '';
+    if( ($annotate_number) = ($_ =~ /^%\\psfrag\{annot([0-9]+)\}/ ) ) 
+    {
+	if($annotate_number > $last_number) { $last_number = $annotate_number; }
+    }
+    elsif ( /^%endlatexsection/ )
+    {
+	++$last_number;
+	$print_before =  '%\psfrag{<annot' . $last_number . '>}[' . $xalign . $yalign . ']{\Gin@PS@raw{' .
+	    $red . ' ' . $green . ' ' . $blue . ' setrgbcolor}' . $text. "}\\ignorespaces\n";
+    }
+    elsif (/^%endsetup/)
+    {
+	$print_after = '//@PW ' . $xpos . ' m //@PH ' . $ypos . ' m M (<annot' . $last_number . ">) T\n";
+    }
+
+    print OUT $print_before;
+    print OUT $_;
+    print OUT $print_after;
+}
+
+if($overwrite_original)
+{
+    system("mv $outfile $infile");
+}

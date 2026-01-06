@@ -1,0 +1,9 @@
+main()
+{
+    set::xrange(0,10);
+    set::yrange(0,13);
+    plot(_1,2+sin(_1),6+sin(1.5*_1)).ds(ybands()).fillcolor(red).legend("");
+    mplot(3+cos(_1),3+(2+0.3*sin(4*_1))*cos(_1),9+sin(_1),9+(2+0.3*sin(4*_1))*sin(_1))
+	.ds(bands()).ac(blue).legend("");
+    blopeps::print("graphd-band.beps");
+}

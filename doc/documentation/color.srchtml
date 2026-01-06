@@ -1,0 +1,47 @@
+TITLE: Color
+PREV: length.html
+NEXT: object-hierarchy.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+You can define colors using the RGB values:
+<pre>
+color mycolor(0.2, 0.4, 0.9);
+</pre>
+There are some predefined colors such as <tt>red</tt>, <tt>green</tt>, <tt>blue</tt>, ....
+</div>
+<hr>
+
+<div class=description>
+Blop uses RGB color specifications, where the red, green and blue
+values can be in the range [0..1]. To define a color, use the
+constructor, which accepts these three values:
+<pre>
+   color mycolor(0.2, 0.3, 0.9);
+</pre>
+
+You  can access  or set  these  components with  the following  member
+functions (those  three functions, which set  the corresponding values
+[= accept a double argument] return a reference to the color object so
+that  other setting  functions can  be  called, according  the the  <a
+href="design-concepts.html#member_modification">general    concepts</a>
+of blop)
+
+<pre>
+   color &red(double);
+   double red() const;
+
+   color &green(double);
+   double green() const;
+
+   color &blue(double);
+   double blue() const;
+</pre>
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="color.h.html">color.h</a>
+   <a href="color.cc.html">color.cc</a>
+</pre>

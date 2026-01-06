@@ -1,0 +1,34 @@
+\if l#3\ignorespaces%
+  \if t#4\ignorespaces%
+  \else\if b#4\ignorespaces%
+
+  \else\if a#4\ignorespaces%
+
+  \else\ignorespaces%
+    \Gin@PS@raw{blop@text@width 2 div blop@tex@ctm@xscale mul blop@text@height 0.5 mul blop@text@depth 0.5 mul sub blop@tex@ctm@yscale mul reverse@translate 
+                blop@text@rwidth 2 div blop@text@angle neg cos mul neg blop@text@rwidth 2 div blop@text@angle neg sin mul reverse@translate}%
+  \fi\fi\fi
+\else\if r#3\ignorespaces%
+  \if t#4\ignorespaces%
+
+  \else\if b#4\ignorespaces%
+
+  \else\if a#4\ignorespaces%
+
+  \else\ignorespaces%
+
+  \fi\fi\fi
+\else\ignorespaces%
+  \if t#4\ignorespaces%
+    \Gin@PS@raw{blop@text@width 2 div blop@tex@ctm@xscale mul blop@text@height 0.5 mul blop@text@depth 0.5 mul sub blop@tex@ctm@yscale mul reverse@translate 
+                blop@text@rheight 2 div blop@text@angle neg sin mul blop@tex@ctm@xscale mul blop@text@rheight 2 div blop@text@angle neg cos mul blop@tex@ctm@yscale mul reverse@translate}%
+  \else\if b#4\ignorespaces%
+
+  \else\if a#4\ignorespaces%
+
+  \else\ignorespaces%
+
+  \fi\fi\fi
+\fi\fi%
+
+

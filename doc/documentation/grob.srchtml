@@ -1,0 +1,83 @@
+TITLE: GRaphical OBjects (grobs)
+PREV:  object-hierarchy.html
+NEXT:  box.html
+==>
+
+<p>      The       name      'grob'      originates       from      <a
+href="http://lilypond.org">LilyPond</a>,  a music  typesetter,  and it
+stands for  GRaphical OBject. Grob is  the base class  for all objects
+which you place in your plot (except <a href="graph.html">graph</a>). 
+Grob defines a few common properties:
+
+<ul>
+
+<li>Objects  are  placed  into  the  object  hierarchy,  as  explained
+before.   This  means,   that   all  objects   are   placed  into   <a
+href="container.html">containers</a>,  (except the  topmost container,
+the canvas). Grob  defines the <tt>autodel</tt> flag. If  this flag is
+set to <tt>true</tt>, the grob  will be automatically deleted when his
+parent container  is deleted  or cleared. This  serves the  purpose of
+garbage  collection,  and grobs  created  by  blop's utility  function
+(using  <tt>operator new</tt>)  have  this flag  automatically set  to
+true.
+
+<li>Grob defines the following member functions:
+  <dl>
+
+    <dt>off()</td> <dd> The object is switced off, it will not appear
+    on the terminal, when its parent canvas is printed. Its
+    dimensions are <a href="length.html#specialize">not
+    specialized</a> (these are details, you can skip them), using them
+    will not be valid </dd>
+
+    <dt>invisible()</td> <dd> The object will be invisible (it will
+    not appear on the terminal), but its dimensions will be calculated
+    and specialized, so you can aligh other objects to this just as if
+    it  would be there on your plot. This and the previous
+    <tt>off()</tt> function can be used for example to hide certain parts
+    of your plot at special conditions </dd>
+
+    <dt>on()</td> <dd> The object is switched on, it will appear on
+    the terminal. All objects are by default switched on, you will
+    need this function only if you switched them off, or made them 
+    invisible before.
+   
+  </ul>
+
+<li> The <tt>'container *parent()'</tt> member function returns the
+parent of this object (the container in which it is placed, or NULL if
+it is not placed into any container) 
+
+<li> The <tt>print_hierarchy()</tt> member function prints the
+object-hierarchy onto your standard error output beginning with this
+object. For example if you want to check what objects are stored in
+your current pad, say: <tt>pad::current()->print_hierarchy();</tt>
+
+<li> etc, etc, etc.
+
+</ul>
+
+
+
+<hr>
+<div class=implementation>
+
+<p> Objects may need to be  prepared for drawing. For example they can
+hold only  some preliminary info about themselves,  and they calculate
+their  final  layout only  before  being printed.  Or,  as  it was  <a
+href="length.html#specialize">explained</a> before, lengths need to be
+specialized  before they  can be  used  in any  printing process.  The
+coordinates of grobs have to be  registered in order that they will be
+specialized (I would wonder if this were clear... let me have a chance
+later   to    explain   it    better   :-).   The    member   function
+<tt>prepare_for_draw()</tt>(which is pure  virtual) usually does this,
+and this  member function is  overridden in derived classes.  The user
+never has to call this function. 
+
+
+<pre>
+Source files:
+   <a href="grob.h.html">grob.h</a>
+   <a href="grob.cc.html">grob.cc</a>
+</pre>
+</div>

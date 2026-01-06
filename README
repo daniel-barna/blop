@@ -1,0 +1,92 @@
+IMPORTANT:
+There are serious problems with the latest cint version, which we are
+investigating. Once these are fixed, .rpm and .deb packages will be
+created to make the installation of blop easier. Come back to our
+site somewhat later.
+
+
+REQUIREMENTS:
+ 
+  You need a linux machine with a c++ compiler corresponding to the
+  c++ standard (old compilers might fail),  which also supports the
+  STL (Standard Template Library of c++)
+
+COMPILATION AND INSTALLATION:
+
+  1.) Download and install CINT (as root)
+
+      Follow the instructions on http://blopplot.sourceforge.net/download.html
+
+  2.) Download blop, and extract the tar archive:
+
+      tar xvzf blop.tar.gz
+
+      This will create a directory called 'blop'. Change to this directory.
+
+  3.) run the configure script by typing:
+
+      ./configure
+
+      This checks if you have a correct CINT version installed. Additionally, 
+      it checks if the standard c++ header files and iostream fields exist (if 
+      your compiler corresponds to the c++ standard). 
+
+      By default it configures the software to be installed under /usr/local
+      If you are unhappy with this, say ./configure --help to learn how to 
+      change the installation directories
+      It lists a lot of tunable directories. Only the following have effect:
+      --prefix
+      --exec-prefix
+      --bindir
+      --datadir       
+      --libdir
+      --includedir
+
+  4.) If you succeeded, then compile it by saying:
+
+      make
+
+  5.) [Optional step] If it succeeded, then say:
+
+      make test  
+
+      and then look at test.dir/test.ps
+
+  6.) Build the documentation (needed for the installation, since this
+      will also be the help system of the software)
+
+      make doc
+
+      and then start browsing the doc/ subdirectory with
+      doc/index.html (this is the same documentation, which is available
+      at http://blopplot.sourceforge.net)
+
+  7.) If everything seems to be fine, say (as root):
+
+      make install
+
+  8.) Now all the necessary files, which are needed by blop, are copied to
+      the installation directory. You can safely remove the whole directory
+      with the source files - unless you are so kind to build an .rpm 
+      or .deb package (see next step)
+
+  9.) If blop works fine, and you are so much satisfied that you want to
+      spread it, and make the installation easier for other guys using
+      the same linux distro as you, you can build an installation
+      package out of it (.rpm or .deb)
+      Change to this directory (where this file is also located), and
+      say 
+
+      make rpm 
+      make rpminstall
+
+      or
+
+      make deb
+      make debinstall
+
+      (depending on whether you have rpm or debian package management
+      system). Follow the instructions given during the configure stage
+
+
+

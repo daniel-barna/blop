@@ -1,0 +1,638 @@
+#!/bin/sh
+
+# short description: THE blop script
+
+if [ "$1" != "--run-during-build" ] ; then
+. @config@
+else
+BLOP_BINDIR=${BLOP_BUILD_DIR}/src
+fi
+
+ARCH=`uname -s | tr '[A-Z]' '[a-z]'`
+CHIP=`uname -m | tr '[A-Z]' '[a-z]'`
+RELE=`uname -r`
+
+# ROOT overrides the dynamic library search path, and libCint.so will evaluate to the
+# version shipped with ROOT, causing an interactive blop/cint session to fail. 
+# Hack this by setting LD_LIBRARY_PATH
+# We call ldd to figure out which dynamic libraries would be used. Use this dependency 
+# list to build up LD_LIBRARY_PATH: put all directory names into this variable,
+# except if we encounter `root-config --libdir`/libCint.so
+# This way we can hopefully treat any specific settings, pre-set value of the 
+# LD_LIBRARY_PATH etc
+if [ "$BLOP_ENABLE_CINT" = "yes" ] ; then
+  if which root-config >/dev/null 2>&1; then
+    root_libdir=`root-config --libdir`
+    deplist="ldd \"$BLOP_BINDIR/blop.exe\" | awk 'NF==4 {print \$3}'"
+    if [ "$ARCH" = "darwin" ] ; then
+      deplist="otool -L \"$BLOP_BINDIR/blop.exe\" | awk 'NR>1 {print \$1}'"
+    fi
+    #for so in `ldd "$BLOP_BINDIR/blop.exe" | awk '{print $3}'`
+    for so in `eval $deplist`
+    do
+      if echo "$so" | grep ^/ >/dev/null 2>&1; then
+        libdir=`dirname "$so"`
+        if [ "$so" != "$root_libdir/libCint.so" ] ; then
+          if [ "$LD_LIBRARY_PATH" = "" ] ; then 
+            LD_LIBRARY_PATH="${libdir}"
+          else
+            # append to LD_LIBRARY_PATH only if it is not yet contained
+            if ! echo $LD_LIBRARY_PATH | grep "^${libdir}\$" >/dev/null 2>&1 && \
+               ! echo $LD_LIBRARY_PATH | grep "^${libdir}:"  >/dev/null 2>&1 && \
+               ! echo $LD_LIBRARY_PATH | grep ":${libdir}:"  >/dev/null 2>&1 && \
+               ! echo $LD_LIBRARY_PATH | grep ":${libdir}\$"  >/dev/null 2>&1 ; then
+              LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${libdir}"
+            fi
+          fi
+        else
+          echo 1>&2
+          echo "*** Removing `root-config --libdir` from LD_LIBRARY_PATH" 1>&2
+        fi
+      fi
+    done
+    if  echo $LD_LIBRARY_PATH | grep "^${root_libdir}\$" >/dev/null 2>&1 || \
+        echo $LD_LIBRARY_PATH | grep "^${root_libdir}:"  >/dev/null 2>&1 || \
+        echo $LD_LIBRARY_PATH | grep ":${root_libdir}:"  >/dev/null 2>&1 || \
+        echo $LD_LIBRARY_PATH | grep ":${root_libdir}\$"  >/dev/null 2>&1 ; then
+           echo                                                                         1>&2
+           echo "*** Root's libdir `root-config --libdir` is still in LD_LIBRARY_PATH," 1>&2
+           echo "*** this might cause problems if you are running blop with the CINT"   1>&2
+           echo "*** interpreter"                                                       1>&2
+           echo "*** If you experience problems, make sure that this library is"        1>&2
+           echo "*** not in your LD_LIBRARY_PATH environmental variable"                1>&2
+           echo                                                                         1>&2
+    fi
+    export LD_LIBRARY_PATH
+  fi
+fi
+
+if [ "$1" = "--run-during-build" ] ; then
+  if [ "$BLOP_BUILD_DIR" = "" ] ; then
+    echo BLOP_BUILD_DIR is unset; exit
+  fi
+  ${BLOP_BUILD_DIR}/src/blop.exe ${BLOP_BUILD_DIR}/src/init.C $2
+  exit
+fi
+
+
+
+if [ "${BLOP_CINTSYSDIR}" != "" ] ; then
+  if [ "${CINTSYSDIR}" = "" ]  ; then
+    echo CINTSYSDIR is not set. Setting it to the value it had at the time of the installation: $BLOP_CINTSYSDIR
+    export CINTSYSDIR=$BLOP_CINTSYSDIR
+  fi
+  if [ ! -d $CINTSYSDIR ] ; then
+    echo The directory pointed to by '$CINTSYSDIR' does not exist
+    exit 1
+  fi
+  if [ "$LD_LIBRARY_PATH" != "" ] ; then
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$CINTSYSDIR"
+  else
+    export LD_LIBRARY_PATH="$CINTSYSDIR"
+  fi
+fi
+
+export INPUTMODE=C++
+
+bloprc=$HOME/.blop/bloprc.C
+userinitfile="";
+if [ ! -d $HOME/.blop ] ; then
+  mkdir $HOME/.blop
+  if [ -f $HOME/.bloprc.C ] ; then
+    echo "$HOME/.bloprc.C found (old location of initfile)"
+    echo "Moving it into the new location: $bloprc"
+    mv $HOME/.bloprc.C $bloprc
+  else
+    echo "You are probably running blop for the first time"
+    echo "A sample user-specific initfile $bloprc is created"
+    echo "Edit this file to your needs"
+    cp $BLOP_DATADIR/bloprc.C $bloprc
+  fi
+
+  if [ $f $HOME/.blop-help-index ] ; then
+    echo "Moving $HOME/.blop-help-index to the new location: $HOME/.blop/help-index"
+    mv $HOME/.blop-help-index $HOME/.blop/help-index
+  fi
+  userinitfile="$bloprc";
+else
+  userinitfile="$bloprc";
+fi
+
+
+help()
+{
+cat <<EOF
+
+Usage:
+
+blop [options] [files]
+
+Options:
+
+   -x cmd      
+
+          execute the command 'cmd' (a valid C++ command)
+
+   -s variable=value
+
+          Create a global variable, and set its value.
+          Equivalent to saying: -x 'var variable="value";'
+
+   -m
+
+          This is only useful when standard input is redirected.
+          In this case,  blop is by default  in script mode (the 
+          input read from the standard input is interpreted as a 
+          script file,  that is,  it can  contain function defi-
+          nitions, and it must contain a main function). 
+          The -m argument causes blop to  switch to  interactive 
+          mode,  when  any  input is  interpreted  as if it  was 
+          already within a main() { } function
+
+   -h|--help [topic]
+
+          If no  topic  is  provided,  show usage  (this help). 
+          Otherwise show  help on 'topic'  and exit.  To see the 
+          root of the blop documentation, say 
+          blop -h documentation
+
+   -w <filename>
+
+          The given file's status will be continuosly watched,
+          and if it changes, the whole command will be rerun.
+	  This file will also be taken as a c++ script file to
+	  be executed
+
+   -W <filename>
+
+          As -w filename, but the given file will not be taken
+	  as a c++ script (useful to monitor the change of
+	  datafiles)
+    
+   -c|--compile
+
+          Compile (by $BLOP_CXX) and run the given file. If blop.h is
+          not included in your source, blop automatically creates a
+          wrapper source file, something like this:
+          #include "blop.h"
+          using namespace blop;
+          #include "/your/home/directory/.blop/bloprc.C" // if it #exists
+          // some code here to run your BLOP_USER_INIT() function from bloprc.C
+          #include "your_script_file.C"
+
+          The -s and -x command-line arguments do not work in this case.
+
+          You can specify command line options for the compiler within the
+          source files by adding a line for example like this:
+
+          //blopcompileopts: -I/home/my/library/inc -L/home/my/library/lib -lMyLib
+
+          Note that if CINT was disabled during configure/install, then there is
+          no CINT interpreter available, and blop will automatically compile+run
+          your script even if you do not provide the -c|--compile cmd line argument.
+
+   --version
+
+          Print version info (date of the last cvs commit)
+
+   -v|--verbose 
+
+          Verbose output (what a surprise....)
+
+   --update [version]
+   --upgrade [version]
+
+          Check if an update is available.  If yes,  download, 
+          compile and install it. If you need superuser rights 
+          to install software on your machine  (most  probably 
+          yes), then run this as root!
+          If you specify also a version, that version will be
+          downloaded and installed
+
+   --uninstall
+
+          Remove all files installed by blop 
+
+Any other  command  line arguments are  interpreted  as C++ 
+script files to be loaded. If any of  these files  contains 
+a main() {...} function,  this will  be  executed, a nd the 
+program terminates. Otherwise - after interpreting the code 
+in these files - blop starts as an interactive session, and 
+waits further commands from the terminal.
+
+For more info look at the documentation at
+http://blopplot.sourceforge.net
+
+EOF
+}
+
+uninstall()
+{
+  if which rpm >/dev/null 2>&1 && rpm -q blop-plot >/dev/null 2>&1 ; then
+    echo "Blop is installed via the package 'blop-plot'."
+    echo "Uninstalling it via 'rpm -e blop-plot' ..."
+    rpm -e blop-plot
+    echo "DONE"
+    exit 0
+  fi
+
+  if which dpkg >/dev/null 2>&1 && dpkg -s blop-plot 2>&1 | grep 'Status: install ok installed' >/dev/null 2>&1 ; then
+    echo "Blop is installed via the package 'blop-plot'."
+    echo "Uninstalling it via 'dpkg --purge blop-plot' ..."
+    dpkg --purge blop-plot
+    echo "DONE"
+    exit 0
+  fi
+
+  filelist=`mktemp /tmp/blop-uninstall.XXXXX`
+  blop-config --installed-files > $filelist
+
+  # first remove the files
+  for f in `cat $filelist`; do
+    if [ ! -d $f ]; then
+      echo Removing file: $f
+      rm -f $f
+    fi
+  done
+
+  for i in 1 2 3 4 5; do
+    for f in `cat $filelist`; do
+      if [ -e $f ] ; then
+        number_of_files=`ls -A $f | wc -w`
+        if [ $number_of_files = 0 ] ; then
+          echo Removing directory: $f
+          rm -rf $f
+        fi
+      fi
+    done
+  done
+  rm -f $filelist
+}
+
+update()
+{
+    if ! which wget >/dev/null 2>&1 ; then
+	echo wget is not installed, I can not download the latest version
+	echo Install this program, and try again!
+	exit 1;
+    fi
+
+    VERSION=$1
+
+    olddir=`pwd`
+    dir=`mktemp -d /tmp/blop-update.XXXXXX`
+    if [ $? != 0 ] ; then
+	echo Failed to create temporary directory
+	exit 1
+    fi
+    trap "echo Upgrade aborted...; cd $olddir; rm -rf $dir; exit" 2 15 9 6
+    cd $dir;
+
+    url=http://blopplot.sourceforge.net/download
+
+    # if no version was specified, figure out which is the latest
+    if [ "$VERSION" = "" ] ; then
+	echo '>>>> No version specified, checking latest available version from'
+	echo "     $url/current-version"
+	cmd="wget -O current-version $url/current-version"
+	ermsg=`$cmd 2>&1`
+	if [ $? != 0 ] ; then
+	    echo Command failed: $cmd
+	    echo Error message:
+	    echo $ermsg
+	    exit 1
+	fi
+	VERSION=`cat current-version`
+	echo ">>>> Latest version:    $VERSION"
+	version_requested=false
+    else
+	echo ">>>> Requested version: $VERSION"
+	version_requested=true
+    fi
+    echo     ">>>> Current version:   $BLOP_VERSION"
+
+    v1_1=`echo $BLOP_VERSION | awk -F . '{print $1}'`
+    v1_2=`echo $BLOP_VERSION | awk -F . '{print $2}'`
+    v1_3=`echo $BLOP_VERSION | awk -F . '{print $3}'`
+    v2_1=`echo $VERSION | awk -F . '{print $1}'`
+    v2_2=`echo $VERSION | awk -F . '{print $2}'`
+    v2_3=`echo $VERSION | awk -F . '{print $3}'`
+    
+    update_exists=false;
+    if [ $v2_1 -gt $v1_1 ] ; then update_exists=true; fi
+    if [ $v2_1 = $v1_1 ] ; then
+	if [ $v2_2 -gt $v1_2 ] ; then update_exists=true; fi
+	if [ $v2_2 = $v1_2 ] ; then
+	    if [ $v2_3 -gt $v1_3 ] ; then update_exists=true; fi
+	fi
+    fi
+    
+    if [ $update_exists = false ] ; then
+
+	# if the user did not specify a version, then he simply
+	# wanted to make an upgrade. since there is no upgrade
+	# available, print a message and exit
+	if [ "$version_requested" = "false" ] ; then
+	    echo No update exists
+	    cd /tmp
+	    rm -rf $dir
+	    return
+
+	# Otherwise, if he requested a specific version, 
+	# he may want to change to this version even if it's older
+	# so ask him!
+	else
+	  echo 
+          echo "You requested the version $VERSION which is older than the currently installed"
+	  echo -n "one $BLOP_VERSION.  Do you really want to downgrade to this version? [y/n] "
+	  read answer
+	  echo
+	  if [ "$answer" != "y" ] ; then
+	      echo "Downgrade aborted. Good decision, why would you downgrade???"
+	      echo
+	      return
+	  fi
+	fi    
+    fi
+    sleep 1s
+    
+    echo ">>>> Checking if blop was installed via deb/rpm"
+    
+    package=""
+    
+    if ( which dpkg > /dev/null) && ( dpkg -l blop > /dev/null 2>&1 ) ; then
+	echo 'Blop is installed via dpkg'
+	echo 'Trying to make a debian package      '
+	if ( which dpkg-buildpackage > /dev/null ) && ( which dh_install > /dev/null ) ; then
+	    echo ""
+	    echo "Your system seems to have the tools to create a"
+	    echo "debian package from the recent blop-source"
+	    echo "Will try to upgrade blop via this way"
+	    package="deb"
+	else
+	    echo ""
+	    echo "dpkg-buildpackage or dh_install not found on your system"
+	    echo "Therefore can't make a debian package from blop's source,"
+	    echo "and update blop via this package. To solve this problem:"
+	    echo "- Install the packages: debhelper, dpkg-dev"
+	    echo "  and try again"
+	    echo "- Try to find a ready-made .deb package of the most recent"
+	    echo "  version of blop"
+	    echo "- In the worst case, remove blop from your system:"
+	    echo "  sudo dpkg --purge  blop"
+	    echo "  and then download, compile and install the most recent source"
+	    cd /tmp
+	    rm -rf $dir
+	    exit;
+	fi
+    fi
+    
+    if ( which rpm > /dev/null) && ( rpm -q blop > /dev/null 2>&1 ) ; then
+	echo 'Blop is installed via rpm'
+	echo 'Trying to make an rpm package'
+	if ( which rpmbuild > /dev/null ) ; then
+	    echo ""
+	    echo "Your system seems to have the tools to create an"
+	    echo "rpm package from the recent blop-source"
+	    echo "Will try to upgrade blop via this way"
+	    package="rpm"
+	else
+	    echo ""
+	    echo "rpmbuild not found on your system"
+	    echo "Therefore can't make an rpm package from blop's source,"
+	    echo "and update blop via this package. "
+	    echo "Install rpmbuild and try again, or find a ready-made"
+	    echo "rpm package of the most recent version of blop"
+	    cd /tmp
+	    rm -rf $dir
+	    exit 1
+	fi
+    fi
+
+    if [ "$package" = "" ] ; then
+	echo "     Blop is not installed via rpm/dpkg, simply download/compile/install"
+    fi
+    
+    if [ "$update_exists" = true ] ; then
+	echo ">>>> Upgrading to version:   $VERSION"
+    else
+	echo ">>>> Downgrading to version: $VERSION"
+    fi
+
+    echo     ">>>> Downloading version:    $VERSION"
+    
+    cmd="wget -O blop-$VERSION.tgz $url/blop-$VERSION.tgz"
+    ermsg=`$cmd 2>&1`
+    if [ $? != 0 ] ; then
+	echo Command failed: $cmd
+	echo Error message:
+	echo $ermsg
+	exit 1
+    fi
+
+    echo ">>>> Extract tarball"
+    cmd="tar xvzf blop-$VERSION.tgz"
+    ermsg=`$cmd 2>&1`
+    if [ $? != 0 ] ; then
+	echo Command failed: $cmd
+	echo Error message:
+	$ermsg
+	exit 1
+    fi
+
+    mv blop blop-$VERSION
+    cd blop-$VERSION
+
+    echo ""
+    if [ "$update_exists" = true ] ; then    
+	echo ">>>> Changes since your installed version:"
+	ver=`echo $BLOP_VERSION | sed 's/\./\\\./g'`
+	awk '/\['$ver'\]/ { exit; } { print; }' changelog
+    else
+	echo ">>>> Changes that you will miss due to the downgrade:"
+	ver=`echo $VERSION | sed 's/\./\\\./g'`
+	awk '/\['$ver'\]/ { exit; } { print; }' $BLOP_DOCDIR/changelog
+    fi
+    echo ""
+    sleep 3s
+    
+    echo ">>>> configure/compile/install"
+    eval ./configure $BLOP_CONFIG_OPTIONS
+    if [ $? != 0 ] ; then
+	echo Failed to configure
+	cd /tmp
+	rm -rf $dir
+    fi
+    
+    if [ "$package" = "" ] ; then
+	make
+	if [ $? != 0 ] ; then
+	    echo Failed to make
+	else
+	    make doc
+	    if [ $? != 0 ] ; then
+		echo Failed to make doc
+	    else
+		make install
+	    fi
+	fi
+    else
+	make $package
+	if [ $? != 0 ] ; then
+	    echo Failed to make $package
+	else
+	    make ${package}install
+	fi
+    fi
+    cd /tmp
+    rm -rf $dir
+    echo DONE
+}
+
+compile_and_run=false;
+filelist="";
+waitfile="";
+verbose=false;
+
+while [ $# -gt 0 ] ; do
+  case $1 in
+    -w) waitfile=$2; filelist="$filelist $2"; shift;;
+    -W) waitfile=$2; shift;;
+    -c|--compile) compile_and_run=true;;
+    --update)  update $2; exit 0;;
+    --upgrade) update $2; exit 0;;
+    --uninstall) uninstall; exit 0;;
+    -h|--help) if [ $# -lt 2 ] ; then help; else blop-help "$2"; fi; exit;;
+    --version)   echo "Version: $BLOP_VERSION"; echo "Configure options: $BLOP_CONFIGURE_OPTIONS"; exit;;
+    -v|--verbose) verbose=true;;
+    *)  filelist="$filelist $1";;
+  esac
+  shift;
+done
+
+if [ "$BLOP_ENABLE_CINT" != "yes" -a "$compile_and_run" = false ] ; then
+#  echo "Warning: this version was compiled with CINT disabled (i.e. no interpreter mode is "
+#  echo "available) Your script will be compiled (use the -c option to avoid this warning)"
+#  echo ""
+  compile_and_run=true;
+fi
+
+##
+## If no file was given on the command line, print the
+## tip of the day
+##
+if [ "$filelist" = "" -a "$compile_and_run" = "false" ] ; then
+  totd=$HOME/.blop/tip-of-the-day 
+  if [ ! -e $totd ] ; then
+    echo 0 > $totd
+  fi
+
+  if ! grep disable $totd >/dev/null ; then
+    index=`cat $totd`
+    index=`expr $index + 1`
+    all=`grep '^%' $BLOP_DOCDIR/tip-of-the-day | wc -l`
+    all=`expr $all + 1`
+    if [ $index -gt $all ] ; then
+      index=1
+    fi 
+    echo '----------------- TIP OF THE DAY ------------------------'
+    echo "(To disable, write 'disable' into ~/.blop/tip-of-the-day)"
+    echo ''
+    awk 'BEGIN{i=1} {if($0 ~ /^%/) {++i} else {if(i=='$index'){ print}}} ' $BLOP_DOCDIR/tip-of-the-day
+    echo '---------------------------------------------------------'
+    rm -f $totd;
+    echo $index > $totd
+  fi
+fi
+
+
+if [ "$compile_and_run" = false ] ; then
+  cmd="$BLOP_BINDIR/blop.exe $BLOP_DATADIR/init.C $userinitfile $BLOP_DATADIR/init2.C $filelist"
+else
+  if [ "$filelist" = "" ] ; then
+    if [ "$BLOP_ENABLE_CINT" = "yes" ] ; then
+      echo Please define a file for compile-and-run;
+    else
+      echo "CINT was disabled. You can not run an interactive session, only process"
+      echo "script files. Please provide a script filename on the commandline, which"
+      echo "will be automatically compiled and run"
+    fi
+    exit 1
+  fi
+
+  COMPILE_OPTIONS=""
+  for f in $filelist ; do
+    opts=`awk '$1=="//blopcompileopts:" { for(i=2; i<=NF; ++i) { printf "%s ",$i; } print ""; }' ${f}`
+    if [ "$verbose" = true -a "$opts" != "" ] ; then
+      echo Compile options found in file \'${f}\': $opts
+    fi
+    COMPILE_OPTIONS="${COMPILE_OPTIONS} ${opts}"
+  done
+
+  filelist_to_compile="";
+  for f in $filelist ; do
+    if ! grep -E '^#include +[<"]blop.h[<"]' $f > /dev/null ; then
+      tmpforcompile="/tmp/blop.compile-and-run.$$.$f"
+      rm -f $tmpforcompile;
+      echo '#include "blop.h"' > $tmpforcompile
+      echo 'using namespace blop;' >> $tmpforcompile
+      if [ "$userinitfile" != "" ] ; then
+        echo '#include "'$userinitfile'"' >> $tmpforcompile
+      fi
+
+      if [ "$userinitfile" != "" ] ; then
+        echo '#include "'${BLOP_DATADIR}/call_user_init.C'"' >> $tmpforcompile
+#	if grep -E '^ *void *BLOP_USER_INIT *\( *\)' $userinitfile > /dev/null ; then
+#          echo 'class user_INIT_caller_abcdefgh { public: user_INIT_caller_abcdefgh() { BLOP_USER_INIT(); } };' >> $tmpforcompile
+#          echo 'user_INIT_caller_abcdefgh user_INIT_caller_dummy;' >> $tmpforcompile
+#        fi
+      fi
+
+      fullpath=$f
+      # if it is not a full path, i.e. starting with /, then prefix it with the
+      # current working directory
+      if ! echo "$fullpath" | grep '^/' >/dev/null ; then
+        fullpath=`pwd`/$f
+      fi
+
+      echo '#include "'${fullpath}'"' >> $tmpforcompile
+      filelist_to_compile="$filelist_to_compile $tmpforcompile"
+      tmpfiles="$tmpfiles $tmpforcompile"
+    else
+      filelist_to_compile="$filelist_to_compile $f"
+    fi
+  done
+
+  if [ "${BLOP_CXX}" = "g++" ] ; then
+    COMPILE_OPTIONS="${COMPILE_OPTIONS} -std=c++20"
+  fi
+
+  tmpexe=`mktemp /tmp/blop.compile-and-run.$$.XXXXXX`
+  RDYNAMIC="-rdynamic"
+  if [ "$ARCH" = "darwin" ] ; then RDYNAMIC=""; fi
+  cmd="if $BLOP_CXX ${RDYNAMIC} -I${HOME}/.blop $filelist_to_compile -o $tmpexe `blop-config --cflags --libs` -ldl ${COMPILE_OPTIONS}; then $tmpexe; fi"
+  tmpfiles="$tmpfiles $tmpexe"
+fi
+
+# run the command first, anyway. 
+if [ "$verbose" = true ] ; then echo Running: $cmd; fi
+eval $cmd
+
+if [ "$waitfile" != "" ]  ; then
+  lockfile=`mktemp /tmp/blop.lock.XXXXXXXXXX`
+  tmpfiles="$tmpfiles $lockfile"
+
+  while [ true ] ; do
+    echo -n Waiting for file $waitfile to be modified...
+    while [ "$lockfile" -nt "$waitfile" ] ; do
+      sleep 1s
+    done
+    echo OK
+    touch $lockfile
+    eval $cmd
+  done
+fi
+
+rm -f $tmpfiles
+
+exit

@@ -1,0 +1,172 @@
+#!/bin/sh
+
+# short description: print install configuration [libraries, header file locations] for the compiler
+
+. @config@
+
+help()
+{
+cat 1>&2 <<EOF
+
+  Usage:   blop-config  [options]
+
+    --cflags       print the flags for the C++ compiler
+
+    --libs         print the libraries (as cmd line arguments for the
+                   c++ linker)
+
+    -n  |  --namespace  
+                   The flags for the compiler will also include flags
+                   to automatically 'use namespace blop;' in the blop.h
+                   header file
+  
+                   To permanently switch this option ON, create a file
+                   $HOME/.blop/blop-configrc, and put a line
+                   NAMESPACE=true
+                   in it (the file should follow the /bin/sh syntax!)
+
+EOF
+if [ "$BLOP_ENABLE_CINT" = "yes" ] ; then
+cat 1>&2 <<EOF
+    --cint         The cflags or libs, which are printed if --cflags or --libs
+                   options are provided, will contain necessary things to use
+                   the CINT header files and interpreter support
+
+                   To permanently switch this option ON, create a file
+                   $HOME/.blop/blop-configrc, and put a line
+                   CINT=true
+                   in it (the file should follow the /bin/sh syntax!)
+
+    --cint-version   print cint version, with which blop was compiled
+
+EOF
+fi
+cat 1>&2 <<EOF
+    --docdir       print the documentation directory
+
+    --stydir|--texdir  print the directory where blopeps.sty resides
+
+    --datadir      print the directory where datafiles, initfiles 
+                   (init.C, bloprc.C, config files) are installed   
+
+    --bindir       print the directory where the executables are installed
+
+    --libdir       print the directory where libraries are installed
+
+    --incdir       print the directory where include files are installed
+
+    -v|--version   print blop version number
+
+    --config-options  print the config options
+
+    -h, --help  print this help
+
+    --installed-files   print all installed files by this package
+EOF
+}
+
+PRINT_CFLAGS=false;
+PRINT_LIBS=false;
+CINT=false;
+NAMESPACE=false;
+
+if [ -e $HOME/.blop/blop-configrc ] ; then
+  . $HOME/.blop/blop-configrc
+fi
+
+while [ $# -gt 0 ] ; do
+  case $1 in
+    --cflags)      PRINT_CFLAGS=true;;
+    --libs)        PRINT_LIBS=true;;
+    --docdir)      PRINT_DOCDIR=true;;
+    --stydir)      PRINT_STYDIR=true;;
+    --texdir)      PRINT_STYDIR=true;;
+    --datadir)     PRINT_DATADIR=true;;
+    --bindir)      PRINT_BINDIR=true;;
+    --libdir)      PRINT_LIBDIR=true;;
+    --incdir)      PRINT_INCDIR=true;;
+    --cint)        
+                   if [ "$BLOP_ENABLE_CINT" = "yes" ] ; then
+                    CINT=true
+                   else
+                    echo "CINT was disabled"
+                   fi;;
+    -n)            NAMESPACE=true;;
+    --namespace)   NAMESPACE=true;;
+    -h)         help;;
+    --help)     help;;
+    -v|--version)  echo $BLOP_VERSION;;
+    --cint-version) 
+                   if [ "$BLOP_ENABLE_CINT" = "yes" ] ; then
+                     echo $CINT_VERSION
+                   else
+                     echo "CINT was disabled"
+                   fi;;
+    --installed-files) cat ${BLOP_DATADIR}/installed-files ;;
+    --config-options) echo ${BLOP_CONFIG_OPTIONS} ;;
+    *)          echo Unknown argument: $1 1>&2
+                help; exit;;
+  esac
+  shift;
+done
+
+sep=""
+
+if [ $PRINT_CFLAGS = true ] ; then
+  cflags="-I$BLOP_INCDIR ";
+  if [ $CINT = true ] ; then 
+    if [ "$BLOP_CINTSYSDIR" != "" ] ; then
+      cflags="$cflags -I$BLOP_CINTSYSDIR  -I$BLOP_CINTSYSDIR/src -DBLOP_USE_CINT "; 
+    else
+      cflags="$cflags -DBLOP_USE_CINT `cint-config --cflags`"
+    fi
+  fi
+  if [ $NAMESPACE = true ] ; then cflags="$cflags -DUSE_NAMESPACE_BLOP "; fi
+  if [ "$HAVE_GTS_H" = 1 ] ; then cflags="$cflags `gts-config --cflags`"; fi
+  if [ "$HAVE_GSL"   = 1 ] ; then cflags="$cflags `gsl-config --cflags`"; fi
+  cflags="$cflags $BLOP_CXXSTD"
+  printf "%s" "${sep}$cflags";
+  sep=" "
+fi
+
+if [ $PRINT_LIBS = true ] ; then
+  if [ $CINT = true ] ; then
+    if [ "$BLOP_CINTSYSDIR" != "" ] ; then
+      libs="$BLOP_LIBDIR/blop_G__cpp_blop.o $BLOP_CINTSYSDIR/src/G__ci.a $BLOP_LIBDIR/blop_G__setup.o -L$BLOP_LIBDIR -lblop-cint -lreadline -L/usr/X11R6/lib -lX11 -L/usr/lib/termcap -ltermcap -ldl -rdynamic -lgsl";
+    else
+      libs="$BLOP_LIBDIR/blop_G__cpp_blop.o $BLOP_LIBDIR/blop_G__setup.o -L$BLOP_LIBDIR -lblop-cint `cint-config --libs` -lreadline -L/usr/X11R6/lib -lX11 -L/usr/lib/termcap -ltermcap -ldl -rdynamic -lgsl";
+    fi
+  else
+    libs="-L$BLOP_LIBDIR -lblop -L/usr/X11R6/lib -lX11 ";
+  fi
+  if [ "$HAVE_GTS_H" = 1 ] ; then libs="$libs `gts-config --libs`"; fi
+  if [ "$HAVE_GSL" = 1 ] ; then libs="$libs `gsl-config --libs`"; fi
+  printf "%s" "${sep}$libs";
+  sep=" "
+fi
+
+if [ "$PRINT_DOCDIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_DOCDIR"
+  sep=" "
+fi
+if [ "$PRINT_STYDIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_STYDIR"
+  sep=" "
+fi
+if [ "$PRINT_DATADIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_DATADIR"
+  sep=" "
+fi
+if [ "$PRINT_BINDIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_BINDIR"
+  sep=" "
+fi
+if [ "$PRINT_INCDIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_INCDIR"
+  sep=" "
+fi
+if [ "$PRINT_LIBDIR" = true ] ; then
+  printf "%s" "${sep}$BLOP_LIBDIR"
+  sep=" "
+fi
+

@@ -1,0 +1,20 @@
+#!/bin/sh
+
+. @config@
+
+if ! which wmctrl >/dev/null 2>&1 ; then
+  echo "Install wmctrl!"
+  exit 1
+fi
+
+if ! wmctrl -R "BLOP terminal" ; then
+  if pgrep -u $USER kwin ; then
+    #konsole --title "BLOP terminal" --caption "BLOP terminal" -e blop &
+    # it sucks, my konsole sets its title to $HOME : blop for some reason, most
+    # of the times (sometimes not...)
+    # so let's forget about it and use xterm
+    xterm -T "BLOP terminal" -e blop &
+  else
+    xterm -T "BLOP terminal" -e blop &
+  fi  
+fi

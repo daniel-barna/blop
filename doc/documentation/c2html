@@ -1,0 +1,115 @@
+$filename = $ARGV[0];
+$filename =~ s/\.\.\/\.\.\/src\///;
+
+$links = "
+<a href=\"../index.html\" title=\"Home\"> 
+<img src=\"../home.png\"  style=\"border-width:0cm;\"> 
+</a>
+<a href=\"source.html\" title=\"List of sourcefiles\"> 
+<img src=\"../up.png\"    style=\"border-width:0cm;\"> 
+</a>
+";
+
+print "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\">
+<html>
+<head>
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=ISO-8859-1\">
+<link href=\"../default.css\" type=\"text/css\" rel=\"stylesheet\">
+<title> BLOP: $filename </title>
+</head>
+<body>
+$links <hr>
+<pre>
+";
+
+
+
+$span_open = 0;
+$comment = 0;
+$lineno = 0;
+while(<>)
+{
+    chomp;
+    if(/\/\/html *(.*)/)
+    {
+	$_ = $1 . "\n";
+    }
+    else
+    {
+	s/\&/\&amp\;/g;
+	s/</\&lt\;/g;
+	s/>/\&gt\;/g;
+	
+	if(!$comment)
+	{
+	    if(/^[ \t]*private:/)
+	    {
+		if($span_open) { $_ = "</span><span class=private>" . $_; }
+		else           { $_ = "<span class=private>"        . $_; ++$span_open;}
+	    }
+	    elsif(/^[ \t]*protected:/)
+	    {
+		if($span_open) { $_ = "</span><span class=protected>" . $_;}
+		else           { $_ = "<span class=protected>" . $_; ++$span_open;}
+	    }
+	    elsif(/^[ \t]*public:/)
+	    {
+		if($span_open) { $_ = "</span><span class=public>" . $_;}
+		else           { $_ = "<span class=public>" . $_; ++$span_open;}
+	    }
+	    elsif(/([ \t]*)\/\/ *-{3,} +(.*) +---*[ \t]*$/)
+	    {
+		$len = length($2);
+		$_ = "$1<span class=comment>// ---------- " . $2 . " ";
+		for($i=0; $i<68-$len; ++$i) { $_ .= "-"; }
+		$_ .= "</span>";
+	    }
+	    elsif(/([ \t]*)\/\/ *={3,}[ \t]*$/)
+	    {
+		$_ = "$1<span class=comment>// ";
+		for($i=0; $i<80; ++$i) { $_ .= "="; }
+		$_ .= "</span>";
+	    }
+	    elsif(/([ \t]*)\/\/ *-{3,}[ \t]*$/)
+	    {
+		$_ = "$1<span class=comment>// ";
+		for($i=0; $i<80; ++$i) { $_ .= "-"; }
+		$_ .= "</span>";
+	    }
+	    elsif(/\/\//)
+	    {
+		s/\/\//<span class=comment>\/\//;
+		$_ .= "</span>";
+	    }
+	    elsif(($ff) = /\#include[ \t]*\"(.*)\"/)
+	    {
+		if(-f "../../src/" . $ff)
+		{
+		    $_ = "#include \"<a href=\"" . $ff . ".html\">" . $ff . "</a>\"";
+		}
+	    }
+	}
+	
+	if(/\/\*/)
+	{
+	    s/\/\*/<span class=comment>\/\*/;
+	    ++$span_open;
+	    $comment = 1;
+	}
+	if(/\*\//)
+	{
+	    s/\*\//\*\/<\/span>/;
+	    --$span_open;
+	    $comment = 0;
+	}
+	
+	$_ = "<a name=\"__line$lineno\"></a>" . $_ . "\n";
+    }
+    print $_;
+    ++$lineno;
+}
+for(; $span_open; --$span_open) {print "</span>\n";}
+print "
+</pre>
+<hr> $links
+</body></html>\n";

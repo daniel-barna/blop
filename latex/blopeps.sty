@@ -1,0 +1,344 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{blopeps}[18/02/03 D.Barna]
+
+\RequirePackage{color}
+\RequirePackage{keyval}
+
+\newlength{\blopPW}
+\newlength{\blopPH}
+\newlength{\blopPS}
+\newlength{\blopLW}
+\newlength{\blop@tmplen@i}
+\newlength{\blop@tmplen@ii}
+\newlength{\blop@tmplen@iii}
+
+\newbox\blop@tmp@box
+\newcounter{blop@counter@i}
+\newcounter{blop@counter@ii}
+\newcounter{blop@counter@iii}
+\newlength{\blop@dimen}
+\newdimen\blop@tmp@dimen
+\newcounter{blopdebugcounter}
+\setcounter{blopdebugcounter}{1}
+\newread\blop@input@file
+
+\def\permill{\raisebox{0.6ex}{\scriptsize 0}\kern-0.2em/\kern-0.2em\raisebox{-0.3ex}{\scriptsize 00}}
+
+\define@key{blop}{pw}{\setlength{\blopPW}{#1}}
+\define@key{blop}{width}{\setlength{\blopPW}{#1}}
+\define@key{blop}{ph}{\setlength{\blopPH}{#1}}
+\define@key{blop}{height}{\setlength{\blopPH}{#1}}
+\define@key{blop}{ps}{\setlength{\blopPS}{#1}}
+\define@key{blop}{lw}{\setlength{\blopLW}{#1}}
+\define@key{blop}{text}{\def\blop@annotate@text{#1}}
+\define@key{blop}{textpos}{\global\def\blop@annotate@pos{#1}}
+\define@key{blop}{textalign}{\global\def\blop@annotate@align{#1}}
+\define@key{blop}{lon}{\Gin@PS@raw{/BlopLayer@#1 1 def}}
+\define@key{blop}{loff}{\Gin@PS@raw{/BlopLayer@#1 0 def}}
+\def\blop@annotate@pos{0.5,0.5}%
+\def\blop@annotate@align{lb}%
+
+\def\blop@cmd{}
+\def\blopcmd#1{\def\blop@cmd{#1}}
+
+\setlength{\blopPW}{\linewidth}
+\def\bloppw#1{\setlength{\blopPW}{#1}}
+
+\setlength{\blopPH}{6cm}
+\def\blopph#1{\setlength{\blopPH}{#1}}
+
+\setlength{\blopPS}{2mm}
+\def\blopps#1{\setlength{\blopPS}{#1}}
+
+\setlength{\blopLW}{.4pt}
+\def\bloplw#1{\setlength{\blopLW}{#1}}
+
+
+\def\blopdimen#1#2{%
+\blop@tmp@dimen=#1%
+\setcounter{blop@counter@i}{\blop@tmp@dimen}%
+\Gin@PS@raw{blopdict /#2 \arabic{blop@counter@i} 65536 div put}}
+
+% #1 = text
+% #2 = angle. If it is a @ letter, 0 is assumed (optimized code)
+% #3 = postscript macro to contain the width. If it's 0, the width will not be written
+% #4 = postscript macro to contain the (total) height. If it's 0, the height will not be written
+% #5 = postscript macro to contain the latex-native height (i.e. without the depth). If it's 0, the height will not be written
+\def\blop@textsize#1#2#3#4#5{%
+\sbox\blop@tmp@box{#1}%
+\blop@tmplen@i=\wd\blop@tmp@box%
+\blop@tmplen@ii=\ht\blop@tmp@box%
+\advance\blop@tmplen@ii by\dp\blop@tmp@box%
+\blop@tmplen@iii=\ht\blop@tmp@box%
+\setcounter{blop@counter@i}{\blop@tmplen@i}%
+\setcounter{blop@counter@ii}{\blop@tmplen@ii}%
+\setcounter{blop@counter@iii}{\blop@tmplen@iii}%
+\if @#2%
+  \if 0#3\else\Gin@PS@raw{blopdict /#3 \arabic{blop@counter@i} 65536 div put}\fi%
+  \if 0#4\else\Gin@PS@raw{blopdict /#4 \arabic{blop@counter@ii} 65536 div put}\fi%
+  \if 0#5\else\Gin@PS@raw{blopdict /#5 \arabic{blop@counter@iii} 65536 div put}\fi%
+\else%
+  \if 0#3\else\Gin@PS@raw{blopdict /#3 \arabic{blop@counter@ii} 65536 div #2 sin abs mul \arabic{blop@counter@i} #2 cos abs mul add put}\fi%
+  \if 0#4\else\Gin@PS@raw{blopdict /#4 \arabic{blop@counter@ii} 65536 div #2 cos abs mul \arabic{blop@counter@i} #2 sin abs mul add put}\fi%
+  \if 0#5\else\Gin@PS@raw{blopdict /#5 \arabic{blop@counter@ii} 65536 div #2 cos abs mul \arabic{blop@counter@i} #2 sin abs mul add put}\fi%
+\fi%
+\ignorespaces}
+
+\def\blopeps{\@ifnextchar[{\blopeps@i}{\blopeps@i[]}}
+
+\def\blopeps@i[#1]#2{%
+\makeatletter%
+\newif\if@blop@goL\@blop@goLfalse%
+\newif\if@blop@goR\@blop@goRfalse%
+\newif\if@blop@goT\@blop@goTfalse%
+\newif\if@blop@goB\@blop@goBfalse%
+\newif\if@blop@goA\@blop@goAfalse%
+\newif\if@blop@musttranslate\@blop@musttranslatefalse%
+\rule{0cm}{0.1pt}%
+\Gin@PS@raw{gsave
+  /blop@tex@dict currentdict def                                          % save the current dictionary (which TeX was using)
+  /blop@tex@ctm matrix currentmatrix def                                  % save TeX's CTM into blop@tex@ctm. All typesetting macros need this environment
+  userdict /blopdict known {}{userdict /blopdict 100 dict put} ifelse     % create blopdict if not existent. 
+  blopdict /BLOPEPSFILENAME{#2}put                                        % define BLOPEPSFILENAME to be the name of the currently included file
+  blopdict /blop@text@start@cmd{
+    gsave
+    blop@tex@ctm@xdir blop@tex@ctm@ydir mul mul /blop@text@angle exch def % define the angle in blop@text@angle
+    /blop@ctm matrix currentmatrix def                                    % save the CTM of the blopeps file into blop@ctm
+    currentpoint blop@ctm transform blop@tex@ctm itransform               % transform the current point within the blopeps file to TeX's coord. system
+    /blop@text@blop@y exch def /blop@text@blop@x exch def                 % save (x,y) (i.e. where the text should app. in TeX's coordsys) into blop@text@blop{x,y}
+    blop@tex@ctm setmatrix                                                % set TeX's CTM as the current matrix (TeX commands will come, they need this environment)
+    blop@text@blop@x blop@text@blop@y translate                           % move to the location where the text should appear
+    blop@text@angle rotate                                                % rotate the coordsys by angle
+    blop@text@tex@x neg blop@text@tex@y neg translate                     % translate back by the negative distance, where TeX wants to put the text
+    blop@tex@dict begin
+  }put
+  blopdict /blop@text@end@cmd{
+    end grestore
+  }put
+  blopdict /blop@text@calcrsize{
+    blopdict /blop@text@rwidth  blop@text@totalheight blop@text@angle sin abs mul blop@text@width blop@text@angle cos abs mul add put
+    blopdict /blop@text@rheight blop@text@totalheight blop@text@angle cos abs mul blop@text@width blop@text@angle sin abs mul add put
+  }put
+}%
+\setbox\blop@tmp@box\hbox{\hbox to0pt{x}\hskip10pt\raisebox{10pt}{x}}%
+\ht\blop@tmp@box\z@%
+\dp\blop@tmp@box\z@%
+\wd\blop@tmp@box0pt%
+\Gin@PS@raw{/blop@orig@show /show load def                % save the definition of the show operator
+  /blop@counter 0 def                                     % set up a counter starting from 0
+  /show {                                                 % overwrite the show operator in TeX's dictionary, 
+    blop@counter 0 eq 
+    {pop currentpoint /blop@text@tex@y exch def /blop@text@tex@x exch def}
+    {pop currentpoint blop@text@tex@y sub 10.0 div /blop@tex@ctm@yscale exch def blop@text@tex@x sub 10.0 div /blop@tex@ctm@xscale exch def
+    blop@tex@ctm@xscale 0 lt { /blop@tex@ctm@xdir -1 def }{/blop@tex@ctm@xdir 1 def} ifelse
+    blop@tex@ctm@yscale 0 lt { /blop@tex@ctm@ydir -1 def }{/blop@tex@ctm@ydir 1 def} ifelse}
+    ifelse /blop@counter blop@counter 1 add def
+  } def
+}%
+\box\blop@tmp@box%
+\Gin@PS@raw{/show /blop@orig@show load def
+  currentdict /blop@orig@show undef
+  currentdict /blop@counter undef
+  blopdict begin
+}%
+\read@blop@commands{#2}%
+\begingroup%
+\blop@cmd%
+\def\blop@annotate@text{}%
+\global\let\blop@annotate@text\@empty%
+\setkeys{blop}{#1}%
+\bgroup%
+\blopdimen{\blopPW}{@PW}%
+\blopdimen{\blopPH}{@PH}%
+\blopdimen{1em}{@EM}%
+\blopdimen{1ex}{@EX}%
+\blopdimen{0cm}{blopdef}%
+\ifx\blopLW\undefined\def\blopLW{0.4pt}\fi%
+\blopdimen{\blopLW}{@LW}%
+\ifx\blopPS\undefined\def\blopPS{2mm}\fi%
+\blopdimen{\blopPS}{@PS}%
+\setbox\blop@tmp@box\hbox{\special{psfile=#2}}%
+\dp\blop@tmp@box\z@%
+\ht\blop@tmp@box\blopPH%
+\wd\blop@tmp@box\blopPW%
+\box\blop@tmp@box%
+\ifx\blop@annotate@text\@empty%
+\relax%
+\else%
+\pssetlength{\blop@tmplen@i}{\psxunit}%
+\pssetlength{\blop@tmplen@ii}{\psyunit}%
+\psset{xunit=\blopPW}%
+\psset{yunit=\blopPH}%
+\rput[lb]{0}(-\blopPW,0){\rput[\blop@annotate@align]{0}(\blop@annotate@pos){\blop@annotate@text}}%
+\psset{xunit=\blop@tmplen@i}%
+\psset{yunit=\blop@tmplen@ii}%
+\fi%
+\egroup%
+\endgroup%
+\rule{0cm}{0.1pt}%
+\Gin@PS@raw{blopdict /BLOPEPSFILENAME undef}%
+\Gin@PS@raw{end}%
+\Gin@PS@raw{userdict /blopdict undef}%
+\Gin@PS@raw{grestore}%
+}
+
+\catcode `\% 12
+\def\@blop@beg@ltx{%latexsection }
+\def\@blop@end@ltx{%endlatexsection }
+\def\blopexec%#1{#1}
+\catcode `\% 14
+
+\def\read@blop@commands#1{%
+\immediate\openin\blop@input@file#1 %
+\ifeof\blop@input@file%
+\@latex@error{File`#1' not found}\@ehc%
+\else%
+   \newif\if@blop@execcmd%
+   \@blop@execcmdfalse%
+   \newif\if@blop@scan%
+   \@blop@scantrue%
+   \loop%
+     \catcode `\% 12\read\blop@input@file to \@bloptempa\catcode `\% 14%
+     \ifeof\blop@input@file%
+        \@blop@scanfalse%
+     \else%
+        \ifx\@bloptempa\@blop@beg@ltx%
+          \@blop@execcmdtrue
+        \else\ifx\@bloptempa\@blop@end@ltx%
+          \@blop@scanfalse%
+        \else
+          \if@blop@execcmd%
+            \catcode `\% 12\expandafter\blopexec\@bloptempa\catcode `\% 14%
+          \fi
+        \fi\fi
+     \fi%
+     \if@blop@scan%
+   \repeat%
+   \immediate\closein\blop@input@file%
+\fi%
+}
+
+\edef\leftbrace{\string{ }
+\edef\rightbrace{\string} }
+
+\newlength{\bloptext@wd}
+\newlength{\bloptext@ht}
+\newlength{\bloptext@dp}
+\newlength{\bloptext@th}
+\newlength{\bloptext@dx}
+\newlength{\bloptext@dy}
+
+% #1 = text to be typeset
+% #2 = postscript macro name containing all the commands to typeset the text
+% #3 = horizontal alignment
+% #4 = vertical alignment
+% #5 = anchor system (R for the bbox of the rotated text, O for the original)
+% #6 = angle of text, can be any postscript code as well. 
+% #7 = color in this format: red,green,blue
+\def\blop@text#1#2#3#4#5#6#7{%
+\def\zero{0}%
+\def\ninety{90}%
+\def\minusninety{-90}%
+\def\angle{#6}%
+\Gin@PS@raw{/#2\leftbrace #6 blop@text@start@cmd}%
+\sbox\blop@tmp@box{\color[rgb]{#7}#1}%
+\blopdimen{\wd\blop@tmp@box}{blop@text@width}%
+\blopdimen{\ht\blop@tmp@box}{blop@text@height}%
+\blopdimen{\dp\blop@tmp@box}{blop@text@depth}%
+\Gin@PS@raw{blopdict /blop@text@totalheight blop@text@height blop@text@depth add put blop@text@calcrsize}%
+\if R#5%
+  \Gin@PS@raw{blop@text@width 2 div blop@tex@ctm@xscale mul neg
+              blop@text@height 2 div blop@text@depth 2 div sub blop@tex@ctm@yscale mul neg translate}%
+  \if l#3%
+    \if@blop@goL\else%
+      \Gin@PS@raw{blopdict /blop@text@goL { blop@text@rwidth 2 div blop@text@angle neg cos neg mul     blop@tex@ctm@xscale mul neg
+                  blop@text@rwidth 2 div blop@text@angle neg sin mul         blop@tex@ctm@yscale mul neg translate}put}%
+      \@blop@goLtrue%
+    \fi%
+    \Gin@PS@raw{blop@text@goL}%
+  \else\if r#3%
+    \if@blop@goR\else%
+      \Gin@PS@raw{blopdict /blop@text@goR { blop@text@rwidth 2 div blop@text@angle neg cos neg mul     blop@tex@ctm@xscale mul
+                  blop@text@rwidth 2 div blop@text@angle neg sin mul         blop@tex@ctm@yscale mul translate}put}%
+      \@blop@goRtrue%
+    \fi%
+    \Gin@PS@raw{blop@text@goR}%
+  \fi\fi%
+  \if t#4%
+    \if@blop@goT\else%
+      \Gin@PS@raw{blopdict /blop@text@goT {blop@text@rheight 2 div blop@text@angle neg sin mul     blop@tex@ctm@xscale mul neg
+                  blop@text@rheight 2 div blop@text@angle neg cos mul     blop@tex@ctm@yscale mul neg translate}put}%
+      \@blop@goTtrue%
+    \fi%
+    \Gin@PS@raw{blop@text@goT}%
+  \else\if b#4%
+    \if@blop@goB\else%
+      \Gin@PS@raw{blopdict /blop@text@goB {blop@text@rheight 2 div blop@text@angle neg sin mul     blop@tex@ctm@xscale mul 
+                  blop@text@rheight 2 div blop@text@angle neg cos mul     blop@tex@ctm@yscale mul translate}put}%
+      \@blop@goBtrue%
+    \fi%
+    \Gin@PS@raw{blop@text@goB}%
+  \else\if a#4%
+    \if@blop@goA\else%
+      \Gin@PS@raw{blopdict /blop@text@goA {blop@text@rheight 2 div blop@text@angle neg sin mul     blop@tex@ctm@xscale mul 
+                  blop@text@rheight 2 div blop@text@angle neg cos mul     blop@tex@ctm@yscale mul translate}put}%
+      \@blop@goAtrue%
+    \fi
+    \Gin@PS@raw{blop@text@goA}%
+  \fi\fi\fi%
+\else%
+  \@blop@musttranslatefalse%
+  \if c#3%
+    \Gin@PS@raw{blop@text@width 2 div blop@tex@ctm@xscale mul neg }%
+    \@blop@musttranslatetrue%
+  \else\if r#3%
+    \Gin@PS@raw{blop@text@width blop@tex@ctm@xscale mul neg }%
+    \@blop@musttranslatetrue%
+  \fi\fi%
+  \if t#4%
+    \if@blop@musttranslate\else\Gin@PS@raw{0 }\fi%
+    \Gin@PS@raw{blop@text@height blop@tex@ctm@yscale mul neg }%
+    \@blop@musttranslatetrue%
+  \else\if b#4%
+    \if@blop@musttranslate\else\Gin@PS@raw{0 }\fi%
+    \Gin@PS@raw{blop@text@depth blop@tex@ctm@yscale mul }%
+    \@blop@musttranslatetrue%
+  \else\if c#4%
+    \if@blop@musttranslate\else\Gin@PS@raw{0 }\fi%
+    \Gin@PS@raw{blop@text@depth 2 div blop@text@height 2 div sub blop@tex@ctm@yscale mul }%
+    \@blop@musttranslatetrue%
+  \fi\fi\fi%
+  \if@blop@musttranslate\Gin@PS@raw{translate}\fi%
+\fi%
+\hbox to0pt{\box\blop@tmp@box}%
+\Gin@PS@raw{blop@text@end@cmd \rightbrace def}%
+}
+
+%\bloptext@wd=\wd\z@%
+%\bloptext@ht=\ht\z@%
+%\bloptext@dp=\dp\z@%
+%\bloptext@th=\ht\z@ \advance\bloptext@th by\dp\z@%
+%\bloptext@dx=-0.5\bloptext@wd%
+%\bloptext@dy=-0.5\bloptext@th%
+%\if l#3 \bloptext@dx=0pt \else
+%\if r#3 \bloptext@dx=-\bloptext@wd \fi\fi
+%\if b#4 \bloptext@dy=\bloptext@dp \else
+%\if t#4 \bloptext@dy=-\bloptext@ht \else
+%\if B#4 \bloptext@dy=0pt \fi\fi\fi
+%\hbox to0pt{\hskip\bloptext@dx\raisebox{\bloptext@dy}{\box\z@}}%
+
+
+
+%\ifx\angle\zero%
+%\Gin@PS@raw{blopdict /blop@text@rwidth  blop@text@width put
+%            blopdict /blop@text@rheight blop@text@totalheight put}%
+%\else\ifx\angle\ninety%
+%\Gin@PS@raw{blopdict /blop@text@rwidth  blop@text@totalheight put
+%            blopdict /blop@text@rheight blop@text@width put}%
+%\else\ifx\angle\minusninety%
+%\Gin@PS@raw{blopdict /blop@text@rwidth  blop@text@totalheight put
+%            blopdict /blop@text@rheight blop@text@width put}%
+%\else%
+%\Gin@PS@raw{blopdict /blop@text@rwidth  blop@text@totalheight #6 sin abs mul blop@text@width #6 cos abs mul add put
+%            blopdict /blop@text@rheight blop@text@totalheight #6 cos abs mul blop@text@width #6 sin abs mul add put}%
+%\fi\fi\fi%

@@ -1,0 +1,17 @@
+TITLE: Sorting data
+PREV: fft.html
+NEXT: streams.html
+==>
+
+<div class='prguide'><u>Practical Guide:</u>
+<pre>
+// plot a data, sorted, from a file, which is unsorted (or not sorted in the way it is plotted)
+// Plot 3rd column as the function of the product of the first two columns. Sort the points by this product
+// (i.e. _1 in the argument of sort(...) refers to the data graph (which contains the product of the first
+// two columns of the file) in its first value
+plot("unsorted-data.dat",_1*_2,_3).sort(_1).ds(lines());
+</pre>
+</div>
+<hr>
+
+The member function <tt>sort(const function &amp;)</tt> of the <tt>dgraph</tt> class sorts the data points as a function of the given expression. Since actual plotting and export into whichever output file format occurs when for example <tt>pdf::print("filename.pdf");</tt> is executed, calling <tt>sort</tt> "after" the <tt>plot</tt> command still has an effect.

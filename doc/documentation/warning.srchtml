@@ -1,0 +1,34 @@
+TITLE: Compiling and linking with blop
+PREV: histograming.html
+NEXT: cint.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+// to set the warning messages' format:
+warning::prompt("BLOP:");
+warning::format("%p  %m   \n[warning originates from function: %f]\n");
+
+   // %p is replaced with the prompt
+   // %m is replaced with the message itself
+   // %f is replaced with the function name, where the warning
+   //    originates from
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<p>Currently, the format of the  warning messages is controlled by the
+above mechanism  only at a  few places, but  slowly the format  of all
+warning messages will be controlled by it.
+
+<p>The above example is self-explanatory, I believe. 
+
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+    <a href="warning.h.html">warning.h</a>
+    <a href="warning.cc.html">warning.cc</a>
+</pre>

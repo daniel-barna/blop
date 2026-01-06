@@ -1,0 +1,40 @@
+\documentclass[a4paper]{article}
+\usepackage{../latex/blopeps}
+\usepackage{color}
+\usepackage{pst-node}
+\usepackage[hscale=0.9]{geometry}
+
+\begin{document}
+\parindent=0cm
+
+\fboxsep=0cm
+
+Ok, now we include the plot, with the standard fontsize, with 7cm
+height, and the with of it equals to the linewidth
+
+\fbox{\blopeps{picture.eps}}
+\vspace*{1cm}
+
+\rnode{C}{\large These} are the legends in the plots
+\nccurve[angleA=-110,angleB=90]{->}{A}{C}
+\nccurve[angleA=-90,angleB=40]{->}{B}{C}
+
+\Large
+Ok, now we include the same plot again with different size, and the fontsize in the document
+has changed in between to Large, as well. Let's see the result, if it
+still looks fine:
+
+\centerline{\fbox{\blopeps[width=0.7\linewidth,height=8cm,ps=4mm,lw=0.5mm]{picture.eps}}}
+
+  % width=0.7\linewidth sets the width of the included fig. 
+  % height=... sets the height (wow)
+  % ps=4mm sets the default pointsize in the plot to 4mm (if the blop 
+  %     script doesn't define the pointsize of a graph explicitely,
+  %     then the size of the points of that graph is taken from the
+  %     value specified here
+  % lw=1mm sets the default linewidth in the plot
+
+\vspace*{1cm}
+(... yes, it does :-)
+
+\end{document}

@@ -1,0 +1,3557 @@
+#ifndef __BLOP_FUNCTION_CORE_H__
+#define __BLOP_FUNCTION_CORE_H__
+#include <functional>
+#include "warning.h"
+#include "array.h"
+#include "constants.h"
+#include "function.h"
+#include "matrix.h"
+#include <cmath>
+#include <cstdlib>
+#include <complex>
+#include <algorithm>
+#include <chrono>
+#include "type_traits.h"
+#include "blop_time.hh"
+
+namespace blop
+{
+    class cfunc_wrapper_base;
+
+    namespace function_core
+    {
+//	extern std::vector<blop::var> tmp;
+
+
+        class format : public function::core
+        {
+        private:
+            function::core *func_, *format_;
+        public:
+            format(const function::core *func, const function::core *form);
+            format(const format &rhs);
+            ~format() { delete func_; delete format_; }
+            format *clone() const { return new format(*this); }
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+
+	    int       nargs()          const { return std::max(func_->nargs(),format_->nargs()); }
+	    int       npars()          const { return std::max(func_->npars(),format_->npars()); }
+
+	    bool      uses_arg(int i) const { return func_->uses_arg(i) || format_->uses_arg(i); }
+	    bool      uses_par(int i) const { return func_->uses_par(i) || format_->uses_par(i); }
+
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+
+	    bool equals(const function::core *rhs) const;
+
+	    int n_out() const { return func_->n_out(); }
+
+	    bool is_constant() const { return false; }
+        };
+        
+
+        class between_lines : public function::core
+        {
+        private:
+            function::core *start_, *end_;
+            mutable bool flag_ = false;
+        public:
+            between_lines(const function::core *start, const function::core *end);
+            between_lines(const between_lines &rhs);
+            ~between_lines() { delete start_; delete end_; }
+            between_lines *clone() const { return new between_lines(*this); }
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+
+            // Cheat, say that 0 args are needed, so that it will be called also on data file lines with insufficient
+            // number of args. In this case we will handle this case, and treat this line as non-matching w.r.t. the
+            // start and end conditions
+	    int       nargs()          const { return 0; }
+            
+	    int       npars()          const { return std::max(start_->npars(),end_->npars()); }
+	    bool      uses_arg(int i) const { return false; }
+	    bool      uses_par(int i) const { return start_->uses_par(i) || end_->uses_par(i); }
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *rhs) const;
+	    int n_out() const { return 1; }
+	    bool is_constant() const { return false; }
+
+        };
+
+
+        // -------------------------  periodic  ------------------------------------------------------
+
+        class periodic : public function::core
+        {
+        private:
+            function::core *func_;
+            std::vector<double> from_, to_;
+        public:
+	    periodic(const function::core *f, double x1, double x2);
+	    periodic(const function::core *f, double x1, double x2, double y1, double y2);
+	    periodic(const function::core *f, double x1, double x2, double y1, double y2, double z1, double z2);
+	    periodic(const periodic &rhs);
+	    ~periodic();
+
+	    periodic *clone() const { return new periodic(*this); }
+
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+	    int       nargs()          const;
+	    int       npars()          const;
+	    bool      uses_arg(int i) const;
+	    bool      uses_par(int i) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *) const;
+	    int n_out() const;
+	    bool is_constant() const;
+        };
+
+        
+
+	// ---------------------------------- ifelse  ------------------------------------------------
+
+	class ifelse : public function::core
+	{
+	private:
+	    function::core *condition_, *iftrue_, *iffalse_;
+            ifelse() : condition_(0), iftrue_(0), iffalse_(0) {}
+	public:
+	    ifelse(const function &condition, const function &iftrue, const function &iffalse);
+	    ifelse(const ifelse &rhs);
+	    ~ifelse();
+
+	    ifelse *clone() const { return new ifelse(*this); }
+
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+	    int       nargs()          const;
+	    int       npars()          const;
+	    bool      uses_arg(int i) const;
+	    bool      uses_par(int i) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *) const;
+	    int n_out() const;
+	    bool is_constant() const;
+            function::core* create_derivative(int i) const;
+	    
+	};
+
+
+// ----------------------------------------------  step_func ----------------------------------------
+
+class step_func : public function::core
+{
+private:
+    vector<double> x_;
+    vector<vector<double> > y_;
+public:
+    step_func(const vector<double> &xx, const vector<double> &yy);
+    step_func(const vector<double> &xx, const vector<vector<double> > &yy);
+
+    function::core *clone() const;
+    void eval(const std::vector<blop::var> &args,
+              const std::vector<blop::var> &def_args,
+              const std::vector<blop::var> &params,
+              std::vector<blop::var> &result, int *ind) const;
+    void eval_dbl(const std::vector<blop::var> &args,
+                  const std::vector<blop::var> &def_args,
+                  const std::vector<blop::var> &params,
+                  std::vector<blop::var> &result, int *ind) const;
+    int nargs() const { if(nargs_>=0) return nargs_; return 1; }
+    int npars() const { return 0; }
+    bool uses_arg(int i) const { return i==1; }
+    bool uses_par(int i) const { return false; }
+    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+        {
+            return "stepfunc";
+        }
+    function::core *create_derivative(int) const;
+    bool equals(const function::core *) const { return false; }
+    int n_out() const { return y_.size(); }
+    bool is_constant() const { return false; }
+};
+
+
+	class multiple : public function::core
+	{
+	private:
+	    std::vector<function::core*> base_;
+	    friend class blop::function;
+	    friend class component;
+            friend class argument_subst;
+	public:
+	    ~multiple()
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i) delete base_[i];
+		}
+            void append(function::core *c) { base_.push_back(c); }
+	    function::core *clone() const
+		{
+		    multiple *result = new multiple;
+		    result->base_.resize(base_.size());
+		    for(unsigned int i=0; i<base_.size(); ++i) result->base_[i] = base_[i]->clone();
+		    return result;
+		}
+
+	    virtual void       eval(const std::vector<blop::var> &args,
+				    const std::vector<blop::var> &def_args,
+				    const std::vector<blop::var> &params,
+				    std::vector<blop::var> &result, int *ind)  const
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i)
+                    {
+                        base_[i]->eval(args, def_args, params, result, ind);
+                    }
+		}
+	    virtual void       eval_dbl(const std::vector<blop::var> &args,
+					const std::vector<blop::var> &def_args,
+					const std::vector<blop::var> &params,
+					std::vector<blop::var> &result, int *ind)  const
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i) base_[i]->eval_dbl(args, def_args, params, result, ind);
+		}
+
+	    int n_out() const
+		{
+		    int result = 0;
+		    for(unsigned int i=0; i<base_.size(); ++i) result += base_[i]->n_out();
+		    return result;
+		}
+	    int nargs() const
+		{
+		    int result = 0;
+		    for(unsigned int i=0; i<base_.size(); ++i) if(base_[i]->nargs()>result) result = base_[i]->nargs();
+		    return result;
+		}
+	    int npars() const
+		{
+		    int result = 0;
+		    for(unsigned int i=0; i<base_.size(); ++i) if(base_[i]->npars()>result) result = base_[i]->npars();
+		    return result;
+		}
+	    bool uses_arg(int argno) const
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i)
+                    {
+                        if(base_[i]->uses_arg(argno)) return true; 
+                    }
+                    return false; 
+		}
+	    bool uses_par(int argno) const
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i)
+                    {
+                        if(base_[i]->uses_par(argno)) return true; 
+                    }
+                    return false; 
+		}
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    string result;
+		    //if(base_.size()>1) result += "[";
+		    for(unsigned int i=0; i<base_.size(); ++i)
+		    {
+			if(i>0) result += ",";
+			result += base_[i]->sprint(pars,parvalue,variable_names,param_names).str();
+		    }
+		    //if(base_.size()>1) result += "]";
+		    return result;
+		}
+	    virtual var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+				     const var &x="x", const var &y="y", const var &z="z") const
+		{
+		    string result;
+		    //if(base_.size()>1) result += "[";
+		    for(unsigned int i=0; i<base_.size(); ++i)
+		    {
+			if(i>0) result += ",";
+			result += base_[i]->sprint_latex(pars,parvalue,x,y,z).str();
+		    }
+		    //if(base_.size()>1) result += "]";
+		    return result;
+		}
+
+	    function::core *create_derivative(int a) const
+		{
+		    multiple *result = new multiple;
+		    result->base_.resize(base_.size());
+		    for(unsigned int i=0; i<base_.size(); ++i) result->base_[i] = base_[i]->create_derivative(a);
+		    return result;
+		}
+
+	    bool equals(const function::core *o) const
+		{
+		    const multiple *m = dynamic_cast<const multiple *>(o);
+		    if(!m) return false;
+		    if(m->base_.size() != base_.size()) return false;
+		    for(unsigned int i=0; i<base_.size(); ++i) if(!base_[i]->equals(m->base_[i])) return false;
+		    return true;
+		}
+
+	    bool is_constant() const
+		{
+		    for(unsigned int i=0; i<base_.size(); ++i) if(!base_[i]->is_constant()) return false;
+		    return true;
+		}
+	};
+
+
+	// ----------------  return a specific component of another -------
+	// indexing is 0-based!
+
+	class component : public function::core
+	{
+	private:
+            mutable std::vector<blop::var> tmp_;
+	    int index_;
+	    function::core *base_;
+	    
+	    component() {}
+
+	public:
+	    // ----------  constructor  --------------------------
+
+	    // clone the given base
+	    component(const function::core &b, int i); 
+	    ~component();
+
+	    function::core *clone() const;
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &pars,
+		      std::vector<blop::var> &result, int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &pars,
+			  std::vector<blop::var> &result, int *ind) const;
+	    int nargs() const { return base_->nargs(); }
+	    int npars() const { return base_->npars(); }
+	    bool uses_arg(int i) const { return base_->uses_arg(i); }
+	    bool uses_par(int i) const { return base_->uses_par(i); }
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    function::core *create_derivative(int) const;
+	    bool equals(const function::core *) const;
+	    int n_out() const { return 1; }
+
+	    bool is_constant() const
+		{
+		    //warning::print("component::is_constant() is not fully implemented");
+		    if(!base_) return false;
+		    return base_->is_constant();
+		}
+	};
+
+
+	//-----------------  cfunc ------------------------------------
+	// Evaluate a compiled or interpreted C-function
+
+	class cfunc : public function::core
+	{
+	private:
+            mutable std::vector<blop::var> tmp_;
+	    cfunc_wrapper_base *wrapper_;
+	    void init_arrays_();
+	    void init_(void *);
+
+	public:
+	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+    
+	    bool uses_arg(int i) const;
+    
+	    cfunc(const cfunc &);
+	    cfunc(cfunc_wrapper_base *w);   // store the pointer, do NOT copy the object
+	    cfunc();
+    
+	    cfunc(var (*p)(var));
+	    cfunc(var (*p)(var,var));
+	    cfunc(var (*p)(var,var,var));
+	    cfunc(var (*p)(var,var,var,var));
+    
+	    cfunc(double (*p)(double));
+	    cfunc(double (*p)(double,double));
+	    cfunc(double (*p)(double,double,double)); 
+	    cfunc(double (*p)(double,double,double,double)); 
+	    cfunc(complex<double> (*p)(double));
+
+	    cfunc(var (*p)(const std::vector<blop::var> &args,
+			   const std::vector<blop::var> &pars),
+		  int nargs, int npars);
+            cfunc(void (*p)(double *, double *, double *), int nargs, int npars, int nout);
+
+#ifdef __MAKECINT__
+	    // initialization with a (void *) is needed, because
+	    // cint is not willing to initializa with a pointer to
+	    // an interpreted function
+	    cfunc(void *p);
+#endif
+  
+	    ~cfunc();
+    
+	    function::core *clone() const;
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const;
+
+	    int nargs() const;
+	    int npars() const;
+
+	    int n_out() const;
+
+	    function::core* create_derivative(int i) const;
+
+	    bool equals(const function::core *) const;
+
+	    bool is_constant() const { return false; }
+	};
+
+        template<typename F>
+	class cppfunc : public function::core
+	{
+	private:
+            std::vector<blop::var> tmp_;
+            std::function<F> function_;
+            int nargs_, npars_, nout_;
+            double *args_=0, *pars_=0, *out_=0;
+	    void init_()
+                {
+                    args_ = new double[nargs_];
+                    pars_ = new double[npars_];
+                    out_ = new double[nout_];
+                    if(nout_*2>tmp_.size()) tmp_.resize(nout_*2);
+                }
+	public:
+	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "Not yet implemented"; }
+    
+	    bool uses_arg(int i) const { return i>0 && i<=nargs_; }
+            bool uses_par(int i) const { return i>0 && i<=npars_; }
+
+            cppfunc(const F &func, int nargs, int npars, int nout) { function_ = func; nargs_ = nargs; npars_ = npars; nout_ = nout; init_(); }
+            cppfunc(const std::function<F> &func, int nargs, int npars, int nout) {function_ = func; nargs_ = nargs; npars_ = npars; nout_ = nout; init_(); }
+            cppfunc(const cppfunc<F> &rhs) { function_ = rhs.function_; nargs_ = rhs.nargs_; npars_ = rhs.npars_; nout_ = rhs.nout_; init_(); }
+            ~cppfunc() { delete [] args_; delete [] pars_; delete [] out_; }
+    
+	    function::core *clone() const { return new cppfunc(*this); }
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const;
+
+	    int nargs() const { return nargs_; }
+	    int npars() const { return npars_; }
+	    int n_out() const { return nout_; }
+
+	    function::core* create_derivative(int i) const { cerr<<"Can not calculate derivative of cpp function"; return 0; }
+	    bool equals(const function::core *) const { cerr<<"cppfunc::equals not implemented"; return false; }
+	    bool is_constant() const { return false; }
+	};
+
+        template<>
+        inline void cppfunc<void(double*,double*,double*)>::eval_dbl(const std::vector<blop::var> &args,
+                                                              const std::vector<blop::var> &def_args,
+                                                              const std::vector<blop::var> &pars,
+                                                              std::vector<blop::var> &result,
+                                                              int *ind) const
+        {
+            for(int i=0; i<nargs_; ++i) args_[i] = args[i].dbl();
+            for(int i=0; i<npars_; ++i) pars_[i] = pars[i].dbl();
+            function_(args_,pars_,out_);
+            for(int i=0; i<nout_; ++i) result[(*ind)++] = out_[i];
+        }
+        template<>
+        inline void cppfunc<void(double*,double*,double*)>::eval(const std::vector<blop::var> &args,
+                                                          const std::vector<blop::var> &def_args,
+                                                          const std::vector<blop::var> &pars,
+                                                          std::vector<blop::var> &result,
+                                                          int *ind) const
+        {
+            eval_dbl(args,def_args,pars,result,ind);
+        }
+
+	// ---------------------  Constant  ----------------------------
+	// a constant expression, always returns a given constant value
+	// regardless of the arguments provided to its 'eval' function
+	class constant : public function::core
+	{
+	public:
+	    // the value to be returned
+	    var value_;
+
+	public:
+
+	    // initialization
+	    constant(double v) : value_(v) {}
+	    constant(int v) : value_(v) {}
+	    constant(const var &v) : value_(v) {}
+	    constant(const char *v) : value_(v) {}
+	    constant(const string &v) : value_(v) {}
+
+	    // clone
+	    function::core *clone() const {return new constant(value_);}
+
+            bool uses_arg(int) const { return false; }
+            bool uses_par(int) const { return false; }
+
+	    // evaluate
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+		    result[(*ind)++] = value_;
+		}
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+		    result[(*ind)++].dbl(value_.dbl());
+		}
+
+	    // it does not use any of the arguments, no params
+	    int nargs() const { return 0; }
+	    int npars() const { return 0; }
+
+	    // its character representation. 
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    if(value_.is_dbl()) return value_;
+		    var result = "\""; result &= value_; result &= "\""; return result;
+		}
+
+	    // its derivative is a constant 0 
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+
+	    bool equals(const function::core *o) const
+		{
+		    const constant *c = dynamic_cast<const constant *> (o);
+		    if(c && c->value_ == value_) return true;
+		    return false;
+		}
+
+	    const var &value() const { return value_; }
+
+	    bool is_constant() const { return true; }
+	};
+	
+
+	// ---------------------  Random number ---------------------------
+	class random : public function::core
+	{
+	private:
+	    double from_, to_;
+	    static double get_();
+	public:
+	    random() : from_(0), to_(1) {}
+	    random(double from, double to) : from_(from), to_(to) {}
+
+	    // clone
+	    function::core *clone() const { return new random(*this); }
+
+            bool uses_arg(int) const { return false; }
+            bool uses_par(int) const { return false; }
+
+
+	    // evaluate
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+                    if(to_==unset || from_==unset) result[(*ind)++] = unset;
+		    else result[(*ind)++] = get_()*(to_-from_) + from_;
+		}
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+                    if(to_==unset || from_==unset) result[(*ind)++].dbl(unset);
+		    else result[(*ind)++].dbl(get_()*(to_-from_) + from_);
+		}
+
+	    // it does not use any of the arguments, no params
+	    int nargs() const { return 0; }
+	    int npars() const { return 0; }
+
+	    // its character representation. 
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = "random(";
+		    result &= from_;
+		    result &= ",";
+		    result &= to_;
+		    result &= ")";
+		    return result;
+		}
+
+	    // its derivative is a constant 0 
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+
+	    bool equals(const function::core *o) const
+		{
+		    const random *c = dynamic_cast<const random *> (o);
+		    if(c == 0) return false;
+		    if(c->from_ != from_ || c->to_ != to_) return false;
+		    return true;
+		}
+	    bool is_constant() const { return false; }
+	};
+	
+	// ---------------------  named_param ------------------------
+	class named_param : public function::core
+	{
+        private:
+            std::string id_;
+	public:
+            named_param(const std::string &id) : id_(id) {}
+	    static std::map<std::string,blop::var> &values();
+
+	    // clone
+	    function::core *clone() const { return new named_param(id_); }
+
+            bool uses_arg(int) const { return false; }
+            bool uses_par(int) const { return false; }
+
+	    // evaluate
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+                    auto p = values().find(id_);
+                    if(p != values().end()) result[(*ind)++] = (*p).second;
+                    else result[(*ind)++] = unset;
+		}
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+                    auto p = values().find(id_);
+                    if(p != values().end()) result[(*ind)++] = (*p).second.dbl();
+                    else result[(*ind)++] = unset;
+		}
+
+	    // it does not use any of the arguments, no params
+	    int nargs() const { return 0; }
+	    int npars() const { return 0; }
+
+	    // its character representation. 
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+                    return var("_n(") & id_ & ")";
+		}
+	    var sprint_latex(const std::vector<blop::var> &, bool) const
+		{
+                    return var("\\_n(") & id_ & ")";
+		}
+
+	    // its derivative is a constant 0 
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+
+	    bool equals(const function::core *o) const
+		{
+		    if(const named_param *e = dynamic_cast<const named_param *> (o))
+                    {
+                        if (e->id_ == id_) return true;
+                    }
+		    return false;
+		}
+	    bool is_constant() const { return false; }
+	};
+
+
+	// ---------------  characteristic function ---------------------
+	// the characteristic function of an interval returns 1 if its
+	// (first) argument falls within the interval, 0 otherwise
+
+	class char_func : public function::core
+	{
+	private:
+            mutable std::vector<blop::var> tmp_;
+	    function::core *low_, *high_;      // interval limits
+	    bool low_in_, high_in_;  // whether the limits are 'inside' the interval
+
+	public:
+	    char_func(function::core *low,function::core *high,bool low_in = true, bool high_in = false)
+		: tmp_(std::max(low->n_out(),high->n_out())), low_in_(low_in), high_in_(high_in)
+		{
+		    low_ = low->clone();
+		    high_ = high->clone();
+		    //unsigned int n = std::max(low_->n_out(),high_->n_out());
+		    //if(n > tmp_.size()) tmp_.resize(n);
+		}
+
+	    ~char_func() { delete low_; delete high_; }
+
+	    function::core *clone() const { return new char_func(low_,high_,low_in_,high_in_); }
+
+	    void      eval(const std::vector<blop::var> &args,
+			   const std::vector<blop::var> &def_args,
+			   const std::vector<blop::var> &pars,
+			   std::vector<blop::var> &result,
+			   int *ind) const;
+
+	    void     eval_dbl(const std::vector<blop::var> &args,
+			      const std::vector<blop::var> &def_args,
+			      const std::vector<blop::var> &pars,
+			      std::vector<blop::var> &result,
+			      int *ind) const;
+	    
+	    // it uses the first argument
+	    int nargs() const
+		{
+		    if(nargs_>=0) return nargs_;
+		    return std::max(std::max(low_->nargs(),high_->nargs()),1);
+		}
+	    int npars() const
+		{
+		    if(npars_>=0) return npars_;
+		    return std::max(low_->npars(), high_->npars());
+		}
+	    
+	    bool uses_arg(int i) const { return (i==1 || low_->uses_arg(i) || high_->uses_arg(i) ); }
+
+	    // character representation
+	    var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = "charfunc";
+		    if(low_in_) result &= "[";
+		    else result &= "]";
+		    result &= low_->sprint(p,v,variable_names,param_names);
+		    result &= ";";
+		    result &= high_->sprint(p,v,variable_names,param_names);
+		    if(high_in_) result &= "]";
+		    else result &= "[";
+		    return result;
+		}
+
+	    var sprint_latex(const std::vector<blop::var> &p, bool v,
+			     const var &x, const var &y, const var &z) const
+		{
+		    var result = "\\mathrm{charfunc}";
+		    if(low_in_) result &= "[";
+		    else result &= "]";
+		    result &= low_->sprint_latex(p,v,x,y,z);
+		    result &= ";";
+		    result &= high_->sprint_latex(p,v,x,y,z);
+		    if(high_in_) result &= "]";
+		    else result &= "[";
+		    return result;
+		}
+
+
+	    // its derivative is a constant 0
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+
+	    bool equals(const function::core *o) const
+		{
+		    const char_func *c = dynamic_cast<const char_func *> (o);
+		    if(c &&
+		       low_->equals(c->low_) && high_->equals(c->high_) &&
+		       c->low_in_ == low_in_ && c->high_in_ == high_in_) return true;
+		    return false;
+		}
+	    bool is_constant() const { return false; }
+	};
+
+	// -------------------------  NARGS  --------------------------------
+	// this is a utility function, it returns the actual number of
+	// arguments in the current call of the function (remember, the
+	// functions in blop can be called with an arbitrary number of
+	// parameters provided in an array)
+
+	class actual_nargs : public function::core
+	{
+	public:
+	    // clone
+	    function::core *clone() const { return new actual_nargs; }
+
+            bool uses_arg(int) const { return false; }
+            bool uses_par(int) const { return false; }
+
+
+	    // evaluate: return the actual number of arguments in this function call
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{ result[(*ind)++] = (int)(args.size()); }
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{ result[(*ind)++].dbl(args.size()); }
+
+	    // it does not use any of the arguments
+	    int nargs() const { return 0; }
+	    int npars() const { return 0; }
+
+	    // Its representation is _N (this symbol is defined in the C++ interface
+	    // to refer to this expression)
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "_N"; }
+	    var sprint_latex(const std::vector<blop::var> &, bool,
+			     const var &, const var &, const var &) const
+		{
+		    return " \\_N ";
+		}
+
+	    // and its derivative is 0
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+
+	    bool equals(const function::core *o) const
+		{
+		    return(dynamic_cast<const actual_nargs *>(o) != 0);
+		}
+	    bool is_constant() const { return false; }
+	};
+
+	// ------------------------- PREV -----------------------------
+        class prev : public function::core
+        {
+        private:
+            int nvalues_;  // Number of returned values (n_out) - it must be fixed
+            mutable std::vector<std::vector<blop::var> > prev_; 
+            mutable unsigned int prev_index_;    // index in the prev_ vector, pointing to the nth previous argument
+        public:
+
+            // by default return 10 values
+            prev(unsigned int nprev,int nvalues=10) :
+                nvalues_(nvalues), // set the number of returned values to 10, just for safety. It will be later overridden
+                prev_(nprev),      // Initialize the buffer to a size of nprev 
+                prev_index_(0)     // We start at zero
+                {}
+
+                
+            int n_out() const { return nvalues_; }
+            void n_out_hint(int nvalues) { nvalues_ = std::max(nvalues,1); }
+
+            function_core::prev *clone() const { return new prev(prev_.size(),nvalues_); }
+
+            	    // evaluate: 
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+                    if(prev_.size() > 0)
+                    {
+                        for(int i=0; i<nvalues_; ++i) result[(*ind)++] = (i>=(int)prev_[prev_index_].size() ? var(unset) : prev_[prev_index_][i]);
+                        prev_[prev_index_] = args;
+                        prev_index_ = (prev_index_+1)%prev_.size();
+                    }
+                    else
+                    {
+                        for(int i=0; i<nvalues_; ++i) result[(*ind)++] = (i>=(int)args.size() ? var(unset) : args[i]);
+                    }
+		}
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+                    if(prev_.size() > 0)
+                    {
+                        for(int i=0; i<nvalues_; ++i) result[(*ind)++].dbl(i>=(int)prev_.size() ? unset : prev_[prev_index_][i].dbl());
+                        prev_[prev_index_] = args;
+                        prev_index_ = (prev_index_+1)%prev_.size();
+                    }
+                    else
+                    {
+                        for(int i=0; i<nvalues_; ++i) result[(*ind)++].dbl((i>=(int)args.size() ? unset : args[i].dbl()));
+                    }
+		}
+
+	    // 
+	    int nargs() const { return 0; }
+	    int npars() const { return 0; }
+
+	    // 
+	    bool uses_arg(int i) const { return false; }
+
+	    // character representation is _n, where n is a number
+	    // determining the argument index. This symbol is defined in the
+	    // c++ interface to access this expression, therefore this character
+	    // representation can again be pasted as it is to the c++ interpreter
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    return "PREV";
+		}
+
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x="x", const var &y="y", const var &z="z") const
+		{
+                    return "PREV";
+		}
+
+
+	    // derivative: if we derive with respect to this argument, then return
+	    // the constant 1, otherwise return the constant 0
+	    function::core* create_derivative(int i) const
+		{
+		    return new constant(0.0);
+		}
+
+	    // check equality
+	    bool equals(const function::core *o) const
+		{
+		    return dynamic_cast<const prev *>(o);
+		}
+	    bool is_constant() const { return false; }
+        };
+
+	// ------------------------  ARG ------------------------------
+	// This expression returns the value of a given argument from the
+	// many possible arguments in the function call. 
+
+	class arg : public function::core
+	{
+	private:
+	    int arg_index_;
+
+	public:
+	    int arg_index() const { return arg_index_+1; }
+
+	    // initialize: i=1 refers to the first argument (index 0 in the
+	    // c++ vector of arguments provided in the function call)
+	    arg(int i) : arg_index_(std::max(i-1,0)) {}
+
+	    // clone it
+	    function::core *clone() const { return new arg(arg_index_+1); }
+
+	    // evaluate: 
+	    void eval(const std::vector<blop::var> &arg,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+		    if((int)arg.size() <= arg_index_) // not sufficient arguments
+		    {
+			if((int)def_args.size() <= arg_index_) // no default argument either
+			{
+			    result[(*ind)].dbl(0);
+			    result[(*ind)++].str("");
+			}
+			else
+			{
+			    result[(*ind)++] = def_args[arg_index_];
+			}
+		    }
+		    else result[(*ind)++] = arg[arg_index_];
+		}
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+		    double val = 0;
+		    if(arg_index_<(int)args.size()) val = args[arg_index_].dbl();
+		    else if(arg_index_<(int)def_args.size()) val = def_args[arg_index_].dbl();
+		    result[(*ind)++].dbl(val);
+		}
+
+	    // 
+	    int nargs() const { if(nargs_>=0) return nargs_; return arg_index_ + 1;}
+	    int npars() const { return 0; }
+
+	    // 
+	    bool uses_arg(int i) const;
+
+	    // character representation is _n, where n is a number
+	    // determining the argument index. This symbol is defined in the
+	    // c++ interface to access this expression, therefore this character
+	    // representation can again be pasted as it is to the c++ interpreter
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+                    auto pos = variable_names.find(arg_index_+1);
+                    if(pos != variable_names.end()) return (*pos).second;
+                    var result = "_";
+		    result &= (arg_index_+1);
+		    return result;
+		}
+
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x="x", const var &y="y", const var &z="z") const
+		{
+		    var result = var(" \\_") & (arg_index_+1);
+		    switch(arg_index_)
+		    {
+		    case 0: result = x; break;
+		    case 1: result = y; break;
+		    case 2: result = z; break;
+		    }
+		    return result;
+		}
+
+
+	    // derivative: if we derive with respect to this argument, then return
+	    // the constant 1, otherwise return the constant 0
+	    function::core* create_derivative(int i) const
+		{
+		    if(i-1 == arg_index_) return new constant(1.0);
+		    return new constant(0.0);
+		}
+
+	    // check equality
+	    bool equals(const function::core *o) const
+		{
+		    const arg *c = dynamic_cast<const arg *>(o);
+		    if(c && c->arg_index_ == arg_index_) return true;
+		    return false;
+		}
+	    bool is_constant() const { return false; }
+	};
+
+	// ------------------------  COL ------------------------------
+	// returns the nth element of the array, based on names stored
+	// in function::column_names_
+
+	class col : public function::core
+	{
+	private:
+	    std::string name_;
+
+	public:
+
+	    // initialize: i=1 refers to the first argument (index 0 in the
+	    // c++ vector of arguments provided in the function call)
+	    col(const string &s) : name_(s) {}
+
+	    // clone it
+	    function::core *clone() const { return new col(*this); }
+
+	    // evaluate: 
+	    void eval(const std::vector<blop::var> &arg,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const;
+
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const;
+
+	    // 
+	    int nargs() const;
+	    int npars() const { return 0; }
+	    bool uses_arg(int argno) const;
+
+	    // character representation is _n, where n is a number
+	    // determining the argument index. This symbol is defined in the
+	    // c++ interface to access this expression, therefore this character
+	    // representation can again be pasted as it is to the c++ interpreter
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    return string("_c(\"") + name_ + string("\")");
+		}
+
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x="x", const var &y="y", const var &z="z") const
+		{
+		    return string("\\_c(\"") + name_ + string("\")");
+		}
+
+
+	    // derivative: if we derive with respect to this argument, then return
+	    // the constant 1, otherwise return the constant 0
+	    function::core* create_derivative(int i) const;
+
+	    // check equality
+	    bool equals(const function::core *o) const;
+	    bool is_constant() const { return false; }
+	};
+
+
+
+	// ---------------  binary-base ---------------------------------
+	// this is an abstract class serving as a base for those expressions,
+	// which have two operands (called left and right). 
+	// it implements some common features of these
+
+	class binary_base : public function::core
+	{
+	public:
+	    var name_;
+	    function::core *left_,*right_;
+	    mutable std::vector<var> tmp_left_, tmp_right_;
+
+	public:
+
+	    // initialize. if 'left' and 'right' are provided, they are CLONED
+	    // and their clone's pointer is stored in the left_ and right_ members
+	    binary_base(const var &name, const function::core *left, const function::core *right)
+		{
+		    name_ = name;
+
+		    if(left)
+		    {
+			left_ = left->clone();
+			if((unsigned int)(left_->n_out()) > tmp_left_.size()) tmp_left_.resize(left_->n_out());
+		    }
+		    else left_ = 0;
+
+		    if(right)
+		    {
+			right_ = right->clone();
+			if((unsigned int)(right_->n_out()) > tmp_right_.size()) tmp_right_.resize(right_->n_out());
+		    }
+		    else right_ = 0;
+		    if(left_ && right_ && left_->n_out() != right_->n_out())
+		    {
+			warning::print("Left and right arguments of a binary function/operator have different # of components");
+		    }
+		}
+
+	    binary_base(const binary_base &o)
+		{
+		    name_ = o.name_;
+		    if(o.left_)
+		    {
+			left_ = o.left_->clone();
+			if((unsigned int)(left_->n_out()) > tmp_left_.size()) tmp_left_.resize(left_->n_out());
+		    }
+		    else left_ = 0;
+		    
+		    if(o.right_)
+		    {
+			right_ = o.right_->clone();
+			if((unsigned int)(right_->n_out()) > tmp_right_.size()) tmp_right_.resize(right_->n_out());
+		    }
+		    else right_ = 0;
+		    if(left_ && right_ && left_->n_out() != right_->n_out())
+		    {
+			warning::print("Left and right arguments of a binary function/operator have different # of components");
+		    }
+		}
+		     
+	    void left(function::core *b)
+		{
+		    left_ = b;
+		    if((unsigned int)(left_->n_out()) > tmp_left_.size()) tmp_left_.resize(left_->n_out());
+		    if(left_ && right_ && left_->n_out() != right_->n_out())
+		    {
+			warning::print("Left and right arguments of a binary function/operator have different # of components");
+		    }
+		}
+	    void right(function::core *b)
+		{
+		    right_ = b;
+		    if((unsigned int)(right_->n_out()) > tmp_right_.size()) tmp_right_.resize(right_->n_out());
+		    if(left_ && right_ && left_->n_out() != right_->n_out())
+		    {
+			warning::print("Left and right arguments of a binary function/operator have different # of components");
+		    }
+		}
+
+	    // desctuctor: (recursively) delete both operands
+	    ~binary_base()       { delete left_; delete right_; }
+
+	    // number of args, etc, are deduced from the response of the two operands
+	    int nargs() const
+		{
+		    if(nargs_>=0) return nargs_;
+		    return std::max(left_->nargs(),right_->nargs());
+		}
+	    int npars() const
+		{
+		    if(npars_>=0) return npars_;
+		    return std::max(left_->npars(),right_->npars());
+		}
+	    int n_out() const { return std::max( (left_?left_->n_out():0), (right_?right_->n_out():0) ); }
+
+	    bool uses_arg(int i) const { return left_->uses_arg(i) || right_->uses_arg(i); }
+	    bool uses_par(int i) const { return left_->uses_par(i) || right_->uses_par(i); }
+
+	    bool equals(const function::core *o) const
+		{
+		    const binary_base *c = dynamic_cast<const binary_base *>(o);
+		    return (c && c->name_.str() == name_.str() && left_->equals(c->left_) && right_->equals(c->right_));
+		}
+
+	    function::core *create_derivative(int i) const
+		{
+		    function::core *leftderiv = left_->create_derivative(i);
+		    if(leftderiv == 0) return 0;
+		    function::core *rightderiv = right_->create_derivative(i);
+		    if(rightderiv == 0)
+		    {
+			delete leftderiv;
+			return 0;
+		    }
+		    return create_derivative_spec(leftderiv, rightderiv);
+		}
+
+	    virtual var    exec    (const var &left, const var &right) const = 0;
+	    virtual double exec_dbl(const double left, const double right) const = 0;
+		     
+	    void eval(const std::vector<var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<var> &params,
+		      std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval(args,def_args,params,tmp_right_, &dummy_ind);
+		    for(int i=0; i<n_out(); ++i)
+                    {
+                        if( (i<left_ ->n_out() && tmp_left_ [i].dbl() == unset && tmp_left_ [i].str() == "unset") ||
+                            (i<right_->n_out() && tmp_right_[i].dbl() == unset && tmp_right_[i].str() == "unset") )
+                        {
+                            result[(*ind)++] = unset;
+                        }
+                        else
+                        {
+                            result[(*ind)++] = exec( (i<left_->n_out()?tmp_left_[i]:var(0)),
+                                                     (i<right_->n_out()?tmp_right_[i]:var(0)) );
+                        }
+                    }
+		}
+	    void eval_dbl(const std::vector<var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<var> &params,
+			  std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval_dbl(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval_dbl(args,def_args,params,tmp_right_, &dummy_ind);
+		    for(int i=0; i<n_out(); ++i)
+                    {
+                        if( (i<left_ ->n_out() && tmp_left_ [i].dbl() == unset) ||
+                            (i<right_->n_out() && tmp_right_[i].dbl() == unset) )
+                        {
+                            result[(*ind)++].dbl(unset);
+                        }
+                        else
+                        {
+                            result[(*ind)++].dbl(exec_dbl( (i<left_->n_out()?tmp_left_[i].dbl():0.0),
+                                                           (i<right_->n_out()?tmp_right_[i].dbl():0.0) ) );
+                        }
+                    }
+		}
+
+	    virtual function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const = 0;
+
+	    bool is_constant() const
+		{
+		    if(!left_ || !right_) return false;
+		    return (left_->is_constant() && right_->is_constant());
+		}
+	};
+
+
+
+	// ---------------  binary_operator -----------------------------
+	// This class is derived from binary_base (has two operands), and
+	// serves as a base class for those binary expressions, which are
+	// character-represented as *operators*, that is, an operator symbol
+	// is put *between* the two operands
+	// this class therefore only implements the sprint method, anything
+	// else is left for the specialized derived classes
+
+	class binary_operator : public binary_base
+	{
+	public:
+	    // initialize. the left and right operands, if provided, are CLONED
+	    // 'name' is the symbol for the operator (for example +, -, *, etc)
+	    binary_operator(const var &name, const function::core *left, const function::core *right) : binary_base(name,left,right) {}
+	    binary_operator(const binary_operator &o) : binary_base(o.name_,o.left_,o.right_) {}
+
+	    // return the character representation, the operator symbol (name above)
+	    // placed between the two operands
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x="x", const var &y="y", const var &z="z") const;
+
+	};
+
+	// ---------------  binary_function -----------------------------
+	// this class is derived from binary_base (two operands), and serves
+	// as a base class for those binary expressions, which are represented
+	// as functions [like function(a,b)]
+	// it therefore only implements the sprint method
+
+	class binary_function : public binary_base
+	{
+	public:
+	    // initialize. left and right are CLONED
+	    binary_function(const var &name, const function::core *left, const function::core *right) : binary_base(name,left,right) {}
+	    binary_function(const binary_function &o) : binary_base(o.name_,o.left_,o.right_) {}
+
+	    // return the character representation
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = name_;
+		    result &= "(";
+		    result &= left_->sprint(pars, parvalue,variable_names,param_names);
+		    result &= ",";
+		    result &= right_->sprint(pars, parvalue,variable_names,param_names);
+		    result &= ")";
+		    return result;
+		}
+	    // return the character representation
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const
+		{
+		    var result = var("\\mathrm{") & name_ & var("}");
+		    result &= "\\left(";
+		    result &= left_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= ",";
+		    result &= right_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= "\\right)";
+		    return result;
+		}
+
+	};
+
+        // ---------------- complex multiplication and division ---------
+        class cmp_mul : public binary_function
+        {
+        public:
+            cmp_mul(const function::core *left=0, const function::core *right=0) : binary_function("cmp_mul",left,right) 
+                {
+                    if((left && left->n_out()!=2) || (right && right->n_out()!=2)) warning::print("left and right arguments of cmp_mul must have 2 components");
+                }
+            cmp_mul(const cmp_mul &o) : binary_function("cmp_mul",o.left_,o.right_) {}
+            int n_out() const override { return 2; }
+            function::core *clone() const { return new cmp_mul(*this); }
+            var exec(const var  &left, const var &right) const { return ""; }
+            double exec_dbl(double,double) const { return 0.0; }
+
+            void eval(const std::vector<var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<var> &params,
+		      std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval(args,def_args,params,tmp_right_, &dummy_ind);
+                    result[(*ind)++] = tmp_left_[0].dbl()*tmp_right_[0].dbl()-tmp_left_[1].dbl()*tmp_right_[1].dbl();
+                    result[(*ind)++] = tmp_left_[0].dbl()*tmp_right_[1].dbl()+tmp_left_[1].dbl()*tmp_right_[0].dbl();
+                }
+            void eval_dbl(const std::vector<var> &args,
+                          const std::vector<blop::var> &def_args,
+                          const std::vector<var> &params,
+                          std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval_dbl(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval_dbl(args,def_args,params,tmp_right_, &dummy_ind);
+                    result[(*ind)++].dbl(tmp_left_[0].dbl()*tmp_right_[0].dbl()-tmp_left_[1].dbl()*tmp_right_[1].dbl());
+                    result[(*ind)++].dbl(tmp_left_[0].dbl()*tmp_right_[1].dbl()+tmp_left_[1].dbl()*tmp_right_[0].dbl());
+                }
+
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+                    cerr<<"cmp_mul needs to implement its derivative"<<endl;
+		    return new constant(0.0);
+		}
+            
+        };
+
+
+        // ------------------------------------ cmp_div --------------------------------------------
+        class cmp_div : public binary_function
+        {
+        public:
+            cmp_div(const function::core *left=0, const function::core *right=0) : binary_function("cmp_div",left,right) 
+                {
+                    if((left && left->n_out()!=2) || (right && right->n_out()!=2)) warning::print("left and right arguments of cmp_div must have 2 components");
+                }
+            cmp_div(const cmp_mul &o) : binary_function("cmp_div",o.left_,o.right_) {}
+            int n_out() const override { return 2; }
+            function::core *clone() const { return new cmp_div(*this); }
+            var exec(const var  &left, const var &right) const { return ""; }
+            double exec_dbl(double,double) const { return 0.0; }
+
+            void eval(const std::vector<var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<var> &params,
+		      std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval(args,def_args,params,tmp_right_, &dummy_ind);
+
+                    const double re1 = tmp_left_[0].dbl();
+                    const double im1 = tmp_left_[1].dbl();
+                    const double m1 = std::sqrt(re1*re1+im1*im1);
+                    const double phi1 = std::atan2(im1,re1);
+
+                    const double re2 = tmp_right_[0].dbl();
+                    const double im2 = tmp_right_[1].dbl();
+                    const double m2 = std::sqrt(re2*re2+im2*im2);
+                    const double phi2 = std::atan2(im2,re2);
+
+                    const double m = m1/m2;
+                    const double phi = phi1-phi2;
+
+                    result[(*ind)++] = m*std::cos(phi);
+                    result[(*ind)++] = m*std::sin(phi);
+                }
+            void eval_dbl(const std::vector<var> &args,
+                          const std::vector<blop::var> &def_args,
+                          const std::vector<var> &params,
+                          std::vector<blop::var> &result,int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval_dbl(args,def_args,params,tmp_left_, &dummy_ind);
+		    dummy_ind = 0;
+		    right_->eval_dbl(args,def_args,params,tmp_right_, &dummy_ind);
+
+                    const double re1 = tmp_left_[0].dbl();
+                    const double im1 = tmp_left_[1].dbl();
+                    const double m1 = std::sqrt(re1*re1+im1*im1);
+                    const double phi1 = std::atan2(im1,re1);
+
+                    const double re2 = tmp_right_[0].dbl();
+                    const double im2 = tmp_right_[1].dbl();
+                    const double m2 = std::sqrt(re2*re2+im2*im2);
+                    const double phi2 = std::atan2(im2,re2);
+
+                    const double m = m1/m2;
+                    const double phi = phi1-phi2;
+
+                    result[(*ind)++].dbl(m*std::cos(phi));
+                    result[(*ind)++].dbl(m*std::sin(phi));
+                }
+
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+                    cerr<<"cmp_mul needs to implement its derivative"<<endl;
+		    return new constant(0.0);
+		}
+            
+        };
+
+        
+
+	// ---------------  EqualDbl -----------------------------------------
+
+	class EqualDbl : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    EqualDbl(const function::core *left=0, const function::core *right=0) : binary_operator("==",left,right) {}
+	    EqualDbl(const EqualDbl &o) : binary_operator("==",o.left_,o.right_) {}
+
+	    // clone it: return a new EqualDbl
+	    function::core *clone() const { return new EqualDbl(*this); }
+
+	    var    exec    (const var &left, const var &right) const { return left.dbl() == right.dbl(); }
+	    double exec_dbl(double left, double right)         const { return left == right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+
+	// ---------------  NotEqualDbl -----------------------------------------
+
+	class NotEqualDbl : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    NotEqualDbl(const function::core *left=0, const function::core *right=0) : binary_operator("!=",left,right) {}
+	    NotEqualDbl(const NotEqualDbl &o) : binary_operator("!=",o.left_,o.right_) {}
+
+	    // clone it: return a new NotEqualDbl
+	    function::core *clone() const { return new NotEqualDbl(*this); }
+
+	    // evaluate: return 1 if 2 args are equal, 0 otherwise
+	    var exec(const var &left, const var &right) const { return left.dbl() != right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left != right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+
+
+	// ---------------  EqualStr -----------------------------------------
+
+	class EqualStr : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    EqualStr(const function::core *left=0, const function::core *right=0) : binary_operator("==",left,right) {}
+	    EqualStr(const EqualStr &o) : binary_operator("==",o.left_,o.right_) {}
+
+	    // clone it: return a new EqualStr
+	    function::core *clone() const { return new EqualStr(*this); }
+
+	    // evaluate: return 1 if 2 args are equal, 0 otherwise
+	    var exec(const var &left,const var &right) const  
+                { 
+                    const bool result =  left.str() == right.str();
+                    return result;
+                }
+	    double exec_dbl(double,double) const
+		{
+		    cerr<<"EqualStr::exec_dbl should never be called"<<endl;
+		    return 0;
+		}
+	    double eval_dbl(double left, double right)
+		{ cerr<<"EqualStr::eval_dbl should never be called"<<endl; return left == right; }
+
+	    // for string comparison eval_dbl makes no sense. alias to eval
+	    void eval_dbl(const std::vector<var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<var> &params,
+			  std::vector<blop::var> &result,int *ind) const
+		{
+		    eval(args, def_args, params, result, ind);
+		}
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+	// ---------------  LessThan -----------------------------------------------
+
+	class LessThan : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    LessThan(const function::core *left=0, const function::core *right=0) : binary_operator("<",left,right) {}
+	    LessThan(const LessThan &o) : binary_operator("<",o.left_,o.right_) {}
+
+	    // clone it: return a new LessThan
+	    function::core *clone() const { return new LessThan(*this); }
+
+	    // evaluate: return 1 if arg1 < arg2, 0 otherwise
+	    var exec(const var &left, const var &right) const { return left.dbl() < right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left < right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+	// ---------------  LessEqual -----------------------------------------------
+
+	class LessEqual : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    LessEqual(const function::core *left=0, const function::core *right=0) : binary_operator("<=",left,right) {}
+	    LessEqual(const LessEqual &o) : binary_operator("<=",o.left_,o.right_) {}
+
+	    // clone it: return a new LessEqual
+	    function::core *clone() const { return new LessEqual(*this); }
+
+	    // evaluate: return 1 if arg1 < arg2, 0 otherwise
+	    var exec(const var &left, const var &right) const { return left.dbl() <= right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left <= right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+        // -----------------  root of equation -------------------------------------------------
+        class find_root : public function::core
+        {
+        protected:
+            function::core *func_, *x1_, *x2_, *epsilon_;
+        public:
+            find_root(const function::core *func,
+                      const function::core *x1,
+                      const function::core *x2,
+                      const function::core *epsilon);
+            find_root(const find_root &rhs);
+            int nargs() const;
+            int npars() const;
+            bool uses_arg(int i) const;
+            bool uses_par(int i) const;
+            int n_out() const;
+            var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint_latex(const std::vector<blop::var> &p, bool v,
+			     const var &x, const var &y, const var &z) const;
+	    function::core *create_derivative(int) const
+                {
+                    cerr<<"find_root has no derivative"<<endl;
+                    return new constant(0.0);
+                }
+	    void      eval(const std::vector<blop::var> &args,
+			   const std::vector<blop::var> &def_args,
+			   const std::vector<blop::var> &pars,
+			   std::vector<blop::var> &res,
+			   int *ind) const;
+
+	    void      eval_dbl(const std::vector<blop::var> &args,
+			       const std::vector<blop::var> &def_args,
+			       const std::vector<blop::var> &pars,
+			       std::vector<blop::var> &res,
+			       int *ind) const;
+
+
+	    bool equals(const function::core *rhs) const {return false;}
+
+	    bool is_constant() const { return func_->is_constant() && x1_->is_constant() && x2_->is_constant() && epsilon_->is_constant(); }
+
+	    find_root *clone() const { return new find_root(*this); }
+            
+        };
+
+	// ---------------  max/min/integral values over a range -------------------------------
+
+	class value_in_interval : public function::core
+	{
+	protected:
+	    function::core *func_, *from_, *to_, *step_;
+	    std::string name_;
+
+	public:
+	    value_in_interval(const function::core* func,
+			      const function::core* from,
+			      const function::core* to,
+			      const function::core* step,
+			      const std::string &name);
+	    value_in_interval(const value_in_interval &rhs);
+	    int nargs() const;
+	    int npars() const;
+	    bool uses_arg(int i) const;
+	    bool uses_par(int i) const;
+	    int n_out() const;
+	    var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint_latex(const std::vector<blop::var> &p, bool v,
+			     const var &x, const var &y, const var &z) const;
+	    
+	    function::core *create_derivative(int) const
+                {
+                    cerr<<"value_in_interval has no derivative"<<endl;
+                    return new constant(0.0);
+                }
+
+	    virtual bool   evaluate_at_interval_centers() const = 0;
+
+	    virtual void   accumulate_result(int count,
+					     const std::vector<blop::var> &func_args,
+                                             const std::vector<blop::var> &func_def_args,
+                                             const std::vector<blop::var> &func_params,
+					     const std::vector<blop::var> &step,
+					     const std::vector<blop::var> &current_result,
+					     std::vector<blop::var>       &final_result) const = 0;
+	    virtual void   accumulate_result_dbl(int count,
+                                                 const std::vector<blop::var> &func_args,
+                                                 const std::vector<blop::var> &func_def_args,
+                                                 const std::vector<blop::var> &func_params,
+                                                 const std::vector<blop::var> &step,
+                                                 const std::vector<blop::var> &current_result,
+                                                 std::vector<blop::var>       &final_result) const = 0;
+
+	    void      eval(const std::vector<blop::var> &args,
+			   const std::vector<blop::var> &def_args,
+			   const std::vector<blop::var> &pars,
+			   std::vector<blop::var> &res,
+			   int *ind) const;
+
+	    void      eval_dbl(const std::vector<blop::var> &args,
+			       const std::vector<blop::var> &def_args,
+			       const std::vector<blop::var> &pars,
+			       std::vector<blop::var> &res,
+			       int *ind) const;
+
+
+	    bool equals(const function::core *rhs) const {return false;}
+
+	    bool is_constant() const { return from_->is_constant() && to_->is_constant() && step_->is_constant(); }
+	};
+
+	class max_in_interval : public value_in_interval
+	{
+        private:
+            // The value of this function will be returned (if set) at the same arguments, where value_in_interval::func_ had the maximum value.
+            // value_in_interval::func_ must have 1 components if this is set. (why only then?)
+            function::core *eval_func_;
+            
+            mutable std::vector<blop::var> max_value_;
+
+	public:
+	    max_in_interval(const function::core* func,
+			    const function::core* from,
+			    const function::core* to,
+			    const function::core* step,
+                            const function::core* eval_func=0)
+                //ITT
+		: value_in_interval(func,from,to,step,"maximum"), eval_func_(0)
+                {
+                    if(eval_func)
+                    {
+                        if(func->n_out() != 1) warning::print("The first argument of maximum(function, ...) must have 1 component, if the last argument is set");
+                        else eval_func_ = eval_func->clone();
+                    }
+                }
+	    max_in_interval(const max_in_interval &rhs) : value_in_interval(rhs) {}
+	    max_in_interval *clone() const { return new max_in_interval(*this); }
+
+            int n_out() const
+                {
+                    if(eval_func_) return eval_func_->n_out();
+                    return func_->n_out();
+                }
+
+            //ITT
+            int nargs() const
+                {
+                    if(nargs_>=0)
+                    {
+                        cerr<<"nargs set by user?"<<endl;
+                        return nargs_;
+                    }
+                    return std::max(value_in_interval::nargs(),(eval_func_?eval_func_->nargs():0));
+                }
+
+	    bool   evaluate_at_interval_centers() const { return false; }
+	    void   accumulate_result(int count,
+				     const std::vector<blop::var> &func_args,
+                                     const std::vector<blop::var> &func_def_args,
+                                     const std::vector<blop::var> &func_params,
+				     const std::vector<blop::var> &step,
+				     const std::vector<blop::var> &current_result,
+				     std::vector<blop::var>       &final_result) const
+                {
+                    if(count==0)
+                    {
+                        // This statement also ensures that max_value_ has the right size in the following
+                        max_value_ = current_result;
+                        
+                        if(eval_func_)
+                        {
+                            int ind=0;
+                            eval_func_->eval(func_args, func_def_args, func_params, final_result, &ind);
+                        }
+                        else
+                        {
+                            final_result = current_result;
+                        }
+                    }
+                    else
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            if(current_result[i].dbl()>final_result[i].dbl())
+                            {
+                                max_value_[i] = current_result[i];
+                                if(eval_func_)
+                                {
+                                    int ind = 0;
+                                    eval_func_->eval(func_args, func_def_args, func_params, final_result, &ind);
+                                    break;
+                                }
+                                else
+                                {
+                                    final_result[i] = current_result[i];
+                                }
+                            }
+                        }
+                    }
+                }
+	    void   accumulate_result_dbl(int count,
+					 const std::vector<blop::var> &func_args,
+                                         const std::vector<blop::var> &func_def_args,
+                                         const std::vector<blop::var> &func_params,
+					 const std::vector<blop::var> &step,
+					 const std::vector<blop::var> &current_result,
+					 std::vector<blop::var>       &final_result) const
+                {
+                    if(count==0)
+                    {
+                        max_value_.resize(current_result.size());
+                        for(unsigned int i=0; i<current_result.size(); ++i) max_value_[i].dbl(current_result[i].dbl());
+
+                        if(eval_func_)
+                        {
+                            int ind=0;
+                            eval_func_->eval_dbl(func_args, func_def_args, func_params, final_result, &ind);
+                        }
+                        else
+                        {
+                            for(unsigned int i=0; i<current_result.size(); ++i)
+                            {
+                                final_result[i].dbl(current_result[i].dbl());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            if(current_result[i].dbl()>final_result[i].dbl())
+                            {
+                                max_value_[i].dbl(current_result[i].dbl());
+                                if(eval_func_)
+                                {
+                                    int ind = 0;
+                                    eval_func_->eval_dbl(func_args, func_def_args, func_params, final_result, &ind);
+                                    break;
+                                }
+                                else
+                                {
+                                    final_result[i].dbl(current_result[i].dbl());
+                                }
+                            }
+                        }
+                    }
+                }
+
+	};
+
+	class min_in_interval : public value_in_interval
+	{
+	public:
+
+            // This is not yet updated.... it can not evaluate a separate function, like max_in_interval. 
+
+	    min_in_interval(const function::core* func,
+			    const function::core* from,
+			    const function::core* to,
+			    const function::core* step)
+		: value_in_interval(func,from,to,step,"minimum") {}
+	    min_in_interval(const min_in_interval &rhs) : value_in_interval(rhs) {}
+	    min_in_interval *clone() const { return new min_in_interval(*this); }
+
+	    bool   evaluate_at_interval_centers() const { return false; }
+	    void   accumulate_result(int count,
+				     const std::vector<blop::var> &func_args,
+                                     const std::vector<blop::var> &func_def_args,
+                                     const std::vector<blop::var> &func_params,
+				     const std::vector<blop::var> &step,
+				     const std::vector<blop::var> &current_result,
+				     std::vector<blop::var>       &final_result) const
+                {
+                    if(count==0)
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            final_result[i] = current_result[i];
+                        }
+                    }
+                    else
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            if(current_result[i].dbl()<final_result[i].dbl())
+                                final_result[i] = current_result[i];
+                        }
+                    }
+                }
+	    void   accumulate_result_dbl(int count,
+					 const std::vector<blop::var> &func_args,
+                                         const std::vector<blop::var> &func_def_args,
+                                         const std::vector<blop::var> &func_params,
+					 const std::vector<blop::var> &step,
+					 const std::vector<blop::var> &current_result,
+					 std::vector<blop::var>       &final_result) const
+                {
+                    if(count==0)
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            final_result[i].dbl(current_result[i].dbl());
+                        }
+                    }
+                    else
+                    {
+                        for(unsigned int i=0; i<current_result.size(); ++i)
+                        {
+                            if(current_result[i].dbl()<final_result[i].dbl())
+                                final_result[i].dbl(current_result[i].dbl());
+                        }
+                    }
+                }
+
+	};
+
+	class integral : public value_in_interval
+	{
+	public:
+	    integral(const function::core* func,
+		     const function::core* from,
+		     const function::core* to,
+		     const function::core* step)
+		: value_in_interval(func,from,to,step,"integral") {}
+	    integral(const integral &rhs) : value_in_interval(rhs) {}
+	    integral *clone() const { return new integral(*this); }
+
+	    bool   evaluate_at_interval_centers() const { return true; }
+	    void   accumulate_result(int count,
+				     const std::vector<blop::var> &func_args,
+                                     const std::vector<blop::var> &func_def_args,
+                                     const std::vector<blop::var> &func_params,
+				     const std::vector<blop::var> &step,
+				     const std::vector<blop::var> &current_result,
+				     std::vector<blop::var>       &final_result) const
+                {
+                    double w = 1;
+                    bool all_steps_zero = true;
+                    for(unsigned int i=0; i<step.size(); ++i)
+                    {
+                        if(step[i].dbl()>0)
+                        {
+                            w *= step[i].dbl();
+                            all_steps_zero = false;
+                        }
+                    }
+
+                    // If the sum of steps is zero
+                    if(all_steps_zero) w = 0;
+
+                    for(unsigned int i=0; i<current_result.size(); ++i)
+                    {
+                        final_result[i] += current_result[i].dbl()*w;
+                    }
+                }
+	    void   accumulate_result_dbl(int count,
+					 const std::vector<blop::var> &func_args,
+                                         const std::vector<blop::var> &func_def_args,
+                                         const std::vector<blop::var> &func_params,
+					 const std::vector<blop::var> &step,
+					 const std::vector<blop::var> &current_result,
+					 std::vector<blop::var>       &final_result) const
+                {
+                    double w = 1;
+                    for(unsigned int i=0; i<step.size(); ++i)
+                    {
+                        if(step[i].dbl()>0) w *= step[i].dbl();
+                    }
+                    for(unsigned int i=0; i<current_result.size(); ++i)
+                    {
+                        final_result[i].dbl(final_result[i].dbl()+current_result[i].dbl()*w);
+                    }
+                }
+
+	};
+
+
+
+
+	// ------------------ max/min -------------------------------------------------
+
+	class Max : public binary_function
+	{
+	public:
+	    Max(const function::core *left=0, const function::core *right=0) : binary_function("max",left,right) {}
+	    Max(const Max &o) : binary_function("max",o.left_,o.right_) {}
+	    function::core *clone() const { return new Max(*this); }
+	    var exec(const var &left, const var &right) const
+		{ return std::max(left.dbl(), right.dbl()); }
+	    double exec_dbl(double left, double right) const
+		{ return std::max(left,right); }
+	    function::core *create_derivative_spec(function::core *,function::core *) const
+		{
+		    cerr<<"The derivative of 'max' is not yet implemented"<<endl;
+		    return new constant(0.0);
+		}
+	};
+
+	class Min : public binary_function
+	{
+	public:
+	    Min(const function::core *left=0, const function::core *right=0) : binary_function("min",left,right) {}
+	    Min(const Min &o) : binary_function("min",o.left_,o.right_) {}
+	    function::core *clone() const { return new Min(*this); }
+	    var exec(const var &left, const var &right) const
+		{ return std::min(left.dbl(), right.dbl()); }
+	    double exec_dbl(double left, double right) const
+		{ return std::min(left,right); }
+	    function::core *create_derivative_spec(function::core *,function::core *) const
+		{
+		    cerr<<"The derivative of 'min' is not yet implemented"<<endl;
+		    return new constant(0.0);
+		}
+	};
+
+
+	// ---------------  GreaterThan -----------------------------------------------
+
+	class GreaterThan : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    GreaterThan(const function::core *left=0, const function::core *right=0) : binary_operator(">",left,right) {}
+	    GreaterThan(const GreaterThan &o) : binary_operator(">",o.left_,o.right_) {}
+
+	    // clone it: return a new GreaterThan
+	    function::core *clone() const { return new GreaterThan(*this); }
+
+	    // evaluate: return 1 if arg1 < arg2, 0 otherwise
+	    var exec(const var &left, const var &right) const { return left.dbl() > right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left > right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+	// ---------------  GreaterEqual -----------------------------------------------
+
+	class GreaterEqual : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    GreaterEqual(const function::core *left=0, const function::core *right=0) : binary_operator(">=",left,right) {}
+	    GreaterEqual(const GreaterEqual &o) : binary_operator(">=",o.left_,o.right_) {}
+
+	    // clone it: return a new GreaterEqual
+	    function::core *clone() const { return new GreaterEqual(*this); }
+
+	    // evaluate: return 1 if arg1 < arg2, 0 otherwise
+	    var exec(const var &left, const var &right) const { return left.dbl() >= right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left >= right; }
+
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return new constant(0.0);
+		}
+	};
+
+
+	// ---------------  Add -----------------------------------------
+	// Addition. What else could be said?
+
+	class Add : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    Add(const function::core *left=0, const function::core *right=0) : binary_operator("+",left,right) {}
+	    Add(const Add &o) : binary_operator("+",o.left_,o.right_) {}
+
+	    // clone it: return a new Add
+	    function::core *clone() const { return new Add(*this); }
+
+	    // evaluate: return the sum of the two arguments
+	    var exec(const var &left, const var &right) const { return left.dbl() + right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left + right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, or multiplications
+	    // by 1
+	    function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    constant *c;
+		    if((c=dynamic_cast<constant*>(leftderiv)) != 0 && c->value_ == 0.0)
+		    {
+			delete leftderiv;
+			return rightderiv;
+		    }
+		    if((c=dynamic_cast<constant*>(rightderiv)) != 0 && c->value_ == 0.0)
+		    {
+			delete rightderiv;
+			return leftderiv;
+		    }
+		    Add *result = new Add;
+		    result->left_ = leftderiv;
+		    result->right_ = rightderiv;
+		    return result;
+		}
+	};
+
+
+	// ---------------  Sub -----------------------------------------
+	// Subtraction. 
+
+	class Sub : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    Sub(const function::core *left=0, const function::core *right=0) : binary_operator("-",left,right) {}
+	    Sub(const Sub &o) : binary_operator("-",o.left_,o.right_) {}
+
+	    // clone: create a new Sub
+	    function::core *clone() const { return new Sub(*this); }
+
+	    var exec(const var &left, const var &right) const { return left.dbl() - right.dbl(); }
+	    double exec_dbl(double left, double right)  const { return left - right; }
+
+	    // derivative: quite simple, with some optimization to avoid
+	    // complicated expression trees with unuseful zeros, and
+	    // multiplications by 1
+	    function::core *create_derivative_spec(function::core *left, function::core *right) const;
+	};
+
+
+	// --------------- Mod  -----------------------------------------
+
+	class Mod : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    Mod(const function::core *left=0, const function::core *right=0) : binary_operator("%",left,right) {}
+	    Mod(const Mod &o) : binary_operator("%",o.left_,o.right_) {}
+
+	    // clone: create a new Mod
+	    function::core *clone() const { return new Mod(*this); }
+
+	    var exec(const var &, const var &) const 
+		{
+		    cerr<<"Mod::exec should never be called"<<endl;
+		    return "";
+		}
+	    double exec_dbl(double,double) const 
+		{
+		    cerr<<"Mod::exec_dbl should never be called"<<endl;
+		    return 0;
+		}
+
+	    // evaluate
+	    void eval(const std::vector<var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<var> &params,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+		    int dummy_ind = 0;
+		    left_->eval(args,def_args,params,tmp_left_, &dummy_ind);  // here was tmp
+		    const int left = tmp_left_[0].integer();
+
+		    dummy_ind = 0;
+		    right_->eval(args,def_args,params,tmp_right_, &dummy_ind);
+		    const int right = tmp_right_[0].integer();
+		    result[(*ind)++] = left%right;
+		}
+	    void eval_dbl(const std::vector<var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<var> &params,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+		    // This is already updated to the new code!!!!!!!!!!!!
+		    int dummy_ind = 0;
+		    left_->eval_dbl(args,def_args,params,tmp_left_, &dummy_ind);
+		    const int left = tmp_left_[0].integer();
+
+		    dummy_ind = 0;
+		    right_->eval_dbl(args,def_args,params,tmp_right_, &dummy_ind);
+		    const int right = tmp_right_[0].integer();
+		    result[(*ind)++].dbl(left%right);
+		}
+
+	    function::core *create_derivative(int i) const
+		{
+		    return new constant(0.0);
+		}
+	    virtual function::core *create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+		{
+		    return 0;
+		}
+
+
+	};
+
+
+	// ---------------  Mul -----------------------------------------
+	// Multiplication
+
+	class Mul : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    Mul(const function::core *left=0, const function::core *right=0) : binary_operator("*",left,right) {}
+	    Mul(const Mul &o) : binary_operator("*",o.left_,o.right_) {}
+
+	    // clone: create a new Mul
+	    function::core *clone() const { return new Mul(*this); }
+
+	    var exec(const var &l, const var &r) const 
+		{
+		    return l.dbl()*r.dbl();
+		}
+	    double exec_dbl(double l,double r) const 
+		{
+		    return l*r;
+		}
+
+	    // derivative, with some optimization to avoid complicated expression
+	    // trees with unuseful elements
+	    function::core *create_derivative_spec(function::core *aprime, function::core *bprime) const
+		{
+		    function::core *aprimeb=0, *abprime=0;
+
+		    constant *aprime_c = dynamic_cast<constant *>(aprime);
+		    constant *bprime_c = dynamic_cast<constant *>(bprime);
+
+		    if(aprime_c && aprime_c->value_ == 1.0)
+		    {
+			delete aprime;
+			aprimeb = right_->clone();
+		    }
+		    else if(aprime_c && aprime_c->value_ == 0.0)
+		    {
+			delete aprime;
+			aprimeb = 0;
+		    }
+		    else
+		    {
+			Mul *mul = new Mul;
+			mul->left_ = aprime;
+			mul->right_ = right_->clone();
+			aprimeb = mul;
+		    }
+
+		    if(bprime_c && bprime_c->value_ == 1.0)
+		    {
+			delete bprime;
+			abprime = left_->clone();
+		    }
+		    else if(bprime_c && bprime_c->value_ == 0.0)
+		    {
+			delete bprime;
+			abprime = 0;
+		    }
+		    else
+		    {
+			Mul *mul = new Mul;
+			mul->left_ = left_->clone();
+			mul->right_ = bprime;
+			abprime = mul;
+		    }
+	
+		    if(aprimeb == 0 && abprime == 0) return new constant(0.0);
+		    if(aprimeb == 0) return abprime;
+		    if(abprime == 0) return aprimeb;
+
+		    Add *result = new Add;
+		    result->left_  = aprimeb;
+		    result->right_ = abprime;
+		    return result;
+		}
+	};
+
+
+	// ---------------  Div -----------------------------------------
+	// Division
+
+	class Div : public binary_operator
+	{
+	public:
+	    // initialization. left and right are cloned (if they are not 0)
+	    Div(const function::core *left=0, const function::core *right=0) : binary_operator("/",left,right) {}
+	    Div(const Div &o) : binary_operator("/",o.left_,o.right_) {}
+
+	    // clone: create a new Div
+	    function::core *clone() const { return new Div(*this); }
+
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x="x", const var &y="y", const var &z="z") const
+		{
+		    var l = left_->sprint_latex(pars, parvalue, x, y, z);
+		    var r = right_->sprint_latex(pars, parvalue, x, y, z);
+		    if(l.size() > 4 || r.size() > 4)
+		    {
+			return var(" \\frac{") & l & var("}{") & r & var("} ");
+		    }
+		    return binary_operator::sprint_latex(pars, parvalue, x, y, z);
+		}
+	    
+
+	    var exec(const var &l, const var &r) const 
+		{
+		    return l.dbl()/r.dbl();
+		}
+	    double exec_dbl(double l,double r) const 
+		{
+		    return l/r;
+		}
+
+
+	    // derivative. Definition at the end since it needs
+	    // other expressions, not yet defined
+	    function::core *create_derivative_spec(function::core *, function::core *) const;
+	};
+
+	// ---------------  Atan2 -----------------------------------------
+	// Return the value atan(y/x), where y is the first argument,
+	// x is the second one
+
+	class Atan2 : public binary_function
+	{
+	public:
+	    // initialization: left and right are cloned (if they are not 0)
+	    Atan2(const function::core *left=0, const function::core *right=0)
+		: binary_function("atan2",left,right) {}
+	    Atan2(const Atan2 &o) : binary_function("atan2",o.left_,o.right_) {}
+
+	    // clone: create a new Atan2
+	    function::core *clone() const { return new Atan2(*this); }
+
+	    var exec(const var &left, const var &right) const
+		{ return ::atan2(left.dbl(),right.dbl()); }
+	    double exec_dbl(double left,double right)   const
+		{ return ::atan2(left,right); }
+
+	    // derivative: definition later, since it needs other expressions,
+	    // which are not yet defined
+	    function::core *create_derivative_spec(function::core *, function::core *) const;
+	};
+    
+
+	// ---------------  Pow -----------------------------------------
+	// Return the value left^right
+
+	class Pow : public binary_function
+	{
+	public:
+	    // initialization: left and right are cloned (if they are not 0)
+	    Pow(const function::core *left=0, const function::core *right=0) : binary_function("pow",left,right) {}
+	    Pow(const Pow &o) : binary_function("pow",o.left_,o.right_) {}
+
+	    // clone: create a new Pow
+	    function::core *clone() const { return new Pow(*this); }
+
+	    var exec(const var &left, const var &right) const { return ::pow(left.dbl(),right.dbl()); }
+	    double exec_dbl(double left,double right)   const { return ::pow(left,right); }
+
+	    // derivative: definition later, since it needs other expressions,
+	    // which are not yet defined
+	    function::core *create_derivative_spec(function::core *, function::core *) const;
+
+
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const;
+
+	};
+
+
+
+	// ---------------  unary_base ----------------------------------
+	// An abstract class serving as base for expressions taking only
+	// one argument (operand)
+
+	class unary_base : public function::core
+	{
+	public:
+            mutable std::vector<blop::var> tmp_;
+	    var name_;
+	    function::core *operand_;
+
+	    virtual var exec(const var &op) const = 0;
+	    virtual double exec_dbl(double op) const = 0;
+
+	public:
+	    // initialization. the operand 'op' is cloned, and this cloned pointer
+	    // is stored
+	    unary_base(const var &name, const function::core *op) : tmp_(op->n_out())
+		{
+		    name_ = name;
+		    if(op)
+		    {
+			operand_ = op->clone();
+			//if((unsigned int)(op->n_out()) > tmp_.size()) tmp_.resize(op->n_out());
+		    }
+		    else operand_ = 0;
+		}
+	    unary_base(const unary_base &o) : tmp_(o.operand_->n_out())
+		{
+		    name_ = o.name_;
+		    if(o.operand_)
+		    {
+			operand_ = o.operand_->clone();
+			//if((unsigned int)(operand_->n_out()) > tmp_.size()) tmp_.resize(operand_->n_out());
+		    }
+		    else operand_ = 0;
+		}
+
+	    void operand(function::core *b)
+		{
+		    operand_ = b;
+		    if(operand_ && (unsigned int)(operand_->n_out()) > tmp_.size()) tmp_.resize(operand_->n_out());
+		}
+
+	    // destructor: the operand is (recursively) deleted
+	    ~unary_base()       { delete operand_; }
+
+	    // nof args is deduced from the operands response
+	    int nargs() const { return (operand_?operand_->nargs():0); }
+	    int npars() const { return (operand_?operand_->npars():0); }
+
+	    bool uses_arg(int i) const { return (operand_?operand_->uses_arg(i):false); }
+	    bool uses_par(int i) const { return (operand_?operand_->uses_par(i):false); }
+
+	    int n_out() const { return (operand_?operand_->n_out():0); }
+
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &pars,
+		      std::vector<blop::var> &result, int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &pars,
+			  std::vector<blop::var> &result, int *ind) const;
+
+	    // the derivative of the composite function f(g(x)) is f'(g(x)) * g'(x)
+	    // where f refers to this base, and g is its operand
+	    // create_my_derivative returns the derivative of this expression,
+	    // that is, f'(g(x)) [this is specific to the different unary
+	    // expressions], and create_derivative will use this to assemble
+	    // f'(g(x)) * g'(x)
+	    virtual function::core *create_my_derivative() const = 0;
+
+	    // return the derivative f'(g(x)) * g'(x)
+	    function::core *create_derivative(int i) const
+		{
+		    // calculate the operand's derivative
+		    function::core *op_deriv = operand_->create_derivative(i);
+		    if(op_deriv == 0) return 0;
+
+		    // make some optimization
+		    constant *c = dynamic_cast<constant *>(op_deriv);
+
+		    // if the operand's derivative is 0, don't make a complicated expression
+		    // (which would anyway evaluate to 0), but return a constant 0 directly
+		    if(c && c->value_ == 0.0)
+		    {
+			delete op_deriv;
+			return new constant(0.0);
+		    }
+
+		    // if the operand's derivative is constant 1, don't make an unnecessary
+		    // multiplication by 1 but return my own derivative directly
+		    function::core *my = create_my_derivative();
+
+		    if(c && c->value_ == 1.0)
+		    {
+			delete op_deriv;
+			return my;
+		    }
+
+		    // no optimization, return f'(g(x)) * g'(x)
+		    Mul *mul = new Mul;
+		    mul->left_ = my;
+		    mul->right_ = op_deriv;
+		    return mul;
+		}
+
+
+	    bool equals(const function::core *o) const
+		{
+		    const unary_base *c = dynamic_cast<const unary_base *>(o);
+		    return (c && c->name_.str() == name_.str() && operand_->equals(c->operand_));
+		}
+
+	    bool is_constant() const
+		{
+		    if(!operand_) return false;
+		    return operand_->is_constant();
+		}
+	};
+
+
+	// ---------------------  bessel ---------------------------------
+#ifdef HAVE_GSL	
+	class bessel : public unary_base
+	{
+	public:
+	    enum type { J, Y, I, K, j, y, i_scaled, k_scaled };
+	    static void setup_bessel_core(int nu, const function &a, bessel::type type,
+					  function &result);
+	private:
+	    type type_;
+	    int n_;
+	public:
+	    bessel(const function::core *operand, type t=J, int n=0)
+		: unary_base("bessel",operand), type_(t), n_(n) {}
+	    bessel(type t, int n) : unary_base("bessel",0), type_(t), n_(n) {}
+	    bessel(const bessel &o) : unary_base("bessel",o.operand_), type_(o.type_), n_(o.n_) {}
+	    function::core *clone() const { return new bessel(*this); }
+
+	    var exec(const var &) const 
+		{
+		    cerr<<"bessel::exec should never be called"<<endl;
+		    return "";
+		}
+	    double exec_dbl(double) const 
+		{
+		    cerr<<"bessel::exec_dbl should never be called"<<endl;
+		    return 0;
+		}
+
+	    // evaluate: return arg^exponent
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &params,
+		      std::vector<blop::var> &result,
+		      int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &params,
+			  std::vector<blop::var> &result,
+			  int *ind) const;
+
+	    // derivative: definition later, since needs other expressions, which are
+	    // not yet defined
+	    function::core* create_my_derivative() const;
+
+	    // character representation is pow(operand,n). This function is defined in the C++
+	    // interface (and returns an Ipow), so this representation can be directly pasted
+	    // into the interpreter
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = "";
+		    if(type_ == J) result = "bessel_J";
+		    else if(type_ == Y) result = "bessel_Y";
+		    else if(type_ == I) result = "bessel_I";
+		    else if(type_ == K) result = "bessel_K";
+		    else if(type_ == j) result = "bessel_j";
+		    else if(type_ == y) result = "bessel_y";
+		    else if(type_ == i_scaled) result = "bessel_i_scaled";
+		    else if(type_ == k_scaled) result = "bessel_k_scaled";
+		    else result = "bessel_?";
+		    result &= "(" & var(n_) & ",";
+		    result &= operand_->sprint(pars, parvalue,variable_names,param_names);
+		    result &= ")";
+		    return result;
+		}
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const
+		{
+		    var result = "";
+		    if(type_ == J) result = "bessel\\_J";
+		    else if(type_ == Y) result = "bessel\\_Y";
+		    else if(type_ == I) result = "bessel\\_I";
+		    else if(type_ == K) result = "bessel\\_K";
+		    else if(type_ == j) result = "bessel\\_j";
+		    else if(type_ == y) result = "bessel\\_y";
+		    else if(type_ == i_scaled) result = "bessel\\_i\\_scaled";
+		    else if(type_ == k_scaled) result = "bessel\\_k\\_scaled";
+		    else result = "bessel\\_?";
+		    result &= "(" & var(n_) & ",";
+		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= ")";
+		    return result;
+		}
+	    
+
+	};
+#endif
+
+
+	// ---------------  Ipow ----------------------------------------
+	// Integer power: operand^n
+
+	class Ipow : public unary_base
+	{
+	private:
+	    int exponent_;
+	public:
+	    // initialization. operand is cloned (if not 0)
+	    Ipow(const function::core *operand, int exponent=0) : unary_base("pow",operand), exponent_(exponent) {}
+	    Ipow(int exponent) : unary_base("pow",0), exponent_(exponent){}
+	    Ipow(const Ipow &o) : unary_base("pow",o.operand_), exponent_(o.exponent_) {}
+
+	    // clone: create a new Ipow
+	    function::core *clone() const {return new Ipow(*this); }
+
+	    var exec(const var &) const 
+		{
+		    cerr<<"Ipow::exec should never be called"<<endl;
+		    return "";
+		}
+	    double exec_dbl(double) const 
+		{
+		    cerr<<"Ipow::exec_dbl should never be called"<<endl;
+		    return 0;
+		}
+
+	    // evaluate: return arg^exponent
+	    void eval(const std::vector<blop::var> &args,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &params,
+		      std::vector<blop::var> &result,
+		      int *ind) const
+		{
+		    if(exponent_ == 0) {result[(*ind)++] = 1; return; }
+		    int dummy = 0;
+		    operand_->eval(args,def_args,params,tmp_,&dummy);
+		    const double val = tmp_[0].dbl();
+		    double res = 1;
+		    if(exponent_ > 0) for(int i=0; i< exponent_; ++i) res *= val;
+		    else              for(int i=0; i<-exponent_; ++i) res /= val;
+		    result[(*ind)++] = res;
+		}		
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &params,
+			  std::vector<blop::var> &result,
+			  int *ind) const
+		{
+		    if(exponent_ == 0) {result[(*ind)++] = 1; return; }
+		    int dummy = 0;
+		    operand_->eval_dbl(args,def_args,params,tmp_,&dummy);
+		    const double val = tmp_[0].dbl();
+		    double res = 1;
+		    if(exponent_ > 0) for(int i=0; i< exponent_; ++i) res *= val;
+		    else              for(int i=0; i<-exponent_; ++i) res /= val;
+		    result[(*ind)++].dbl(res);
+		}		
+	    
+
+	    // derivative: definition later, since needs other expressions, which are
+	    // not yet defined
+	    function::core* create_my_derivative() const;
+
+	    // character representation is pow(operand,n). This function is defined in the C++
+	    // interface (and returns an Ipow), so this representation can be directly pasted
+	    // into the interpreter
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = name_;
+		    result &= "(";
+		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= ",";
+		    result &= var(exponent_);
+		    result &= ")";
+		    return result;
+		}
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const;
+	};
+
+
+
+	// ---------------  unary_function ------------------------------
+	// this is an abstract class serving as base for those unary expressions,
+	// which are represented as function calls (it defines only sprint method)
+
+	class unary_function : public unary_base
+	{
+	public:
+	    // initialization. operand is cloned (if not 0)
+	    unary_function(const var &name,function::core *operand) : unary_base(name,operand) {}
+	    unary_function(const unary_function &o) : unary_base(o.name_, o.operand_) {}
+
+	    // character representation: functionname(arg)
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = name_;
+		    result &= "(";
+		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= ")";
+		    return result;
+		}
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const
+		{
+		    var result = var("\\mathrm{") & name_ & var("}");
+		    result &= "\\left(";
+		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= "\\right)";
+		    return result;
+		}
+	};
+
+
+	// ---------------  unary_operator ------------------------------
+	// this is an abstract class serving as base for those unary expressions,
+	// which are represented as operators (currently, only the - operator)
+
+	class unary_operator : public unary_base
+	{
+	public:
+	    // initialization. operand is cloned (if not 0)
+	    unary_operator(const var &name,function::core *operand) : unary_base(name,operand) {}
+	    unary_operator(const unary_operator &o) : unary_base(o.name_, o.operand_) {}
+
+	    // character representation: operatorsymbol(arg)
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+		{
+		    var result = name_;
+		    result &= "(";
+		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= ")";
+		    return result;
+		}
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const
+		{
+		    var result = name_;
+		    result &= "(";
+		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= ")";
+		    return result;
+		}
+	};
+
+
+	// ---------------  Neg -----------------------------------------
+	// Negation: multiplication by -1
+
+	class Neg : public unary_operator
+	{
+	public:
+	    // initialization. operand is cloned (if not 0)
+	    Neg(function::core *operand = 0) : unary_operator("-",operand) {}
+	    Neg(const Neg &o) : unary_operator("-",o.operand_) {}
+
+	    // clone: create a new Neg
+	    function::core *clone() const { return new Neg(*this); }
+
+	    var exec(const var &op) const { return -op.dbl(); }
+	    double exec_dbl(double op) const { return -op; }
+	    // my own derivative is -1
+	    function::core *create_my_derivative() const { return new constant(-1.0); }
+	};
+
+
+	// -------------------   sign  ----------------------------------
+	// Returns the sign of the argument
+
+	class Sign : public unary_function
+	{
+	public:
+	    // initialization. operand is cloned
+	    Sign(function::core *operand = 0) : unary_function("sign",operand) {}
+	    Sign(const Sign &o) : unary_function("sign",o.operand_) {}
+	    function::core *clone() const { return new Sign(*this); }
+	    function::core *create_my_derivative() const { return new constant(0.0); }
+
+	    var exec(const var &op) const { if(op.dbl()<0) return -1; if(op.dbl()>0) return 1; return 0; }
+	    double exec_dbl(double op) const { if(op<0) return -1; if(op>0) return 1; return 0; }
+	};
+
+
+	// ---------------  unary_c_function ----------------------------
+	// This is a class serving as a base class for those expressions,
+	// which are implemented as a 1-argument C-library math function
+	// (for example sin, cos, exp, etc)
+	// This class takes the pointer to the C-function, and defines
+	// the eval function.
+
+	class unary_c_function : public unary_function
+	{
+	private:
+	    double (*func_)(double);
+	public:
+	    // initialization. operand is cloned
+	    unary_c_function(double (*f)(double), const var &name, function::core *operand = 0)
+		: unary_function(name,operand) {func_ = f;}
+	    unary_c_function(const unary_c_function &o)
+		: unary_function(o.name_,o.operand_) { func_ = o.func_; }
+
+	    var exec(const var &op)    const;
+	    double exec_dbl(double op) const { double v = func_(op);       if(!isfinite(v)) v = unset; return v; }
+
+	};
+
+	// ---------------  C-math functions ----------------------------
+
+	class Sin : public unary_c_function
+	{
+	public:
+	    Sin(function::core *operand = 0) : unary_c_function(::sin,"sin",operand) {}
+	    Sin(const Sin &o) : unary_c_function(::sin,"sin",o.operand_) {}
+	    function::core *clone() const {return new Sin(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Asin : public unary_c_function
+	{
+	public:
+	    Asin(function::core *operand = 0) : unary_c_function(::asin,"asin",operand) {}
+	    Asin(const Asin &o) : unary_c_function(::asin,"asin",o.operand_) {}
+	    function::core *clone() const { return new Asin(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Cos : public unary_c_function
+	{
+	public:
+	    Cos(function::core *operand = 0) : unary_c_function(::cos,"cos",operand) {}
+	    Cos(const Cos &o) : unary_c_function(::cos,"cos",o.operand_) {}
+	    function::core *clone() const { return new Cos(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Acos : public unary_c_function
+	{
+	public:
+	    Acos(function::core *operand = 0) : unary_c_function(::acos,"acos",operand) {}
+	    Acos(const Acos &o) : unary_c_function(::acos,"acos",o.operand_) {}
+	    function::core *clone() const { return new Acos(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Tan : public unary_c_function
+	{
+	public:
+	    Tan(function::core *operand = 0) : unary_c_function(::tan,"tan",operand) {}
+	    Tan(const Tan &o) : unary_c_function(::tan,"tan",o.operand_) {}
+	    function::core *clone() const { return new Tan(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Atan : public unary_c_function
+	{
+	public:
+	    Atan(function::core *operand = 0) : unary_c_function(::atan,"atan",operand) {}
+	    Atan(const Atan &o) : unary_c_function(::atan,"atan",o.operand_) {}
+	    function::core *clone() const { return new Atan(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	double cot(double a);
+	class Cot : public unary_c_function
+	{
+	public:
+	    Cot(function::core *operand = 0) : unary_c_function(blop::function_core::cot,"cot",operand) {}
+	    Cot(const Cot &o) : unary_c_function(blop::function_core::cot,"cot",o.operand_) {}
+	    function::core *clone() const { return new Cot(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	double acot(double a);
+	class Acot : public unary_c_function
+	{
+	public:
+	    Acot(function::core *operand = 0) : unary_c_function(blop::function_core::acot,"acot",operand) {}
+	    Acot(const Acot &o) : unary_c_function(blop::function_core::acot,"acot",o.operand_) {}
+	    function::core *clone() const { return new Acot(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Sinh : public unary_c_function
+	{
+	public:
+	    Sinh(function::core *operand = 0) : unary_c_function(::sinh,"sinh",operand) {}
+	    Sinh(const Sinh &o) : unary_c_function(::sinh,"sinh",o.operand_) {}
+	    function::core *clone() const { return new Sinh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Cosh : public unary_c_function
+	{
+	public:
+	    Cosh(function::core *operand = 0) : unary_c_function(::cosh,"cosh",operand) {}
+	    Cosh(const Cosh &o) : unary_c_function(::cosh,"cosh",o.operand_) {}
+	    function::core *clone() const { return new Cosh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Asinh : public unary_c_function
+	{
+	public:
+	    Asinh(function::core *operand = 0) : unary_c_function(::asinh,"asinh",operand) {}
+	    Asinh(const Asinh &o) : unary_c_function(::asinh,"asinh",o.operand_) {}
+	    function::core *clone() const { return new Asinh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Acosh : public unary_c_function
+	{
+	public:
+	    Acosh(function::core *operand = 0) : unary_c_function(::acosh,"acosh",operand) {}
+	    Acosh(const Acosh &o) : unary_c_function(::acosh,"acosh",o.operand_) {}
+	    function::core *clone() const { return new Acosh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Tanh : public unary_c_function
+	{
+	public:
+	    Tanh(function::core *operand = 0) : unary_c_function(::tanh,"tanh",operand) {}
+	    Tanh(const Tanh &o) : unary_c_function(::tanh,"tanh",o.operand_) {}
+	    function::core *clone() const { return new Tanh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Atanh : public unary_c_function
+	{
+	public:
+	    Atanh(function::core *operand = 0) : unary_c_function(::atanh,"atanh",operand) {}
+	    Atanh(const Atanh &o) : unary_c_function(::atanh,"atanh",o.operand_) {}
+	    function::core *clone() const { return new Atanh(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Floor : public unary_c_function
+	{
+	public:
+	    Floor(function::core *operand = 0) : unary_c_function(::floor,"floor",operand) {}
+	    Floor(const Floor &o) : unary_c_function(::floor,"floor",o.operand_) {}
+	    function::core *clone() const { return new Floor(*this); }
+	    function::core *create_my_derivative() const { return new constant(0.0); }
+	};
+
+	class Ceil : public unary_c_function
+	{
+	public:
+	    Ceil(function::core *operand = 0) : unary_c_function(::ceil,"ceil",operand) {}
+	    Ceil(const Ceil &o) : unary_c_function(::ceil,"ceil",o.operand_) {}
+	    function::core *clone() const { return new Ceil(*this); }
+	    function::core *create_my_derivative() const { return new constant(0.0); }
+	};
+
+	class Round : public unary_c_function
+	{
+	public:
+	    Round(function::core *operand = 0) : unary_c_function(::round,"round",operand) {}
+	    Round(const Round &o) : unary_c_function(::round,"round",o.operand_) {}
+	    function::core *clone() const { return new Round(*this); }
+	    function::core *create_my_derivative() const { return new constant(0.0); }
+	};
+
+	class Erf : public unary_c_function
+	{
+	public:
+	    Erf(function::core *operand = 0) : unary_c_function(::erf,"erf",operand) {}
+	    Erf(const Erf &o) : unary_c_function(::erf,"erf",o.operand_) {}
+	    function::core *clone() const { return new Erf(*this); }
+	    function::core *create_my_derivative() const;
+	};
+
+	class Exp : public unary_c_function
+	{
+	public:
+	    Exp(function::core *operand = 0) : unary_c_function(::exp,"exp",operand) {}
+	    Exp(const Exp &o) : unary_c_function(::exp,"exp",o.operand_) {}
+	    function::core *clone() const { return new Exp(operand_); }
+	    function::core *create_my_derivative() const { return new Exp(operand_); }
+	};
+
+	class Log : public unary_c_function
+	{
+	public:
+	    Log(function::core *operand = 0) : unary_c_function(::log,"log",operand) {}
+	    Log(const Log &o) : unary_c_function(::log,"log",o.operand_) {}
+	    function::core *clone() const { return new Log(*this); }
+	    function::core *create_my_derivative() const
+		{
+		    Div *div = new Div;
+		    div->left(new constant(1.0));
+		    div->right(operand_->clone());
+		    return div;
+		}
+	};
+
+	class Log10 : public unary_c_function
+	{
+	public:
+	    Log10(function::core *operand = 0) : unary_c_function(::log10,"log10",operand) {}
+	    Log10(const Log10 &o) : unary_c_function(::log10,"log10",o.operand_) {}
+	    function::core *clone() const { return new Log10(*this); }
+	    function::core *create_my_derivative() const
+		{
+		    Div *div = new Div;
+		    div->left(new constant(1.0/::log(10.0)));
+		    div->right(operand_->clone());
+		    return div;
+		}
+	};
+
+	class Sqrt : public unary_c_function
+	{
+	public:
+	    Sqrt(function::core *operand = 0) : unary_c_function(::sqrt,"sqrt",operand) {}
+	    Sqrt(const Sqrt &o) : unary_c_function(::sqrt,"sqrt",o.operand_) {}
+	    function::core *clone() const { return new Sqrt(*this); }
+	    function::core *create_my_derivative() const
+		{
+		    Div *div = new Div;
+		    div->left(new constant(0.5));
+		    div->right(new Sqrt(operand_));
+		    return div;
+		}
+	};
+
+	class Abs : public unary_c_function
+	{
+	public:
+	    Abs(function::core *operand = 0) : unary_c_function(::fabs,"abs",operand) {}
+	    Abs(const Abs &o) : unary_c_function(::fabs,"abs",o.operand_) {}
+	    function::core *clone() const { return new Abs(*this); }
+	    function::core *create_my_derivative() const
+		{
+		    Sign *s = new Sign;
+		    s->operand(operand_->clone());
+		    return s;
+		}
+	};
+
+
+	// ---------------  funcparameter -------------------------------
+	// this expression returns the value of a given PARAMETER
+	// of the function (the second argument of function::core::eval)
+
+	class funcparameter : public function::core
+	{
+        private:
+	    int parameter_index_;
+	public:
+
+	    funcparameter(int i) : parameter_index_(std::max(i-1,0)) {}
+	    function::core *clone() const {return new funcparameter(*this);}
+	    void   eval(const std::vector<blop::var> &,
+			const std::vector<blop::var> &def_args,
+			const std::vector<blop::var> &pars,
+			std::vector<blop::var> &result,int *ind) const
+		{
+		    if((int)pars.size() <= parameter_index_)
+		    {
+			var msg = "Function does not have so many [";
+			msg &= var(parameter_index_+1);
+			msg &= "] parameters";
+			warning::print(msg, "function::funcparameter::eval(...)");
+			result[(*ind)++] = "";
+			return;
+		    }
+		    result[(*ind)++] = pars[parameter_index_];
+		}
+	    void   eval_dbl(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &pars,
+			    std::vector<blop::var> &result,int *ind) const
+		{
+		    if((int)pars.size() <= parameter_index_) result[(*ind)++].dbl(0);
+		    else result[(*ind)++].dbl(pars[parameter_index_].dbl());
+		}
+
+	    // it does not require any arguments, only parameter
+	    int nargs() const {return 0;}
+	    int npars() const { if(npars_>=0) return npars_; return parameter_index_ + 1; }
+            bool uses_arg(int) const { return false; }
+	    bool uses_par(int i) const { return i-1==(int)parameter_index_;}
+
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+			     const var &x, const var &y, const var &z) const;
+
+	    function::core *create_derivative(int i) const
+		{
+		    if(-i-1 == parameter_index_) return new constant(1.0);
+		    return new constant(0.0);
+		}
+		     
+
+	    bool equals(const function::core *o) const
+		{
+		    const funcparameter *c = dynamic_cast<const funcparameter *>(o);
+		    return (c && c->parameter_index_ == parameter_index_);
+		}
+
+	    bool is_constant() const { return false; }
+	};
+
+
+
+	// ---------------  argument_subst ------------------------------
+	// this expression is a wrapper around another expression:
+	// it calls that other expression with replaced arguments
+
+	class argument_subst : public function::core
+	{
+	private:
+	    function::core *base_;               // the expression to be called
+	    function::core *args_; // the expressions to calculate the replaced arguments
+	    argument_subst() { base_ = 0; }
+	    mutable std::vector<blop::var> tmp_;
+	    void init_tmp_();
+	public:
+//	    argument_subst(function::core *f,int n,const function::core *ar[]);        // clone 'f', and clone all elements of 'ar'
+//	    argument_subst(function::core *f,const std::vector<function::core*> &ar);  // clone 'f', and clone all elements of 'ar'
+	    argument_subst(function::core *f,function::core *ar);  // clone 'f', and clone all elements of 'ar'
+	    argument_subst(const argument_subst &);
+	    ~argument_subst();
+	    function::core *clone() const { return new argument_subst(*this); }
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,int *ind) const;
+
+	    int nargs() const;
+	    int npars() const;
+
+	    function::core *create_derivative(int) const;
+	    var sprint(const std::vector<blop::var> &, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    virtual var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
+				     const var &x="x", const var &y="y", const var &z="z") const;
+
+	    bool equals(const function::core *o) const;
+
+	    int n_out() const;
+
+	    bool uses_arg(int i) const;
+	    bool uses_par(int i) const;
+
+	    bool is_constant() const
+		{
+		    if(!base_) return false;
+		    if(base_->is_constant()) return true;
+		    return args_->is_constant();
+		}
+
+	};
+
+
+
+	// ---------------  concatenator --------------------------------
+	// concatenates its two arguments (as strings)
+
+	class concatenator : public binary_operator
+	{
+	public:
+	    concatenator(const function::core *l=0,const function::core *r=0) : binary_operator("&",l,r) {}
+	    concatenator(const concatenator &o) : binary_operator("&",o.left_,o.right_) {}
+	    function::core *clone() const {return new concatenator(*this);}
+
+	    var exec(const var &left, const var &right) const
+		{
+		    var result = left & right;
+		    return result;
+		}
+	    double exec_dbl(double left, double right) const
+		{
+		    cerr<<"concatenator::exec_dbl should never be called"<<endl;
+		    return 0;
+		}
+
+	    void eval_dbl(const std::vector<blop::var> &args,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &pars,
+			  std::vector<blop::var> &result, int *runind) const
+		{
+		    eval(args, def_args, pars, result, runind);
+		}
+	    function::core *create_derivative_spec(function::core *, function::core *) const {return new function_core::constant(0.0);}
+
+	};
+
+        // --------------------  join_args  ------------------------------------------------------------
+
+	class join_args : public function::core
+	{
+	private:
+	    function::core *from_, *to_, *separator_;
+	public:
+	    join_args(const function &separator, const function &from, const function &to);
+	    join_args(const join_args &rhs);
+	    ~join_args();
+
+	    join_args *clone() const { return new join_args(*this); }
+
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+	    int       nargs()          const;
+	    int       npars()          const;
+	    bool      uses_arg(int i) const;
+	    bool      uses_par(int i) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *) const;
+	    int n_out() { return 1; }
+	    bool is_constant() const;
+	};
+
+
+
+	class replace : public function::core
+	{
+        private:
+            function::core *from_;
+            function::core *to_;
+            function::core *base_;
+	public:
+	    replace(const function::core *from, const function::core *to, const function::core *base)
+                {
+                    base_ = base->clone();
+                    from_ = from->clone();
+                    to_   = to->clone();
+                }
+	    replace(const replace &o)
+                {
+                    base_ = o.base_->clone();
+                    from_ = o.from_->clone();
+                    to_   = o.to_  ->clone();
+                }
+            ~replace()
+                {
+                    delete from_;
+                    delete to_;
+                    delete base_;
+                }
+	    function::core *clone() const {return new replace(*this);}
+
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+	    int       nargs()          const { return std::max(base_->nargs(),std::max(from_->nargs(),to_->nargs())); }
+	    int       npars()          const { return std::max(base_->npars(),std::max(from_->npars(),to_->npars())); }
+	    bool      uses_arg(int i) const { return (from_->uses_arg(i) || to_->uses_arg(i) || base_->uses_arg(i)); }
+	    bool      uses_par(int i) const { return (from_->uses_par(i) || to_->uses_par(i) || base_->uses_par(i)); }
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *) const;
+
+	    int n_out() const { return base_->n_out(); }
+	    bool is_constant() const {return false;}
+	};
+
+
+	// ---------------  logical_and ---------------------------------
+
+	class logical_and : public binary_operator
+	{
+	public:
+	    logical_and(const function::core *l=0,const function::core *r=0) : binary_operator("&&",l,r) {}
+	    logical_and(const logical_and &o) : binary_operator("&&",o.left_,o.right_) {}
+	    function::core *clone() const {return new logical_and(*this);}
+
+	    var exec(const var &left, const var &right) const 
+                { 
+                    const bool result = (left.dbl()!=0.0) && (right.dbl()!=0.0);
+                    return result;
+                }
+	    double exec_dbl(double left, double right) const { return (left!=0.0) && (right!=0.0); }
+
+	    function::core *create_derivative_spec(function::core*,function::core*) const { return new constant(0.0); }
+	};
+
+	// ---------------  logical_or ----------------------------------
+
+	class logical_or : public binary_operator
+	{
+	public:
+	    logical_or(const function::core *l=0,const function::core *r=0) : binary_operator("||",l,r) {}
+	    logical_or(const logical_or &o) : binary_operator("||",o.left_,o.right_) {}
+	    function::core *clone() const {return new logical_or(*this);}
+
+	    var exec(const var &left, const var &right) const { return (left.dbl()!=0.0) || (right.dbl()!=0.0); }
+	    double exec_dbl(double left, double right) const { return (left!=0.0) || (right!=0.0); }
+
+	    function::core* create_derivative_spec(function::core*,function::core*) const { return new constant(0.0); }
+	};
+
+        // --------------------- substr -------------------------------------
+	class substr : public function::core
+	{
+        private:
+            function::core *string_;
+            function::core *from_;
+            function::core *to_;
+	public:
+	    substr(const function::core *s, const function::core *from, const function::core *to)
+                {
+                    string_ = s->clone();
+                    from_ = from->clone();
+                    to_   = to->clone();
+                }
+	    substr(const substr &o)
+                {
+                    string_ = o.string_->clone();
+                    from_ = o.from_->clone();
+                    to_   = o.to_  ->clone();
+                }
+            ~substr()
+                {
+                    delete from_;
+                    delete to_;
+                    delete string_;
+                }
+	    function::core *clone() const {return new substr(*this);}
+
+	    void       eval(const std::vector<blop::var> &args,
+			    const std::vector<blop::var> &def_args,
+			    const std::vector<blop::var> &params,
+			    std::vector<blop::var> &result, int *ind)  const;
+	    void       eval_dbl(const std::vector<blop::var> &args,
+				const std::vector<blop::var> &def_args,
+				const std::vector<blop::var> &params,
+				std::vector<blop::var> &result, int *ind)  const;
+	    int       nargs()          const { return std::max(string_->nargs(),std::max(from_->nargs(),to_->nargs())); }
+	    int       npars()          const { return std::max(string_->npars(),std::max(from_->npars(),to_->npars())); }
+	    bool      uses_arg(int i) const { return (from_->uses_arg(i) || to_->uses_arg(i) || string_->uses_arg(i)); }
+	    bool      uses_par(int i) const { return (from_->uses_par(i) || to_->uses_par(i) || string_->uses_par(i)); }
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    bool equals(const function::core *) const;
+
+	    int n_out() const { return string_->n_out(); }
+	    bool is_constant() const {return false;}
+	};
+        
+
+
+	// ---------------------  contained ---------------------------------
+	class contained_in : public function::core
+	{
+	private:
+            mutable std::vector<blop::var> tmp_;
+	    function::core* in_this_;
+	    contained_in() {}
+
+	public:
+	    contained_in(function::core *a); // clone a
+	    contained_in(const contained_in &o);
+	    ~contained_in();
+	    function::core *clone() const {return new contained_in(*this); }
+
+            bool uses_arg(int) const { return false; }
+            bool uses_par(int) const { return false; }
+
+	    // evaluate
+	    void eval(const std::vector<blop::var> &,
+		      const std::vector<blop::var> &def_args,
+		      const std::vector<blop::var> &,
+		      std::vector<blop::var> &result,
+		      int *ind) const;
+	    void eval_dbl(const std::vector<blop::var> &,
+			  const std::vector<blop::var> &def_args,
+			  const std::vector<blop::var> &,
+			  std::vector<blop::var> &result,
+			  int *ind) const;
+
+	    int nargs() const;
+	    int npars() const;
+	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    function::core *create_derivative(int) const { return new constant(0.0); }
+	    bool equals(const function::core *o) const { return false; }
+
+	    bool is_constant() const { return false; }
+	};
+	
+
+        template <typename Xtype=double, typename Ytype=double>
+        class piecewise_polynomial_function : public function::core
+        {
+        public:
+            typedef Xtype x_type;
+            typedef Ytype y_type;
+        private:
+            std::vector<x_type> x_;
+            mutable matrix<y_type> coeff_;
+            y_type zero_;
+            y_type out_of_range_value_;
+        public:
+            piecewise_polynomial_function(const std::vector<x_type> &x_values,
+                                          const blop::matrix<y_type> &coeff,
+                                          const y_type &zero_value, const y_type &out_of_range_value)
+                : x_(x_values), coeff_(coeff), zero_(zero_value), out_of_range_value_(out_of_range_value)
+                {}
+
+            bool uses_arg(int i) const { return i==1; }
+            bool uses_par(int) const { return false; }
+
+            static y_type evaluate(const x_type &x,
+                                   const std::vector<x_type> &x_values,
+                                   const blop::matrix<y_type> &coeff,
+                                   const y_type &zero_value, const y_type &out_of_range_value)
+                {
+                    if(x_values.empty()) return out_of_range_value;
+                    if(x<x_values.front() || x_values.back()<x) return out_of_range_value;
+                    typedef const typename std::vector<x_type>::const_iterator iterator_type;
+                    iterator_type pos = std::lower_bound(x_values.begin(), x_values.end(), x);
+                    int ind = pos - x_values.begin();
+                    if(ind > 0) --ind;
+
+                    // polynomial coefficients refer to the 'local' variable s=x-x[k]
+                    const x_type s = x-x_values[ind];
+            
+                    y_type result = zero_value;
+                    for(int p=0; p<coeff.cols(); ++p)
+                    {
+                        const y_type tmp1 = coeff(ind,p);
+                        const y_type tmp2 = tmp1*std::pow(s,(double)p);
+                        result += tmp2;
+                    }
+                    return result;            
+                }
+            y_type operator()(const x_type &x) const
+                {
+                    return evaluate(x,x_,coeff_,zero_,out_of_range_value_);
+                }
+
+            // recalculate the coefficient matrix so that the new matrix gives the
+            // derivative of the original one
+            virtual void derivate()
+                {
+                    for(int r=0; r<coeff_.rows(); ++r)
+                    {
+                        for(int c=0; c<coeff_.cols()-1; ++c)
+                        {
+                            coeff_(r,c) = coeff_(r,c+1)*double(c+1);
+                        }
+                    }
+                    coeff_.resize(coeff_.rows(), coeff_.cols()-1);
+                }
+
+            piecewise_polynomial_function<x_type,y_type> *clone() const { return new piecewise_polynomial_function<x_type,y_type>(*this); }
+
+            void       eval(const std::vector<blop::var> &args,
+                            const std::vector<blop::var> &def_args,
+                            const std::vector<blop::var> &params,
+                            std::vector<blop::var> &result, int *ind)  const
+                {
+                    *ind += flatten_to_vector_var(operator()(args[0].dbl()),result,*ind);
+                }
+	
+            void       eval_dbl(const std::vector<blop::var> &args,
+                                const std::vector<blop::var> &def_args,
+                                const std::vector<blop::var> &params,
+                                std::vector<blop::var> &result, int *ind)  const
+                {
+                    *ind += flatten_to_vector_dbl(operator()(args[0].dbl()),result,*ind);
+                }
+
+            int nargs() const { return 1; }
+            int npars() const { return 0; }
+            bool uses_arg(int i) { return i==1; }
+            bool uses_par(int i) { return false; }
+            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "piecewisepolynomialfunction"; }
+ 
+            function::core *create_derivative(int i) const
+                {
+                    if(i!=1 || coeff_.cols()<2)
+                    {
+                        const int N = numeric_components(zero_);
+                        vector<var> a(N);
+                        flatten_to_vector_var(zero_,a,0);
+                        if(N==1) return new function_core::constant(a[0]);
+                        function_core::multiple *m = new function_core::multiple;
+                        for(int k=0; k<N; ++k) m->append(new function_core::constant(a[k]));
+                        return m;
+                    }
+                    piecewise_polynomial_function<x_type,y_type> *result = new piecewise_polynomial_function<x_type,y_type>(*this);
+                    result->derivate();
+                    return result;
+                }
+
+            bool equals(const function::core*) const { return false; }
+            int n_out() const { return numeric_components(coeff_(0,0)); }
+            bool is_constant() const { return coeff_.cols()<2; }
+        };
+
+        class date2epoch : public function::core
+        {
+        private:
+            string format_;
+        public:
+            date2epoch(const var &f="%y/%m/%d %H:%M:%S") : format_(f.str()) {}
+            function::core *clone() const { return new date2epoch(format_); }
+
+            int nargs() const { return 1; }
+            int npars() const { return 0; }
+            bool uses_arg(int i) const { return i==1; }
+            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+                {
+                    return ("date2epoch");
+                }
+            bool equals(const function::core* rhs) const
+                {
+                    if(const date2epoch *p = dynamic_cast<const date2epoch*>(rhs)) return p->format_ == format_;
+                    return 0;
+                }
+
+	void eval(const vector<var> &args,
+                  const std::vector<blop::var> &def_args,
+                  const vector<var> &pars,
+                  vector<var> &result, int *ind) const;
+	void eval_dbl(const vector<var> &args,
+                      const std::vector<blop::var> &def_args,
+                      const vector<var> &pars,
+                      vector<var> &result, int *ind) const;
+            
+        };
+    }
+}
+
+#endif

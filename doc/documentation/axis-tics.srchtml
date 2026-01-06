@@ -1,0 +1,173 @@
+TITLE: Axis tics
+PREV: layers.html
+NEXT: axis-cut.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+To  set  the tics  of  an  axis, you  can  proceed  as follows  (where
+<tt>aptr</tt> is a pointer to an axis):
+
+<p><pre>
+aptr->tics();              // clears all tic settings
+aptr->tics(1.5);           // sets equidistant tics, with distance 1.5
+aptr->tics(2.4,"label");   // adds a tic to the axis at 2.4, with the label 'label'
+aptr->tics(1.5,0,10);      // sets equidistant tics with distance 1.5, beginning from 0
+                           // and not extending over 10
+</pre>
+
+<p>
+These can  be included  in one statement  as well. The  following code
+first clears  all previous tic  settings, then sets  equidistant tics,
+and adds some extra tics at fixed positions:
+
+<p><pre>
+aptr->tics()(2,0,10)(3,"{\\Large 3}")(5,"{\\Large 5}");
+</pre>
+
+<p>
+The       most        frequent       application       would       be:
+<tt>frame::current().x1axis()->tics()(...)(...)(...);</tt>   To  save
+the user  from typing  so much, the  tics of  the axes of  the current
+frame can  be set easier (demonstrated  for the x1 axis,  which is the
+lower horizontal axis. Figure out, how it works for other axes).
+
+<p><pre>
+set::x1tics()(2,0,10)(3,"{\\Large 3}")(5,"{\\Large 5}");
+</pre>
+
+</div>
+<hr>
+
+<div class=description>
+
+<p>
+<ul>
+<li><a href="#major_tics">Defining major tics</a>
+<li><a href="#minor_tics">Defining minor tics</a>
+</ul>
+
+<p><a name="major_tics"><u>Major tics</u></a>
+Major tics are those which receive a label as well (i.e. where the value on the axis is displayed)
+
+<p>
+There are two ways how axis tics can be specified:
+<ul>
+<li>Equidistant tics, where the tic label shows the axis value
+<li>Explicit tics at specified points of the axis, with specified labels
+</ul>
+
+<p>
+
+<u>To  specify equidistant tics</u>  one can  specify the  following 3
+parameters  for   an  axis,  optionally:  the   distance  between  two
+neighbouring tics,  the first tic value,  and the upper  limit for the
+tics.   Any of  these can  be set  to 'unset',  and in  this  case the
+unspecified values are calculated automatically. For example to set up
+xtics with  a distance of  1, beginning at  3, up to the  axis maximum,
+say:<br>
+<tt>x1tics(1,3,unset);</tt><br>
+(note that  you can not  say <tt>x1tics(1,3)</tt>, because  this would
+put a single tic at the value 1, with the label "3"). 
+
+<p>
+<u>To specify explicit tics</u> one  has to provide the axis value, at
+which the tic will be drawn, and the label, which will appear.
+
+<p>
+The algorithm to draw tics is as follows: 
+<ul>
+<li>If explicit tics have been specified by the user, these are drawn
+<li>Equidistant tics are drawn only if
+  <ul>
+    <li>no explicit tics were provided by the user
+    <li>or any of the 3 parameters for equidistant tics have been
+    specified
+  </ul>
+</ul>
+
+<p>
+If equidistant tics are drawn,  the unset parameters are calculated at
+the time  the axis is printed to  a terminal. That is,  for example if
+only  the distance of  these tics  is specified,  the lower  and upper
+limits for  the set  of equidistant tics  will be calculated  from the
+final range of the axis.
+
+<p>
+The <tt>axis</tt> class declares the nested class <tt>tic_setter</tt>,
+and has a  member of this type, called  <tt>tics</tt>. The parenthesis
+operators with 0,  1, 2 and 3 arguments can be  called on this member,
+which perform the above-mentioned  tasks. These operators all return a
+reference to the same  object, therefore the parenthesis operators can
+be called  subsequently on it, making the  interface user-friendly, as
+shown at the top of page in the practical guide. (Currently cint fails
+to interpret the subsequent calls of the () operator, so this is a too
+early documentation...).  See below the  excerpt from the  source code
+for the explanation, what these operators do.
+
+<p>
+For  the  user's  convenience  another  class  (with  the  same  name:
+<tt>tic_setter</tt>)   is   declared  in   a   higher  scope   (within
+<tt>namespace  blop</tt>),  which  has  the same  set  of  parenthesis
+operators.  Four 'global'  (in <tt>namespace  blop</tt>)  instances of
+this class (<tt>x1tics, y1tics,  x2tics, y2tics</tt>) are defined, and
+calling the parenthesis operators on  them applies the settings to the
+four axes of the <u>current frame</u> respectively. For example:
+
+<p><pre>
+x1tics()(2,0,20)(3,"{\\blue 3}");
+</pre>
+
+<p><a name="minor_tics"><u>Minor tics</u></a>
+Minor tics are smaller tics which do not display the value on the axis; they are only used to subdivide 
+the interval between major tics. 
+
+<p>Some examples
+<pre>
+set::n_minor_tics(5);    // Set the number of sub-intervals between major tics to 5 on the x1 and y1 axis
+set::n_minor_tics_x1(5); // Do it for only the x1 axis, etc.
+frame::current().x1axis()->n_minor_tics(5); // Same as the previous
+set::grid_at_minor_tics(axis::x1|axis::y1); // Draw gridlines at minor tics as well for these axes
+set::grid_at_minor_tics(true); //Same as the previous line
+</pre>
+
+</Div>
+<hr>
+
+<pre class=implementation>
+class axis
+{
+   public:
+      ...
+      class tic_setter
+      {
+         public:
+             ...
+             tic_setter &operator()();              // 0 args ==> clear all tics
+
+             tic_setter &operator()(var distance);  // 1 args ==> set distance for equidistant tics
+
+             tic_setter &operator()(var dist, var from, var to); 
+
+                                                    // 3 args ==> set distance and limits for equidistant tics
+
+             tic_setter &operator()(var pos, var label);
+                                          
+                                                    // 2 args ==> set explicit tic
+      };
+     
+      tic_setter tics;
+};
+
+class tic_setter
+{
+  public:
+    tic_setter(int i);
+    tic_setter &operator()();
+    tic_setter &operator()(var);
+    tic_setter &operator()(var,var);
+    tic_setter &operator()(var,var,var);
+};
+
+extern tic_setter x1tics, y1tics, x2tics, y2tics;
+</pre>

@@ -1,0 +1,121 @@
+TITLE: Canvas & Pad
+MTITLE: Canvas &amp; Pad
+PREV: container.html
+NEXT: mpad.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<pre>
+pad &p = pad::mknew(0,0,0.5,4*CM).border_3D(true).bgcolor(color(0.6,0.6,0.5));
+   // create a new pad in the current canvas, and store a reference to it
+   // simple numbers specify fractions of the parent's width or height,
+   // respectively.
+
+p.borderwidth(3*MM);
+   // set other attributes using the stored reference (this could have
+   // been done on the previous commandline as well).
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+<p>A  canvas is  the topmost  element in  the object  hierarchy: every
+object must  be contained in a  canvas, or in  other containers, which
+are  themselves stored  in  a  canvas. As  stated  elsewhere as  well,
+drawing  to  a  canvas  does  not  mean  producing  any  output:  only
+references are  stored in the canvas;  the canvas resides  only in the
+computer's memory. In  order to make it appeare  somewhere (in a file,
+on  your screen,  etc),  you have  to  explicitely print  it  to a  <a
+href="terminals.html">terminal</a>. You  can have several  canvases at
+the same time.  A canvas is also a <tt>pad</tt>,  so all the following
+descriptions of  pads are  valid for  a canvas as  well. There  is one
+exception:    the   canvas   (which    finally   inherits    from   <a
+href="grob.html">grob</a>)    overwrites   the    <tt>off()</tt>   and
+<tt>invisible()</tt> functions inherited from grob: you can not switch
+off a canvas,  or make it invisible (well, indeed: if  you do not want
+it to appear anywhere, then simply don't print it :-)
+
+<p><u><a name="pad__mknew">pad::mknew</a></u> A  pad is used to create
+a sub-region of  its parent (which can be a canvas,  another pad, or a
+<a href="frame.html">frame</a>  as well). A pad can  be created within
+the current canvas with the static member function of pad:
+
+<pre>pad &pad::mknew(length x1, length y1, length x2, length y2);</pre>
+
+The arguments  specify the lower left  and upper right  corners of the
+new pad. You  can write simple numbers as well  (like 0.5); these mean
+fractional parts of the parent's cwidth or cheight, respectively.  
+
+<p><a  name="pad__mksub"><u>pad::mksub</u></a> The <tt>mksub(...)</tt>
+static member function  creates a new pad within  any container, which
+is specified by the extra 5th argument:
+
+<pre>pad &pad::mksub(length x1, length y1, length x2, length y2, container &amp;parent = pad::current())</pre>
+
+The    default   value    of   the    5th   argument    is    the   <a
+href="#current">current pad</a>, so if you omit this argument, the new
+pad will  be created in the  current one. Both  the <tt>mknew</tt> and
+<tt>mksub</tt> functions return a  reference to the newly created pad,
+so other member functions to midify  the attributes of this pad can be
+called:
+
+<pre>pad &p = pad::mknew(0,0,0.5,4*CM).bordercolor(red).borderwidth(MM);</pre>
+
+<p>  <tt>Pad</tt>  provides   the  member  functions  <tt>left()</tt>,
+<tt>right()</tt>,  <tt>bottom()</tt>, <tt>top()</tt>, <tt>width()</tt>
+and  <tt>height()</tt>  to   access  its  geometrical  attributes.   A
+<tt>pad</tt> is  a <a href="container.html">container</a>  as well, so
+it  inherits all the  functionalities of  a container  (cleft(), etc).
+The following figure shows the  geometrical attributes of a pad, which
+is placed into the canvas directly.  (The border of this pad is set to
+be 3D, but the same holds  for simple-border pads, where the border iw
+a simple line).  (The script which  was used to produce this figure is
+<a href="figs/pad.C">here</a>)
+
+<center>
+<img src="figs/pad.png">
+</center>
+
+<p>  <a name="current">In</a>  order  to simplify  the user's  script,
+there  is always  a <i>current</i>  (or  active) pad,  into which  the
+drawing operations draw.  To select a pad to be  the current one, call
+the   <tt>cd()</tt>  member   function   on  that   pad.  The   static
+<tt>current()</tt> function  of the pad class  can be used  to get the
+currently active pad:
+
+<pre>
+   pad &p1 = pad::mknew(0,0,0.5,0.5);
+   pad &p2 = pad::mknew(0.5,0.5,1,1);
+
+   p1.cd();
+   label::pdraw("this is pad1",MM,MM);
+   
+   p2.cd();
+   pad::current()->borderwidth(3*MM).draw_border(true); // equivalent to p2.borderwidth(3*MM);
+   label::pdraw("this is pad2",CM,CM);
+</pre>
+
+<p> <a name="visual_atts">The</a> remainig member functions, which set
+the attributes of  the pad, all return a reference  to the pad itself,
+so   they  can   be  called   in  chain.   They  are   more   or  less
+self-explanatory:
+
+<pre>
+   pad &pad::draw_border(bool);           // switch on/off border-drawing
+   pad &pad::bordercolor(const color &);  // color of the border (not too surprisingly)
+   pad &pad::borderwidth(const length &); // set the width of the border
+   pad &pad::border_3D(bool);             // draw a 3D border
+   pad &pad::bgcolor(const color &);      // set the bgcolor, and implicitely call fill_bg
+   pad &pad::fill_bg(bool);               // fill the background with bgcolor
+</pre>
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="pad.h.html">pad.h</a>
+   <a href="pad.cc.html">pad.cc</a>
+</pre>

@@ -1,0 +1,652 @@
+#!/bin/bash
+
+# short description: convert .beps files to .eps
+
+
+. @config@
+
+
+help()
+{
+cat 1>&2 <<EOF
+
+beps2eps -- Transform .beps files (which are files to be included in
+            a LaTeX document via the macro \blopeps) to .eps files,
+            which can be viewed with any PostScript viewer
+
+Usage: 
+
+beps2eps [-w width] [-W texfile plotfile] [-h height] [-H texfile plotfile] [-S texfile plotfile] [-M texfile plotfile] [-ps pointsize] [-lw linewidth]
+         [-d documentclass] [-p latexpackage] [-P preamble_commands] [-np package name] [-PP preamble_commands] [-U file] 
+         [-l] [-noeps] [-q] [-v [level]] [-b] [-c latexcmd] inputfile [outputfile]
+
+   -q           Quiet 
+
+   -v [number]  Set verbose level. Number can be omitted (equivalent to -v 1)
+                or if present, should be in the range 0-9
+
+   -l           landscape
+
+   -lon <n1[,n2,n3]>   Switch ON layers n1 (n2,n3), where n1 n2 etc are integer 
+                numbers
+
+   -loff <n1[,n2,n3]>   Switch OFF layers n1 (n2,n3), where n1 n2 etc are integer 
+                numbers
+
+   -b           Frame the figure (box)
+
+   -ps TeXdimen Specify the PS unit in the figure (the size of symbols used
+                for plotting graphs is by default equal to PS)
+
+   -lw TeXdimen specify the LW unit in the figure (by default the width of lines
+                in the plot equals to LW)
+
+   -p pkg       Use the specified package (several -p options can be used)
+                To also specify options for the package, say:  -p '[options]{package}'
+                Note that the single quotes are for protecting it from the shell)
+
+   -np pkg      Do not use this package (when using a master TeX file with the option -M)
+                even if it is included in the preamble of the master TeX file
+
+   -d docclass  Specify the document class to be used
+                To also specify options for the docclass, say: -d '[options]{class}'
+
+   -L length value  Set LaTeX length to given value
+
+   -c latexcmd  specify any latex command, which will be called before including the file
+
+   -P latexcmd  specify any latex command, which will be put in the preamble (i.e. before
+                \begin{document}) of the latex document
+
+   -PP latexcmd specify any latex command, which will be put in the preamble (i.e. before
+                \begin{document}) of the latex document. 
+                Do not use blop's standard preamble (including some packages which are useful). 
+                The package 'blopeps' which is absolutely necessary for the compilation of the 
+                figure is still included. Some other commands such as -l (for landscape) 
+                (which would write commands into the preamble) are also ineffective
+
+   -U file      Use preamble (all lines up to \begin{document}) from the given TeX file.
+                Do not use blop's standard preamble (including some packages which are useful). 
+                The package 'blopeps' which is absolutely necessary for the compilation of the 
+                figure is still included. Some other commands such as -l (for landscape) 
+                (which would write commands into the preamble) are also ineffective
+
+   -w width     Specify figure width in a format which is understood by LaTeX
+  
+   -W texfile plotfile  Try to guess the width from the LaTeX file 'texfile', which will
+                include this file. 'plotfile' is the path of this figure as referenced 
+                in the LaTeX file
+
+   -h, -H       Similar as -w and -W above
+
+   -S texfile plotfile Try to guess the size (width and height) from the LaTeX file 'texfile', which will
+                include this file. 'plotfile' is the path of this figure as referenced 
+                in the LaTeX file
+                Equivalent to -H texfile plotfile -W texfile plotfile
+
+   -M texfile plotfile   The same as the combination of -U texfile -W texfile plotfile -H texfile plotfile
+
+   -e environment  Specify the environment to include the figure in the LaTeX document. By default it is 'figure',
+                i.e. the figure is included between \begin{figure} and \end{figure} commands. If set to 
+                'none', no environment is used
+
+   -s           change the font to sans-serif
+
+   -C|--crop    Crop the image to the visible content
+
+   -noeps       The file is not transformed to an eps file, only to a ps file
+
+   -k           Keep termporary intermediate files (for debugging)
+
+   If no outputfile is specified, it will be deduced from the inputfilename (.beps is 
+   replaced by .eps)
+   The special filename - can be used to specify standard input or output
+
+   Return codes:
+     0   - success
+     1   - no inputfile specified
+     2   - inputfile does not exist
+     3   - mktemp failed
+     4   - latex failed
+     5   - dvips failed
+     6   - ghostscript failed
+EOF
+}
+
+declare -A lengths
+
+if [ $# -lt 1 ] ; then
+  $ECHO Filename expected 1>&2
+  help;
+  exit 1;
+fi
+
+if [ "$1" = "--help" ] ; then
+  help;
+  exit 0;
+fi
+
+if [ "$1" = "-h" -a $# -eq 1 ] ; then
+  $ECHO 1>&2
+  $ECHO The option -h is normally used to specify the height of the figure. 1>&2
+  $ECHO But now I guess you wanted to use it for \'help\'. So here you are... 1>&2
+
+  help;
+  exit 0;
+fi
+
+tmpfiles="";
+
+abort()
+{
+    if [ "$tmpfiles" != "" -a "$keeptemporary" = "false" ] ; then rm -f $tmpfiles; fi
+    exit $1
+}
+
+trap abort 0 1 2 3 7 13 15
+
+psonly="false";
+inputfile="";
+inputdir="";
+outputfile="";
+use_preamble="@BLOP@";
+preamble_commands="";
+user_packages="";
+skip_packages=()
+verbose_level=1;
+frame="false";
+latexcmd="";
+landscape="";
+documentclass="";
+ps="";
+lw="";
+keeptemporary="false";
+crop="false";
+layers="";
+environment="figure";
+
+width="";
+height="";
+width_from_tex="";
+width_from_plot="";
+height_from_tex="";
+height_from_plot="";
+
+while [ $# -gt 0 ] ; do
+  case $1 in
+    --cmd-line-arg-accepted)
+        shift;
+        case $1 in
+            -w) echo 1;;
+            -W) echo 2;;
+            -h) echo 1;;
+            -H) echo 2;;
+            -M) echo 2;;
+            -S) echo 2;;
+            -e) echo 1;;
+            -k) echo 0;;
+            -q) echo 0;;
+            -b) echo 0;;
+            -c) echo 1;;
+            -ps) echo 1;;
+            -lw) echo 1;;
+            -l) echo 0;;
+            -lon) echo 1;;
+            -loff) echo 1;;
+            --crop|-C) echo 0;;
+            -d) echo 1;;
+            -p) echo 1;;
+            -np) echo 1;;
+            -s) echo 0;;
+            -P) echo 1;;
+            -PP) echo 1;;
+            -U) echo 1;;
+            -L) echo 2;;
+            *) echo "";;
+        esac
+        exit 0;;
+    -noeps) psonly="true";;
+    -w) shift; width="$1";  width_from_tex="";    width_from_plot="";;
+    -W) shift;
+        width="";
+        case "$1" in
+            /*) width_from_tex="$1";;
+            *)  width_from_tex="`pwd`/$1";;
+        esac
+        width_from_plot="$2";
+        shift;;
+    -h) shift; height="$1"; height_from_tex="";   height_from_plot="";;
+    -H) shift; 
+        height="";   
+        case "$1" in
+            /*) height_from_tex="$1";;
+            *)  height_from_tex="`pwd`/$1";;
+        esac
+        height_from_plot="$2"; 
+        shift;;
+    -S) shift; 
+        width="";
+        height="";   
+        case "$1" in
+            /*) width_from_tex="$1";
+                height_from_tex="$1";;
+            *)  width_from_tex="`pwd`/$1";
+                height_from_tex="`pwd`/$1";;
+        esac
+        width_from_plot="$2"; 
+        height_from_plot="$2"; 
+        shift;;
+    -k) keeptemporary="true";;
+    -q) verbose_level=0;;
+    -v) if [[ $2 == [0-9] ]] ; then
+            verbose_level=$2;
+            shift;
+        else
+            verbose_level=1;
+        fi;;
+    -b) frame="true";;
+    -c) shift; latexcmd="$1";;
+    -L) shift; lengths[$1]=$2; shift;;
+    -ps) shift; ps="ps=$1";;
+    -lw) shift; lw="lw=$1";;
+    -l) landscape=",landscape";;
+    -lon) shift; 
+          for l in `echo $1 | awk -F, '{for(i=1; i<=NF; ++i) print $i;}'`
+          do
+              if [ "$layers" != "" ] ; then layers="${layers},"; fi
+              layers="${layers}lon=${l}"
+          done;;
+    -loff) shift; 
+           for l in `echo $1 | awk -F, '{for(i=1; i<=NF; ++i) print $i;}'`
+           do
+               if [ "$layers" != "" ] ; then layers="${layers},"; fi
+               layers="${layers}loff=${l}"
+           done;;
+    --crop|-C) crop="true";;
+    -d) shift; 
+        case $1 in
+            [*) documentclass="\documentclass$1";;
+            {*) documentclass="\documentclass$1";;
+             *)  documentclass="\documentclass{$1}";;
+        esac;;
+    -p) shift; 
+        case $1 in
+          [*) user_packages="$user_packages \usepackage$1";;
+          {*) user_packages="$user_packages \usepackage$1";;
+          *)  user_packages="$user_packages \usepackage{$1}";;
+        esac;;
+    -np) shift;
+         skip_packages+=($1);;
+    -s)  preamble_commands="$preamble_commands \renewcommand{\familydefault}{\sfdefault}";;
+    -P)  shift; preamble_commands="$preamble_commands $1";;
+    -PP) shift; preamble_commands="$preamble_commands $1"; use_preamble="";;
+    -U)  shift;
+         case "$1" in
+             /*) use_preamble="$1";;
+             *)  use_preamble="`pwd`/$1";;
+         esac;;
+    -M)  shift;
+         case "$1" in
+             /*) use_preamble="$1";
+                 width_from_tex="$1";
+                 height_from_tex="$1";;
+             *)  use_preamble="`pwd`/$1";
+                 width_from_tex="`pwd`/$1";
+                 height_from_tex="`pwd`/$1";;
+         esac;
+         width="";
+         width_from_plot="$2";
+         height="";
+         height_from_plot="$2";
+         shift;;
+    -e)  shift; environment="$1";;
+    *)  if [ "$inputfile" = "" ] ; then
+          inputfile="$1"
+        else
+          outputfile="$1"
+        fi
+  esac
+  shift;
+done
+
+
+if [ "$documentclass" = "" ] ; then
+  documentclass="\documentclass{article}";
+fi
+
+curdir=`pwd`
+
+if [ "$inputfile" = "" ] ; then
+  $ECHO No inputfile specified 1>&2
+  exit 1
+fi
+
+# If outputfile not specified, deduce it from inputfile
+if [ "$outputfile" = "" ] ; then
+  if [ "$inputfile" = "-" ] ; then
+    outputfile="-";
+  else
+    outputfile=`dirname "$inputfile"`/`basename "$inputfile" .beps`.eps
+  fi
+fi
+
+if [ "$inputfile" = "-" ] ; then
+  inputdir="";
+  inputfile="-";
+else
+  inputdir=`dirname "$inputfile"`
+  cd "$inputdir"
+  if [ $? != 0 ] ; then
+    $ECHO No such directory: "$inputdir" 1>&2
+    exit 2
+  fi
+  inputdir=`pwd`/
+  inputfile=`basename "$inputfile"`
+  if [ ! -e "$inputfile" ] ; then
+    $ECHO No such file: ${inputdir}$inputfile 1>&2
+    exit 2
+  fi
+fi
+
+if [ "$outputfile" != "-" ] ; then
+  # complete to full path
+  case "$outputfile" in
+    /*) ;;
+    *)  outputfile="$curdir"/"$outputfile";;
+  esac
+fi
+
+if [ $verbose_level -gt 0 ] ; then
+  $ECHO ${inputdir}${inputfile} ' ==> ' $outputfile 1>&2
+fi
+
+tmpdir=/tmp
+
+if [ "$inputfile" = "-" ] ; then
+  cd "$tmpdir"
+  inputdir="$tmpdir/"
+  inputfile=`mktemp beps2eps-tmp-input-XXXXXX`
+  tmpfiles="$tmpfiles $inputfile";
+  if [ $? != 0 -o "$inputfile" = "" ] ; then
+    $ECHO mktemp beps2eps-tmp-input-XXXXXX failed in $tmpdir 1>&2
+    exit 3;
+  fi
+  cat > "$inputfile"
+fi
+
+
+if [ "$width" = "" -a "$width_from_tex" = "" ] ; then
+  width=`awk '$1=="%preferred_width" {print $2}' $inputfile`
+fi
+if [ "$width_from_tex" != "" ] ; then
+    if [ ! -f "$width_from_tex" ] ; then
+        echo Can not find the LaTeX file $width_from_tex to get the figure width from
+    else
+        graphicsfile="$width_from_plot"
+        graphicsfile=`echo "$graphicsfile" | sed 's|/|\\\\/|g'`
+        sed -n -E 's/^.*\\[a-zA-Z]+[[{]([^]}[{]+)[]}]\{'"${graphicsfile}"'\}.*$/\1/p' "$width_from_tex" 
+        width=$(sed -n -E 's/^.*\\[a-zA-Z]+[[{]([^]}[{]+)[]}]\{'"${graphicsfile}"'\}.*$/\1/p' "$width_from_tex" | awk -F, '{for(i=1; i<=NF; ++i) printf "%s\n",$i;}' | awk -F= '$1=="width" {print $2; exit}')
+        echo "Width determined from $width_from_tex: $width"
+    fi
+fi    
+if [ "$width" = "" ] ; then
+  width="18cm"
+fi
+
+if [ "$height" = "" -a "$height_from_tex" = "" ] ; then
+  height=`awk '$1=="%preferred_height" {print $2}' $inputfile`
+fi
+if [ "$height_from_tex" != ""  ] ; then
+    if [ ! -f "$height_from_tex" ] ; then
+        echo Can not find the LaTeX file $height_from_tex to get the figure height from
+    else
+        graphicsfile="$height_from_plot"
+        graphicsfile=`echo "$graphicsfile" | sed 's|/|\\\\/|g'`
+        height=$(sed -n -E 's/^.*\\[a-zA-Z]+[[{]([^]}[{]+)[]}]\{'"${graphicsfile}"'\}.*$/\1/p' "$height_from_tex" | awk -F, '{for(i=1; i<=NF; ++i) printf "%s\n",$i;}' | awk -F= '$1=="height" {print $2; exit}')
+        echo "Height determined from $height_from_tex: $height"
+    fi
+fi
+if [ "$height" = "" ] ; then
+  height="12cm"
+fi
+
+cd "$tmpdir"
+
+texfile=`mktemp beps2eps-tmp-XXXXXX`
+tmpfiles="$tmpfiles $texfile ${texfile}.log ${texfile}.aux ${texfile}.dvi ${texfile}.ps"
+
+if [ $? != 0 -o "$texfile" = "" ] ; then
+  $ECHO mktemp beps2eps-tmp-XXXXXX failed 1>&2
+  exit 3
+fi
+
+if [ "$use_preamble" = "@BLOP@" ] ; then
+cat >> "$texfile" <<EOF
+$documentclass
+%\paperwidth=400mm
+%\paperheight=300mm
+\usepackage{pdfcomment}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{textcomp}
+%\usepackage{color}
+%\usepackage{pst-node}
+\usepackage{attachfile}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage[hscale=0.95,vscale=0.95,dvips,a3paper$landscape]{geometry}
+EOF
+elif [ "$use_preamble" != "" ] ; then
+    if [ ! -f "$use_preamble" ] ; then
+        echo "File '$use_preamble' does not exist, can not get LaTeX preamble"
+        exit 2
+    fi
+
+    skip_packages_cmd=""
+    for p in ${skip_packages[@]}; do
+        if [ "$skip_packages" != "" ] ; then
+            skip_packages="$skip_packages &&"
+        fi
+        skip_packages_cmd="$skip_packages_cmd !/\\\\usepackage(\[.*\])?\{$p\}/"
+    done
+    echo $skip_packages_cmd
+    echo awk "/\\\\begin\{document\}/ {exit;} $skip_packages_cmd {print}" "$use_preamble"
+    echo 
+    awk "/\\\\begin\{document\}/ {exit;} $skip_packages_cmd {print}" "$use_preamble" >> "$texfile"
+fi    
+
+
+
+cat >> "$texfile" <<EOF
+$preamble_commands
+$user_packages
+EOF
+
+cat >>"$texfile" <<EOF
+\usepackage{blopeps}
+\begin{document}
+\parindent=0cm
+\pagestyle{empty}
+EOF
+
+
+bepsoptions="width=$width,height=$height";
+if [ "$ps" != "" ] ; then
+  bepsoptions="${bepsoptions},$ps";
+fi
+if [ "$lw" != "" ] ; then
+  bepsoptions="${bepsoptions},$lw";
+fi
+if [ "$layers" != "" ] ; then
+  bepsoptions="${bepsoptions},${layers}";
+fi
+
+if [ "$environment" != "none" ] ; then
+  echo "\begin{${environment}}" >> "$texfile"
+fi
+
+if [ "$latexcmd" != "" ] ; then
+  $ECHO "$latexcmd" >> "$texfile"
+fi
+
+for K in "${!lengths[@]}";
+do
+    echo "\\let\\${K}\\relax"  >> "$texfile"
+    echo "\\newlength{\\${K}}" >> "$texfile"
+    echo "\\setlength{\\${K}}{${lengths[$K]}}" >> "$texfile"
+done
+
+if [ "$frame" = "true" ] ; then
+cat >> "$texfile" <<EOF
+\centerline{\fboxsep=0cm\fbox{\blopeps[$bepsoptions]{${inputdir}$inputfile}}}
+EOF
+else
+cat >> "$texfile" <<EOF
+\centerline{\blopeps[$bepsoptions]{${inputdir}$inputfile}}
+EOF
+fi
+
+if [ "$environment" != "none" ] ; then
+  echo "\end{${environment}}" >> "$texfile"
+fi
+
+
+cat >> "$texfile" <<EOF
+\end{document}
+EOF
+
+returncode=0
+
+if [ $verbose_level -gt 1 ] ; then
+  $ECHO '===>>' latex "$texfile" 1>&2
+fi
+if [ $verbose_level -gt 2 ] ; then
+  $ECHO Q | latex "$texfile" 1>&2
+else
+  latex_output=`$ECHO Q | latex "$texfile" 2>&1`
+fi
+
+if [ $? != 0 ] ; then
+  $ECHO $latex_output 1>&2
+  $ECHO 1>&2
+  $ECHO "%%%" 1>&2
+  $ECHO "%%% LaTeX failed" 1>&2
+  $ECHO "%%% A possible reason: blopeps.sty is located in $BLOP_STYDIR" 1>&2
+  $ECHO "%%% Are you sure this directory is searched by LaTeX?" 1>&2
+  $ECHO "%%% " 1>&2
+
+  if [ $returncode = 0 ]  ; then
+    returncode=4
+  fi
+  if [ ! -f "$texfile".dvi ] ; then
+    exit $returncode
+  fi
+
+  $ECHO "%%% Anyway, a .dvi file was produced, so let's try ..." 1>&2
+  $ECHO "%%%" 1>&2
+fi
+
+
+dvipsopts="-o "$texfile".ps "$texfile".dvi"
+if [ $verbose_level -gt 1 ] ; then
+  $ECHO '===>>' dvips $dvipsopts 1>&2
+fi
+if [ $verbose_level -gt 2 ] ; then
+    dvips $dvipsopts 1>&2
+else
+    dvips_output=`dvips $dvipsopts 2>&1`
+fi
+
+
+if [ $? != 0 ] ; then
+    $ECHO $dvips_output 1>&2
+    $ECHO %%% 1>&2
+    $ECHO %%% dvips failed 1>&2
+    $ECHO %%% 1>&2
+
+    if [ $returncode = 0 ] ; then
+      returncode=5
+    fi
+    exit $returncode;
+fi
+
+if [ "$psonly" = "false" ] ; then
+
+   # Create a rawpnm file, use pnmcrop on it, and determine its size.
+   # this seems to be the safest way to get the bbox
+   bboxres=200
+   pnmtmp=`mktemp beps2eps-tmp-pnm-XXXXXX`
+   tmpfiles="$tmpfiles $pnmtmp"
+
+   bboxarg=""
+   if [ "$crop" != "true" ] ; then
+     bboxarg="-dBlopCalculateBBox=1"
+   fi
+
+   gsout=`gs -dSAFER -dNOPAUSE -r$bboxres -sDEVICE=pnmraw -sOutputFile=$pnmtmp $bboxarg \
+       -f "$texfile.ps" -c showpage -c quit 2>&1`
+
+   if [ $? != 0 ] ; then
+     echo Ghostscript failed: $gsout
+     exit 6
+   fi
+
+   s1=`pnmcrop -white -right -top $pnmtmp  | identify - | awk '{print $3}'`
+   s2=`pnmcrop -white             $pnmtmp  | identify - | awk '{print $3}'`
+
+   w=`echo $s2 | awk -Fx '{print $1}'`
+   h=`echo $s2 | awk -Fx '{print $2}'`
+   x2=`echo $s1 | awk -Fx '{print $1}'`
+   y2=`echo $s1 | awk -Fx '{print $2}'`
+   x1=$((x2-w))
+   y1=$((y2-h))
+
+   x1=`echo $x1 | awk '{print $1*72.0/'${bboxres}'.0}'`
+   y1=`echo $y1 | awk '{print $1*72.0/'${bboxres}'.0}'`
+   x2=`echo $x2 | awk '{print $1*72.0/'${bboxres}'.0}'`
+   y2=`echo $y2 | awk '{print $1*72.0/'${bboxres}'.0}'`
+
+   x1int=`echo $x1 | awk '{print int($1);}'`
+   y1int=`echo $y1 | awk '{print int($1);}'`
+   x2int=`echo $x2 | awk '{print int($1)+1;}'`
+   y2int=`echo $y2 | awk '{print int($1)+1;}'`
+
+   bb="%%BoundingBox: $x1int $y1int $x2int $y2int"
+   hrbb="%%HiResBoundingBox: $x1 $y1 $x2 $y2"
+
+   if [ "$outputfile" != "-" ] ; then
+     awk "BEGIN {printout=1; bbox_printed=0; }
+     /^%%BoundingBox/      {next;}
+     /^%%HiResBoundingBox/ {next;}
+     /^%%Pages/            {next;}
+     /^%%DocumentPaper/    {next;}
+     /^%%PageOrder/        {next;}
+     /^%%EndComments/      {if(bbox_printed==0) print \"$bb\"; print \"$hrbb\"; bbox_printed=1; print \$0; next;}
+     /^%%BeginPaperSize/   {printout = 0; next;}
+     /^%%EndPaperSize/     {printout = 1; next;}
+     /^%latexsection/      {printout = 0; next;}
+     /^%endlatexsection/   {printout = 1; next;}
+     {if(printout == 1) { print \$0; }}" $texfile.ps > $outputfile
+   else
+     echo Not yet ipmlemented
+   fi
+
+else
+   if [ "$outputfile" != "-" ] ; then
+     mv "$texfile".ps "$outputfile"
+   else
+     cat "$texfile".ps
+   fi
+fi
+
+if [ "$keeptemporary" = "false" ] ; then
+  rm -f $tmpfiles $texfile*
+else
+  $ECHO Temporary files in `pwd`:
+  $ECHO $tmpfiles $texfile* | sed 's/ /\n/g'
+fi
+
+exit $returncode;
+
+

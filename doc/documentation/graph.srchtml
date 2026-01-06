@@ -1,0 +1,177 @@
+TITLE: Graphs
+PREV:  mframe.html
+NEXT:  graph-drawer.html
+==>
+<div class=prguide><u>Practical Guide:</u>
+<p>
+Sorting by a given columns is easy, using the <tt>sort(int)</tt> member function
+</p>
+</div>
+
+<div class=description>
+
+<p> Graphs are objects which hold a series of datapoints, each
+consisting of N values (where N is the number of columns in a graph,
+if a graph is imagined as a table). The <tt>graph</tt> class provides
+all properties of such objects, and <tt>dgraph</tt> (for holding data
+points) and <tt>fgraph</tt> (for holding function values) are two
+realizations of this base class.
+
+<p>             According             to            the             <a
+href="design-concepts.html#member_access_modification">general   design
+concepts</a>,  setting or  reading graph  properties can  be  done via
+member functions with the same  name, so here only the setting version
+will  be  presented.  Properties  are  usually  compound  words  (like
+linewidth), and this  name is used as the  member function name. There
+are usually shorthands  as well, consisting of the  initial letters of
+the parts of  this compound word (in the  case of <tt>linewidth</tt> the
+shorthand is <i>lw</i>). Graph properties include the following:
+
+<dl>
+  <dt> <a name="drawstyle">drawstyle</a> </dt>
+  <dd> This defines the way how a graph is drawn. This is a large and
+       complicated topic, discussed in a <a
+       href="graph-drawer.html">separate section</a>. The functions to
+       set the drawstyle is: 
+<pre>
+graph &drawstyle(const graph_drawer &); 
+graph &ds       (const graph_drawer &); // a shorthand for the previous one
+</pre>
+
+       Note that the argument of this function is a reference to an
+       object. This object will be clone-copied inside the function,
+       so the original object is left untouched. This means that one
+       has to construct a graph_drawer object, i.e. call its
+       constructor. In addition, modifying member functions can
+       immediately be called on the (temporary) object, for example:
+<pre>
+plot("...").ds(vectors().use_color(true));
+</pre>
+       Here, <tt>vectors()</tt> creates a temporary object of type
+       <tt>vectors</tt>, and we immediately call a member function of
+       this object to set a flag (use a color scale as well to
+       indicate the lengths of the arrows)
+  </dd>
+
+  <dt><a name="fillcolor">fillcolor</a></dt>
+  <dd>The color which should be used when filling a region. One can
+      set it via  the member function 
+<pre>
+graph &fillcolor(const color &c);
+graph &fc       (const color &c); // shorthand 
+</pre>
+      Calling this function automatically switches the <tt>fill</tt> 
+      property of the graph to <tt>true</tt> (see below), since
+      usually one does not set the fillcolor of a graph if he does
+      not want to fill it
+  </dd>
+
+  <dt><a name="fill">fill</a></dt>
+  <dd>If this is set to true, the graph will be usually filled when drawn.
+      If this happens at all, and how exactly the object is filled,
+      depends on the drawstyle  
+      (<a href="graph-drawer.srchtml">graph_drawer</a>). Set this
+      property with: 
+<pre>
+graph &fill(bool); 
+</pre>
+  </dd>
+
+  <dt><a name="linecolor">linecolor</a></dt>
+  <dd>
+<pre>
+graph &linecolor(const color &);
+graph &lc       (const color &); // shorthand 
+</pre>
+  </dd>
+
+  <dt><a name="linewidth">linewidth</a></dt>
+  <dd>
+<pre>
+graph &linewidth(const length &d);
+graph &lw       (const length &d); // shorthand 
+</pre>
+  </dd>
+
+  <dt><a name="linestyle">linestyle</a></dt>
+  <dd>The values of this can be <tt>sym::solid</tt>, <tt>sym::dashed</tt> or
+      <tt>sym::dotted</tt>. Set this property via:
+<pre>
+graph &linestyle(sym::linestyle);
+graph &ls       (sym::linestyle); //shorthand
+</pre>
+  </dd>
+
+  <dt><a name="pointtype">pointtype</a></dt>
+  <dd>
+<pre>
+graph &pointtype(<a href="point-drawer.html">point_drawer</a> &);
+graph &pt       (<a href="point-drawer.html">point_drawer</a> &);
+</pre>
+  </dd>
+
+  <dt><a name="pointsize">pointsize</a></dt>
+  <dd>If the drawstyle is <tt><a href="graph-drawer.html#points">points</a>, 
+      this dimension specifies the size of the points
+<pre>
+graph &pointsize (const length &);
+graph &ps        (const length &); //shorthand
+</pre>
+  </dd>
+
+  <dt><a name="pointcolor">pointcolor</a></dt>
+  <dd>If the drawstyle is <tt><a href="graph-drawer.html#points">points</a>, 
+      this specifies the color of the points
+<pre>
+graph &pointcolor (const color &);
+graph &pc         (const color &); //shorthand
+</pre>
+  </dd>
+
+  <dt><a name="legend">legend</a></dt>
+  <dd>The text which should be used as the explanation in the frame
+      for this graph. The member function to set this is:
+<pre>
+graph &legend(const var &); // no shorthand exists
+</pre>
+  </dd>
+
+  <dt><a name="legendcolor">legendcolor</a></dt>
+  <dd>The color of the legend. Set it via:
+<pre>
+graph &legendcolor(const color &); // no shorthand
+</pre>
+  </dd>
+
+  <dt>p1min, ...</dt>
+  <dd> coming soon ... </dd>
+
+  <dt> X- and Y-ranges </dt>
+  <dd> These information are used by graph-drawers (they interpret is
+       as they want, but usually in a reasonable way :-). These are
+       meant to provide a way to restrict the visualization of the given
+       data sample to a certain range.  These properties can be set
+       with the following member functions:
+<pre>
+graph &xmin(double);
+graph &xmax(double);
+graph &xrange(double,double);
+</pre>
+       and similar functions for the yrange
+  </dd>
+</dl>
+
+</div>
+<hr> 
+
+<pre class=implementation>
+Source files:
+   <a href="graph.h.html">graph.h</a>
+   <a href="graph.cc.html">graph.cc</a>
+
+   <a href="dgraph.h.html">dgraph.h</a>  (data graph)
+   <a href="dgraph.cc.html">dgraph.cc</a>
+   
+   <a href="fgraph.h.html">fgraph.h</a>  (function graph)
+   <a href="fgraph.cc.html">fgraph.cc</a>
+</pre>

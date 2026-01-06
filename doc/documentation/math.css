@@ -1,0 +1,86 @@
+ 
+.denom		{ border-top: 1px solid black }
+
+.first		{ margin-left: 0 }
+
+p.first		{ line-height: 1.4em ; margin-bottom: 0 }
+
+span.first	{ margin-right: 3em }
+
+.fraction	{ border-collapse: collapse }
+
+.fraction td	{ padding: 0.4em 0.1em }
+
+.fraction tr	{ speak: none }
+
+.nodisplay	{ display: none }
+
+.notranslate p	{ text-align: left }
+
+.notranslate tr	{ direction: ltr }
+
+span.notranslate,
+i.notranslate	{ direction: ltr ; unicode-bidi: embed }
+
+.num		{ border-bottom: 1px solid black }
+
+.silent tr,
+p.silent	{ speak: none }
+
+a		{ text-decoration: none }
+
+a:focus,
+a:hover		{ text-decoration: underline }
+
+a img		{ border: 0 ; float: right ; margin-left: 20em ; margin-top: 0.5em }
+
+b i		{ padding-left: 0.05em ; padding-right: 0.1em }
+
+big		{ font-size: 125% ; line-height: 1.25em }
+
+big big		{ line-height: 1em }
+
+body		{ background: white ; color: black ; margin: 1em 3em ; max-width: 48em
+		; font-family: "Times New Roman", Times, serif }
+@media screen	{
+body		{ margin-bottom: 24em } }
+
+h1		{ font-size: 160% ; line-height: 1.25em ; margin-bottom: 1em   ; padding: 0 2px }
+
+h2		{ font-size: 125% ; line-height: 1.25em ; margin-bottom: 0.5em ; padding: 0 2px }
+
+h3		{ font-size: 100% ; line-height: 1.25em ; margin-bottom: 0.5em ; padding: 0 2px }
+
+hr		{ margin: 1em 0 0.5em }
+
+li		{ display: inline }
+
+li.fTimes	{ color: black }
+
+p		{ clear: left ; line-height: 1.25em ; margin: 0.5em 0 ; padding: 0 2px }
+
+h1 small,
+h2 small,
+h3 small	{ font-size: 100% ; line-height: 1.25em }
+
+small		{ font-size: 75% }
+/*
+div small	{ line-height: 1em }
+*/
+sub		{ font-size: 71% ; line-height: 0 ; vertical-align: -0.4em }
+
+sup.s		{ margin-left: -0.25em }
+
+sup		{ font-size: 71% ; line-height: 0 ; vertical-align: 0.6em }
+
+span		{ white-space: nowrap }
+
+div table	{ display: inline ; margin-left: 3em ; page-break-inside: avoid }
+
+tt		{ font-family: "Nimbus Mono L", FreeMono, "Courier New", monospace
+		; font-size: 100% }
+
+ul		{ color: gray ; line-height: 1.4em ; margin: 0 0 0.5em ; padding: 0 2px
+		; text-align: inherit }
+ 
+

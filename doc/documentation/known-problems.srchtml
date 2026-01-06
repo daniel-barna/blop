@@ -1,0 +1,101 @@
+TITLE: Known problems
+PREV: tips-and-tricks.html
+NEXT: acknowledgements.html
+==>
+
+<div class=description>
+<p> This section lists the known problems with blop. The first part
+lists those ones, which are still unsolved. After finding a solution
+to a problem, two things can happen:
+<ul>
+<li> If the problem was associated with an auxiliary program (for
+example CINT, gs, etc), to which I have no access, this entry will go to the 
+second part (<a href="#solved">solved problems</a>), with the found
+solution or workaround.
+<li> If the problem was due to a bug, the bug will be corrected, and
+the problem will disappear from this page (and hopefully there will be
+a new entry in the currently unexisting release notes about this
+bug). 
+</ul>
+
+<hr>
+<h1>Known, unsolved problems</h1>
+
+<p>  <u><b>Rotated   pages:</b></u>  When  using   the  <tt>foils</tt>
+documentclass    with   <tt>landscape</tt>    option,   or    the   <a
+href="http://prosper.sourceforge.net"><tt>prosper</tt></a>
+documentclass, and  converting the final PostScript file  to PDF using
+ps2pdf, the  pages containing  a figure produced  by blop  will appear
+rotated by  90 degrees (in acroread  at least). That is,  the text and
+everything is set up correctly within the page, but the page itself is
+rotated to portrait orientation. Example:
+
+<pre>
+\documentclass[a4paper,landscape]{foils}
+\usepackage{blopeps}
+\begin{document}
+This page is correct
+\newpage
+This page appeares rotated
+\blopeps{some_figure_produced_by_blop.beps}
+\end{document}
+</pre>
+
+When this source (test.tex) is compiled with the following sequence of commands:
+<pre>
+latex test.tex
+dvips -Ppdf -t a4 -t landscape test.dvi
+ps2pdf test.ps
+</pre>
+
+then the intermediate PostScript file is OK, but the second page will
+be rotated in the final test.pdf, when viewing with acroread or xpdf.
+
+<p>  Teporary  solution:  use  the -dPDFSETTINGS=/printer  option  for
+ps2pdf.  This will  cause that  <u>all</u>  pages will  be rotated  to
+portrait orientation.  But in this  case (if you  don't use a  too old
+version  of acroread)  you  can rotate  the  <u>whole</u> document  to
+landscape  orientation. 
+
+<p>Suggestion by Andr&aacute;s L&aacute;szl&oacute;: try experimenting
+with the <tt>-dAutoRotatePages=/All</tt>  option of ps2pdf. He is
+referring to <a
+href="http://pages.cs.wisc.edu/~ghost/doc/cvs/Ps2pdf.htm#Orientation">this
+page</a>. 
+
+<p> <u><b>Accented characters:</b></u> Accented characters do not seem to
+work, when using the
+<tt>\usepackage[latin2]{inputenc}</tt> macro in the preamble of your
+document. The following two files ...
+<pre>
+// test.C
+main()
+{
+  set::xtitle("Rapiditás");
+  plot(_1,_1);
+  blopeps::print("test.beps");
+}
+</pre>
+
+<pre>
+% test.tex
+\documentclass{article}
+\usepackage{blopeps}
+\usepackage[latin2]{inputenc}
+\begin{document}
+\blopeps{test.beps}
+\end{document}
+</pre>
+
+produce the following error:
+<pre>
+! Missing \endcsname inserted.
+<to be read again> 
+                   \unhbox 
+l.5 \blopeps{proba.beps}
+</pre>
+
+<hr>
+<h1><a name="solved">Solved problems</a></h1>
+
+</div>

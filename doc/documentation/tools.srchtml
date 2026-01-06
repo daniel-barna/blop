@@ -1,0 +1,34 @@
+TITLE: Tools
+PREV: compile.html
+NEXT: tips-and-tricks.html
+==>
+
+<p>  The  basic   <a  href="terminals.html">terminal</a>  of  blop  is
+<tt>blopeps</tt>.  This  produces  a  PostScript-like file,  which  in
+itself  looks ugly, but  is beautiful  and featurerich,  when included
+into a LaTeX document. This basic output can be converted to different
+formats, using the following conversion tools:
+
+<p><u><a name="beps2eps">beps2eps</a></u>  - transform the  file to an
+encapsulated PostScript  file. This tool comes with  blop, for help
+say <tt>beps2eps --help</tt>
+
+<p><u><a  name="beps2png">beps2png</a></u> - transform  the file  to a
+PNG image. For help say <tt>beps2png --help</tt>
+
+<p><u><a  name="beps2jpg">beps2jpg</a></u> - transform  the file  to a
+JPG image. For help say <tt>beps2jpg --help</tt>
+
+<p><u><a  name="beps2bmp">beps2bmp</a></u> - transform  the file  to a
+BMP image. For help say <tt>beps2bmp --help</tt>
+
+<p><u><a  name="beps2pdf">beps2pdf</a></u> - transform  the file  to a
+PDF file. For help say <tt>beps2pdf --help</tt>
+
+<p><u><a   name="beps-annotate">beps-annotate</a></u>  -   Annotate  a
+previously created .beps file (put text onto the figure). For help say
+<tt>beps-annotate --help</tt>
+
+<p><u><a   name="bepsview">bepsview</a></u>  -  View a .beps file 
+(first transforms it into a .eps file, and opens it with gv) <br>
+Usage: <tt>bepsview filename</tt>

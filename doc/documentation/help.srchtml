@@ -1,0 +1,98 @@
+TITLE: Getting help
+PREV: program-invocation.html
+NEXT: var.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+For help
+<ul>
+<li> type <tt>help("topic");</tt> at the <tt>blop&gt;</tt>
+     prompt, when running the program interactively
+<li> At your shell prompt type: blop -h topic
+</ul>
+(replace 'topic' by what you are looking for :-)
+</div>
+<hr>
+
+<div class=description>
+<p>
+Blop's help system is HTML-based, and it is the same as what you can
+find at its home-page <a
+href="http://blopplot.sourceforge.net/">http://blopplot.sourceforge.net/</a>. 
+You can look up a desired keyword in the documentation by typing
+<tt>help("keyword");</tt> at your <tt>blop&gt;</tt> prompt (interactive session), or typing <tt>blop -h keyword</tt> at your shell prompt.  This will
+do the following things:
+<ul>
+<li> If keyword ends in .h or .cc, this is treated as a source file,
+and if the file exists, it is displayed. By this way you have quick
+and direct access to source files, if you are a bit familiar with them.
+<li> Look  up your keyword in a  help index file, which  is located at
+INSTDIR/doc/help-index (INSTDIR is  by default /usr/local/blop, unless
+you   changed   it   when   installing   blop).    (Additionally,   if
+$HOME/.blop-help-index exists,  it looks up your keyword  also in this
+file, so  you can  specify your own  lookup method for  your favourite
+topics).  These files specify, which docfiles are the best for certain
+keywords (the  format of these  files is line-based: words  before the
+colon  are the  keywords,  words  after the  colon  are the  filenames
+relative to INSTDIR/doc).
+<ul>
+  <li> If one file is dedicated for this keyword, that file is shown 
+       in your browser
+  <li> If several files are dedicated for this keyword, a list of choice
+       is shown. 
+  <li> If no files are dedicated, all docfiles are scanned for this keyword,
+       and the results of this search are offered to you
+</ul>
+</ul>
+
+<p> If you provide an initial '?' character, the search will be forced
+(the   following    keyword   will   be   searched    in   the   whole
+documentation). For example: help("?canvas");
+
+<p> If  the help  index file  did not contain  your keyword,  and your
+keyword was not found in any of the other docfiles, a messages stating
+this will appear in your terminal (where you issued the command).
+
+<p> In order  to browse this file you will  need a HTML-browser.  Blop
+is  intelligent enough  to look  for  quite some  known HTML  browsers
+installed  on  your   machine  (kfmclient (load into default kde
+browser), firefox, mozilla, gnome-help-browser, lynx,  less, cat), in
+this order.   When a 
+helpfile is  to be  displayed, these commands  are tried  in sequence,
+until one of them succeeds.  Blop tries to figure out if you are using
+a graphical terminal from  the existence of the environmental variable
+DISPLAY. If this variable is  not set, the graphical browsers will not
+be  made available, only  'lynx' and  'less'. To specify your
+preferred HTML-browser as the help viewer for blop, you have can do this:
+<ul>
+
+<li>  Set  the  environment variable  <tt>BLOP_HELPVIEWER</tt>  before
+invoking       blop.       (In      bash       say      <br><tt>export
+BLOP_HELPVIEWER="my_browser  %f";</tt><br> In tcsh  say <br><tt>setenv
+BLOP_HELPVIEWER "my_browser %f";</tt>).<br>  The '%f' in this variable
+will be replaced by the filename to be displayed.
+
+</ul>
+
+<p>
+There are some specific 'topic's:
+<dl>
+<dt>documentation</dt>
+<dd>The index of the documentation is displayed</dd>
+<dt>tutorial</dt>
+<dd>You are directed to the tutorial immediately</dd>
+<dt>keywords</dt>
+<dd>A list of available keywords (for which a dedicated topic exists) is printed to the standard output</dd>
+</dl>
+
+<p>  You  often find  yourself  not  running  blop interactively,  but
+instead,  writing a script.  Thus, you  do not  have any  running blop
+process, but you would like to look for help. It is painful to start a
+blop process, type help("something");  and then terminate the process,
+etc. Therefore  the command  line option -h  is reserved to  make your
+life easier:  saying <br><tt>blop -h  topic</tt><br> will do  this job
+for your. 
+
+
+</div>

@@ -1,0 +1,57 @@
+TITLE: Containers
+PREV: box.html
+NEXT: canvas-pad.html
+==>
+
+<p> Containers are  object which can hold other  objects. In fact, all
+objects must be  placed into a container, when  building up the object
+hierarchy in your plot  (the topmost container is the <tt>canvas</tt>,
+which is not placed into  any other container).  All containers set up
+their own coordinate  system, which is a rectangular  area. The origin
+of this coordinate  system is the lower-left corner  of this area. For
+an object stored in a container, and placed to the position <tt>x</tt>
+and  <tt>y</tt>,  these  positions  will be  interpreted  as  relative
+distances to the origin of the container.
+
+<p>  Containers provide  member  functions to  access the  information
+about their own coordinate system. These are:
+
+<dl>
+
+  <dt>const length &cleft() const;  <br> const length &cright() const;
+  <br> const length &cwidth() const; </dt>
+  <dd>The first  two functions return the  (horizontal) coordinates of
+  the left and  right edges of the container's  own coordinate system,
+  in the coordinate system of  the parent of this container. The third
+  function returns  the width of  this coordinate system  (The initial
+  'c' stands for 'coordinate-system') </dd>
+
+  <dt>const length &cbottom() const;  <br> const length &ctop() const;
+  <br> const length &cheight() const; </dt>
+  <dd>The first  two functions return the  (vertical) coordinates of
+  the bottom and  top edges of the container's  own coordinate system,
+  in the coordinate system of  the parent of this container. The third
+  function returns  the height of  this coordinate system  (The initial
+  'c' stands for 'coordinate-system') </dd>
+
+</dl>
+
+<p>  Objects can  be added  to or  removed from  containers  using the
+<tt>remove(grob *)</tt>  and <tt>add(grob *)</tt>  member functions of
+containers.  The user usually  doesn't have  to call  these functions,
+since these are called by the utility functions of blop. 
+
+<p> In order to simplify the user's script, a <i>current</i> 
+
+<p>The available containers are:
+<ul>
+  <li><a href="canvas-pad.html">pad</a>
+  <li><a href="frame.html">frame</a>
+</ul>
+
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="container.h.html">container.h</a>
+   <a href="container.cc.html">container.cc</a>
+</pre>

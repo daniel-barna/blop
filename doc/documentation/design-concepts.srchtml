@@ -1,0 +1,354 @@
+TITLE: Design concepts
+PREV: about-this-doc.html
+NEXT: program-invocation.html
+==>
+
+<div class=description>
+
+<p>BLOP   is   written   in    C++.   Its   user   interface   is   <a
+href="http://root.cern.ch/root/Cint.html">CINT</a>       (a      C/C++
+interpreter). So the syntax of the user's scripts is C++, in which all
+the classes and functions provided by the BLOP package are usable. Why
+have I chosen CINT?  
+
+<ul> 
+
+<li> CINT is an excellent software,  I was always surprised to see how
+much of the C++ standard it implements. Its author, Masaharu Goto is a
+very helpful person,  with prompt answers to my  questions (don't feel
+this as an encouragement to bomb him with stupid questions :-)
+
+<li> It was  easier to use an available  interpreter, than designing a
+new interpreter  and new syntax  (this is why  it was easier  for me).
+C++ is a  widely known language, most people are  familiar with it (or
+at least with C). They don't have  to learn a new syntax, only the few
+functions and  objects provided  by this software  (this is why  it is
+easier for the users)
+
+<li> The  services of BLOP  can be used  in a compiled C++  program as
+well.  Since the language of the user scripts is C++, exactly the same
+set of commands can be used in a compiled program as well.
+
+<li>  Handy functions  are provided  to make  the scripts  as  easy as
+possible. But  since the  interpreter knows about  all classes  of the
+BLOP  package, the  user  has access  to  the deepest  details of  the
+software  as   well.  This   solution  therefore  gives   the  highest
+flexibility,  while   keeping  the  simplicity   for  non-advanced  or
+non-ambitious users. 
+
+<li> Arbitrarily complex C-functions can be defined in the script, and
+they can be  plotted, or they can be used to  transform the content of
+the datafiles on-the-fly.
+
+</ul>
+
+<p>
+Object-oriented design  is a great  help in software  developement and
+maintenance.  However, when the whole software is 'exported' through a
+C++ interpreter  interface to  the user, this  can make its  daily use
+awkward and difficult, and gets  in conflict with the main goal, which
+is  to provide  an easy-to-use  scripting language.  For  small, often
+changing tasks you don't want to type thousands of characters, writing
+a  well-structured,   object-oriented  program.  BLOP   was  therefore
+designed to satisfy these needs. 
+
+<p>
+It's  of no doubt,  that a  detailed documentation  (which is  easy to
+navigate) is necessary  for any software.  But a  good design does not
+only mean, that everything is  well structured and well documented: it
+must reflect the human way of thinking, and strict conventions must be
+followed throughout  the whole  software, such that  if the  user gets
+familiar  with  these  concepts,  he  does  not  have  to  browse  the
+documentation for a new command or  solution, but he can figure it out
+from his previous  experiences and from these concepts.  This is why I
+attempt to summarize these concepts. And there is another reason: this
+software  most   probably  is  far  from   completely  matching  these
+concepts. This  summary should  also set an  ideal niveau, to  which I
+will hopefully frequently be constrained by the feedback of users. 
+
+<p>
+Ok, so much about philosophy. Let me tell some examples (which are not
+necesserily existing in the  software...!) If you find yourself having
+trouble with  frequently typing <tt>linetype(...)</tt>  instead of the
+existing <tt>linestyle(...)</tt> function, 
+
+
+<p>
+In this section you will most probably find expressions, which are not
+self-explanatory. Read  this section without worrying  about that, and
+maybe return later, after getting familiar with these.
+
+<dl>
+
+<dt><u> Member access, chaining </u></dt>
+<dd>  <a name="member_access_modification">Data</a> members  in object
+oriented programming  are most frequently  hidden from the  user (they
+are  made  private),  and  access  is provided  via  member  functions
+instead. This has several good  reasons, which are not mentioned here.
+There are  different conventions how  these functions are  named.  One
+would  be for example  (for obtaining  and setting  the minimum  of an
+axis'     range)     <tt>double     get_min()</tt>    and     <tt>void
+set_min(double)</tt>. Since the arguments of such simple functions (no
+argument in the first case,  one argument in the second) clearly show,
+what  the function  is  going  to do,  the  following conventions  are
+followed in blop: the function name  is the same for member access and
+member modification functions, and
+
+<ul> 
+
+<li>  <a  name="member_access">member  access</a>  functions  have  no
+argument,  and return  (not too  surprisingly) the  value of  the data
+member in question
+
+<li>  <a name="member_modification">member  modification</a> functions
+take  1 argument  (the new  value of  the data  member), and  return a
+reference to  the class  itself, making it  possible to  chain several
+such       function       calls       in      one       statement:<br>
+<tt>axis.min(1.2).max(4.5).title("axis title");</tt> 
+
+</ul>
+</dd>
+
+<dt><u>Wrapper functions</u></dt>
+<dd> The object-orientedness, and the object hierarchy in blop are
+(hopefully) clear, and logic. For example, setting the range of the
+xaxis of the current frame, one should write:
+
+<pre>
+frame::current().xaxis()->range(0,10);
+</pre>
+
+Clear and nice, isn't it? But who the hell wants to have always a
+clear and nice, but so long script just to set the axis range, or to
+do some other minor tasks? Nobody could convince a user that he should
+write 100s of characters for the easiest task. 
+
+<p>Therefore there are wrapper functions, which are intuitive,
+easy to use, and: SHORT. They are implemented as static member
+function of the <tt>set</tt> class, to have a
+syntax which mimics gnuplots syntax. Here only a few examples are
+provided, refer to the header file <a href="set.h.html">set.h</a>
+
+<pre>
+void set::x1range(double min, double max);  // set range of x1 axis
+void set::x1title(const var &);             // set axis title
+</pre>
+
+<dt><u><a name="mknew">Object</a> <a name="xdraw">creation+administration: mknew, xdraw</a></u></dt>
+
+<dd> Objects during a normal run of blop are organised in a relatively
+strict <a  href="object-hierarchy.html">hierarchy</a>.  This hierarchy
+must  be  built  up  (some  objects  have  to  be  added  into  others
+[containers], and so  on). If this would be  done automatically by the
+constructors, the  objects could not be handled  separately from other
+objects. Therefore  the constructors do not  make this administration,
+they  only create  the objects.  Instead, the  classes  provide static
+member functions, which not only create  a new object, but also put it
+into the hierarchy, and make all administration (see below). There are
+3 categories:
+
+<ul>
+  <li>  Container-type objects (<a  href="canvas-pad.html">pad</a>, <a
+       href="frame.html">frame</a>,  <a href="mframe.html">mframe</a>, <a
+       href="legendbox.html">legendbox</a>),    provide   the   static
+       <tt>mknew(...)</tt> functions. 
+
+  <li> Other objects provide the <tt>fdraw</tt>, <tt>pdraw</tt> and
+       <tt>cdraw</tt> static member functions, which create a new
+       object, and add it into the current <a
+       href="frame.html">frame</a>, <a href="canvas-pad.html">pad</a>
+       or <a href="canvas-pad.html">canvas</a>, respectively. 
+
+  <li>   <a  href="graph.html">Graphs</a>  are   created  with   the  <a
+       href="plotting-data.html"><tt>plot(...)</tt></a>      or     <a
+       href="plotting-data.html"><tt>mplot(...)</tt></a>      functions
+       (which  read a  datafile,  create a  graph  and add  it to  the
+       current frame).
+</ul>
+
+These functions of course differ in their arguments, but they have the
+following common properties:
+
+<ul>
+   <li>They create a new object dynamically (using <tt>operator new</tt>)
+   <li>Place it automatically into the object hierarchy
+   <li>Set the  <tt>autodel</tt> flag  of the object  to <tt>true</tt>
+       (meaning  that  garbage collection  is  automatically done  for
+       these objects,  you don't have  to take care of  deleting them;
+       whenever  a  container is  cleared  or  destroyed, all  objects
+       contained in  this container and  having <tt>autodel==true</tt>
+       will be automatically deleted) 
+    <li>They have no more arguments than absolutely necessary. (This
+       of course depends on the type of the object being created, and
+       my and your ideas about what is necessary might differ. An
+       example: to draw an <a href="arrow.html">arrow</a>, you have to
+       specify the start and end 
+       points, it has no sense to just draw an arrow without these
+       specifications. Its color, linewidth, etc are, however, not
+       absolutely necessary. So these properties can be set calling member
+       functions on the object, using <a
+href="#member_access_modification">chaining</a>, see next point)
+    <li>These functions return a reference to the newly created
+       object. This makes it possible to call member functions to set
+       object properties in the same statement. For example to create
+       an 2x2 <a href="mpad.html">mpad</a> and set its properties, say:
+       <pre>mpad &p = mpad::mknew(2,2).gap(1*MM).fillcolor(red).bordercolor(blue);</pre>
+</ul>
+
+Without these functions one should type a lot:
+<pre>
+   arrow *a = new arrow;
+   a->autodel = true;
+   a->from(MM, CM);
+   a->to(3*CM, 5*CM);
+   a->linewidth(MM);
+   a->headangle(20);
+   pad::current()->add(a);
+</pre>
+
+Using these functions, however, life is easier:
+<pre>
+   arrow::pdraw(MM,CM,3*CM,5*CM).linewidth(MM).headangle(20);
+</pre>
+</dd>
+
+
+<dt><u>Pointer or reference? (. or -&gt; ?) </u></dt>
+<dd> 
+
+<ul>
+<li> The above mentioned <tt>mknew</tt>, <tt>current</tt> and
+<tt>xdraw</tt> functions return <b> references</b> to objects. The
+reason of this is the following: member modification functions (as
+discussed earlier) return references to the objects, in order that
+they can be chained. At the time of creation of an object for example
+with the <tt>mknew</tt> function one can immediately set properties
+using these member modification functions, using the . operator
+everywhere (and not -&gt; after <tt>mknew</tt>, and
+. later). Moreover, if one wants to store a reference to the object,
+the same syntax can be used regardless if properties are set:
+<pre>
+   pad &p = pad::mknew(0,0,0.5,0.5); ,or
+   pad &p = pad::mknew(0,0,0.5,0.5).bordercolor(blue).borderwidth(MM);
+</pre>
+Otherwise, if <tt>mknew </tt> returned a pointer, one should
+write:
+<pre>
+   pad *p = pad::mknew(0,0,0.5,0.5);
+   pad &p = pad::mknew(0,0,0.5,0.5)->bordercolor(blue).borderwidth(MM);
+</pre>
+Returning a reference also indicates, that these functions (in
+principle :-) always succeed (returning a 0-pointer could indicate failure).
+
+<li> Member functions of classes, which access other objects within
+that class (for example the <i>axis <b>of</b> a frame</i>), return
+<b>pointers</b>. This also separates your command: 
+<pre>
+   frame::current().legend()->borderwidth(MM).bordercolor(red);
+</pre>
+(if there would be a . instead of the -&gt;, the whold statement could
+be seen by a superficial reader  as setting many properties of <tt>frame::current()</tt>)
+</ul>
+</dd>
+
+<dt><u><a name="default">Default properties</a></u></dt>
+
+<dd>  Many   graphical  objects  have   properties  (like  pointcolor,
+linewidth,  etc   of  graphs,  textcolor  of  text   labels,  etc  etc
+etc).  These  properties  can  be  accessed or  changed  using  member
+functions (see  above). However, one  often does not like  the default
+values, and  would like to switch  to other default values  so that he
+does not have  to set these properties for  each individual object. In
+order to allow  this, blop provides an easy way  to change the default
+values: each object (... in the future :-) has static member functions
+to set the  default values. The name of  these static member functions
+follows  the following  convention: to  set  the default  value for  a
+property  called <tt>xyzw</tt>,  there exists  a member  function (see
+above)  with the  same name  xyzw  to set  or get  this property.  The
+default value can be set via the static
+
+<pre>
+   default_xyzw(...);
+</pre>
+function, which has the same argument. All object created after
+calling this function will be initialized with the new default
+value. Example:
+<pre>
+   dgraph::default_pointcolor(blue);
+   plot("datafile").ds(points());   // this file is plotted with blue points
+</pre>
+</dd>
+
+<dt><u><a name="optclass">Option classes</a></u></dt>
+
+<dd> If a function had more than 2 arguments, I could never in my life
+remember the order, in which these arguments had to be provided to the
+function. These arguments often specify different setting, fine-tuning
+of the layout of objects, etc, and one usually does not want to bother
+about setting most of them, but rely on defaut values. There can be of
+course default  values for function  parameters in C++, but  this does
+not solve the order-problem just described, and if you want to set for
+example  only  the last  one,  you  will have  to  write  out all  the
+preceeding parameters as well. 
+
+<p>In the case of plotting  or drawing objects, the guideline was (see
+<a   href="#mknew">mknew,   fdraw,   etc</a>)   that   the   functions
+creating/drawing  an   object  only  take   the  absolutely  necessary
+parameters, create an object, attach  it to the current pad, container
+or canvas, and return a reference to this object. Any further property
+of them (such as orientation, color,  fontsize, etc) can be set on the
+returned reference. This could be done there, because all these object
+properties were  not used at the  time of the function  call, but only
+later, when your picture is printed to a terminal. 
+
+<p>In many other cases this can  not be done. For example when fitting
+or histogramming, one  needs to specify many options  to a C-function,
+which  will  be   used  at  that  moment.   In   order  to  avoid  the
+many-argument-problem, in these cases the <tt>option classes</tt> will
+be used (for example <a href="fitting.html#fitopt"><tt>fitopt</tt></a>
+for                   fitting,                  or                  <a
+href="histograming.html#histopt"><tt>histopt</tt></a>               for
+histogramming.  These  classes are simply  the collection of a  lot of
+properties,  parameters,  or  whatever   you  call  them.   They  have
+corresponding  member  access functions  with  a self-describing  name
+(your code will  be more readable), and these  member access functions
+return  references  to the  object  itself.   Therefore,  they can  be
+chained, as <a href="#member_access_modification">described above</a>.
+Moreover,  they  will   have  the  <a  href="#default">default_xxx</a>
+functions as well, to set the default values of these properties. This
+way you  can very  cleanly set default  arguments to  these functions,
+which take option classes as arguments.
+
+<p>For example consider the fitting procedure (concentrate only on the
+last argument):<br>
+<tt>
+fit<fit_chi2>(Graph,&nbsp;Model,&nbsp;fitopt().verbose(2).x(_1,_2).y(_3));
+</tt><br>
+The statement  <tt>fitopt()</tt> creates a (temporary)  object of type
+<tt>fitopt</tt>,   on   which    you   call   several   member-setting
+functions.  If  you want  to  make  a lot  of  calls  to the  function
+</tt>fit</tt>, with the same options,  you can set the default values,
+and then you don't have to provide them each time:
+<pre>
+fitopt::default_x(_1,_2);
+fitopt::default_y(_3);
+fitopt::default_verbose(2);
+fit<fit_chi2>(Graph, Model);
+</pre>
+</dd>
+
+<dt><u><a name="sym">Symbolic constants</a></u></dt>
+<dd>
+Symbolic constants are put into the namespace <tt>sym</tt> in order to
+avoid global namespace pollution. Examples: <tt>sym::dashed</tt>,
+<tt>sym::solid</tt> (linestyles), or <tt>sym::left</tt>,
+<tt>sym::center</tt>, etc for positioning. See the source file <a
+href="sym.h.html">sym.h</a>. If somebody wants to avoid the usage of
+the <tt>sym::</tt> namespace resolution in front of these constants,
+he can specify '<tt>using namespace sym;</tt>' to bring these
+constants into the global namespace;
+</dd>
+
+</dl>
+
+</div>

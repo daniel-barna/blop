@@ -1,0 +1,105 @@
+TITLE: Label
+PREV: point-drawer.html
+NEXT: legendbox.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+label::pdraw("Some text",2*MM,3*CM).xalign(sym::center);    // draw a label into the current pad
+
+label::pdraw("Above previous text",sym::up);  // 2nd parameter indicates 'put above last label'
+label::default_direction(sym::up);            // set direction for subsequent labels so that we don't need to write direction all the time
+label::pdraw("Above previous text again");    // draw another label above previous one
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+A <tt>label</tt> is a text object. This inherits from <tt>box</tt>, so
+it  provides the <tt>left()</tt>,  <tt>width()</tt>, <tt>right()</tt>,
+<tt>bottom()</tt> etc. functions to access its dimensions.
+
+<p> A label provides the following member functions to modify its
+properties:
+<dl>
+<dt><tt>text(const var &)</tt></dt>
+<dd>Set the value (text) of this label</dd>
+
+<dt><tt>angle(double)</tt></dt>
+<dd>Set the angle of the label (in degrees)</dd>
+
+<dt><tt>textcolor(const <a href="color.html">color</a> &)</tt></dt>
+<dd>Set the color of the text</dd>
+
+<dt><pre>x(const length &)
+y(const length &)
+x(const length &, int xalign)
+y(const length &, int yalign)</pre></dt>
+<dd>Specify the coordinates (first two functions), or the 
+coordinates and alignment (3rd and 4th version) in the x or y
+direction</dd>
+
+<dt><tt>xalign(int)<br>
+yalign(int)<br>
+align(int xal, int yal)</tt></dt>
+<dd>Specify the alignment of the label</dd>
+</dl>
+All of these functions return a reference to the object itself, so
+they can be <a
+href="design-concepts.html#member_modification">chained</a>:
+<pre>
+label l;
+l.text("text").textcolor(blue).x(2*CM, sym::center).angle(45);
+</pre>
+
+<p>        It        provides        the       static        functions
+<tt>cdraw(...),pdraw(...),fdraw(...)</tt>       (see       the      <a
+href="design-concepts.html#xdraw">design concepts</a>). All of these 3
+functions  accept 3 argument:  the first  argument is  the text  to be
+drawn, the 2nd and 3rd argument is a <a href="length.html">length</a>,
+specifying the coordinates of the  text. These are those values, which
+are  absolutely  necessary for  any  text  label  to be  drawn.  These
+functions  create a  new  object,  place it  into  the current  canvas
+(cdraw), pad (pdraw)  or frame (fdraw), and return  a reference to the
+newly created  object. Any  other attributes can  be set  using member
+functions on the returned reference:
+
+<pre>
+// draw a label centered within a pad
+label::pdraw("text",0.5,0.5).align(sym::center,sym::center).textcolor(blue);
+</pre>
+Or, if you want to access this object later, remember a reference:
+<pre>
+// draw a label centered within a pad
+label &l = label::pdraw("text",0.5,0.5).align(sym::center,sym::center).textcolor(blue);
+.... do something else
+l.angle(45);  // rotate by 45 degrees
+</pre>
+
+<p>The <tt>pdraw</tt>, <tt>fdraw</tt> and <tt>cdraw</tt> functions
+have also a version without positions. In this case the label is
+positioned with respect to the last previously placed label, depending
+on a direction flag, which one can set via the static function
+<tt>label::default_direction(...)</tt> function, see below. (The label is
+left-aligned with the last label, but this might change in the future
+to allow right-alignment)
+
+<pre>
+label::fdraw("First label",0.2,0.2);  // place first label
+label::default_direction(sym::up);            // change the default placement direction to 'upwards'
+                                      // the default is 'down'
+label::fdraw("Second label above the first");
+label::fdraw("third label above the 2nd");
+label::fdraw(".... etc");
+</pre>
+
+
+</div>
+<hr>
+
+<pre class=implementation>
+Souce files:
+   <a href="label.h.html">label.h</a>
+   <a href="label.cc.html">label.cc</a>
+</pre>

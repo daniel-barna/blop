@@ -1,0 +1,60 @@
+TITLE: Compiling and linking with blop
+PREV: warning.html
+NEXT: compile.html
+==>
+
+<div class=description>
+<ul>
+<li> #include "blop.h" into your source code
+<li> Initialize and stop CINT interpreter (beginning and end of main, but you can do it anywhere else as well)
+<pre>int main()
+{
+   G__init_cint("cint");  // initialize
+
+   G__scratch_all();      // stop interpreter
+}</pre>
+
+The argument of G__init_cint is the command, by which you would start
+the interpreter. You can load external files into the interpreter by
+saying <tt>G__init_cint("cint file.C");</tt>
+
+<li> Interpreter commands can be used between the above two functions:
+  <ul>
+    <li> <tt>G__load_text(const char *code); </tt> - load a C/C++ source
+    <li> <tt>G__exec_text(const char *code); </tt> - execute C/C++ code
+    <li> <tt>G__calc(const char *cmd);       </tt> - execute a command
+             (less general than G__exec_text, it can not evaluate declaration or
+             conditional statement)
+  </ul>
+For more on CINT functions, see <a
+href="http://root.cern.ch/root/Cint.phtml?ref">http://root.cern.ch/root/Cint.phtml?ref</a> 
+
+<li> Compile your source code like this:
+<pre>g++ -o test.exe  mysource.C  `blop-config --cint --cflags --libs`</pre>
+</ul>
+
+And here are some tips:
+
+<ul>
+  <li> To make variables in your compiled code accessible to the
+       interpreter in the easiest way, use their pointer. For example
+       to interactively initialize a function (for example read a
+       signal profile from a config file):
+<pre>function signal_profile;
+string function_form;
+cerr&lt;&lt;"Enter your signal profile expression (a'la blop): ";
+getline(cin,function_form);
+char cmd[1000];
+sprintf(cmd,"(*(function*)%p) = %s",&signal_profile,function_form.c_str());
+G__exec_text(cmd);</pre>
+
+To be honest, the above code should not be written:
+<pre>function::formula(const var &)</pre> Makes exactly the same
+thing. See blop -h function
+</ul>
+
+	
+</div>
+
+
+

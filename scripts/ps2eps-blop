@@ -1,0 +1,94 @@
+#!/bin/sh
+
+# short description: transform a postscript into an eps file
+
+. @config@
+
+help()
+{
+cat 1>&2 <<EOF
+Usage: ps2eps-blop [-n|--nocrop] infile [outfile]
+       without the --nocrop option, the image is cropped
+       to the visible drawn objects
+       with the --nocrop option, the image is only cropped
+       to the canvas size
+EOF
+}
+
+
+if [ $# -lt 1 -o "$1" = "-h" -o "$1" = "--help" ] ; then
+  help;
+  exit
+fi
+
+infile="";
+BlopBBox="";
+
+while [ $# -gt 0 ] ; do
+    case $1 in
+	-n|--nocrop) BlopBBox="-dBlopCalculateBBox" ;;
+	*) if [ "$infile" = "" ] ; then infile=$1; else exec 1>$1; fi ;;
+    esac
+    shift 1;
+done
+
+tempfiles="";
+
+# If reading from STDIN, store the input in a temporary file to be processed
+# by ghostscript
+if [ "$infile" = "" ] ; then
+  infile=`/tmp/ps2eps-blop-input.XXXXXX`
+  cat > $infile
+  tempfiles=$infile
+fi
+
+tmpfile=`mktemp /tmp/ps2eps-blop-ps2epsi.XXXXXX`
+tempfiles="$tempfiles $tmpfile"
+trap "rm -rf \"$tempfiles\"" 0 1 2 3 7 13 15
+
+ls -l "${infile}" |
+awk 'F==1	{
+		cd="%%CreationDate: " $6 " " $7 " " $8;
+		t="%%Title: " $9;
+		f="%%For:" U " " $3;
+		c="%%Creator: Ghostscript ps2epsi from " $9;
+		next;
+		}
+	/^%!/	{next;}
+	/^%%Title:/	{t=$0; next;}
+	/^%%Creator:/	{c=$0; next;}
+	/^%%CreationDate:/	{cd=$0; next;}
+	/^%%For:/	{f=$0; next;}
+	!/^%/	{
+		print "/ps2edict 30 dict def";
+		print "ps2edict begin";
+		print "/epsititle (" t "\\n) def";
+		print "/epsicreator (" c "\\n) def";
+		print "/epsicrdt (" cd "\\n) def";
+		print "/epsifor (" f "\\n) def";
+		print "end";
+		exit(0);
+		}
+	' U="$USERNAME$LOGNAME"  F=1 - F=2 "${infile}" >"$tmpfile"
+
+# old code.... does not work correctly
+#open HANDLE, "gs -q -sPAPERSIZE=a0 -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 $BlopBBox -sDEVICE=bbox '$infile' 2>&1 | grep BoundingBox |";
+
+export outfile=`mktemp /tmp/ps2eps-blop-bbox.XXXXXX`
+gs -q -sPAPERSIZE=a0 -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 $BlopBBox -sDEVICE=bit -sOutputFile=/dev/null "$tmpfile" ps2epsi.ps "$tmpfile" <"${infile}" 2>&1 
+bb=`grep '^%%.*BoundingBox' $outfile`
+rm -rf $outfile
+
+awk "BEGIN {printout=1; bbox_printed=0; }
+     /^%%BoundingBox/      {next;}
+     /^%%HiResBoundingBox/ {next;}
+     /^%%Pages/            {next;}
+     /^%%DocumentPaper/    {next;}
+     /^%%PageOrder/        {next;}
+     /^%%EndComments/      {if(bbox_printed==0) print \"$bb\"; bbox_printed=1; print \$0; next;}
+     /^%%BeginPaperSize/   {printout = 0; next;}
+     /^%%EndPaperSize/     {printout = 1; next;}
+     /^%latexsection/      {printout = 0; next;}
+     /^%endlatexsection/   {printout = 1; next;}
+     {if(printout == 1) { print \$0; }}" $infile 
+

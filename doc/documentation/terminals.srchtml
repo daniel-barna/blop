@@ -1,0 +1,28 @@
+TITLE: Terminals
+PREV:  streams.html
+NEXT:  blopeps.html
+==>
+
+<p> As  stated earlier, a  <a href="canvas-pad.html">canvas</a> exists
+only in  your computer's  memory. It gets  realized only when  this is
+printed  to  a  terminal.  This  -   in  most  cases  -  is  not  done
+automatically. You have to explicitely print a canvas to a terminal.
+
+<p> A terminal can be  different things: an x11-window on your screen,
+a graphics file (png, eps,  pdf), or a postscript-like file (blopeps),
+which is the native terminal of blop, all others are based on this.
+
+
+Existing terminals:
+<ul>
+<li><a href="blopeps.html">  blopeps  </a>
+<li><a href="eps.html">      eps      </a>
+<li><a href="pdf.html">      pdf      </a>
+<li><a href="x11_ps.html">   x11_ps   </a>
+<li><a href="png.html">      png      </a>
+<li><a href="jpg.html">      jpg      </a>
+<li><a href="bmp.html">      bmp      </a>
+<li><a href="printer.html">  printer  </a>
+<li><a href="mpps.html">     Multi-page postscript (mpps) </a>
+<li><a href="video.html">    Video    </a>
+</ul>

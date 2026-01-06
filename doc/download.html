@@ -1,0 +1,136 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<link href="default.css" type="text/css" rel="stylesheet">
+<title>Blop - A LaTeX-Oriented Plotter: Download</title>
+</head>
+<body>
+
+<center><h2>How to download and compile BLOP</h2></center>
+
+<p> I am using  this software for my daily work, and whenever
+  I need  some new feature, or discover  a bug, I develop  the code, and
+  then commit it to CVS (usually every 1-2 days, sometimes with a few
+  months pause).  
+
+<p> The most recent version is always available from CVS, or from
+  the <a href="download/">download/</a> directory (here the .tgz file is
+  automatically created from the current CVS version)
+
+<p>From time to time I also create .deb and .rpm files, which are also
+  uploaded into the same <a href="download/">download/</a>
+  directory. This is not as frequent as the CVS commits
+
+<p>Even less frequently I make a release (containing the source.tgz
+  and .deb .rpm files), which are available from the
+  <a href="https://sourceforge.net/projects/blopplot/">main project
+  page</a>.  However, there is no advantage in choosing these
+  'official' releases, because they are less frequent, and they
+  provide nothing extra over the   previously mentioned packages or sources.
+
+<p>And last, but not least: there is an package developed by András
+  László to interface between ROOT and blop, i.e. plot ROOT
+  histograms, etc using blop's plotting mechanism. <a href="bloproot.tar.gz">Download</a>
+
+<hr>
+<center><h3>Step-by-step instructions</h3></center>
+
+<dl>
+<dt>Install from debian packages</dt>
+<dd>
+You can download  .deb packages (for CINT and BLOP) (for Ubuntu)
+from here: <a href=http://blopplot.sourceforge.net/download/PACKAGES>download/PACKAGES</a>, 
+and install them using:
+<pre>
+sudo dpkg -i filename.deb
+</pre>
+Other debian-based systems may also try to use these packages. These
+package files are updated less frequently than the source code in the
+CVS repository. I believe that the source code compiles without
+problems, so compiling from source is the preferred choice.
+
+<p>To create .rpm packages, you can use <tt>alien</tt> to convert the .deb package:
+<pre>fakeroot alien --to-rpm whatever.deb</pre>
+</dd>
+
+<dt>Compile from source</dt>
+<dd>
+<ol>
+<li>
+Download and compile CINT:
+
+<p>
+You     will     need    to     download     and    compile     
+<a href="http://root.cern.ch/twiki/bin/view/ROOT/CINT">CINT</a>
+first (which  is a C/C++   interpreter).   
+
+Blop  uses   this   software   for  its   user
+interface. However, since this software is  out of my scope, I can not
+guarantee that  blop compiles  and works with  all versions of  it.
+I recommend you to download this version (this did work)
+<a href="http://blopplot.sourceforge.net/download/cint_5.18.00.orig.tar.gz">5.18.00</a> 
+
+<p>If you download this file
+<ul>
+<li>Extract it first
+<pre>
+tar xvzf cint_5.18.00.orig.tar.gz
+cd cint-5.18.00
+</pre>
+
+<li>Compile it
+<pre>
+./configure --with-prefix --prefix=/usr
+make
+sudo make install
+</pre>
+
+<li>or, alternatively, you can build a debian package like this (it will be created under debian/package-files), and install it
+<pre>
+./configure --with-prefix --prefix=/usr
+make deb
+sudo make debinstall
+</pre>
+</ul>
+
+<li>Download and compile blop:
+
+<ul>
+<li>You can download the tarball <a
+href="http://blopplot.sourceforge.net/download/">http://blopplot.sourceforge.net/download/</a>  
+(save it to disk), then extract it using the command
+<pre>
+   tar xvzf blop-[version].tgz
+</pre>
+<li>
+Or you can download it from the CVS repository:
+(hit Enter when asked for a password)
+
+<pre>
+   cvs -d:pserver:anonymous@blopplot.cvs.sourceforge.net:/cvsroot/blopplot login
+   cvs -z3 -d:pserver:anonymous@blopplot.cvs.sourceforge.net:/cvsroot/blopplot co blop
+</pre>
+</ul>
+
+Change to the newly created/checked-out directory (cd
+blop), and follow these steps:
+
+<pre>
+./configure
+make
+make doc
+sudo make install
+</pre>
+or, for more details (.rpm or .deb package creation, etc) see the
+README file!
+
+</ol>
+</dd>
+</dl>
+
+<hr>
+<p>The development platform is Ubuntu (usually the most recent version)
+
+
+</body>
+</html>

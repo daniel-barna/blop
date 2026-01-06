@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<link href="default.css" type="text/css" rel="stylesheet">
+<title>BLOP - Introduction</title>
+</head>
+
+<body>
+<center>
+<a href="http://sourceforge.net"> <img
+src="http://sourceforge.net/sflogo.php?group_id=76683&amp;type=5"
+width="210" height="62" border="0" alt="SourceForge.net Logo"></a> 
+</center> 
+
+<h2>What is BLOP?</h2>
+
+<p> BLOP is a script-based plotting utility to create scientific plots
+in complete  harmony with LaTeX  documents (see the following  text to
+figure out what  it means). I have developed it  during writing my PhD
+to  create its  figures.  Since  then  it has  been almost  completely
+rewritten  in order  to provide  a  more flexible  way of  calculating
+lengths and to provide full control to the user to accurately position
+every object in the plot.
+
+<h2>Why the name "BLOP"?</h2>
+
+<p> The 3 letters L,O,P stand for Latex-Oriented Plotter. However, the
+word 'lop' in hungarian means 'steal', so I looked for something which
+sounds  better. With  the first  letter of  the alphabet  it  would be
+'ALOP',  which also  sounds  funny.   With the  second  letter of  the
+alphabet it is fine: BLOP!  (And this is accidentally also the initial
+letter of my name. 
+
+<h2>Why yet another plotting utility?</h2>
+
+<p>In scientific communities LaTeX  is very often used for typesetting
+documents. In fact,  most journals in physics require  the articles to
+be written using LaTeX. The most  common way of including figures in a
+LaTeX document  is to  create an  .eps file, and  include it  with the
+\includegraphics  command  (provided  by  the \graphics  or  \graphicx
+packages).  In  order  to  match  the  layout  of  the  document,  the
+\includegraphics command provides  possibilities to scale the included
+graphics    (in    the     horizontal    and    vertical    directions
+separately). However, when scaling an .eps graphics, everything inside
+the graphics is scaled: fonts, width  of lines, etc. So if you produce
+an .eps file, you have to know its final size at the time of producing
+it; otherwise you may get too large or too small fonts when scaling it
+in the document.  Moreover, if you apply different  scaling factors in
+the horizontal and vertical directions, the graphics will be distorted
+(which is especially painful for the texts inside the graphics).
+
+<p>The best quality mathematical typesetter (which I know of) is still
+TeX,  so  it is  desired  that  text inside  a  figure  is typeset  by
+TeX/LaTeX.  This would  make it  possible to  include  any complicated
+mathematical formula  into the figure,  without having to learn  a new
+syntax.  Moreover, this  would make  it possible  that texts  inside a
+graphics  would  match  the   surrounding  document  in  fontsize  and
+fontstyle.  Changing  the   document's  fontsize  or  fontstyle  would
+automatically be reflected in the graphics as well.
+
+<p>I                   have                   used                  <a
+href="http://sourceforge.net/projects/gnuplot/">gnuplot</a>         for
+creating my plots.  Gnuplot's <tt>pstricks</tt> terminal avoided these
+problems: it produced a LaTeX macro file, which could be scaled in the
+horizontal and vertical directions independently, without distortions,
+and text was  typeset by LaTeX.  However, since the  size of the texts
+inside the  graphics could not be  known at the time  of producing the
+figure (since it WILL be typeset by LaTeX, when the figure is included
+in a document),  perfect alignment of the objects in  a figure was not
+possible. BLOP's main goal is to avoid all these problems, and provide
+the  possibility to perfectly  align every  object inside  a graphics,
+knowing  the exact  size (in  its final  look !!!)  of each  object in
+advance.
+
+<h2>User interface: CINT</h2>
+
+<p>BLOP   is   written   in    C++.   Its   user   interface   is   <a
+href="http://root.cern.ch/root/Cint.html">CINT</a>       (a      C/C++
+interpreter). So the syntax of the user's scripts is C++, in which all
+the classes and functions provided by the BLOP package are usable. Why
+have I chosen CINT?  
+
+<ul> 
+<li>  CINT is an excellent  software, I was
+always   surprised  to   see  how   much  of   the  C++   standard  it
+implements. Its author,  Masaharu Goto is a very  helpful person, with
+prompt answers to my questions (don't feel this as an encouragement to
+bomb him with stupid questions :-) 
+<li> It  was easier  to use  an
+available  interpreter,  than  designing  a new  interpreter  and  new
+syntax.  
+<li> The  services of  BLOP can  be used  in a  compiled C++
+program  as well.  Since  the language  of  the user  scripts is  C++,
+exactly the same set of commands  can be used in a compiled program as
+well.  
+<li>  Handy functions  are provided  to make  the scripts  as  easy as
+possible. But  since the  interpreter knows about  all classes  of the
+BLOP  package, the  user  has access  to  the deepest  details of  the
+software  as   well.  This   solution  therefore  gives   the  highest
+flexibility,  while   keeping  the  simplicity   for  non-advanced  or
+non-ambitious users. 
+<li>  Arbitrarily complex C-functions can be defined in the script,
+and they can be plotted, or they can be used to transform the content
+of the datafiles on-the-fly.
+</ul>
+
+<p>  A great feature of CINT is the TAB-completion: when running
+interactively, if you write the first part of the name of an existing
+variable, or a class, and you press TAB, the word will be completed,
+if it can uniquely be determined from the given part. If not, pressing
+TAB twice pops up a list of variables and classes beginning with the
+given word. 
+
+<p>  According to  the  opinion of  some  people, C++  is  not a  good
+language  for scripting.  Although I  partly agree  with this,  I also
+believe that  it can be really  fine if the provided  services (set of
+classes,   functions)   are   well   designed.  The   simplicity   and
+easy-to-write-ness of user scripts was  also a main goal in the design
+of  BLOP (it  is the  task of  the users  [You!] to  decide how  it is
+fulfilled).   For  example the  feature  of  many scripting  languages
+(Perl, etc), that variables can  simultaneously be used as a string or
+as a double,  is imitated in BLOP by the introduction  of a new class,
+<tt>var</tt>, which provides functions and operators to access, set or
+modify it as a string or double.
+
+<h2>Features</h2>
+
+<ul>
+
+<li> Through CINT  (see above) the user can  write arbitrarily complex
+scripts with loops, functions, etc.
+
+<li>  The content  of  datafiles is  not  only stored  and handled  as
+floating   point   values,    but   simultaneously   as   strings   as
+well. Datafiles can therefore contain  labels to be placed on the plot
+at coordinates, which are also specified in the datafile.
+
+<li> Perfect alignment (see above). 
+
+<li> .... etc, etc, etc
+
+</ul>
+
+<h2>The Author</h2>
+
+<p>Name = Dániel Barna
+
+<hr>
+
+</body>
+</html>

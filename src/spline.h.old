@@ -1,0 +1,13 @@
+#include "function.h"
+#include "array.h"
+
+namespace blop
+{
+    // --------  Spline creation from datapoints ------------------
+    // create a spline through the given datapoints, and
+    // return this spline as a function [see function.h] 
+
+    function make_spline(const array &x, const array &y);
+    function make_spline(const vector<double> &x, const vector<double> &y);
+    function make_spline(const double x[], const double y[], int n);
+}

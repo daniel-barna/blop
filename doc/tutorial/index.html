@@ -1,0 +1,560 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title>Blop - A LaTeX-Oriented Plotter: TUTORIAL</title>
+</head>
+<body>
+
+<center><h2>Blop Tutorial</h2></center>
+
+
+<hr><b><u>The basic layout of scripts</u></b>
+
+<p>
+Blop can also run interactively: simply type at your shell prompt:<br>
+<tt>blop</tt><br>
+and hit enter. Now the commands are expected from the terminal. These
+commands should be valid C++ commands.  
+
+<p>Most often, if you produce plots for a document, these plots will
+need refinement, include some more data, etc. In this case it is much
+more efficient not to type all the commands producing your plots, but
+put these into a script file (referred to as <tt>script.C</tt> in the
+following).  This file should be like a C++ program: it must contain a
+<pre>
+main()
+{
+ ...
+}
+</pre>
+function (and possibly other functions as well). To let <tt>blop</tt>
+execute your script file (that is, the main function in your script
+file), type<br>
+<tt>blop script.C</tt><br>
+
+<hr><b><u>The usual Hello World example</u></b>
+
+<p>Like every tutorial I have seen up to now, this one also begins
+with the Hello World example. Create the file <tt>script.C</tt> to
+contain the code below, and then execute as shown above. Voila, 'Hello
+World' will be printed to your terminal
+<pre>
+// --- script.C
+main()
+{
+  cout&lt;&lt;"Hello World\n";
+}
+</pre>
+
+Not bad, hmm? So blop also has the most popular feature of today's
+softwares. Great! But there are better tools for this purpose (I
+recommend, for example: <tt>echo "Hello World"</tt>)
+
+<hr><b><u>Plotting some data</u></b>
+
+<p>So let's plot some data. Edit the file <tt>datafile</tt> to
+contain this:
+<pre>
+1 1
+2 4
+3 9
+4 16
+</pre>
+To plot this data, start blop interactively, and write at the prompt:
+<pre>plot("datafile",_1,_2).drawstyle(points).pointtype(fcircle).legend("my data");</pre>
+A <tt>gv</tt> (ghostview) window will appear on your screen, showing
+the produced plot. This command is quite self-explanatory, except
+maybe the symbols <tt>_1</tt> and <tt>_2</tt>. These indicate, that
+the first and second columns should be plotted from the given
+datafile. We will come back to this later. To get the possible
+drawstyles and pointtypes, say at your shell prompt: <br>
+<tt><a href="../documentation/graph-drawer.html">blop -h drawstyle</a></tt><br>
+<tt><a href="../documentation/point-drawer.html">blop -h pointtype</a></tt>
+
+<p>Let's try to do now the same thing from a script. Remember that you
+have to put your statements within the <tt>main(){...}</tt> function!
+Create the  following <tt>script.C</tt> file, and execute it (<tt>blop
+script.C</tt>) 
+<pre>
+// ---- script.C
+main()
+{
+  plot("datafile",_1,_2).drawstyle(points).pointtype(fsquare).legend("my data");
+}
+</pre>
+
+Waiting for the plot to appear.... but nothing happens. There isn't
+any output file produced, either. This is because the
+<tt>plot(...)</tt> function only creates a plot in the current <i>canvas</i>
+(which is a kind of virtual drawing surface, which only exists in the
+computer's memory). The current canvas needs to be <i>printed</i> to a
+<i>terminal</i>, in order to really see it. In interactive mode this
+happens automatically after the execution of a function (the current
+canvas is printed into a postscript file (eps terminal), which is then
+automatically shown in a gv process) In script mode one needs to do it
+explicitely:
+
+<pre>
+// ----- script.C
+main()
+{
+  plot(....);
+  eps::print("test.eps");
+}
+</pre>
+
+This additional function call prints the current canvas into an eps
+terminal (an .eps file, as specified in the argument).
+To see the available terminals, say at your shell prompt:<br>
+<tt><a href="../documentation/terminals.html">blop -h terminals</a></tt>
+
+<p>Instead of plotting the first two columns, you can specify
+arbitrarily complex combinations of columns to be plotted. For example
+is your datafile contains 3 columns, you can plot the sin^2 of the
+second + the cos^2 of the third column as a function of the first one
+by saying:<br>
+<pre>plot("datafile", _1, sin(_2)*sin(_2)+cos(_3)*cos(_3));</pre>
+
+<p>The <tt>plot(...)</tt> function automatically clears the current
+plot before producing a new one. If you want to plot several graphs on
+the same figure, use the <tt>mplot</tt> function instead ('m' means
+'multi': this function does not clear the figure before plotting the
+graph) 
+
+
+<hr><b><u>Plotting functions</u></b>
+
+<p>Now let's plot some functions. The following code plots a sinus curve in the range [0:10]
+<pre>
+main()
+{
+  plot(_1, sin(_1)).p1range(0,10);
+  eps::print("sinus.eps");
+}
+</pre>
+
+So we meet again this funny symbol <tt>_1</tt>. What is this
+actually? This is a <a href="../documentation/function.html">blop
+function</a>: a function-object, which can be evaluated with
+arguments. The <tt>_1</tt> symbol is a predefined function object,
+which - when evaluated - simply returns its first arguments. The
+following code will print the number 3 to the terminal:
+
+<pre>cerr<<_1(3,4,5)<<endl;</pre>
+
+Let's come back to function plotting. This version of the
+<tt>plot(...)</tt> function does not expect a filename as its first
+argument, but only function-objects. When plotting functions, blop
+scans the value of a parameter, and calls the provided functions with
+this value as argument. In the above case the first  function (which
+will serve as the x coordinate) is simply _1 (this 
+refers to the parameter itself), the second function (which will serve as the y
+coordinate) is the sine of the parameter, thus, the resulting curve is
+a sinus curve. (To make it clearer, blop plots functions in the sense
+of gnuplot's parametric mechanism). The <tt>.p1range(0,10)</tt>
+command specifies the range of the parameter (which in the current
+case equals the x-range, since the x-coordinate is the parameter itself). <br>
+The following code for examples draws a circle:<br>
+<pre>plot(cos(_1),sin(_1)).p1range(0, 2*3.1415);</pre>
+
+
+<hr><b><u>The object hierarchy in a figure</u></b>
+
+<p>We can now plot datafiles and functions. Even several of them - but
+only on the same figure. How can we create two graphs, shown
+separately? 
+
+<p>In order to address this question, let's see the containment
+hierarchy in a plot. The following figure serves as an illustration:
+
+<center><img src="../documentation/figs/object-hierarchy.png"></center>
+
+<ul>
+<li>The topmost element in the object hierarchy in your plot is a
+<tt>canvas</tt>. This is actually your whole plot, and this is the
+entity which can be printed to a <tt>terminal</tt>. This is a virtual
+object existing only in the computer's memory, it does not get
+realized until it is printed to a terminal.
+The origin of its coordinate system is its lower left corner.
+<li>The following element is a <tt>pad</tt>, which can be contained in
+a <tt>canvas</tt> or in another <tt>pad</tt>. This is used to define a
+sub-space of its parent. 
+<li>A <tt>frame</tt> is a rectangular area having four axes
+(<tt>x1</tt> and <tt>x2</tt> are the horizontal, <tt>y1</tt> and
+<tt>y2</tt> are the vertical axes). Its purpose is to contain graphs.
+A <tt>frame</tt> can be contained in a <tt>canvas</tt> or
+a <tt>pad</tt><li>A <tt>frame</tt> has usually a <tt>legendbox</tt> - a rectangular
+area containing samples from the graphs within the frame, with
+explanation. 
+</ul>
+
+Here are some examples, how to create more complicated plots:
+<ul>
+<li><pre>pad::mknew(0,0,0.5,0.5);
+plot(_1,sin(_1));
+pad::mknew(0.5,0.5,1,1);
+plot(_1,sin(_1*_1));</pre>
+In this example we created two pads explicitely, specifying their
+extension. The <tt>pad::mknew(...)</tt> function does not only create
+a new pad, but also makes this the current one (that is, any
+subsequent <tt>plot(...)</tt> commands will plot into this pad). To
+see more about pads, say: <a
+href="../documentation/canvas-pad.html"><tt>blop&nbsp;-h&nbsp;pad</tt></a>
+<li><pre>mpad &p = mpad::mknew(2,2); // create a 2x2 multipad
+p.cd(1,1); // change to lower left
+plot(_1,sin(_1));
+p.cd(2,2); // change to upper right
+plot(_1,sin(_1*_1));</pre>
+This example creates a 2x2 multipad. The subpads of it can be
+activated by the .cd(x,y) member function. To see more about mpads,
+say: <a href="../documentation/mpad.html"><tt>blop -h mpad</tt></a>
+<li><pre>mframe &f = mframe::mknew(2,2); // create a 2x2 multiframe
+f.cd(1,1); // change to lower left
+plot(_1,sin(_1));
+f.cd(2,2); // change to upper right
+plot(_1,sin(_1*_1));</pre>
+This example creates a multiframe. Here 2x2 frames, which share their
+matching y or x axes. See <a
+href="../documentation/mframe.html"><tt>blop&nbsp;-h&nbsp;mframe</tt></a> 
+</ul>
+
+<hr><b><u>Inclusion of the plots into your document</u></b>
+
+<p>In the examples above your figure was printed to an .eps file.
+However, in the introduction I promised that blop can do more than
+producing a simple .eps file: it can produce "intelligent" outputs,
+which then cleverly interact with your LaTeX document, into which  you
+include them. 
+
+<p>In order to produce such a file, print your canvas to a
+ <tt>blopeps</tt> terminal:
+<pre>blopeps::print("filename.beps");</pre>
+
+This file-type is blop's "native" filetype (or, terminal type). It is
+a valid .eps file, <br>
+but it contains also some commands, which are executed by LaTeX, when
+the file is included into a document (see below). Without these
+commands being executed, the file looks awful, so if you open this
+file for example with <tt>gv</tt>, and see something unexpected, don't
+be disappointed.
+
+<p>If you simply include this file into your LaTeX document using for
+example the <tt>\includegraphics</tt> macro, you will get the same
+awful figure in your document, because this macro simply includes the
+.eps source, but does not execute the LaTeX commands from this
+file. To do both, blop provides the <tt>blopeps</tt> package
+(by default under /usr/share/texmf/tex/latex/blopeps), and this
+package provides the <tt>\blopeps{filename}</tt> macro.
+Here is an excerpt from a LaTeX document:
+
+<pre>
+\documentclass[a4paper]{article}
+\usepackage{blopeps}
+\begin{document}
+.
+.
+\blopeps[optargs]{myfigure.beps}
+</pre>
+
+The optional arguments of the <tt>\blopeps</tt> macro specifies the
+width, height, linewidth, etc of the figure, in the
+<tt>key=value</tt> format:
+
+<dl>
+
+<dt><tt>width=4cm</tt>, or <tt>pw=4cm</tt>
+<dd>specify the width of the figure
+
+<dt><tt>height=4cm</tt>, or <tt>ph=4cm</tt>
+<dd>specify the height of the figure
+
+<dt><tt>ps=1mm</tt>  <dd>specifies the pointsize  in the  figure (BLOP
+has a built-in dimension, <tt>PS</tt>, which can be used in the user's
+script  like<br>  <tt>plot("datafile").pointsize(1.3*PS);</tt><br> The
+actual  value  of  <tt>PS</tt>  can  be  specified  by  this  optional
+argument)
+
+<dt><tt>lw=0.4pt</tt>
+<dd>Specifies the actual value of the built-in dimension, <tt>LW</tt>,
+which is the default width of lines. 
+
+</dl>
+
+
+
+<hr><b><u>Setting axis titles</u></b>
+
+<p>
+Now you can plot functions and datapoints. To set the axis title, the
+following functions are provided: 
+
+<pre>
+set::x1title("Lower horizontal axis");
+set::y1title("Left vertical axis");
+set::x2title("Upper horiz. axis");
+set::y2title("Right vertical axis");
+</pre>
+
+They set the title of the axes of the currently active frame. 
+
+<hr><b><u>Length arithmetic</u></b>
+
+<p>
+BLOP provides a very easy way of calculating lengths. A special class,
+<tt>length</tt> is provided for  this purpose, which can be multiplied
+by a number, and  two lengths can be added. Here is  an example how to
+calculate the linear combination of lengths:
+
+<pre>
+length l = 3*MM + 4*EX;
+</pre>
+
+<p>
+In this  example <tt>MM</tt> and <tt>EX</tt>  are predefined variables
+in  blop (the  first is  millimeter, the  second is  TeX's <tt>ex</tt>
+dimen). The following classes of lengths are available:
+
+<ul>
+<li> Predefined lengths (units):
+  <dl>
+    <dt><tt>MM</tt>
+    <dd>millimeter
+    <dt><tt>CM</tt>
+    <dd>centimeter
+    <dt><tt>PT</tt>
+    <dd>One point
+    <dt><tt>EX</tt>
+    <dd>TeX's <tt>ex</tt> dimen, which is the height of an 'x' in the
+       current font (of the document, which <u>will</u> include the figure).
+    <dt><tt>EM</tt>
+    <dd>TeX's <tt>em</tt> dimen, which is the width of a "quad" in the
+    current font (in older terms, the width of an 'M' in the current
+  font)
+    <dt><tt>PW</tt>
+    <dd>The width of the whole picture/plot
+    <dt><tt>PH</tt>
+    <dd>The height of the whole picture/plot
+    <dt><tt>LW</tt>
+    <dd>(linewidth) The value of this length is taken from the LaTeX
+    document (determined by the <tt>[lw=...]</tt> optional argument of
+    the <tt>\blopeps</tt> command). This length is the 
+    default linewidth of all objects of the plots.
+    <dt><tt>PS</tt>
+    <dd>(pointsize) The value of this length is taken from the LaTeX
+    document (determined by the <tt>[ps=...]</tt> optional argument of
+    the <tt>\blopeps</tt> command). This is the default size of points.
+  </dl>
+  These lengths are constant, they can not be modified (for example
+  the <tt>LW=3*MM;</tt> command is invalid)
+<li> The horizontal and vertical sizes of texts: <br>
+    <tt>height("some text")</tt><br>
+    <tt>width("some text")</tt><br> 
+    These functions return a length, which is the correct size of the
+    given text in its final look. That is, these lengths are an
+    abstract quantity, which are a fontsize-independent tool for
+    object positioning. For example if you position a text label
+  ("Label 1")
+    on your plot at position <tt>x1</tt> in the horizontal direction,
+    and you position another label at <tt>x2 = x1 + width("Label
+    1")</tt>, then the second label will appear exactly at the end of
+    the first label, even if you change the fontsize of your document
+   (and therefore of these labels)
+   (<tt>\normalsize --> \Large</tt>, for example).
+</ul>
+
+<p>
+A valid piece of code is for example: <br>
+<pre>
+length a = 3*mm + 1.2*width("Velocity");
+length b = 1.3*a + 4*pt;
+</pre>
+
+<p>The following might be  somewhat ununderstsandable, sorry. It would
+improve in  the future. Skip  it maybe, and  try to begin  reading the
+documentation...
+
+<p>
+In the  above example the  value of the length  <tt>b</tt> (calculated
+from  the  other  length <tt>a</tt>)  is  fixed  at  the time  of  the
+assignment;  that is,  if at  a later  point the  value of  the length
+<tt>a</tt> is changed, it will have no effect on <tt>b</tt>. In many
+ cases you would like the  opposite behaviour. For example the size
+ (and therefore the left or right edge) of
+ a legendbox can  change, if you add more legends to  it. In fact, in
+ the current implementation its
+ dimensions  are  not  calculated  until  the last  moment,  when  the
+ legendbox is  printed to  a terminal. If  you would like  to position
+ something to  the right edge of  a legendbox, the  following piece of
+ code would be bad:
+<pre>
+length x = frame::current().legend()->right();
+</pre>
+
+<p>
+To solve this problem, the <tt>!</tt> operator is provided to create a
+reference  to  a length.  For  example if  you  want  that the  length
+<tt>b</tt>  should be  1.3  times the  <u>actual</u>  value of  length
+<tt>a</tt>, you should write
+<pre>
+length a = 3*mm;
+length b = 1.3 * !a;
+</pre>
+
+<p>
+Now, if at a later point you change the value of <tt>a</tt>, this will
+have an effect on the value of <tt>b</tt> as well. 
+
+<p>
+You can visualize the value of lengths using the <tt>&lt;&lt;</tt>
+operator:
+<pre>
+length a = 3*mm;
+length b = 2*cm + 2*!a;
+a = 5*pt;
+cout&lt;&lt;b&lt;&lt;endl;
+</pre>
+
+
+<a name="var"><hr><b><u>The <tt>var</tt> class </u></b></a>
+
+<p>
+BLOP tries to simulate the nice feature of most scripting languages,
+that variables can simultaneously treated as a numerical or string
+value. The class <tt>var</tt> is provided for this purpose. 
+A variable of this type can be converted to a <tt>double</tt> or
+<tt>string</tt> explicitely with the following member functions:
+
+<pre>
+double var::dbl();
+string var::str();
+
+var a = "1.23";
+double num_value = a.dbl();
+string str_value = a.str();
+</pre>
+
+<p>
+When a variable of this type is manipulated as a string,
+its numerical value is always
+calculated as the number which is represented by that string, or zero,
+if the string value does not represent a valid number (for example
+
+<pre>
+var a = "some text 13"; 
+cerr&lt;&lt;a.dbl()&lt;&lt;endl;      // this produces 0 on the output
+</pre>
+
+<p>
+The usual
+arithmetic operator (<tt>+, -, /, *, +=, -=, *=, /=</tt>) treat them
+as numerical values, while the <tt>&</tt> and
+<tt>&=</tt> treat them as strings. 
+Examples
+
+<pre>
+
+var a = "Hello ";
+a &= "World";
+a &= 4.5;
+
+    // at this point   a.dbl()   gives 0
+    //           and   a.str()   gives the string: "Hello World 4.5";
+
+a += 1.3; 
+
+    // at this point   a.dbl()   gives 1.3 (since a was 0 before)
+    //           and   a.str()   gives the string: "1.3"
+
+a += "1.3";
+
+    // at this point   a.dbl()   gives 2.6 
+    //           and   a.str()   gives the string: "2.6"
+
+a &= "hello";
+
+    // at this point   a.str()   gives "2.6hello";
+    //           and   a.dbl()   gives 2.6, resulting from the
+    //                           conversion of the above string
+
+</pre>
+
+
+<hr><b><u>Practical advices</u></b>
+
+<p>
+For specifying the pointsize of a graph, (unless you have a good
+reason for it) don't use 'absolute' units (that is, <tt>mm</tt>,
+<tt>cm</tt>, etc). If you do not want to use points of different size,
+simply do nothing in your script. If you want to use points of
+different size, define these sizes as multiples of the predefined
+<tt>PS</tt> unit. This allows you to change the size of the
+points in <u>all</u> of your plots in your document with one single
+command in your <u>LaTeX document</u>: saying
+<tt>\blopps{3mm}</tt> at the beginning of your LaTeX document, the
+<tt>PS</tt> unit in all subsequent plots included into this document
+will be 3 mm (unless overwritten with the <tt>[ps=...]</tt> optional
+argument of the <tt>\blopeps</tt> command). 
+
+<p>
+The same arguments hold for linewidths. Define the linewidth of your
+objects within your plot as the multiples of the <tt>LW</tt> unit, if
+you want to produce lines of different widths.  The linewidth in a
+single included figure can be specified by the <tt>lw=...</tt>
+optional argument of the </tt>\blopeps</tt> macro, or the default
+value for all figures can be set with the </tt>\bloplw</tt> macro, at
+the beginning of your LaTeX document, for example </tt>\bloplw{1pt}</tt>.
+
+<hr><b><u>Using C-functions</u></b>
+
+<p>You can define any C-function in your script, which takes 
+<a href="#var"><tt>var</tt></a>  
+arguments, and returns a <tt>var</tt>  as well, and you can plot these
+functions, or use them to transform the content of
+datafiles. Examples:
+
+<pre>
+var f1(var a)
+{
+  if(a < 4) return a;
+  if(a < 10) return sqrt(a);
+  return a*a;
+}
+
+var f2(var a,var b)
+{
+  return a*cos(b) + sinh(a);
+}
+
+var f3(var a)
+{
+  // filter out words beginning with 'fu'
+  if(a.str().find("fu") == 0) a = "censored";
+
+  // typeset it with bold font
+  a = "{\\bf " & a & "}";
+  return a;
+}
+
+// plot the function f1. If one single argument is provided
+// for cfunc, it will be called on the first argument, so the
+// next example is equivalent to plot(_1,cfunc(f1,_1)).
+plot(_1,cfunc(f1)).legend("A C-function: f1");
+
+// plot a datafile: f2 is called on the second and third columns,
+// and is plotted as a function of the first column
+mplot("datafile",_1,cfunc(f2,_2,_3)).drawstyle(points);
+
+// plot data from the file: put labels (in the 4th column
+// of the datafile), but filter them using f3
+mplot("datafile",_1,_2,cfunc(f3,_4)).drawstyle(labels);
+</pre>
+
+You can call built-in ANSI functions as well, for example
+<pre>
+plot(_1,cfunc(sin)).legend("Sine");
+</pre>
+
+
+</body>
+</html>

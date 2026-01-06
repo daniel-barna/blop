@@ -1,0 +1,59 @@
+TITLE: Special functions
+PREV: function.html
+NEXT: interpolation.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>int n = 2;
+plot(_1,bessel_J(n,_1).derivative(1)).p1range(0,30);
+vector&lt;var&gt; x,y;
+for(int i=1; i&lt;10; ++i)
+{
+  x.push_back(bessel_Jprime_zero(n,i));
+  y.push_back(0);
+}
+mplot(x,y).ac(red).pt(fcircle).legend("Zeroes of Bessel derivative");
+</pre>
+
+</div>
+<hr>
+
+<div class=description>  
+<p><div class=sectiontitle><a name="bessel">Bessel functions and their zeroes</a></div>
+
+These functions are wrappers around the <tt>gsl_sf_bessel_XXX</tt>
+functions (Gnu Scientific Library). They are therefore not available
+if you do not have GSL at compile-time.
+
+<pre>
+function     bessel_J(int n, const function &x);   // blop-function
+double       bessel_J(int n, double x);            // evaluate on a number
+function     bessel_Y(int n, const function &x);
+double       bessel_Y(int n, double x);
+function     bessel_I(int n, const function &x);
+double       bessel_I(int n, double x);
+function     bessel_K(int n, const function &x);
+double       bessel_K(int n, double x);
+function     bessel_j(int n, const function &x);
+double       bessel_j(int n, double x);
+function     bessel_y(int n, const function &x);
+double       bessel_y(int n, double x);
+function     bessel_i_scaled(int n, const function &x);
+double       bessel_i_scaled(int n, double x);
+function     bessel_k_scaled(int n, const function &x);
+double       bessel_k_scaled(int n, double x);
+
+double   bessel_J_zero(int n, int s);    // Return the s-th (nontrivial) zero of the n-th Bessel function
+double   bessel_Jprime_zero(int n, int s); // Return the s-th zero of
+the 1st derivative of the n-th Bessel J function
+</pre>
+
+
+</div>
+
+<pre class=implementation> Source files:
+   <a href="function.h.html#bessel">function.h</a>
+   <a href="function.cc.html">function.cc</a>
+
+</pre>
+

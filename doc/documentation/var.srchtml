@@ -1,0 +1,279 @@
+TITLE: The universal variable type: var
+MTITLE: The universal variable type: <tt>var</tt>
+PREV: help.html
+NEXT: array.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+A <tt>var</tt>  type mimics perl's  variables: it is  simultaneously a
+string and a floating point number, and can be accessed or modified as
+a string or a floating  point number: the operators <tt>&amp;</tt> and
+<tt>&amp;=</tt> modify it as  a string, the usual arithmetic operators
+act on them as a floating-point number.
+
+<p><pre>
+var v = 1.23;
+v += 1;               // increase by 1
+v &amp;= 3;               // append the string representation of 3
+                      // the value of 'v' is now: 2.233
+var x = "hello" &amp; v;  // the value of 'x' is: hello2.233
+
+double d = v.dbl();   // explicit conversions
+string s = v.str();  
+int    i = v.integer(); 
+
+x(1,3) = "--";        // substrings are accessed with the () operator
+                      // the value of 'x' is now: "h--o2.233"
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#what">       What is a var?          </a>
+<li><a href="#arithmetic"> Arithmetic operations   </a>
+<li><a href="#comparison"> Comparison              </a>
+<li><a href="#append">     Appending strings       </a>
+<li><a href="#format">     Formatting of numerical values       </a>
+<li><a href="#replace">    Replacements            </a>
+<li><a href="#substring">  Substrings              </a>
+<li><a href="#regexp">     Regular expression matching </a>
+<li><a href="#replace_re"> Regexp replacement      </a>
+<li><a href="#sprintf">    Formatting like sprintf </a>
+</ul>
+
+<! ============== What  is a var? ===================================>
+
+<p><div class=sectiontitle><a name="what">What is a var?</a></div>
+
+This  class tries  to emulate  the  behavior of  Perl's variables:  it
+provides a  smooth transition between numerical  and string variables,
+combining the two  in one type. It can be  accessed (read or modified)
+both as a numerical or as a string variable, and in the future it will
+provide  all member  functions  of <tt>std::string</tt>  as well,  and
+hopefully  regular  expressions  (for  searching, replacing)  will  be
+supported as  well. This  is the basic  variable type in  blop, graphs
+store  their contents  in this  form as  well, making  it  possible to
+access the contents of data files (and represent them on the plots) as
+string as well, not only as numerical data. 
+
+<! ============== Arithmetic operations =============================>
+
+<p><div class=sectiontitle><a name="arithmetic">Arithmetic operations</a></div>
+
+The following operators  (well known from C++)  treat a <tt>var</tt> as  
+a numerical value,  and operate on  them accordingly:
+
+<center><table>
+<tr>
+<td valign=top><tt>++,--</tt></td>
+<td valign=top> 
+Increment (decrement)  the value  by 1.  These  operators keep
+zero-paddedness, i.e.  if a var  is an integer  (contains only
+digits after  an optional leading  -), and has a  value '001',
+and one calls the <tt>++</tt> operator on this, it will be '002'
+</td>
+</tr>
+
+<tr>
+<td valign=top><tt>+=,-=</tt></td>
+<td valign=top> 
+Increment (decrement)  by a given value, which  can be a string
+(it will  be converted  to a numerical  value in this  case), a
+var, a double or an int. In the last case (and if the var is an
+integer also) these operations  keep zero-paddedness. That is, if '08'
+is incremented  by 1, it will  be '09'. Keep  in mind, that +=  and -=
+called sequentially with  the same value do not  necessarily have zero
+effect: if '09'  is incremented by 2 and then decremented  by 2, it will
+be '9', instead of '09'
+<pre>
+var a = "001"; 
+a += 12;       // a has the value '013'
+a += 1000;     // a has the value '1013' now
+</pre>
+</td>
+</tr>
+
+<tr>
+<td valign=top><tt>*=,/=</tt></td>
+<td valign=top>
+Multiply  or divide  by a  given value,  which can  be a  string, var,
+double or int. 
+</td>
+</tr>
+
+<tr>
+<td valign=top><tt>*,/,+,-</tt></td>
+<td valign=top>
+These operators can be called with a <tt>var</tt> on the left or right
+(or both)  side. The  other operand  can be a  var, string,  double or
+int. The result is a <tt>var</tt>
+</td>
+</tr>
+</table></center>
+
+
+<! ============== Comparison ========================================>
+
+<p><div class=sectiontitle><a name="comparison">Comparison</a></div>
+
+The <tt>&gt;, &lt;, &gt;=, &lt;=</tt> operators compare  their  arguments  
+as  floating  point values.  To  compare  a <tt>var</tt> as a  string, 
+convert it to a string  (so that the string comparison operator of STL is invoked):
+
+<pre>
+var a = "apple";
+if(a.str() < "orange") { ... }
+</pre>
+
+<p>The  behaviour of the  <tt>==, !=</tt>  operators depends  on their
+arguments: if  a <tt>var</tt> is  compared to another  <tt>var</tt>, a
+<tt>string</tt>    or    a     <tt>char*</tt>,    it    carries    out
+string-comparison.  Otherwise a floating  point comparison  is carried
+out. 
+
+<pre>
+var a = "001";
+var b = "1";
+if(a == b)             cerr&lt;&lt;"This will not be printed"&lt;&lt;endl;
+if(a.dbl() == b.dbl()) cerr&lt;&lt;"This will be printed"&lt;&lt;endl;
+</pre>
+
+(This is not necessarily a  good approach, it might change in the
+future. To be sure what is happening, you can always convert it to string 
+or double explicitely, using the <tt>dbl()</tt> or <tt>str()</tt> member functions)
+
+<! ============== Appending =========================================>
+
+<p><div class=sectiontitle><a  name="append">String  appending</a></div> 
+
+The  <tt>&amp;</tt> operator  (if  at  least  one  of its  arguments  is  
+a  <tt>var</tt>) concatenates its  two arguments, returning  a <tt>var</tt>. 
+Similarly, the <tt>&amp;=</tt>  operator appends  its right-hand argument  
+to its right-hand argument (this must be a <tt>var</tt>):
+
+<pre>
+var a = "hello ";
+a &amp;= "world";
+</pre>
+
+<! ============== Formatting  =======================================>
+<p><div class=sectiontitle><a name="format">Formatting of numerical values</a></div>
+
+<p>Vars automatically convert between string and numerical
+representations. When they are set to a numerical value, the string
+representation is automatically updated using a sprintf(...)
+conversion. To control the format of this conversion, one can use the
+<pre>format(const var &amp;format);</pre>
+member function. Any later assignment from a numerical value will
+use this format.
+
+<! ============== Replacement =======================================>
+<p><div class=sectiontitle><a name="replace">Replacement</a></div>
+
+One can find-and-replace substrings in a var, using its member
+function. It modifies the original var:
+
+<pre>
+var a = "Hello boy";
+a.replace("o","a");  // replace all occurences of "o" to "a";  Result: Hella bay
+a.replace1("l","d"); // replace first occurence of "l" to "d"; Result: Hedla bay
+</pre>
+
+The following nom-member functions replace all occurences of
+<tt>from</tt> to <tt>to</tt> in the string <tt>s</tt>, and return the
+modified string (the original is left intact):
+
+<pre>var replace(const var &amp;from, const var &amp;to, const var &amp;in);
+var replace1(const var &amp;from, const var &amp;to, const var &amp;in);
+var replace_re(const var &amp;pattern, const var &amp;replacement, const var &amp;in );</pre>
+
+
+
+<! ============== Substrings ========================================>
+
+<p><div class=sectiontitle><a name="substring">Substrings</a></div>
+
+A  portion of  a <tt>var</tt>  can be  accessed via  the (  ) operator
+(parenthesis operator).  This operator accepts 2  arguments, the index
+of the first and the last character of the substring. For example if s
+=  "apple", then  s(1,3) evaluates  to "ppl".  The  returned substring
+behaves  exactly  like a  normal  <tt>var</tt>,  but  it is  more:  it
+contains a  reference to the original  <tt>var</tt>, of which  it is a
+substring.   Any  modifications  to  this substring  will  effect  the
+original <tt>var</tt>:
+
+
+<pre>
+var s = "apple";
+s(1,3) = "sk m";
+</pre>
+Now 's' has the value "ask me"
+
+
+<! ============== Regexp matching ===================================>
+
+<p><div class=sectiontitle><a name="regexp">Regular expression matching</a></div>
+
+<p>There are two member functions to match regular expressions against
+this variable:
+
+<dl>
+<dt><pre>bool var::matches(const var &amp;regexp);</pre></dt>
+<dd>This function returns true, if the regular expression
+<tt>regexp</tt> matches. It is taken to be a POSIX extended regular
+expression.
+</dd>
+<dt><pre>int var::matches(const var &amp;regexp, array &amp;results);</pre></dt>
+<dd>This function also returns the matching parts of the string, and
+returns the number of matches (the size of the array
+<tt>results</tt>). If this is not zero, the first (index-0) element of
+this array is the part of the string matching the whole regexp,
+subsequent elements are the parts matching the subexpressions
+(contained within braces: ()) For example matching the pattern 
+"(l.).*(l.)" against the string "Hello world" returns:
+results[0]="llo world", results[1]="ll", results[2]="ld"
+</dd>
+</dl>
+
+These functions use the POSIX regex functions from the c library. See
+<tt>man regex</tt> or <tt>man 7 regex</tt> to see more about them.
+
+<! ============== Regexp replacement ================================>
+
+<p><div class=sectiontitle><a name="replace_re">Regular expression replacement</a></div>
+
+<p>The following member-function searches a match of the regular
+expression '<tt>pattern</tt>', and if this is found, replaces it to
+the text '<tt>replacement</tt>'. 
+
+<pre>var::replace(const var &amp;pattern, const var &amp;replacement);</pre>
+
+This replacement string may contain the strings \0, \1, \2, etc. 
+\0 refers to the whole matching expression, \1, \2, etc refer to the
+1st, 2nd etc sub-expressions. Do not forget that you need to escape
+the backslash, for example: s.replace_re("_([0-9])_","\\1"); 
+
+<p><div class=sectiontitle><a name="sprintf">Formatting like sprintf</a></div>
+
+<p>
+A  <tt>var</tt> can be formatted and created using the
+<tt>var::sprintf(const var &amp;format, ...)</tt> static member
+function, where <tt>format</tt> is the same format string as that used
+for the <tt>printf</tt> family of C. 
+
+<p>
+... more coming soon
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="var.h.html">var.h</a>
+   <a href="var.cc.html">var.cc</a>
+</pre>
+
+
+

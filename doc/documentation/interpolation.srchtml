@@ -1,0 +1,232 @@
+TITLE: Interpolation
+PREV: special-functions.html
+NEXT: length.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+Make 2D interpolation on a grid, from values stored in a file.
+(x,y) values are in columns 1 and 2, z (interpolated) values in
+the 3rd column (works for different dimensions, intuitively...)
+<pre>function f = function::interpolate_linear("filename",function(_1,_2),_3);</pre>
+
+<p>
+Make a linear interpolated function from vectors:
+<pre>vector<double> x(10), y(10);
+// fill x and y here
+function lin = function::interpolate_linear(x,y);</pre>
+
+<p>
+Make spline interpolation from a file (2nd column=x, 5+6th colum=y)
+<pre>function sp = function::spline("filename",_2, _5+_6);</pre>
+
+<p>
+Delaunay interpolation:
+<pre>delaunay_interpolator d;
+d.add_point(x,y,z); // many times
+cerr&lt;&lt;"Value at (1.2, 3.4) = "&lt;&lt;d(1.2,3.4)&lt;&lt;endl;
+// create a blop-function from this interpolator:
+function f(d);
+cerr&lt;&lt;"Value at (1.2, 3.4) = "&lt;&lt;f(1.2,3.4)&lt;&lt;endl;
+// read from file:
+function fff = function::interpolate_delaunay("filename",function(_1,_2),_3);
+</pre>
+</div>
+
+<hr>
+
+<div class=description>  
+
+Interpolation in blop is intended  to be as generic as possible. There
+are  template  interpolator  classes  being  able  to  interpolate  in
+1-dimension  and also  in multi-dimensions,  for any  types  for which
+addition/subtraction    and   multiplication/division-by-a-number   is
+valid. Currently linear, spline, and 'shape-preserving piecewise cubic
+hermite  polynomial'  (sppchip)  are  implemented in  1D,  linear  and
+delaunay   interpolations   are   implemented   in  2D,   and   linear
+interpolation is implemented in multi-dimensions. 
+
+<p>You can  use the low-level  interpolation classes directly,  or use
+interpolated <a  href="function.html">blop-functions</a> which use the
+same base classes. 
+
+<ul>
+<li><a href="#function_interpolation">Interpolating functions</a>
+<li><a href="#interpolator"> The <tt>interpolator</tt> class</a>
+<li><a href="#interpolator_1d"> The 1D interpolator base class (common
+member functions of 1D interpolators)</a>
+<li><a href="#polynomial_1d">Polynomial interpolators in 1D</a><br>
+    (linear, spline, etc)
+</ul>
+
+
+<p><div class=sectiontitle><a
+name="function_interpolation">Interpolating functions</a></div>
+
+Use the following functions (static member functions of the
+<tt>function</tt> class) to create blop-functions that interpolate
+discrete data provided either in a stream (file, pipe, etc) or in
+arrays. XXX should be replaced by <tt>linear</tt>, <tt>spline</tt> or <tt>sppchip</tt>
+
+<pre>
+function::interpolate_XXX(const var &amp;filename, const function &amp;x=_1, const function &amp;y=_2);
+function::interpolate_XXX(const array &amp;x, const array &amp;y);
+function::interpolate_XXX(const vector<double> &amp;x, const vector<double> &amp;y);
+function::interpolate_XXX(const double x[], const double y[], int n);
+</pre>
+
+An example for their usage: 
+<pre>function f = function::interpolate_linear("filename.dat",function(_1,_2),_3);</pre>
+This  creates  a 2D  linear  interpolator,  (x,y) values  (independent
+variables) are  the first  two columns of  the file,  the interpolated
+value is the 3rd column.  For spline and sppchip interpolation only 1D
+is possible  (i.e. the  independent variable must  be a  single value,
+unlike in this example).
+
+<p> Delaunay  interpolation can be  used to interpolate z-values  on a
+set   of   irregular   (x,y)   points.   This  is   therefore   a   2D
+interpolation.  The  (x,y)   plane  is  Delaunay-triangulated,  and  a
+triangulated surface is created having nodes at the z-(x,y) points.
+
+<pre>
+function::interpolate_delaunay(const var &amp;filename);   // (x,y)=(1st,2nd)column, z=3rd column
+function::interpolate_delaunay(const var &amp;filename, const function &amp;xy, const function &amp;z);
+     // exapmle for the second: function f = function::interpolate_delaunay(filename,function(_2,_3),_1);
+</pre>
+
+
+<p><div class=sectiontitle><a name="interpolator">The <tt>interpolator</tt> classes</a></div>
+
+If  you   don't  want  to  have   the  overhead  from   the  usage  of
+blop-functions,  or  if you  want  to  programmatically  fill up  your
+interpolator with the  discrete values, or you want  to have access to
+these discrete values later, you can also use the interpolator classes
+directly.
+
+<hr>
+<center>content below this line should be checked</center>
+<hr>
+
+<p>The base class <tt>interpolator</tt> provides some common interface
+functions to be used by blop classes (i.e. no interest for the user),
+and a <tt>name()</tt> member function returning a name of the
+interpolation method (for example LINEAR, SPLINE, etc).
+
+<p><div class=sectiontitle><a name="interpolator_1d">1D interpolator: 
+<tt>interpolator_1d</tt></a></div>
+
+<p>  This is  the base  class for  1D interpolation.  This  class does
+nothing  more  than  storing  the  (x,y)  point  pairs  used  for  the
+interpolation.   Derived   classes   will  implement   the   different
+interpolation methods. 
+
+<p>Member functions:
+<dl>
+
+<dt><tt>points(const vector<double> &x, const vector<double> &y)<br>
+<dt>points(T x, T y, int n) [T is an indexeable template like
+double*]</tt></dt>
+<dd>provide the discrete points for the interpolation</dd>
+
+<dt><tt>add_point(double x, double y)</tt></dt>
+<dd>Append an  (x,y) point pair  to the end  of the stored  points. It
+will be improved to make an ordered addition, but currently it is just
+appended to the end, the user should make sure the increasing order in
+x is kept</dd>
+
+<dt><tt>double operator()(double x)</tt></dt>
+<dd>Evaluate the interpolated value at x</dd>
+
+<dt><tt>int n() const</tt></dt>
+<dd>Return the number of points</dd>
+
+<dt><tt>double x(int i) const<br>
+double y(int i) const</tt></dt>
+<dd>Return the ith x/y value</dd>
+
+<dt><tt>interpolator_1d &x(int i, double xval)<br>
+interpolator_1d &y(int i, double yval)</tt></dt>
+<dd>Set the ith x or y value (if i is a non-existent index, the
+vectors storing the datapoints are automatically expanded, missing
+elements are initialized to 0. This can screw up the orderedness in
+the x array, it is the user's responsibility that the final array
+(upon completion of setting up all the points) is ordered</dd>
+
+</dl>
+
+
+
+
+<p><div class=sectiontitle><a name="polynomial_1d">Polynomial interpolators in 1D</a></div>
+
+<p>This     derived     class,     <tt>polynomial_interpolator_1d</tt>
+interpolates within each interval  [x[i];x[i+1]] using a polynomial of
+some   order,  the   coefficients  of   which  are   stored   in  this
+function. Methods  include linear, spline,  shape-preserving piecewise
+cubic   hermite,  etc.   interpolations.  To   make   an  interpolated
+blop-function, use these functions  (where XXX can be <tt>linear</tt>,
+<tt>spline</tt> or  <tt>sppchip</tt> (shape-preserving piecewise cubic
+hermite         interpolating        polynomial,         see        <a
+href="http://www.mathworks.com/moler/interp.pdf">
+http://www.mathworks.com/moler/interp.pdf</a>    for   details)   More
+details about the interpolator classes are given below.
+
+<pre>
+static function function::interpolate_XXX(const var &filename, const function &f1=unset,... const function &f4=unset);	
+    // read discrete values from the given file, possibly transform
+    // the values, for example first column is x, 2nd+3rd column is y
+    // function linint = function::linear("filename",_1,_2+_3);
+static function function::interpolate_XXX(const array &x, const array &y);
+static function function::interpolate_XXX(const vector<double> &x, const vector<double> &y);
+static function function::interpolate_XXX(double x[], double y[], int n);
+</pre>
+
+
+The coefficients of
+the interpolation are calculated by calling one of the functions
+<tt>linear()</tt>, <tt>spline()</tt>, etc. Note that you need to call
+one of these functions every time you change the discrete points, or
+add new ones.
+
+<p>Member functions (besides those inherited from
+<tt>interpolator_1d</tt>, see above)
+<dl>
+<dt><tt>int order() const</tt></dt>
+<dd>Return the order of the polynomial
+
+<dt><tt>bool linear()</tt></dt>
+<dd>Calculate interpolation coefficients to make linear
+interpolation. Returns false if too few (i.e. &lt;2) points are
+given</dd>
+
+<dt><tt>bool spline()</tt></dt>
+<dd>Calculate interpolation coefficients to make spline
+interpolation. Returns false if too few (&lt;3) points are given</dd>
+
+<dt><tt>bool sppchip()</tt></dt>
+<dd>Calculate interpolation coefficients to make a shape-preserving
+piecewise cubic hermite interpolating polynomial (huh...), 
+see <a href="http://www.mathworks.com/moler/interp.pdf">
+http://www.mathworks.com/moler/interp.pdf</a>
+</dd>
+
+</dl>
+
+Example:
+<pre>
+vector&lt;double&gt; x(10), y(10);
+x[0] = 1;
+y[0] = 1.2;
+.... etc, fill the vectors x,y
+polynomial_interpolator_1d interp(x,y);
+interp.spline();
+cerr&lt;&lt;"Value at 2.3 = "&lt;&lt;interp(2.3)&lt;&lt;endl;
+</pre>
+
+
+<hr>
+<pre class=implementation> Source files:
+   <a href="interpolate.h.html">interpolate.h</a>
+   <a href="interpolate.cc.html">interpolate.cc</a>
+</pre>
+

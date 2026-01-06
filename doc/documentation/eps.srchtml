@@ -1,0 +1,34 @@
+TITLE: The png terminal
+PREV: blopeps.html
+NEXT: pdf.html
+==>
+
+<pre class=prguide><u>Practical Guide:</u>
+
+plot("filename")....;   // plot something
+eps::print("file.eps","-w 8cm -h 5cm");
+    // print it to an eps file named file.eps
+    // the second argument is the options to beps2eps
+</pre>
+<hr>
+
+<div class=description> This is a terminal derived from blopeps: first
+a blopeps file  is created, and then it is transformed  to an eps file
+using the <a href="tools.html#beps2eps">beps2eps</a> tool of blop. The
+static   <tt>print(var  filename,var   opts)</tt>   function  of   the
+<tt>eps</tt> terminal  can be  used to print  the current canvas  to a
+file specified  by the first  argument. The second  argument specifies
+the  options  to  be  given  to  <tt>beps2eps</tt>  (see  <tt>beps2eps
+--help</tt> for help)
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="eps.h.html">eps.h</a>
+   <a href="eps.cc.html">eps.cc</a>
+</pre>
+
+
+

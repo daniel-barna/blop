@@ -1,0 +1,140 @@
+#ifndef __BLOP_SVG_H__
+#define __BLOP_SVG_H__
+
+#include "terminal.h"
+#include "var.h"
+#include <fstream>
+
+#ifdef __CINT__
+#pragma define G__NOALGORITHM
+#endif
+
+
+namespace blop
+{
+    class svg : public terminal
+    {
+    private:
+	std::ofstream file1_, file2_;
+	std::string filename1_, filename2_;
+	double width_, height_;
+
+	svg(const svg &);
+
+	int max_length_index_, max_text_index_, max_line_index_;
+
+	void write_header_();
+
+    public:
+	svg(const var &filename, double width=800, double height=800);
+	~svg();
+
+	void open(const var &filename);
+
+	void comment(const string &) {}
+	
+	int  newlength();
+	
+	int  overwrite(int i,
+		       double f1,const terminal::id &i1);
+	int  overwrite(int id,
+		       double f1,const terminal::id &i1,
+		       double f2,const terminal::id &i2);
+	
+	int  lincombi(double_id f,const terminal::id &i);
+	int  lincombi(double_id f1,const terminal::id &i1,
+		      double_id f2,const terminal::id &i2);
+	int  lincombi(const std::vector<double> &f,
+		      const std::vector<blop::terminal::id> &id);
+	
+	//  create the linear combination of lengths. the
+	// factors are contained in the array 'f', and 'id'
+	// contains the lengths IDs of the lengths
+	
+	int  maxlength(const std::vector<blop::terminal::id> &id);
+	int  minlength(const std::vector<blop::terminal::id> &id);
+	
+	// create a new length, which is the maximum of the
+	// lengths provided
+	
+	int  textwidth (const string &,double angle=0);
+	int  textheight(const string &,double angle=0);
+	int  textlheight(const string &,double angle=0);
+	
+	// create a new length, which holds the width or height
+	// of the specified string
+	
+	int  textsize  (const string &,double angle=0);
+	
+	// create two new lengths, holding the width and height
+	// of the string. the returned length ID corresponds to
+	// the length holding the width, ID+1 corresponds to
+	// the length holding the height
+	
+	int max_textwidth (const std::vector<std::string>&);
+	int max_textheight(const std::vector<std::string>&);
+	int max_textlheight(const std::vector<std::string>&);
+	
+	// create a new length whic is the maximum of the
+	// widths or heights or the provided strings
+	
+	void picture_begin();
+	void picture_end();
+	
+	void subpicture_begin(const coord &lower_left,
+			      const coord &upper_right);
+	void subpicture_end();
+	
+	void draw_dot(const coord &pos);
+	void draw_text(const coord &position,
+		       const string &s,
+		       int xalign,
+		       int yalign,
+		       const blop::terminal::id &dx,
+		       const blop::terminal::id &dy,
+		       bool rotatedsystem=true);
+	void draw_arc(const coord &center, const id &r,
+		      double ang1 = 0,
+		      double ang2 = 360);
+	void fill_arc(const coord &center, const id &r,
+		      double ang1 = 0,
+		      double ang2 = 360);
+	
+	void draw_line   (const coord &c1,const coord &c2);
+	void draw_lines  (const std::vector<blop::terminal::coord> &c);
+	void draw_rlines (const blop::terminal::coord &start,
+			  const std::vector<blop::terminal::id> &x,
+			  const std::vector<blop::terminal::id> &y);
+	void fill_polygon(const std::vector<blop::terminal::coord> &c);
+	
+	
+	void reset_transformation();
+	void translate(const id &, const id &);
+	void rotate   (double angle);
+	void rotate   (const id &, const id &);
+	void scale    (double s);
+	void scale    (double xscale, double yscale);
+	void scale    (const id &xfrom, const id &xto,
+		       const id &yfrom, const id &yto);
+	
+	void set_color(const color &c);
+	void set_linewidth(const id &);
+	void set_linestyle(sym::linestyle);
+	
+	int  atan(const id &x,const id &y);
+	int  add_dbl(const double_id &, const double_id &);
+	int  sin_dbl(int);
+	int  cos_dbl(int);
+	int  neg_dbl(int);
+	
+	bool clip(const coord &lower_left,
+		  const coord &upper_right);
+	
+	void noclip();
+    };
+    
+    
+
+}
+
+#endif

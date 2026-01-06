@@ -1,0 +1,930 @@
+[1.1.60]
+	Failed again to commit...
+[1.1.59]
+	Failed to commit....
+[1.1.58]
+	Cold-warm color mapping implemented http://www.kennethmoreland.com/color-maps/, can be used like .ds(cboxes(color_mapping::cold_warm));
+[1.1.57]
+	join_args(separator,from,to) added
+[1.1.56]
+	renamed .H files to .hh files to allow case-insensitive file systems
+[1.1.55]
+	#include "matrix.h" added to type_traits.h
+[1.1.54]
+	foreground grid is now behind the legends
+[1.1.53]
+	geometry::midline(const point &p1, const point &p2);
+[1.1.52]
+	bugfix: color_legendbox can be correctly positioned using bottom(...), left(...) etc
+[1.1.51]
+	sym::dashdotted sym::dashddotted linestyles added
+[1.1.50]
+	vectors::max(double) added
+	set::xyunit(...) added
+[1.1.49]
+	-rdynamic flag removed for OSX
+	typedef blopeps beps
+[1.1.48]
+	piecewise polynomial bug corrected
+[1.1.47]
+	mframe::equal_ranges(unsigned int) added
+	plotting a function with a single component (i.e. plot(sin(_1))) now automatically adds _1 as the first component
+[1.1.46]
+	versatile_pdf can not only insert but also replace given pages.
+[1.1.45]
+	minor tics bug for logscale and axis values <1 fixed
+[1.1.44]
+	function::param(const function &p, double value) added, which works only if 'p' is a 
+	pure PAR(..) function
+[1.1.43]
+	var &function::param(unsigned int); added (returning a non-const reference)
+	replace(in,from,to) signature changed to replace(from,to,in) (for var variables)
+	to be in agreement with other language's string replacement functions!!!
+	argument-substituted function's derivative w.r.t. parameters - bug fixed
+[1.1.42]
+	operator+(function,var), operator+(var,function), etc added
+	percent and permill units added
+[1.1.41]
+	set::mirror_x1(bool) etc added
+[1.1.40]
+	removed blop-help.o, blop-merge.o from the CVS repository (got included by mistake)
+[1.1.39]
+	removed tools/blop-merge.d tools/blop-help.d from the CVS repository
+[1.1.38]
+	ar -r should be ar rsv on darwin. fixed.
+[1.1.37]
+	LD_LIBRARY_PATH is only checked/mofied (to avoid ROOT's libCint.so) if CINT was
+	enabled (scripts/blop)
+[1.1.36]
+	Fixes to be able to compile on MacOS
+[1.1.35]
+	minor tics bug corrected (no minor tics were drawn if # of tics was <5)
+[1.1.34]
+	combined units and constants (such as MeV/c) can also be used as axis units
+[1.1.33]
+	bug fixed in hisplot (nbins was not set correctly along 2nd axis)
+[1.1.32]
+	histopt::min(int axis), histopt::max(int axis) return 'unset' if not specified
+[1.1.31]
+	hisplot, mhisplot added
+[1.1.30]
+	bloproot.tar.gz uploaded to sourceforge, download.html has a link to it.
+[1.1.29]
+	bug causing labels ignoring their angle fixed. Many bugs concerning angles (rad or deg?) fixed...
+	pad::title(const var &) implemented
+	set::title(const var &) now sets title of mframe, frame or pad depending on where it is called
+	plottables::autodel(bool), plottables::legend(const var &) added
+[1.1.28]
+	mframe::title(const var &) added
+	set::grid(...), set::gridcolor(...) etc set the properties of the current frame if there is one,
+	otherwise the default_xxx properties of the frame class
+[1.1.27]
+	frame::gridcolor(color), frame::minor_gridcolor(color),
+	frame::gridwidth(const length &), frame::minor_gridwidth(const length &),
+	frame::gridstyle(sym::linestyle), frame::minor_gridstyle(sym::linestyle) added
+[1.1.26]
+	tic calculation improved, for symmetric ranges a symmetric set of tics is drawn
+	fitopt can specify data blocks (separated by empty lines)
+	lines::break_line(bool) to avoid broken lines at empty data lines
+	frame::grid_at_minor_tics(bool), frame::default_grid_at_minor_tics(bool), axis::n_minor_tics(int)
+[1.1.25]
+	== and != for geom::point
+	find_root(const dgraph &);
+	bug fixed in find_root(vector<double>,vector<double>)
+	function::interpolate_xxx(const dgraph &)
+[1.1.24]
+	A memory leak was fixed (frame::~frame did not delete graphs)
+[1.1.23]
+	interpolator_md imporoved (avoid problem in special case)
+	geom::plane_with_cs
+[1.1.22]
+	minor changes to be able to compile on Ubuntu 12.10
+[1.1.21]
+	some improvements
+	initvector to in-line initialize std::vector
+[1.1.20]
+	phys:kin utility class added to calculate kinematic variables
+[1.1.19]
+	interpolation for vec3
+	argument_subst::create_derivative reimplemented again
+	graphs with colorscale drawstyle in the same row of an mframe share their color_legend
+[1.1.18]
+	mframe::show_subframe(int i, int j, bool f) introduced (to hide a subframe)
+	frame::mknew() --> frame::mknew(container &parent=pad::current())
+[1.1.17]
+	label::?draw(text) was improved (automatic positioning of labels)
+	versatile_pdf added
+[1.1.16]
+	axis::default_ticlength(const length &) and axis::default_draw_tics(bool) added
+	interpolators by default return 'unset' (and not 0) out of the interpolated range (can be set)
+	operator+(matrix,matrix), operator-(matrix,matrix)
+[1.1.15]
+	mppdf terminal added
+[1.1.14]
+	interpolator_1d::add_points(Xarray x, Yarray y, int n) now sors the array (w.r.t. x) if needed,
+	instead of only warning.
+	mpps::command(const var &) to add a LaTeX command before including any plots.
+[1.1.13]
+	when using 'not nice' units for axes (for example keV, which is not an integer power of 10)
+	tics are now calculated nicely in the used units.
+[1.1.12]
+	vec3::vec3(const vec3 &dir, double norm) added.
+	typo fixed (rotation::ivnerse -- rotation::inverse)
+	rotation::rotation(v1,v1prime,v2,v2prime) changed to rotation::rotation(v1,v2,v1prime,v2prime)
+[1.1.11]
+	new functions: frame::ticlength(const length &), set::ticlength(const length &)
+	dgraph::add up to 12 arguments
+[1.1.10]
+	Fixed bug (axis-cut for negative values)
+[1.1.9]
+	Layout problem of color-sample (for cboxes, csboxes) on the right with title fixed.
+[1.1.8]
+	vectors::arrow_color(const color &) added
+	dgraph::read(_xxx) have now 5 function arguments
+[1.1.7]
+	function::interpolate_linear(filename,function x,function y) added to make 1D/multi-D interpolation.
+	funtion::linear(filename) is deprecated
+	line is clipped by default (line::clip(bool))
+[1.1.6]
+	class text can be verbatim, and colored.
+[1.1.5]
+	papersize can be set for mpps
+	periodic_function
+	cons::bohr_magneton
+	class text added to display multi-line text
+
+[1.1.4]
+	templated interpolator classes: bugfixes (using multi-valued valarray for example
+	as interpolated values)
+[1.1.3]
+	added missing src/call_user_init.C to cvs
+[1.1.2]
+	added missing scripts/blop-terminal to cvs
+[1.1.1]
+	some missing files have been added to cvs
+[1.1.0]
+	autopoint has been improved
+	when frame does not draw frame (only axes), linewidth/style/color is now set correctly
+	delaunay_interpolator implemented
+	video terminal added
+	geometry (vec3, line, plane, intersections, etc)
+	blop_gts interface to gts functionality. isolines drawstyle uses now functions from this file.
+	and many many new features.
+[1.0.7]
+	fgraph and hist have also autopoint as default pointtype
+	blop-helpviewer improved
+	wmctrl is suggested
+[1.0.6]
+	new pointtype 'autopoint' added
+	frame::draw_axes accepts a bitwise OR of axis::x1, axis::y1, axis::x2 and axis::y2
+	beps2png and beps2jpg uses convert instead of the never-working gs+pnmtoxxx solution
+[1.0.5]
+	Further units added
+[1.0.4]
+	Re-committing due to cvs problems the last time.
+[1.0.3]
+	Use LD_LIBRARY_PATH to get rid of confusion between `root-config --libdirs`/libCint.so
+	and libCint.so coming from the standalone version of cint.
+[1.0.2]
+	plotting-data.srchtml and plotting-functions.srchtml contained old
+	syntax .ds(lines) etc
+
+[1.0.1]
+	CVS did not contain tools/*
+
+[1.0.0]
+	graph_drawers are now not extern variables, but types only. That is,
+	the following syntax is correct:
+	plot("...").ds(lines());  and not the old one: .ds(lines);
+	cboxes and other similar drawstyles can share a legendbox by name
+	When using logscale and fixed minimum of an axis, tics were wrong 
+	(for example 2x10^4) fixed now.
+	linear interpolation in arbitrary dimensions implemented
+	function::function(interpolator *) introduced
+	max_in_interval, min_in_interval, integral(...) functions implemented
+
+[0.9.171]
+	test.C had #include "blop.h", removed
+
+[0.9.170]
+	cbox and other color-scale drawstyles can share a colorlegend.
+	problems in the interpreter, due tu cint bug (probably bad
+	deletion of temporary variables)
+
+[0.9.169]
+	cbox and scbox can now really switch off the colorlegend
+	version number screwed up!
+
+[0.9.168]
+	calculate_tics now correctly takes into account tic range settings,
+	it affects also set::xtics(step,from,to), which had no effect until now.
+	drawstyles using a colorscale now share a color_legend. 
+
+[0.9.167]
+	dgraph::read_if skips data lines with insufficient number of
+	columns to evaluate the filter function
+	sbox drawstyle takes into account the linestyle/linewidth in the legend
+
+[0.9.169]
+	ceil(function &) added
+	array::sequence(stepsize,from,to) 
+
+[0.9.168]
+	bug in x11_gv checking for gv options corrected
+
+[0.9.167]
+	x11_gv checks for both -media BBox or -media=BBox options
+	of gv
+
+[0.9.166]
+	max(function&,function&) and min(function&,function&) added
+
+[0.9.165]
+	plot_if/mplot_if for vector<double> and vector<var> arrays
+	function::params(p1,p2,p3,p4,p5p6) added
+	#include "/home/barna/.blop/smith.h" removed from test.C
+	doc/documentation/figs/Makefile: dvips -t a5 changed to -t a4
+	All .tex files here have now \documentclass[11pt,a4paper]{article}
+	and \usepackage[hscale=0.95,vscale=0.95,dvips,a4paper]{geometry}
+
+[0.9.164]
+	vectors drawstyle clip by default to the frame region
+	vectors drawstyle uses now graph linewidth correctly
+	colors can be added, subtracted, multiplied by number
+	-c|--compile option added to blop script
+
+[0.9.163]
+	beps2{pdf,png,jpg} correctly handle all beps2eps cmd line args
+
+[0.9.162]
+	user-example smith.h changed to avoid cint stack smashing
+	set::lmargin etc added
+	caspect of container improved.
+
+[0.9.161]
+	missing mpps::open_layer(...) and mpps::close_layer(...) implemented
+	container::csratio and frame::csratio renamed to caspect
+
+[0.9.160]
+	aspect ratio of containers, and nodistort option for frames introduced
+
+[0.9.159]
+	all bessel functions are available (derivatives are not yet fully implemented)
+
+[0.9.158]
+	vectors drawstyle can set arrow length and angle
+
+[0.9.157]
+	bessel functions introduced (not all.....)
+
+[0.9.156]
+	Layers introduced an error (stackoverflow) in the postscript interpreter,
+	if too big objects were drawn. Fixed.
+	blopeps uses blopdict dictionary instead of globaldict.
+
+[0.9.155]
+	Layers are now identified by name. Frames are by default on layer 'frame',
+	grid is drawn in layer 'grid', the legend is on ayer 'legend', everything
+	else is on layer 'default'. All these layers are switched on by default
+
+[0.9.154]
+	Documentation for layers.
+	All grobs and plottables have now their own layer(int) function
+
+[0.9.153]
+	in interpreter sessions the __BLOP__ macro is defined, you can use it to
+	check in your source code, wether it is being compiled or interpreted
+	layers are introduced
+
+[0.9.152]
+	blop-helpviewer checks first for running firefox or konqueror,
+	and uses them if found. 
+	x11_gv checks for available gv options, and adds these as default:
+	-spartan, -media=BBox, -resize
+
+[0.9.151]
+	configure allows compilation without necessary components as well,
+	makes a summary of missing features at the end of the output
+
+[0.9.150]
+	sppchip interpolation added, polynomial interpolator stores coefficients
+	of the local variable s=x-x[k]
+	var.cc: many int variables replaced to string::size_type
+
+[0.9.149]
+	beps2eps uses now ps2eps instead of our own ps2eps-blop (I could not make gs
+	deduce the correct bounding box...)
+	interpolate.{h,cc} combine now the linear and spline interpolation, 
+	function::linear and function::spline etc are the user-interface function
+
+[0.9.148]
+	isolines can center label on the line (more or less...)
+	max(long int,int) problems on 64 bit machines during compilation in function_core.cc
+
+[0.9.147]
+	format of individual function parameters can be set
+
+[0.9.146]
+	sprint_latex improved (bug corrected for a^b formats, parentheses
+	rationalized)
+	when plotting a function, its latex representation is used as legend
+
+[0.9.145]
+	dependency on cint debian package was not created in deb.mk
+	function::sprint_latex(...) added
+
+[0.9.144]
+	checking wether cint/Api.h or Api.h should be included
+
+[0.9.143]
+	debian/postinst was not created/executed (therefore texhash was not
+	executed upon installation)
+
+[0.9.142]
+	ps2eps-blop upgraded to use -sDEVICE=bit driver of gs, to produce
+	more correct bounding box, and beps2eps uses -sPAPERSIZE=a0 (oterwise
+	the output is cropped)
+
+[0.9.141]
+	Documentation of argument range. smith.h user-example
+	updated
+
+[0.9.140]
+	further bug in function arg range (when plotting) corrected
+
+[0.9.139]
+	bug in function arg range in plotting corrected
+	+,-,*,/ operators for functions simplify, if one of their
+	operands is 0.0
+
+[0.9.138]
+	argument range can be specified for functions
+
+[0.9.137]
+	[m]plot_if(condition, function[s]) introduced
+
+[0.9.136]
+	-l (landscape) option to beps2eps
+
+[0.9.135]
+	only new cint (with cint-config script) is accepted
+	set::y2transform has 3rd bool arg to set own tics
+
+[0.9.134]
+	libtermcap replaced by libncurses in src/Makefile
+	gts and glib are now required for compilation (and not optional)
+	small changes in rpm.mk (checks if configure has been run with --prefix=/usr)
+
+[0.9.133]
+	modified to compile on SuSE 11.0 (g++ 4.3.1)
+
+[0.9.132]
+	function parameters can have a name
+
+[0.9.131]
+	makecint.cint is used, if it is found (i.e. from standalone cint)
+	for rpm creation, use BuildRequires only on non-debian systems
+
+[0.9.130]
+	if installed via a package, blop --uninstall does not warn now, but
+	uninstall using the packaging interface
+
+[0.9.129]
+	rpm.mk checks for the real package names providing the needed services
+
+[0.9.128]
+	possibility to specify resolution in beps2png
+
+[0.9.127]
+	plotting invalid functions (i.e. _1/0.0) caused segfault. corrected
+
+[0.9.126]
+	default arguments of functions implemented
+
+[0.9.125]
+	gs -sDEVICE=bbox ...... suddenly produced 0 0 0 0 as bounding box,
+	due to some defs in the .beps file, causing ps2eps-blop and beps2pdf to fail.
+	blopeps.cc modified.
+
+[0.9.124]
+	graphd_isolines::labelformat introduced to control the format of the
+	isoline labels
+
+[0.9.123]
+	configure.ac (and configure) was still buggy, deb.mk was not included in 
+	makefile
+
+[0.9.122]
+	Bug in configure.ac caused deb.mk to be always included (causing
+	error messages 'dpkg-architecture missing')
+
+[0.9.121]
+	Small bugs in rpm.mk and deb.mk corrected
+
+[0.9.120]
+	fft(const var &filename, dgraph &transformed, ...) introduced
+
+[0.9.119]
+	vertical gridlines are now cut at y1-cuts
+	set::x1cut etc introduced
+
+[0.9.118]
+	if there are several axis cuts, there are now correctly ordered
+	in increasing order. several axis cuts now print correctly (up to now, only
+	one axis cut printed correctly). the grid of a frame is not continuous
+	now if there are axis cuts (at least the y1 gridlines have a gap at x1 cuts)
+
+[0.9.117]
+	unneeded plottable::neighbors_hint(...) removed
+	terminal::minlength and length::min(vector<length> &) introducedk
+
+[0.9.116]
+	minor cosmetics
+
+[0.9.115]
+	Modifications to nicely compile with new cint
+
+[0.9.114]
+	cfunc (complex<double> (*p)(double)) added to header
+	isoline label positions / rotation angle are calculated more correctly
+
+[0.9.113]
+	cbox, scbox had misaligned texts in the colorbar when 
+	plot in an mframe. corrected
+
+[0.9.112]
+	cbox can have under/overflow colors
+
+[0.9.111]
+	vectors drawstyle can use user-specified function to derive color,
+	and uses a color-legendbox also. cbox and derived drawstyles have been
+	also reimplemented to reuse color-keying code
+
+[0.9.110]
+	vectors drawstyle can use colors to visualize length 
+	of arrows .use_color(bool)
+
+[0.9.109]
+	vectors drawstyle takes into account the axis limits. by default it 
+	scales the arrowhead as well.
+
+[0.9.108]
+	vectors drawstyle cuts of small values by default at 0.05*max
+
+[0.9.107]
+	libtermcap replaced with libncurses
+
+[0.9.106]
+	x11_gv had problems when printing several times with isolines, for example
+	fixed
+
+[0.9.105]
+	vectors drawstyle prints arrow into the legend, and uses plottable::linewidth
+	an plottable::linestyle
+
+[0.9.104]
+	check in length::operator= and other functions to prohibit
+	recursive definition.
+
+[0.9.103]
+	frame prints the contents and graphs in the order of adding them to the frame
+
+[0.9.102]
+	isolines plotted the lines twice, if several terminal::print(...) was called.
+	this is now corrected, and sample (legend) drawing is also corrected for isolines
+	'make test' made segfault or infinite loops (randomly commenting out 
+	parts helped to avoid - there is a bad problem somewhere...)
+
+[0.9.101]
+	graphd_vectors::min(double) to set minimum value
+
+[0.9.100]
+	graphd_vectors sets color from g->linecolor()
+
+[0.9.99]
+	graphd_mosaic puts by default frame to foreground
+
+[0.9.98]
+	complex<double> *(double)-type functions (interpreted or compiled)
+	can now be plotted or used as blop-functions (having 2-components)
+	arrowhead::filled introduced
+	isolines plots labels perfectly aligned with the isoline
+	user-examples directory added, to contain user-contributed examples
+
+[0.9.97]
+	symbolic constants are reorganized within the namespace 'sym'
+	for example sym::dashed, sym::left, etc
+	align::left for example is replaced by sym::left
+	bug in checking existing installation during 'make install' corrected
+
+[0.9.96]
+	bug in mpps.h corrected
+
+[0.9.95]
+	missing pure-virtual functions of mpps implemented
+	mosaic drawstyle now uses the user-defined color mapping function
+
+[0.9.94]
+	set::x1color, set::x1scale etc introduced
+
+[0.9.93]
+	make uninstall - removed this option
+	blop --uninstall  should be used to uninstall the software
+	blop-config --installed-files   reports the installed files
+
+[0.9.92]
+	documentation/tutorial and documentation/example Makefile was bad, it
+	created /example and /tutorial directories in the root filesystem. corrected
+	vectors drawstyle introduced
+
+[0.9.91]
+	new method to make coordinate transformations in the terminals. experimental version!!!
+
+[0.9.90]
+	deb package creation (make deb) does not clean the directory
+	making it much faster.
+	blop-config has the option --datadir
+
+[0.9.89]
+	source files can directly be accessed by 'blop -h filename.h'
+	or 'blop -h filename.cc' syntax, also docfiles are directly
+	accessible via 'blop -h docfile.html'
+	atan was missing, did nothing.
+
+[0.9.88]
+	isolines::labels("label1","label2",...) introduced
+
+[0.9.87]
+	[dvips] option removed from all places (for example from beps2eps,
+	which caused this script to fail)
+
+[0.9.86]
+	a bug in blopeps.sty corrected. pstricks package is now required
+	since it is used to position the annotation text
+	[dvips] option from the \usepackage[dvips]{color} removed (Option Clash...)
+	from all .tex files (documentation and test)
+
+[0.9.85]
+	\blopeps macro has new options: text=, textpos=, textalign=
+	for annotation
+
+[0.9.84]
+	plot_if(dgraph,funciton &condition,...) and
+	mplot_if(dgraph&,function &condition,...) inctroduced
+	mosaic assumes by default equidistant parameter-spacing
+	mosaic skips points which are out-of z-range
+
+[0.9.83]
+	One can specify a starting value for equidistantly spaced isolines
+	isolines labels are optimized to have largest distances not only
+	from the sides of the plot, but from preceeding labels as well.
+	hist::dx_hint hist::dy_hint corrected to be the full binsize (instead
+	of half-binsize)
+	discovered that there is already a debian package called 'blop'
+	debian package renamed to blop-plot, installation directories also 
+	changed accordingly
+
+[0.9.82]
+	Recommit after failed cvs commit
+
+[0.9.81]
+	configure and debian package creation improved (more accurate dependencies, etc)
+	cbox and scbox have nsamples(int) member function to set the fineness of colorbar
+
+[0.9.80]
+	configure checks ltermcap
+	init.C includes <vector>
+
+[0.9.79]
+	Compiled on Ubuntu 7.10. Debian package creation improved
+	config.mk contains now the configuration, and is included in all Makefiles
+
+[0.9.78]
+	some improvements in meas.cc
+	but corrected (placement of legendbox within a subframe of an mframe caused
+	wrongly placed tics, etc)
+
+[0.9.77]
+	interpolated function can be read from a file using filter functions
+
+[0.9.76]
+	function_core::arg returns unset, if the given argument is not
+	provided (without warning)
+
+[0.9.75]
+	gsl libraries were not included in blop-config --libs. corrected
+	fft.h included in blop.h
+
+[0.9.74]
+	var func(const vector<var> &args, const vector<var> &pars) functions
+	can be used as cfunc in compiled code
+
+[0.9.73]
+	CVS commit problem, recommitted
+
+[0.9.72]
+	cfunc(double (*)(double,double,double,double))
+	cfunc(var (*)(var,var,var,var)) defined (it existed only with a 
+	single argument cfunc(double (*)(double)) before)
+
+[0.9.71]
+	configure script improved, checks for gsl_fft_forward
+
+[0.9.70]
+	regex replacement implemented for var
+
+[0.9.69]
+	blop --update [version]
+	One can upgrade to a specific version by this (if it exists in
+	http://blopplot.sourceforge.net/download/
+	of if it is omitted, upgrade to the latest one
+
+[0.9.68]
+	hist::min implemented for int and function arguments
+	axis scale is written as $\\times$10^x
+	set::x1scale etc functions introduced for seting axis scales
+
+[0.9.67]
+	compiled regular expression is now freed (before it could have led
+	to memory leakage)
+
+[0.9.66]
+	regular expression matching added
+
+[0.9.65]
+	introduced the new streams iscpstream, oscpstream and ihttpstream
+
+[0.9.64]
+	frame plots its contents first, then the graphs
+	legendbox is by default filled
+	can change axis position
+
+[0.9.63]
+	plottable::max plottable::min take now a function argument, the 
+	functions min/max values over the whole graph can be obtained by this
+	-m argument to force interactive mode with redirected input
+
+[0.9.62]
+	fft for raw (packed) data is also made available
+	isfinite, isnan, etc functions added to interpreter interface
+	plotting of data in arrays can now be transformed on-line
+
+[0.9.61]
+	using the gsl fft algorithms (if installed) one can now make
+	arbitrary-length fourier transforms
+
+[0.9.60]
+	dgraph::default_pointsize_ and dgraph::default_linewidth_ is
+	initialized from PS and LW directly (previous version caused
+	segfault in for example dgraph::default_pointsize(0.3*PS);)
+
+[0.9.59]
+	blop --update does not use sudo (the user should do this)
+
+[0.9.58]
+	missing file removed from cvs
+
+[0.9.57]
+	bug in cfunc corrected (causing no output of such functions)
+
+[0.9.56]
+	Some problems in blop --update, if configure had options.
+	I don't understand why, but this is now corrected
+
+[0.9.55]
+	FFT documentation improved. Functions starting at t0 != 0.0
+	are now treated correctly.
+
+[0.9.54]
+	Fast Fourier Transformation (preliminary...)
+
+[0.9.53]
+	Some more tips of the day added.
+	array::replace introduced
+
+[0.9.52]
+	ticlabels drawstyle takes label values from x/y columns, if no
+	extra columns are specified. 
+	calculate_tics bug corrected (overlapping cut regions...)
+
+[0.9.51]
+	mpad::default_direction and mframe::default_direction is now made static
+	default directions changed to right_up
+
+[0.9.50]
+	--update checks if blop was installed via rpm/dpkg, and in this case
+	tries to create a package and upgrade blop via this way
+	make rpminstall checks if blop is already installed via rpm, and if so,
+	it calls rpm -U blop.rpm instead of rpm -i blop.rpm
+
+[0.9.49]
+	cbox, scbox and mosaic have legend(bool) instead of draw_legend(bool)
+
+[0.9.48]
+	draw_legend bug corrected 
+	blop --update will use the last-used configure options to compile
+
+[0.9.47]
+	tip of the day tuned
+
+[0.9.46]
+	tip of the day
+
+[0.9.45]
+	blop-helpviewer: text/html mimetype added for kfmclient to 
+	be able to open file:///path/to/file.html#name type URLs
+
+[0.9.44]
+	helpfiles are shown via an external script blop-helpviewer
+	--update bug corrected
+
+[0.9.43]
+	plottable::dup() function added
+	blop --update checks for update, downloads, compiles and installs it
+
+[0.9.42]
+	many warning messages using cerr<< are now printed via warning::print(...)
+
+[0.9.41]
+	cbox finds boxsize for unordered graphs much faster
+
+[0.9.40]
+	fit functions with no template argument (using gauss_chi2)
+	implemented both in compiled and interpreted code
+
+[0.9.39]
+	cbox skips points which are out of zrange
+
+[0.9.38]
+	clipping for band drawstyle
+
+[0.9.37]
+	blopeps::draw_text had problems if angle was almost zero (and was
+	written out like 1.234e-13). 0 angle is assumed if it is smaller than 0.001
+
+[0.9.36]
+	angle of isolines labels now correctly calculated
+
+[0.9.35]
+	src/init.C contained fit<...>(const dgraph &, ...), which has been
+	corrected to fit<...>(const plottable &)
+	title is (again) implemented for cbox
+
+[0.9.34]
+	orderedness is automatically calculated for fgraphs, dgraphs
+
+[0.9.33]
+	dx_hint/dy_hint is only set in fgraph, if p1==_1/p2==_2
+
+[0.9.32]
+	glib-config is not needed. removed from configure and blop-config
+	blop-config --cflags --libs puts a space between the cflags and libs
+
+[0.9.31]
+	Some more checks in configure
+
+[0.9.30]
+	-ltermcap is also added after -lreadline (to Makefile.cint)
+
+[0.9.29]
+	configure --enable-debug option introduced
+	LD_LIBRARY_PATH is set in top-level Makefile (newer cint versions need this
+	to be set to $CINTSYSDIR)
+	cintversion should be: 6.1.19 (the earlier 6.1.12 did not work!)
+	container implements now the margins and cleft, cwidth, etc dimension,
+	in a coherent manner
+
+[0.9.28]
+	Check the presence of glib-config as well, separately from gts-config
+
+[0.9.27]
+	mframe uses marginboxes, cbox (and relatex) drawstyles should now
+	produce a beautifully placed legend
+
+[0.9.26]
+	plottable::~plottable removes itself from each frame and legendboxes
+
+[0.9.25]
+	cbox drawstyles create a cbox_legend object into the marginbox of
+	the current frame
+
+
+[0.9.24]
+	margins removed from frame, and implemented in container; many changes related to
+	this!!!
+	marginboxes implemented for a frame, to put any objects around it. Title of a frame
+	is now implemented as a label inside the tmarginbox of the frame
+
+[0.9.23]
+	legendbox does not increase box size for empty legends
+
+[0.9.22]
+	graphd_isolines registers linewidth, therefore linewidth will have an effect
+
+[0.9.21]
+	blop version correctly obtained in configure script
+	modified flag is reset correctly in more objects, therefore no (less)
+	unnecessary replotting occurs in interactive mode
+
+[0.9.20]
+	old isolines drawstyle removed, isolines_gts renamed to isolines
+
+[0.9.19]
+	dummy code from configure script (for debugging) removed, now it should
+	work correctly
+	graphd_isolines_gts::colors(...) function added
+
+[0.9.18]
+	bug in graphd_isolines_gts::skip_(...) (accept/reject points)
+	is corrected
+
+[0.9.17]
+	global colors (black, red,blue, etc) initialized correctly
+	isolines_gts improved
+
+[0.9.16]
+	isolines2 drawstyle using gts library
+
+[0.9.15]
+	tic calculation improved: a tic at theoretical 0 (but represented by
+	some value like 1.734e-18) will now be shown as 0
+	upper limit for tics is extended by a tiny-bit to tolerate floating-point
+	imprecisions
+
+[0.9.14]
+	operator%(function,function) introduced
+	jpg terminal added
+
+[0.9.13]
+	stupid code removed from axis tic calculation. it is now *always* 
+	the blop::calculate_tics(...) function, which makes the job
+
+[0.9.12]
+	floor() function added
+	permanent attribute introduced for plottable
+
+[0.9.11]
+	mpad::modified() and mframe::modified() implemented, to check
+	the modification of sub frames/pads. Automatic replotting in case
+	of mframe/mpad now works
+
+[0.9.10]
+	set::y1transform, set::y2transform, set::x1transform, set::x2transform
+	introduced to easily set transformed axes
+
+	Number of tics is limited to 50 to avoid problems arising from bad settings
+
+	The global functions _1, _2, etc are initialized now more correctly
+
+[0.9.9]
+	replot_request class is returned by many set:: functions, upon which
+	G__ateval will make a replot in interactive mode (for example set::grid(true)
+	will cause an automatic replot)
+
+	an title_autoset flag is implemented in axis. if user sets title, this is set to
+	false, and the automatic title setting by dgraph will not have an effect
+
+[0.9.8]
+	_0 is replaced by LINENO if autotitles are used
+	random() generator returned negative numbers. corrected.
+
+[0.9.7]
+	histogram interpolation implemented
+
+
+[0.9.6]
+	'find -L' changed to 'find -follow' (did not run on some systems)
+	pstream runs commands using 'sh -c "exec cmd"' instead of 'sh -c "cmd"'
+	random-generators returned by random_gauss, random_exponential, etc, use now
+	function-parameters PAR(x)
+
+[0.9.5]
+	mframe::cd_first and mpad::cd_first introduced
+	colorsample legend can be switched off for cbox
+	array::sort_n() and array::sort_s() introduced
+	atan2 derivative implemented
+	##TITLES: and ##LTITLES: setting in the datafile
+
+[0.9.4]
+	An axis can be the transformation of another axis.
+
+[0.9.3]
+	No change, just testing the automatic cvs commit script
+
+[0.9.2]
+	bugs corrected in debian package creation: .deb file was always recreated
+	debian package files are created in debian/package-files
+
+	arc::draw functions implemented, but only 'rx' of the two different radii (rx and ry)
+	has any effect, and it will be a circle anyway. 
+
+	Documentation of mframe has the standard format
+
+	changelog is copied to the documentation directory during install
+	available via 'blop -h changelog' or 'blop -h version'
+
+[0.9.1]
+	Initial pre-release. Prepared to work with the future version of cint 
+	(shipping a cint-config script)
+
+	rpm and debian package creation is possible via 'make rpm' or 'make deb'

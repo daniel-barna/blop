@@ -1,0 +1,4 @@
+1 1  0.6 firstlabel                    "Cola"
+2 4  1.4 'secondlabel: several words'  "\textcolor{blue}{Wine}"
+3 9  1   thirdlabel                    "\textcolor{green}{Dark Beer}"
+4 16 0.8 fourthlabel                   "\textcolor{red}{Unicum}"

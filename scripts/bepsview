@@ -1,0 +1,68 @@
+#!/bin/sh
+
+# short description: view .beps files
+
+. @config@
+
+help()
+{
+cat 1>&2 <<EOF
+
+bepsview -- View directly .beps files (which are files to be included
+            LaTeX documents via the macro \blopeps)
+            This script transforms these files to .eps files using 
+            beps2eps, and then shows them using gv
+
+Usage:
+
+bepsview file1 [file2 ...]
+
+EOF
+}
+
+beps2eps=beps2eps
+
+compile_and_show()
+{
+  eps=`mktemp /tmp/bepsview-$USER-XXXXXX`
+  $beps2eps -q $1 $eps
+  gv $eps
+  rm -f $eps
+}
+
+if [ "$1" = "--help" -o "$1" = "-h" ] ; then
+  help
+  exit
+fi
+
+if [ $# -eq 0 ] ; then
+  help
+  exit  
+fi
+
+background=false
+if [ $# -gt 2 ] ; then
+  background=true
+fi
+
+which $beps2eps >/dev/null 2>&1
+if [ $? != 0 ] ; then
+  beps2eps=$BLOP_BINDIR/beps2eps
+  if [ ! -x $beps2eps ] ; then
+    echo 'beps2eps is not in your path, and (surprisingly) it also does'
+    echo 'not exist in the directory where blop executables are linked:'
+    echo $BLOP_BINDIR
+    exit 10
+  fi
+fi
+
+
+while [ $# -gt 0 ] ; do
+  if [ $background = "true" ] ; then
+     compile_and_show $1 &
+  else
+     compile_and_show $1
+  fi
+  shift
+done
+

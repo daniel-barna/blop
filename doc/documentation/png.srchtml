@@ -1,0 +1,35 @@
+TITLE: The png terminal
+PREV: x11_ps.html
+NEXT: jpg.html
+==>
+
+<pre class=prguide><u>Practical Guide:</u>
+
+plot("filename")....;   // plot something
+png::print("file.png","-transparent rgb:ff/ff/ff");
+    // print it to a png file named file.png
+    // the second argument is the options to beps2png
+</pre>
+<hr>
+
+<div class=description>
+
+This  is a  terminal derived  from blopeps:  first a  blopeps  file is
+created,  and then  it  is transformed  to  a png  file  using the  <a
+href="tools.html#beps2png">beps2png</a>  tool   of  blop.  The  static
+<tt>print(filename,opts)</tt>  function of  the  <tt>png</tt> terminal
+can be  used to print  the current canvas  to a file specified  by the
+first argument, the second argument  specifies the options to be given
+to <tt>beps2png</tt> (see <tt>beps2png --help</tt> for help)
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="png.h.html">png.h</a>
+   <a href="png.cc.html">png.cc</a>
+</pre>
+
+
+

@@ -1,0 +1,782 @@
+TITLE: Functions
+PREV: var.html
+NEXT: special-functions.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+The  user-defineable functions  in BLOP  accept arguments  of  type <a
+href="var.html"><tt>var</tt></a>, and return also a <tt>var</tt>.  Use
+<tt>_1</tt> ...  <tt>_20</tt> to access  the 1st, ... 20th argument of
+your function. The syntax is quite user-friendly
+<p><pre>
+function f = _1 + sin(_2);       // This defines a function, which needs 2 arguments. Returns the 1st argument + the sine of the 2nd
+var result = f(2,3.2425);        // Use the ( ) operators to evaluate the function
+
+function f2 = _1 &amp; "_" &amp; _2;      // This function concatentes its 2 arguments with an underscore in between
+result = f2("first","second");    // result is now: "first_second"
+
+function f3 = _1 * sin(_1);
+function deriv = f3.derivative(1);  // take the derivative with respect to the 1st variable
+cout&lt;&lt;deriv&lt;&lt;endl;                  // and print it to the screen
+
+function f = ifelse(_1<_2,_1,_2);   // this function will return the smaller of its 2 arguments
+</pre>
+
+<p>
+You can also define a C-function, and use it in the above mentioned way:
+
+<p><pre>
+var myfunc(var a,var b)
+{
+   if(a &lt; 3) return a*b;
+   return (a-3)*b;
+}
+
+function f = _1 + cfunc(myfunc)(_3,_2);  
+
+        // f needs 3 arguments. When evaluated, it calls 'myfunc' on its 3rd
+        // and 2nd arguments, and adds its first argument to the result of
+        // 'myfunc'
+</pre>
+
+<p>You can also use a compiled C-function (such as, for example, the
+'sin' function from the math library). 
+
+<pre>
+plot(_1,cfunc(sin));
+</pre>
+
+</div>
+<hr>
+
+<div class=description>  
+
+<ul>
+<li><a href="#functions">  What are functions?</a>
+<li><a href="#evaluation"> Evaluation of functions</a>
+<li><a href="#define">     How to define functions?</a>
+<li><a href="#params">     Function parameters </a>
+<li><a href="#sprint">     How to print functions' representation?</a>
+<li><a href="#cfunc">      How to use C-functions?</a>
+<li><a href="#modops">     +=, -=, *=, /= </a>
+<li><a href="#comparisons">&lt;, &lt;=, max(...), etc (comparisons)
+<li><a href="#ifelse">     Conditional functions</a>
+<li><a href="#multival">   Multivalued functions</a>
+<li><a href="#argsubst">   Creating a function from another one by argument substitution</a>
+<li><a href="#charfunc">   Characteristic function of an interval</a>
+<li><a href="#specfuncs">  Special functions </a>
+<li><a href="#defarg">     Default arguments </a>
+<li><a href="#arg_range">  Argument range, range checking </a>
+<li><a href="#random">     Random generators </a>
+<li><a href="#derivatives">Derivatives</a>
+<li><a href="#interpolated">Interpolated functions, splines, etc</a>
+<li><a href="#contained_in">Checking for a value contained in an array</a>
+<li><a href="#interpreted">Interactively define functions (interpreted)</a>
+<li><a href="#math">       The available mathematical functions </a>
+<li><a href="#sampling">   Sampling a function</a>
+<li><a href="#value_over_interval"> Value over an interval</a>
+<li><a href="#periodic">    Periodic function </a>
+<li><a href="#join_args">   Join arguments </a>
+</ul>
+
+<p><div class=sectiontitle><a name="functions">What  are  functions in  blop?</a></div>
+
+Since BLOP's  user interface is C++,  the user has a  large freedom to
+define and use functions written  in C/C++.  So this does not motivate
+the  introduction of  a  new class:  <tt>function</tt>  (so the  above
+practical  guide is  in principle  useless :-)  This is  introduced in
+order to provide a very user-friendly way for plotting data from files
+(where the  data columns need  transformation), or to  plot functions.
+The   several  <a  href="bloputils.h.html">plot   commands</a>  accept
+arguments of type <tt>function</tt>, for example the command
+
+<pre>plot("datafile", _1, sin(_2)+_3  );</pre>
+
+plots the sine  of the second column from "datafile"  added to the 3rd
+column, as a function of the first column. What is then <tt>_1</tt>?
+This is a predefined <tt>function</tt> object, which returns its first
+arguments. When a datafile is read for plotting, the function objects
+provided within the <tt>plot(...)</tt> command will be called, their
+first argument being the value of the first column, their second
+argument being the value of the second column, etc. As a result, the
+first column of the graph created with the above command will contain
+the values of the first column of the datafile, the second column of
+the graph will contain the sine of the values of the second column of
+the file + the values of the third column of the file.
+
+<p><div class=sectiontitle><a  name="evaluation">Evaluation  of functions</a></div>
+
+This is done by applying  the parenthesis operators.  These operators are
+defined with up to 6 arguments:
+
+<pre>
+var r1 = f(15,15);       // the value of 'r1' is 1, see the definition of 'f' above
+var r2 = h(2);           // the value of 'r2' is e^2
+</pre>
+
+If more than 6  arguments are needed, these have to be  put into an <a
+href="array.html">array</a>, and the  <tt>eval</tt> member function of
+<tt>function</tt> needs to be called:
+
+<pre>
+function ff = _1 + ... + ARG(35);
+array args;
+args.push_back(1); // first arg
+...
+args.push_back(35); // nth arg
+var result = ff.eval(args);
+</pre>
+
+
+<p><div class=sectiontitle><a name="define">How  to define functions?</a></div>
+
+ In order  to explain this, first  one has to learn  about the special
+functions <tt>_1</tt>,  <tt>_2</tt>, ..., <tt>_20</tt>.   Functions in
+blop  can be  <a href="#evaluation">evaluated</a>  with any  number of
+arguments   (see  later).    These  special   functions  (<tt>_1</tt>,
+<tt>_2</tt>, ... etc) return simply their first, second, etc. argument
+(if  one  would  need  more  than 20  arguments,  then,  for  example,
+<tt>ARG(21)</tt> should be used instead of <tt>_21</tt>).
+
+<pre>
+function f = _2;  // a function, which returns its 2nd argument
+f(1,3,5);         // this evaluates to 3
+</pre>
+
+Any complex functions  can then be defined by  combining these special
+functions using the usual operators  (<tt>+, -, *, /</tt>, etc) or the
+usual mathematical functions  (for example <tt>sin</tt>, <tt>exp</tt>,
+etc). The result is what one would expect:
+
+<pre>
+function f = sin(_1)*sin(_1) + cos(_2)*cos(_2);    // f returns the sine^2 of its 1st + cosine^2 of its 2nd arg.
+function g = 3 * f;                                // g also needs 2 arguments, since f also does, and
+                                                   // returns 3 times the value returned by f
+
+function concat = _1 &amp; _2;                         // concatenates its two arguments
+                                                   // (the <a href="var.html#append">&amp; operator</a> applied for <tt>vars</tt> concatenates its arguments
+</pre>
+
+<p>The comparison operators <tt>==</tt>, <tt>&lt;</tt>, <tt>&gt;</tt>
+are also defined to accept functions on their left and right side. In
+this case they return a function object (and not a boolean value). The
+returned function object will return 1.0, when called with such
+arguments, that the corresponding relation is fulfilled, and 0
+otherwise. Example:
+
+<pre>function LessThan = _1 &lt; _2;    // this will return 1.0 if its 1st argument is less than the second
+cerr&lt;&lt;LessThan(1.5, 2)&lt;&lt;endl; // prints 1 to stderr
+</pre>
+
+<p><div class=sectiontitle><a name="params">Function parameters</a></div>
+
+Beyond the <i>arguments</i> of a function (which are specified within
+the () parentheses at each evaluation) one can also specify permanent
+values (<i>parameters</i>) for the function:
+
+<pre>function f = PAR(1)*_1;  // return the first argument multiplied by the first parameter
+f.param(1,10);           // set first parameter to 10
+cerr&lt;&lt;f(5)&lt;&lt;endl;        // will print 50 </pre>
+
+By default, when  a function's text representation is  printed (see <a
+href="#sprint">below</a>), parameters  are represented symbolically as
+[#], where  # is  the number  of the parameter.  To represent  them as
+their current values, use the function <pre>function::print_param_value(bool)</pre>
+for  a single  function,  or set  it  globally via  the static  member
+function    <pre>function::default_print_param_value(bool)</pre>    to
+affect all functions created afterwards.
+
+<p>A parameter can have a name. To set it, use the
+<pre>parname(unsigned int parindex, const var &amp;name); // or
+param(unsigned int parindex, const var &amp;value, const var &amp;name);</pre>
+functions. A name is useful for example when fitting. Results on the
+parameters are then written out in a more readable way.
+
+<p>The format of individual parameters can also be controlled by the
+<pre>parformat(unsigned int parindex, const var &amp;format);</pre>
+function. Any later change to these parameters (with a 
+<tt>double</tt> value) will be formatted (as a string) using this format.
+See <a href="var.html#format"><tt>var::format(const var &amp;format)</tt></a>
+
+<p><div class=sectiontitle><a name="sprint">How to print functions' representation?</a></div>
+
+There are two ways to print a function's representation:
+<ul>
+<li><pre>function::sprint()</pre>
+<li><pre>function::sprint_latex(const var &amp;x="x", const var &amp;y="y", const var &amp;z="z")</pre>
+</ul>
+
+The first one prints a C++-like  code, which can be used in C++ script
+to define  the same  function (except that  for example [1]  should be
+replaced  by  PAR(1)).  The  second  one  emits  a  LaTeX  code,  more
+appropriate to display it on the plots. This is used to set the legend
+of plotted functions. The  three arguments define the replacements for
+_1,  _2 and  _3  (the first  three  arguments of  the function).   For
+example, by default the first argument is represented as <tt>x</tt>.
+
+<p><div class=sectiontitle><a name="cfunc">How to use C-functions?</a></div>
+
+Since blop is based in a  C/C++ interpreter, the user can expect, that
+it can  handle compiled  or interpreted C-functions  as well.  This is
+indeed the  case. To use a  C-function as a blop-function  (so that it
+can be plotted, or used in a fit), do this:
+
+<pre>double myfunc(double a, double b) { return a*a + sin(b); }
+function f = cfunc(myfunc);
+</pre>
+
+This  will create a  blop-function, which  (when evaluated)  calls the
+C-function  'myfunc'   with  its  1st  and  2nd   arguments  given  to
+'myfunc'. (The following happens in the background: blop will look for
+such compiled or interpreted C-functions with the given name 'myfunc',
+which have an 'acceptable' argument list: functions returning a double
+with   up  to   4   double  arguments,   functions   returning  a   <a
+href="var.html">var</a>  with upto  4 var  arguments, and  some other,
+which I will include here later)
+
+<p>If you want to have  'myfunc' called on other than the first 2
+arguments, use <a href="#argsubst">argument substitution</a>: 
+<pre>function f = cfunc(myfunc)(_2,2*_3);</pre>
+In this case the C-function 'myfunc'  will be called on the 2nd, and 2
+times the 3rd  argument of 'f' (warning: this  currently does not work
+due to a CINT bug. Use the following workaround: 
+<pre>function ftemp = cfunc(myfunc);
+function f = ftemp(_2,2*_3);</pre>
+
+<p><div class=sectiontitle><a   name="modops">Modifying  operators:</a></div>
+
+The  usual  <tt>+=</tt>,   <tt>-=</tt>,  <tt>*=</tt>  and  <tt>/=</tt>
+operators can  be used  to change the  definition of a  function.  The
+following code creates a function to be the sum of 4 gaussians:
+
+<pre>
+double amplitude[] = {2, 3, 3, 5};
+double center[] = {1, 10, 90, 150};
+double sigma[] = {3, 5, 30, 60 };
+function f;   // default initialization: constant 0
+for(int i=0; i<4; ++i)
+{
+   f += amplitude[i] * exp( - (_1-center[i])*(_1-center[i])/(2*sigma[i]*sigma[i]) );
+}
+</pre>
+
+<p><div class=sectiontitle><a name="comparisons">Comparison operators, functions</a></div>
+
+<p>The operators &lt;, &lt;=, etc and the functions <tt>max</tt> and
+<tt>min</tt> can be called on functions as well. They return a
+function object, which (when evaluated) returns the corresponding
+value of the evaluated values of its arguments. For example
+<pre>function f = max(_1,25);
+// a combination of a quadratic [-inf:1] and linear [1:inf] functions
+function g = (_1&lt;1)*_1*_1 + (_1&gt;=1)*(2*_1-1);
+</pre>
+
+<p><div class=sectiontitle><a name="ifelse">Conditional functions</a></div>
+
+<p>The <tt>ifelse(const function &amp;condition, const function
+&amp;iftrue, const function &amp;iffalse)</tt> function returns a
+blop-function. This functio will evaluate the condition, and return
+the return-values of either <tt>iftrue</tt> or <tt>iffalse</tt>,
+depending on the condition.
+
+
+<p><div class=sectiontitle><a name="multival">Multivalued functions</a></div>
+
+<p>Blop's functions can also be multivalued. To create a multivalued
+function, you can either 
+<ul>
+<li>Use its constructor with many functions as arguments, for example: <pre>function f(2*_1, sin(_1));</pre>
+<li>To initialize it to a multi-valued constant expression, you can
+initialize it from an array of constants:
+<pre>array values = split("1 2 3 4");
+function f(values);</pre>
+Or, more simply:
+<pre>function f(split("1 2 3 4"));</pre>
+<li>Or append other functions to it:
+<pre>function f;
+f.append(2*_1);
+f.append(sin(_1));</pre>
+</ul>
+
+The () operator (as described <a href="#evaluation">above</a>) will
+evaluate/return only the first component of the return-value (even if
+the function has multiple components). To get the multiple-valued
+result, use the <tt>meval(...)</tt> member function, where the
+arguments and the returned values will be in an array:
+
+<pre>function f(2*_1, sin(_1));
+array args;
+args.push_back(3.3); // this is the single argument to the function call
+array result;
+f.meval(args,result);</pre>
+
+<p><div class=sectiontitle><a  name="argsubst">Argument substitution</a></div>
+
+There  is one  more  way to  define  functions: new  functions can  be
+defined from existing ones, by argument substitutions. The parenthesis
+operators of <tt>function</tt> -  if called with <tt>function</tt>s as
+arguments, and not numerical values - make this:
+
+<pre>
+function f = _1 + _2;                             // it has two args, and adds its two arguments
+
+function g = f(sin(_1)*sin(_1), cos(_1)*cos(_1)); // g has 1 argument, and when evaluated, it calls 'f' with 
+                                                  // sin^2 and cos^2 of its only argument, therefore it returns
+                                                  // always 1
+</pre>
+
+<p><div class=sectiontitle><a   name="charfunc">Characteristic   functions</a></div> 
+
+The  characteristic function  of an  interval  return 1  if the  (1st)
+argument is  within the interval, 0  outside.  Such a  function can be
+created by
+
+<pre>charfunc(const function &amp;low, const function &amp;high, bool low_in=true, bool high_in=false);</pre> 
+
+The 3rd  and 4th argument can be  used to control if  the endpoints of
+the interval should be included. Example:
+
+<pre>
+function f = charfunc(0,1,true,false);
+f(0);     // evaluates to 1
+f(1);     // evaluates to 0
+f(-1);    // evaluates to 0
+f(0.5);   // evaluates to 1
+
+function g = charfunc(PAR(1), PAR(2));  // the interval can be specified 'on-line'
+                                        // by changing the function's parameters
+
+g.param(1,0);    // set first parameter to 0
+g.param(2,10);   // set second parameter to 10
+                 // so g(x) is 1 between 0-10, and 0 outside
+</pre>
+
+This can be used to create function interpreted only in an interval:
+function f = charfunc(0.01,0.99) * (1/_1 + 1/(1-_1));
+
+<p><div class=sectiontitle><a name="specfuncs">Special functions</a></div>
+
+<p>
+<dl>
+
+<dt>_1, _2, ...</dt> 
+<dd>Return the first, second, etc argument</dd>
+
+<dt>_0</dt>
+<dd>Returns the  named parameter "linenumber", which can be set via <tt>function::named_param("linenumber",value)</tt>.
+This mechanism is used to have access to the line number during
+plotting a datafile: when the data is read from the file, this
+parameter is set to the actual linenumber, so for example
+<tt>plot("datafile",_0,_1);</tt> will plot the values of the 1st
+column versus the linenumber
+</dd>
+
+<dt>_b, _B, _g</dt>
+<dd>
+These functions return the <i>named parameters</i> "blocknumber", "Blocknumber"  and
+"groupingvalue". These external parameters are set to
+<ul>
+<li>the block numbers of a
+datafile, or a dataset. Blocks are separated by single (_b, "blocknumber") or double
+(_B, "Blocknumber") empty lines in the datafile. Numbering of blocks starts from 0. </li>
+<li>the grouping value when plotting groups from a file </li>
+</ul>
+See <a href="plotting-data.html#gropus">this example</a>.
+</dd>
+
+<dt>_N</dt>
+<dd>Return the actual number of the arguments given to the function in
+this call. </dd>
+
+</dl>
+
+<p><div class=sectiontitle><a name="defarg">Default arguments</a></div>
+
+A function can be evaluated with any number of arguments, even with less
+arguments than what it actually uses. In this case the missing
+arguments are substituted with 0.0 as a number, and "" as string -
+unless one specifies default arguments:
+
+<pre>function f = _1*_2;
+f.def_arg(2,10);</pre>
+
+This function returns its first argument multiplied by the second
+argument. If the second argument is omitted, it defaults to 10.
+
+<p>When a function is initialized from another function, it inherits
+the default arguments. <a href="#argsubst">Argument substitution</a>
+will keep the default arguments of the function, which is being
+argument-substituted. 
+
+<p>To clear the default arguments of a function, use the
+<tt>clear_def_args()</tt> member function
+
+<p><div class=sectiontitle><a name="arg_range">Argument range, range checking</a></div>
+
+<p>One can define ranges (or min/max values separately) for the
+arguments of functions. These ranges can serve two purposes:
+<ul>
+<li>When plotting the function, these ranges will be taken
+automatically, unless the user owerrides them:
+<pre>function f=sin(_1);
+f.arg_range(1,0,3.1415); // specify range for 1st argument [0;PI]
+plot(_1,f);              // plot in the range as defined for 'f'
+plot(_1,f).p1range(0,2*3.1415); // override arg-range of 'f'
+</pre>
+<li>When calling functions, arguments can be checked (by default) if
+they are within the specified range. If not, a warning is printed.
+</ul>
+
+These are the functions to set/get the argument ranges for a function:
+<pre>function &function::arg_min(int arg_no, double min_value); // returns *this
+function &function::arg_min(int arg_no, double max_value); // returns *this
+function &function::arg_range(int arg_no, double minvalue, double maxvalue);
+double    function::arg_min(int arg_no);   // return min-value, or 'unset'
+double    function::arg_max(int arg_no);   // return max-value, or 'unset'</pre>
+
+The checking of arguments can be turned off/on using these two
+functions:
+<pre>
+function    &function::check_args(bool yesno);  // change for a given function
+static void  function::default_check_args(bool yesno);</pre>
+
+The second version is a static function, which sets a global flag: all
+functions created after this call will be effected, and their
+corresponding flag will be set accordingly (see <a
+href="design-concepts.html#default">the design concepts</a>).
+
+<p><div class=sectiontitle><a name="random">Random generators</a></div>
+
+The following C-functions return a function object, which (when
+evaluated) generates random numbers:
+
+<pre>function random();                     // generate random number in [0;1[
+function random(double to);            // generate random number in [0;to[
+function random(double x1, double x2); // generate random number in [x1;x2[
+function random_gauss(double a, double s, int parind=0); // gauss distribution around 'a', sigma='s'
+funciton random_exponential(double d, int parind=0);     // exp distribution 
+function random_idexponential(double d, int parind=0);   // id-exp distribution 
+</pre>
+
+Examples:
+
+<pre>plot(_1,sin(_1)+0.1*random());  // plot sine function with random errors </pre>
+
+The <tt>parind</tt> argument of these functions can be used to specify
+a <a href="#params">function-parameter</a> index, which will be used
+as the parameter of the generated distribution. If the default 0 is
+given, these numbers will be hardcoded into the function (that is, it
+will NOT use a function-parameter). If <tt>parind</tt> is greater than
+0, then that parameter (and the following, in case of random_gauss)
+will be used, and be set immediately to the specified value. 
+For example:
+
+<pre>function f = random_gauss(10,2,1);  //gauss distribution generator
+   // param 1 will be used as the mean, and is immediately set to 10
+   // param 2 will be used as sigma, and is immediately set to 2
+f.param(2,3); // one can later change the values of the parameters. Here: sigma </pre>
+
+The possibility to control the parameter index is also useful if one
+wants to use a random function in combination with another function,
+which also uses parameters:
+
+<pre>function f = random_gauss(10,2,1) + random_exponential(20,3);</pre>
+
+Here the random_gauss function will use its first and second
+parameters as the mean and sigma of the distribution (which are
+immediately set to 10 and 2 in this example), and the
+random_exponential function will use its 3rd parameter (which is
+immediately set to 20 here). If one could not specify, which
+parameters should be used by these random generators, there would be a
+collision: both terms of the above expression would use the same parameter.
+
+
+<p><div class=sectiontitle><a name="spline">Splines</a></div> 
+
+Splines can be created using the <tt>make_spline</tt> function. Example:
+<pre>
+double x[] = {1,2,3,4,5,6};
+double y[] = {1,1.2,5,6,3,2};
+function s = make_spline(x,y,6);
+</pre>
+
+<p><div class=sectiontitle><a  name="derivatives">Calculating  derivatives:</a></div>  
+
+If your function was defined  using an analytical formula (for example
+<tt>function f  = _1 * sin(_1);</tt>),  and not by  a C-function, then
+blop can calculate its derivative  function with respect to any of its
+arguments  or  its parameters.   To  do  this, the  <tt>derivative(int
+i)</tt> member  function can  be used. If  <tt>i</tt> is  positive, it
+returns  the  partial  derivative  with respect  to  the  <tt>i</tt>th
+variable  of the  function. If  it is  negative, then  it  returns the
+derivative with  respect to the -<tt>i</tt>th  parameter.  Well, since
+blop is  a plotting  utility, you  probably don't want  to use  it for
+formal  function  derivation  (there  are  much better  tools  on  the
+market). It was introduced in  order to support the fitting algorithm,
+and after  I implemented  it, I found  it making  so much fun,  that I
+included it into the documentation.
+
+<p>If the function is not specified by an analytical formula, but (for
+example) as a C-function:
+
+<pre>double myfunc(double x) { return x*x*2+1; }
+function  f =  cfunc(myfunc)</pre> 
+
+then blop can not calculate its  derivative. In this case the user can
+explicitely  specify  those derivatives,  which  will  be needed  (for
+example during a fit): 
+
+<pre>double myfunc_deriv(double x) { return 2*x; }
+f.derivative(1,cfunc(myfunc_deriv));  // derivative with respect to 1st argument</pre>
+
+<p><div class=sectiontitle><a name="interpolated">Interpolated functions, splines, etc</a></div>
+
+<p>
+This topic has been removed from this file, and has gone to a <a href="interpolation.html">separate one</a>
+
+
+<p><div class=sectiontitle><a name="contained_in">Checking for a value contained in an array</a></div>
+
+<p>For example when plotting data from a file, one would like to
+select only those lines, where a specific column takes
+some (discrete) values. For example plot the 1st and 2nd column from
+the file, if the 3rd column is either 1, 2 or 10. We suspect that our
+solution will be the <tt><a
+href="plotting-data.html#condition">plot_if(...)</a></tt>
+function. But how could we define a good condition-function for it?
+The solution is the following:
+
+<pre>function cond = contained_in(split("1 2 3 4"));</pre>
+
+Explanation: the 
+<pre>function contained_in(const function &amp;in_what)</pre> 
+
+C-function takes a blop-function as
+its argument (called <tt>in_what</tt> in this example) , and returns a
+blop-function. This returned function, when evaluated, will first
+evaluate the <tt>in_what</tt> function, and will return
+<ul>
+<li>1, if its 1st argument is contained in the (possibly
+multi-valued) return-value of the <tt>in_what</tt> function
+<li>0 otherwise
+</ul>
+
+In the above example the <tt>contained_in(...)</tt> function is called
+on an array. In this case automatically a <tt>function</tt> (returning
+these values) will be created from this array (by the constructor
+<tt>function::function(vector&lt;var&gt;&amp;)</tt>).
+
+<p>To impose this condition (containment in an array) on another
+argument (not the first one, but, for example on the 3rd one), one has
+to call argument-substitution: 
+
+<pre>function cond = contained_in(split("1 2 3 4"))(_3);</pre>
+
+This does not work in an interactive session due to CINT bugs, the
+workaround could be:
+
+<pre>function cond = contained_in(split("1 2 3 4"));
+cond = cond(_3);</pre>
+
+<p><div class=sectiontitle><a name="interpreted">Interactive, interpreted function definition</a></div>
+
+The <tt>function</tt> class was designed to make a very user-friendly,
+simple and intuitive way of defining functions. It is based on C++
+classes. There is no "parsing the formula from a string,
+etc". However, one would sometimes like to have a possibility to parse
+a string representation of a formula, to create a function. For
+example to read a signal's profile from a config file at run-time. 
+This is possible in blop, using the <tt>formula(const var &amp;)</tt>
+member function of a 'function':
+
+<pre>function func;
+var form;
+cerr&lt;&lt;"Give function definition (a'la blop): ";
+cin&gt;&gt;form;
+func.formula(form);</pre>
+
+This member  function only  works if your  code is compiled  with CINT
+support    (the    <tt>--cint</tt>    option    is   given    to    <a
+href="compile.html"><tt>blop-config</tt></a>).   The   formula  string
+(<tt>form</tt>) is given  to the CINT interpreter to  evaluate it, and
+assign the resulting function to the current object <tt>func</tt>. 
+Before calling this function, you should initialize the CINT
+interpreter by calling <tt>G__cint_init(const char *cmd)</tt>
+
+<p><div class=sectiontitle><a name="math">Available mathematical functions</a></div>
+
+The following  C mathematical functions have  their blop-wrapper (that
+is,  another  function  with  the   same  name,  which  takes  a  blop
+'<tt>function</tt>'  class as  argument, for  example <tt>sin(function
+&amp;)</tt>,  and return  a blop-function  class). In  the description
+below, both <tt>x</tt> and <tt>y</tt> refer to a <tt>function</tt>:
+
+exp(x),  log(x), log10(x), sqrt(x),  sin(x), cos(x),  tan(x), atan(x),
+cot(x),  acot(x),  sinh(x),   cosh(x),  tanh(x),  atanh(x),  asinh(x),
+acosh(x), erf(x), atan2(y,x), pow(x,y), sign(x), abs(x), floor(x), ceil(x)
+
+
+<p><div class=sectiontitle><a name="sampling">Sampling functions</a></div>
+
+One can sample a function(s) into a dgraph like this:
+<pre>int sample(dgraph &g, double dx, double from, double to,
+           const function &f1,
+           const function &f2=unset,
+           const function &f3=unset,
+           const function &f4=unset);</pre>
+The variable <tt>x</tt> is scanned from '<tt>from</tt>' to
+'<tt>to</tt>' with a stepsize of <tt>dx</tt>, and the provided
+functions are evaluated with this argument, and their values are
+stored in the dgraph <tt>g</tt>. Note that if you want to sample the
+function <tt>func</tt> for example together with the x values, you need
+to explicitely specify this like that:
+<pre>sample(g, 1, 0, 100, _1, func)</pre>
+Here, since two functions are specified for sampling, the graph will
+contain also 2 column, the first containing the values of x (returned
+by the special function <tt>_1</tt>), the second column containing the
+values of the function <tt>func</tt>
+
+<p><div class=sectiontitle><a name="value_over_interval">Value over an interval</a></div>
+
+One can create new functions from existing ones based on some value of them
+over an interval (maximum, integral, etc)
+<pre>
+function maximum(const function &amp;func,
+                 const function &amp;from,
+                 const function &amp;to,
+                 const function &amp;stepsize=0.0);
+
+function minimum(const function &amp;func,
+                 const function &amp;from,
+                 const function &amp;to,
+                 const function &amp;stepsize=0.0);
+
+function integral      (const function &amp;func,
+                        const function &amp;from,
+                        const function &amp;to,
+                        const function &amp;stepsize=0.0);
+
+// return the value of the integral of the function in the given range.
+// the function must have 1 arguments! if stepsize==0.0, 100 steps are chosen
+double   integral      (const function &amp;func,
+                        double from,
+                        double to,
+                        double stepsize=0.0);
+</pre>
+
+A    quick    way    to     explain    these    functions    is    the
+following. <tt>integral(somefunc,from=0,to=1);</tt>  is a number. Now,
+if <tt>from</tt> and <tt>to</tt> can  be functions, the result is also
+a function.
+
+<p>Let's denote  the blop-function created by one  of these functions:
+<pre>function  f  =  maximize(func,from,to,stepsize);</pre> Then,  the
+return value of  <tt>f</tt> evaluated at some <tt>x=(x1,x2,x3...)</tt>
+will be the following: <ul>
+
+<li>At each  <tt>x</tt>, a scan-range  is calculated as  the evaluated
+values  of <tt>from</tt>  and  <tt>to</tt> at  this <tt>x</tt>  value.
+These  scan-ranges may  be multi-valued  results, as  indicated above,
+i.e.  making  a multidimensional  scan, if the  function <tt>func</tt>
+has  several  arguments.   To  fix  a certain  argument  (in  case  of
+multidimensional   scan),    the   corresponding   <tt>from</tt>   and
+<tt>to</tt>  should be  set to  the same  value.  If  stepsize  is 0.0
+(default), 100 steps are used in the [from;to] interval.
+
+<li>The function  <tt>func</tt> is evaluated at  discrete steps within
+this scan range
+
+<li>The final return value is calculated from these discrete evaluated
+values (in the above case, their maximum)
+
+</ul>
+
+The example below creates the integral function 
+
+<span class="math">
+<span style="margin-right:-0.8em;">
+&int;
+<font size=-2 style="position:relative;top:0.5em;left:-0.5em;">0</font>
+<font size=-2
+style="position:relative;bottom:0.9em;left:-1.3em;">x</font>
+</span>
+a da
+</span>, 
+
+which is a parabola, <span class="math">0.5 x<sup>2</sup></span>
+
+<pre>function f = integral(_1,0,_1,0.01);
+plot(_1,f).p1range(0,10);</pre>
+
+These methods can also be used to reduce the dimension (number of
+arguments) of functions by integrating/maximizing/etc over a few
+arguments. The example below creates a 1-dimensional function from a
+2-dimensional function by integrating over its 1<sup>st</sup>
+variable:
+
+<pre>
+function f = exp(_1*_2);
+function g = integral(f,function(-1,_1),function(1,_1),function(0.01,-1.0));
+</pre>
+
+In this example, using the <span class="math">x=_1</span> and <span
+class="math">y=_2</span> notation for easier understanding,  <span
+class="math">f(x,y) = exp(x*y)</span>, a 2-dimensional function, and <span
+class="math">g</span> is a one-dimensional function 
+<span class="math">g(z) =
+<span style="margin-right:-0.8em;">
+&int;
+<font size=-2 style="position:relative;top:0.5em;left:-0.5em;">-1</font>
+<font size=-2
+style="position:relative;bottom:0.9em;left:-1.3em;">1</font>
+</span>
+f(x,z) dx = 2*sinh(x)/x
+</span>, which you can verify yourself. Note that the last argument
+for the <tt>integral</tt> function call (the stepsize),
+uses -1.0 for the 2<sup>nd</sup> variable, indicating that no
+integration is done over this variable (this variable 'survives' the
+integration). This is true in general, also for maximum finding, etc.
+
+<p>The following example also demonstrates well, how these things
+work. First try to understand and figure out what the output should be
+like, then check it:
+<pre>plot(_1,maximize(_1*sin(_1),0,_1,0.01)).p1range(0,30);</pre>
+
+
+<p><div class=sectiontitle><a name="periodic">Periodic functions</a></div>
+
+A periodic function can be created by constructing it over only one of
+its periods:
+<pre>periodic_function(const function &amp;f, double x1, double x2);</pre>
+
+
+<p><div class=sectiontitle><a name="join_args">Join arguments</a></div>
+A continuous range of function arguments can be joined by a separator:
+<pre>join_args(const function &amp;separator, const function &amp;from, const function &amp;to);</pre>
+The three argument functions (which specify the separator, and the
+range) are evaluated in each call of this function. Example:
+<pre>function f = join_args(" ",_3,_N);
+plot("data.dat",_1,_2,f).ds(labels());</pre>
+This code will plot labels at x,y coordinates specified in the 1st and
+2nd columns of the file. The labels are calculated by concatenating
+the other columns, starting from the number specified in the 3rd
+column, up to the last one. With this datafile:
+<pre>1 1 4 This is the first row
+2 2 5 This is the first row
+3 3 6 This is the first row</pre>
+the labels 'This is the first row', 'is the first row', 'thefirst row'
+will be plotted at coordinates (1,1), (2,2) and (3,3), respectively.
+
+<p> More will come soon.
+
+
+</div> <hr>
+
+<pre class=implementation> Source files:
+   <a href="function.h.html">function.h</a>
+   <a href="function.cc.html">function.cc</a>
+   <a href="spline.h.html">spline.h</a>
+   <a href="spline.cc.html">spline.cc</a>
+</pre>
+
