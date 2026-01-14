@@ -1,0 +1,458 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: units.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_UNITS_H__
+<a name="__line1"></a>#define __BLOP_UNITS_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include &lt;cmath&gt;
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>
+<a name="__line9"></a>namespace cons
+<a name="__line10"></a>{
+<a name="__line11"></a>    static constexpr  double pi   = 3.14159265358979323846; 
+<a name="__line12"></a>}
+<a name="__line13"></a>
+<a name="__line14"></a>namespace unit
+<a name="__line15"></a>{
+<a name="__line16"></a>    static constexpr double percent = 0.01;
+<a name="__line17"></a>    static constexpr double permill = 0.001;
+<a name="__line18"></a>    static constexpr double permil  = 0.001;
+<a name="__line19"></a>    static constexpr double ppm     = 1e-6;
+<a name="__line20"></a>
+<a name="__line21"></a>    static constexpr double deci  = 1e-1;
+<a name="__line22"></a>    static constexpr double centi = 1e-2;
+<a name="__line23"></a>    static constexpr double milli = 1e-3;
+<a name="__line24"></a>    static constexpr double micro = 1e-6;
+<a name="__line25"></a>    static constexpr double nano  = 1e-9;
+<a name="__line26"></a>    static constexpr double pico  = 1e-12;
+<a name="__line27"></a>    static constexpr double femto = 1e-15;
+<a name="__line28"></a>    static constexpr double atto  = 1e-18;
+<a name="__line29"></a>    static constexpr double zepto = 1e-21;
+<a name="__line30"></a>    static constexpr double yocto = 1e-24;
+<a name="__line31"></a>
+<a name="__line32"></a>    static constexpr double deca  = 10;
+<a name="__line33"></a>    static constexpr double hecto = 100;
+<a name="__line34"></a>    static constexpr double kilo  = 1e3;
+<a name="__line35"></a>    static constexpr double mega  = 1e6;
+<a name="__line36"></a>    static constexpr double giga  = 1e9;
+<a name="__line37"></a>    static constexpr double tera  = 1e12;
+<a name="__line38"></a>    static constexpr double peta  = 1e15;
+<a name="__line39"></a>    static constexpr double exa   = 1e18;
+<a name="__line40"></a>    static constexpr double zetta = 1e21;
+<a name="__line41"></a>    static constexpr double yotta = 1e24;
+<a name="__line42"></a>
+<a name="__line43"></a>    <span class=comment>// ---------- mass units ----------------------------------------------------------</span>
+<a name="__line44"></a>    static constexpr  double kilogram = 1;
+<a name="__line45"></a>    static constexpr  double kg = kilogram;
+<a name="__line46"></a>    static constexpr double  ton = kg * 1e3;
+<a name="__line47"></a>    static constexpr  double g  = kg * 1e-3;
+<a name="__line48"></a>    static constexpr  double gramm = g;
+<a name="__line49"></a>    static constexpr  double mg = g*1e-3;
+<a name="__line50"></a>    static constexpr  double amu = 1.66053886e-27*kg;
+<a name="__line51"></a>    static constexpr  double pound = 0.45359237*kg;
+<a name="__line52"></a>    static constexpr  double lbs = pound;
+<a name="__line53"></a>
+<a name="__line54"></a>    <span class=comment>// ---------- time units ----------------------------------------------------------</span>
+<a name="__line55"></a>    static constexpr  double second = 1;
+<a name="__line56"></a>    static constexpr  double s   = second;
+<a name="__line57"></a>    static constexpr  double ms  = s * 1e-3;
+<a name="__line58"></a>    static constexpr  double mus = s * 1e-6;
+<a name="__line59"></a>    static constexpr  double us  = s * 1e-6;
+<a name="__line60"></a>    static constexpr  double ns  = s * 1e-9;
+<a name="__line61"></a>    static constexpr  double ps = s * 1e-12;
+<a name="__line62"></a>    static constexpr  double fs = s * 1e-15;
+<a name="__line63"></a>    static constexpr  double minute = 60*second;
+<a name="__line64"></a>    static constexpr  double min    = minute;
+<a name="__line65"></a>    static constexpr  double hour = 60*minute;
+<a name="__line66"></a>    static constexpr  double h    = hour;
+<a name="__line67"></a>    static constexpr  double day = 24*hour;
+<a name="__line68"></a>    static constexpr  double week = 7*day;
+<a name="__line69"></a>    static constexpr  double month = 30*day;
+<a name="__line70"></a>    static constexpr  double year = 365*day;
+<a name="__line71"></a>
+<a name="__line72"></a>    <span class=comment>// ---------- frequency units -----------------------------------------------------</span>
+<a name="__line73"></a>    static constexpr double Hertz = 1.0/second;
+<a name="__line74"></a>    static constexpr double hertz = Hertz;
+<a name="__line75"></a>    static constexpr double Hz  = Hertz;
+<a name="__line76"></a>    static constexpr double kHz = Hz * 1e3;
+<a name="__line77"></a>    static constexpr double MHz = Hz * 1e6;
+<a name="__line78"></a>    static constexpr double GHz = Hz * 1e9;
+<a name="__line79"></a>    static constexpr double THz = Hz * 1e12;
+<a name="__line80"></a>    static constexpr double rpm = 1.0/unit::minute;
+<a name="__line81"></a>
+<a name="__line82"></a>    <span class=comment>// ---------- distance units ------------------------------------------------------</span>
+<a name="__line83"></a>    static constexpr  double meter = 1;
+<a name="__line84"></a>    static constexpr  double m   = meter;
+<a name="__line85"></a>    static constexpr  double dm  = m * 1e-1;
+<a name="__line86"></a>    static constexpr  double cm  = m * 1e-2;
+<a name="__line87"></a>    static constexpr  double mm  = m * 1e-3;
+<a name="__line88"></a>    static constexpr  double mum = m * 1e-6;
+<a name="__line89"></a>    static constexpr  double um  = m * 1e-6;
+<a name="__line90"></a>    static constexpr  double micron = mum;
+<a name="__line91"></a>    static constexpr  double nm  = nano * m;
+<a name="__line92"></a>    static constexpr  double pm  = pico * m;
+<a name="__line93"></a>    static constexpr  double fm  = femto * m;
+<a name="__line94"></a>    static constexpr  double fermi = fm;
+<a name="__line95"></a>    static constexpr  double angstrom = 1e-10 * meter;
+<a name="__line96"></a>    static constexpr  double Angstrom = 1e-10 * meter;
+<a name="__line97"></a>    static constexpr  double km = 1000*meter;
+<a name="__line98"></a>    static constexpr  double mile = 1609.344*meter;
+<a name="__line99"></a>    static constexpr  double inch = 25.4*mm;
+<a name="__line100"></a>    static constexpr  double mil  = 1e-3*inch;
+<a name="__line101"></a>    static constexpr  double foot = 0.3048*meter;
+<a name="__line102"></a>
+<a name="__line103"></a>    <span class=comment>// ---------- volume units  -------------------------------------------------------</span>
+<a name="__line104"></a>    static constexpr  double m3  = m*m*m;
+<a name="__line105"></a>    static constexpr  double dm3 = dm*dm*dm;
+<a name="__line106"></a>    static constexpr  double liter = dm3;
+<a name="__line107"></a>    static constexpr  double cm3 = cm*cm*cm;
+<a name="__line108"></a>    static constexpr  double mm3 = mm*mm*mm;
+<a name="__line109"></a>
+<a name="__line110"></a>    static constexpr  double m2  = m*m;
+<a name="__line111"></a>    static constexpr  double dm2 = dm*dm;
+<a name="__line112"></a>    static constexpr  double cm2 = cm*cm;
+<a name="__line113"></a>    static constexpr  double mm2 = mm*mm;
+<a name="__line114"></a>    static constexpr  double barn = 1e-28*m2;
+<a name="__line115"></a>    static constexpr  double b    = barn;
+<a name="__line116"></a>    static constexpr  double fb   = femto*barn;
+<a name="__line117"></a>
+<a name="__line118"></a>    
+<a name="__line119"></a>    <span class=comment>// ---------- energy units --------------------------------------------------------</span>
+<a name="__line120"></a>    static constexpr  double Joule   = kg * m*m / (second*second);
+<a name="__line121"></a>    static constexpr  double joule   = Joule;
+<a name="__line122"></a>    static constexpr  double J       = Joule;               <span class=comment>// SI unit</span>
+<a name="__line123"></a>    static constexpr  double mJ      = J * 1e-3;
+<a name="__line124"></a>    static constexpr  double kJ      = J * 1e3;
+<a name="__line125"></a>    static constexpr  double MJ      = J * 1e6;
+<a name="__line126"></a>    static constexpr  double GJ      = J * 1e9;
+<a name="__line127"></a>    static constexpr  double cal     = 4.184 * Joule;
+<a name="__line128"></a>    static constexpr  double kcal    = cal * 1000;
+<a name="__line129"></a>
+<a name="__line130"></a>    <span class=comment>// ---------- power units ---------------------------------------------------------</span>
+<a name="__line131"></a>    static constexpr  double Watt    = Joule/second;
+<a name="__line132"></a>    static constexpr  double watt    = Watt;
+<a name="__line133"></a>    static constexpr  double W       = Watt;
+<a name="__line134"></a>    static constexpr  double kW      = kilo*Watt;
+<a name="__line135"></a>    static constexpr  double MW      = mega*Watt;
+<a name="__line136"></a>    static constexpr  double GW      = giga*Watt;
+<a name="__line137"></a>    static constexpr  double TW      = tera*Watt;
+<a name="__line138"></a>    static constexpr  double PW      = peta*Watt;
+<a name="__line139"></a>    static constexpr  double mW      = W * 1e-3;
+<a name="__line140"></a>    
+<a name="__line141"></a>    <span class=comment>// ---------- charge unit ---------------------------------------------------------</span>
+<a name="__line142"></a>    static constexpr  double Coulomb = 1;
+<a name="__line143"></a>    static constexpr  double coulomb = Coulomb;
+<a name="__line144"></a>    static constexpr  double C = Coulomb;     <span class=comment>// Coulomb</span>
+<a name="__line145"></a>    static constexpr  double mC  = 1e-3*C;
+<a name="__line146"></a>    static constexpr  double muC = 1e-6*C;
+<a name="__line147"></a>    static constexpr  double nC  = 1e-9*C;
+<a name="__line148"></a>    static constexpr  double pC  = 1e-12*C;
+<a name="__line149"></a>    static constexpr  double fC  = 1e-15*C;
+<a name="__line150"></a>
+<a name="__line151"></a>    <span class=comment>// ---------- current units -------------------------------------------------------</span>
+<a name="__line152"></a>    static constexpr double Ampere = Coulomb/second;
+<a name="__line153"></a>    static constexpr double ampere = Ampere;
+<a name="__line154"></a>    static constexpr double A      = Ampere;
+<a name="__line155"></a>    static constexpr double mA     = 1e-3 * A;
+<a name="__line156"></a>    static constexpr double muA    = 1e-6 * A;
+<a name="__line157"></a>    static constexpr double nA     = 1e-9 * A;
+<a name="__line158"></a>    static constexpr double kA     = 1e3 * A;
+<a name="__line159"></a>    static constexpr double MA     = 1e6 * A;
+<a name="__line160"></a>    
+<a name="__line161"></a>
+<a name="__line162"></a>    <span class=comment>// ---------- force units ---------------------------------------------------------</span>
+<a name="__line163"></a>    static constexpr double Newton  = kilogram * meter / (second*second);
+<a name="__line164"></a>    static constexpr double newton  = Newton;
+<a name="__line165"></a>    static constexpr double N       = Newton;
+<a name="__line166"></a>    static constexpr double kN      = Newton * 1e3;
+<a name="__line167"></a>    static constexpr double lbf     = 4.44822162*Newton; <span class=comment>// http://en.wikipedia.org/wiki/Pound-force</span>
+<a name="__line168"></a>    
+<a name="__line169"></a>    <span class=comment>// ---------- temperature units ---------------------------------------------------</span>
+<a name="__line170"></a>    static constexpr double Kelvin = 1;
+<a name="__line171"></a>    static constexpr double kelvin = 1;
+<a name="__line172"></a>    static constexpr double K      = Kelvin;
+<a name="__line173"></a>    static constexpr double mK     = K * 1e-3;
+<a name="__line174"></a>    <span class=comment>//static constexpr double Fahrenheit = 5./9. * Kelvin;</span>
+<a name="__line175"></a>
+<a name="__line176"></a>    <span class=comment>// ---------- amount of substance -------------------------------------------------</span>
+<a name="__line177"></a>    static constexpr double mole   = 1;
+<a name="__line178"></a>    static constexpr double mol    = mole;
+<a name="__line179"></a>    
+<a name="__line180"></a>    <span class=comment>// ---------- luminous intensity  -------------------------------------------------</span>
+<a name="__line181"></a>    static constexpr double candela = 1;
+<a name="__line182"></a>    static constexpr double cd      = candela;
+<a name="__line183"></a>    
+<a name="__line184"></a>    <span class=comment>// ---------- Potential -----------------------------------------------------------</span>
+<a name="__line185"></a>    static constexpr  double Volt      = Joule/Coulomb;
+<a name="__line186"></a>    static constexpr  double volt      = Volt;
+<a name="__line187"></a>    static constexpr  double V         = Volt;
+<a name="__line188"></a>    static constexpr  double mV        = 1e-3 * V;
+<a name="__line189"></a>    static constexpr  double milliVolt = 1e-3 * V;
+<a name="__line190"></a>    static constexpr  double muV       = 1e-6 * V;
+<a name="__line191"></a>    static constexpr  double uV        = 1e-6 * V;
+<a name="__line192"></a>    static constexpr  double microVolt = 1e-6 * V;
+<a name="__line193"></a>    static constexpr  double kV        = 1e3 * V;
+<a name="__line194"></a>    static constexpr  double MV        = 1e6 * V;
+<a name="__line195"></a>    
+<a name="__line196"></a>    <span class=comment>// ---------- Magnetic field ------------------------------------------------------</span>
+<a name="__line197"></a>    static constexpr  double T     = 1;  <span class=comment>// Tesla</span>
+<a name="__line198"></a>    static constexpr  double Tesla = T;  <span class=comment>// move verbose name</span>
+<a name="__line199"></a>    static constexpr  double mT    = 1e-3 * T;
+<a name="__line200"></a>    static constexpr  double muT    = 1e-6 * T;
+<a name="__line201"></a>    static constexpr  double nT     = 1e-9 * T;
+<a name="__line202"></a>    static constexpr  double Gauss = 1e-4 * Tesla;
+<a name="__line203"></a>    static constexpr  double G     = Gauss;
+<a name="__line204"></a>    static constexpr double mG     = milli*Gauss;
+<a name="__line205"></a>    static constexpr double mGauss = milli*Gauss;
+<a name="__line206"></a>    static constexpr  double kGauss = kilo*Gauss;
+<a name="__line207"></a>    static constexpr  double kG     = kilo*Gauss;
+<a name="__line208"></a>    static constexpr  double Oersted = 1000/(4*cons::pi)*Ampere/meter;
+<a name="__line209"></a>    static constexpr  double Oe      = Oersted;
+<a name="__line210"></a>
+<a name="__line211"></a>    static constexpr double Weber = 1*T*m2;
+<a name="__line212"></a>    static constexpr double weber = Weber;
+<a name="__line213"></a>    static constexpr double Wb    = Weber;
+<a name="__line214"></a>
+<a name="__line215"></a>    static constexpr  double Debye = 3.33564e-30 * Coulomb*meter; 
+<a name="__line216"></a>    
+<a name="__line217"></a>    <span class=comment>// ---------- resistance units ----------------------------------------------------</span>
+<a name="__line218"></a>    static constexpr double Ohm      = Volt/Ampere;
+<a name="__line219"></a>    static constexpr double ohm      = Volt/Ampere;
+<a name="__line220"></a>    static constexpr double mOhm     = 1e-3 * Ohm;
+<a name="__line221"></a>    static constexpr double muOhm    = 1e-6 * Ohm;
+<a name="__line222"></a>    static constexpr double microOhm = 1e-6 * Ohm;
+<a name="__line223"></a>    static constexpr double uOhm     = 1e-6 * Ohm;
+<a name="__line224"></a>    static constexpr double nOhm     = 1e-9 * Ohm;
+<a name="__line225"></a>    static constexpr double nanoOhm  = nOhm;
+<a name="__line226"></a>    static constexpr double kOhm     = 1e3  * Ohm;
+<a name="__line227"></a>    static constexpr double MOhm     = 1e6  * Ohm;
+<a name="__line228"></a>    static constexpr double Siemens  = 1/Ohm;
+<a name="__line229"></a>    static constexpr double siemens  = Siemens;
+<a name="__line230"></a>    static constexpr double S        = Siemens;
+<a name="__line231"></a>    static constexpr double mS       = 1e-3 * Siemens;
+<a name="__line232"></a>    static constexpr double muS      = 1e-6 * Siemens;
+<a name="__line233"></a>
+<a name="__line234"></a>    <span class=comment>// ---------- Angle units ---------------------------------------------------------</span>
+<a name="__line235"></a>    static constexpr  double radian = 1;
+<a name="__line236"></a>    static constexpr  double rad    = 1;
+<a name="__line237"></a>    static constexpr  double mrad   = milli*radian;
+<a name="__line238"></a>    static constexpr  double mradian = mrad;
+<a name="__line239"></a>    static constexpr  double degree = 3.14159265358979323846/180.0;
+<a name="__line240"></a>    static constexpr  double deg    = degree;
+<a name="__line241"></a>    
+<a name="__line242"></a>    <span class=comment>// ---------- capacitance units ---------------------------------------------------</span>
+<a name="__line243"></a>    static constexpr double Farad = s*s*s*s * A*A / kg / (m*m);
+<a name="__line244"></a>    static constexpr double farad = Farad;
+<a name="__line245"></a>    static constexpr double F       = Farad;
+<a name="__line246"></a>    static constexpr double mF      = 1e-3 * F;
+<a name="__line247"></a>    static constexpr double mFarad  = 1e-3 * F;
+<a name="__line248"></a>    static constexpr double muF     = 1e-6 * F;
+<a name="__line249"></a>    static constexpr double muFarad = 1e-6 * F;
+<a name="__line250"></a>    static constexpr double uF      = 1e-6 * F;
+<a name="__line251"></a>    static constexpr double nF      = 1e-9 * F;
+<a name="__line252"></a>    static constexpr double nFarad  = 1e-9 * F;
+<a name="__line253"></a>    static constexpr double pF      = 1e-12 * F;
+<a name="__line254"></a>    static constexpr double pFarad  = 1e-12 * F;
+<a name="__line255"></a>
+<a name="__line256"></a>    <span class=comment>// ---------- inductance units ----------------------------------------------------</span>
+<a name="__line257"></a>    static constexpr double Henry  = kg * m*m / (s*s) / (A*A);
+<a name="__line258"></a>    static constexpr double henry  = Henry;
+<a name="__line259"></a>    static constexpr double H      = Henry;
+<a name="__line260"></a>    static constexpr double mH     = 1e-3 * H;
+<a name="__line261"></a>    static constexpr double mHenry = 1e-3 * H;
+<a name="__line262"></a>    static constexpr double muH    = 1e-6 * H;
+<a name="__line263"></a>    static constexpr double muHenry= 1e-6 * H;
+<a name="__line264"></a>    static constexpr double microHenry= 1e-6 * H;
+<a name="__line265"></a>    static constexpr double microH    = microHenry;
+<a name="__line266"></a>    static constexpr double uH        = microHenry;
+<a name="__line267"></a>    static constexpr double nH     = 1e-9 * H;
+<a name="__line268"></a>    static constexpr double nHenry = 1e-9 * H;
+<a name="__line269"></a>    static constexpr double nanoHenry = 1e-9 * H;
+<a name="__line270"></a>    static constexpr double nanohenry = 1e-9 * H;
+<a name="__line271"></a>    static constexpr double pH     = 1e-12* H;
+<a name="__line272"></a>    static constexpr double pHenry = 1e-12* H;
+<a name="__line273"></a>
+<a name="__line274"></a>    <span class=comment>// ---------- pressure units ------------------------------------------------------</span>
+<a name="__line275"></a>    static constexpr double Pascal = Newton / (meter*meter);
+<a name="__line276"></a>    static constexpr double pascal = Pascal;
+<a name="__line277"></a>    static constexpr double Pa     = Pascal;
+<a name="__line278"></a>    static constexpr double kPa    = 1e3 * Pa;
+<a name="__line279"></a>    static constexpr double MPa    = 1e6 * Pa;
+<a name="__line280"></a>    static constexpr double GPa    = 1e9 * Pa;
+<a name="__line281"></a>    static constexpr double mPa    = 1e-3 * Pa;
+<a name="__line282"></a>    static constexpr double muPa   = 1e-6 * Pa;
+<a name="__line283"></a>    static constexpr double Torr   = 133.3223999*Pa;
+<a name="__line284"></a>    static constexpr double mTorr  = 1e-3 * Torr;
+<a name="__line285"></a>    static constexpr double bar    = 1e5 * Pa;  <span class=comment>// = 750.062 Torr = 0.9869 atm</span>
+<a name="__line286"></a>    static constexpr double mbar   = 1e-3 * bar;
+<a name="__line287"></a>    static constexpr double atm    = 760 * Torr;
+<a name="__line288"></a>    static constexpr double psi    = lbf/(inch*inch);   <span class=comment>// pound per square-inch http://en.wikipedia.org/wiki/Pounds_per_square_inch</span>
+<a name="__line289"></a>    static constexpr double ksi    = 1000*psi;          <span class=comment>// kilo-pound per square-inch</span>
+<a name="__line290"></a>
+<a name="__line291"></a>    inline static double F2K(double F) { return (F+459.67)*5.0/9.0; } <span class=comment>// Fahrenheit to Kelvin</span>
+<a name="__line292"></a>    inline static double K2F(double K) { return K*9.0/5.0-459.67; }  <span class=comment>// Kelvin to Fahrenheit</span>
+<a name="__line293"></a>    inline static double F2C(double F) { return (F-32)*5.0/9.0; }    <span class=comment>// Fahrenheit to Celsius</span>
+<a name="__line294"></a>    inline static double C2F(double C) { return C*9.0/5.0+32;   }    <span class=comment>// Celsius to Fahrenheit</span>
+<a name="__line295"></a>    inline static function F2K(function F) { return (F+459.67)*5.0/9.0; } <span class=comment>// Fahrenheit to Kelvin</span>
+<a name="__line296"></a>    inline static function K2F(function K) { return K*9.0/5.0-459.67; }  <span class=comment>// Kelvin to Fahrenheit</span>
+<a name="__line297"></a>    inline static function F2C(function F) { return (F-32.0)*5.0/9.0; }    <span class=comment>// Fahrenheit to Celsius</span>
+<a name="__line298"></a>    inline static function C2F(function C) { return C*9.0/5.0+32.0;   }    <span class=comment>// Celsius to Fahrenheit</span>
+<a name="__line299"></a>
+<a name="__line300"></a>
+<a name="__line301"></a>    <span class=comment>// ---------- radiation -----------------------------------------------------------</span>
+<a name="__line302"></a>    static constexpr double Becquerel = 1/s;
+<a name="__line303"></a>    static constexpr double Bq = Becquerel;
+<a name="__line304"></a>    static constexpr double Curie = 3.7e10*Bq;
+<a name="__line305"></a>    static constexpr double Ci = Curie;
+<a name="__line306"></a>    static constexpr double mCi = 1e-3*Ci;
+<a name="__line307"></a>    static constexpr double muCi = 1e-6*Ci;
+<a name="__line308"></a>    static constexpr double gray = Joule/kg;  <span class=comment>// 1 Joule absorbed in 1 kg</span>
+<a name="__line309"></a>    static constexpr double Gy = gray;
+<a name="__line310"></a>    <span class=comment>//static constexpr double rad = 0.01*Gy;  this already exists as radian!</span>
+<a name="__line311"></a>    static constexpr double Sievert = 1;
+<a name="__line312"></a>    static constexpr double Sv = Sievert;
+<a name="__line313"></a>    static constexpr double mSv = 1e-3*Sv;
+<a name="__line314"></a>    static constexpr double muSv = 1e-6*Sv;
+<a name="__line315"></a>    static constexpr double rem = 0.01*Sv;
+<a name="__line316"></a>    static constexpr double mrem = 1e-3*rem;
+<a name="__line317"></a>
+<a name="__line318"></a>}
+<a name="__line319"></a>
+<a name="__line320"></a>namespace cons
+<a name="__line321"></a>{
+<a name="__line322"></a>     static constexpr  double c    = 299792458  * blop::unit::m/blop::unit::s;       <span class=comment>// speed of light     [m/s] (CODATA, 2006)</span>
+<a name="__line323"></a>     static constexpr  double h    = 6.6260693e-34 * blop::unit::J*blop::unit::s;    <span class=comment>// Planck's constexprant  [Js] (CODATA, 2006)</span>
+<a name="__line324"></a>     static constexpr  double hbar = h/2/pi;                             <span class=comment>// Planck's constexprant  [Js]</span>
+<a name="__line325"></a>     static constexpr  double kB   = 1.3806505e-23 * blop::unit::J/blop::unit::K;    <span class=comment>// Boltzmann constexprant [J/K] (CODATA, 2006)</span>
+<a name="__line326"></a>     static constexpr  double e    = 1.60217653e-19 * blop::unit::C;           <span class=comment>// electron charge  [C] (CODATA, 2006)</span>
+<a name="__line327"></a>     static constexpr  double epsilon0 = 8.854187817e-12;                <span class=comment>// permittivity of free space [F/m] (CODATA 2006)</span>
+<a name="__line328"></a>     static constexpr  double mu0      = 12.566370614e-7;                <span class=comment>// permeability of free spa [N/A^2] (CODATA 2006)</span>
+<a name="__line329"></a>     static const  double Z0       = ::sqrt(mu0/epsilon0);           <span class=comment>// impedance of free space</span>
+<a name="__line330"></a>
+<a name="__line331"></a>     static constexpr  double m_proton   = 1.67262171e-27*blop::unit::kg;      <span class=comment>// mass of proton (CODATA, 2006)</span>
+<a name="__line332"></a>     static constexpr  double m_electron = 9.1093826e-31*blop::unit::kg;       <span class=comment>// mass of electron (CODATA, 2006)</span>
+<a name="__line333"></a>     static constexpr  double m_deuteron = 3.34358335e-27 * blop::unit::kg;    <span class=comment>// mass of deuteron (CODATA, 2006)</span>
+<a name="__line334"></a>     static constexpr  double m_helion   = 5.00641214e-27*blop::unit::kg;      <span class=comment>// mass of 3He nucleus (CODATA, 2006)</span>
+<a name="__line335"></a>
+<a name="__line336"></a>     static constexpr  double bohr_radius = 0.5291772108e-10;            <span class=comment>// [m] (CODATA, 2006)</span>
+<a name="__line337"></a>     static constexpr  double bohr_magneton = e*(hbar/(2*m_electron)); 
+<a name="__line338"></a>
+<a name="__line339"></a>     static constexpr  double Rydberg = 1.0973731568525e7;    <span class=comment>// cons::m_electron*pow(cons::e,4)/(8*pow(cons::epsilon0,2)*pow(cons::h,3)*cons::c)</span>
+<a name="__line340"></a>
+<a name="__line341"></a>     <span class=comment>// Coulomb's constexprant: F = k*q1*q2/r^2</span>
+<a name="__line342"></a>     static constexpr  double ke = 8.9875517873681764e9*blop::unit::Newton*blop::unit::m2/(blop::unit::Coulomb*blop::unit::Coulomb);
+<a name="__line343"></a>     static constexpr double coulomb_constexprant = ke;
+<a name="__line344"></a>
+<a name="__line345"></a>     <span class=comment>// Avogadro's constexprant</span>
+<a name="__line346"></a>     static constexpr  double Avogadro = 6.02214199e23;
+<a name="__line347"></a>
+<a name="__line348"></a>     <span class=comment>// fine structure constexprant</span>
+<a name="__line349"></a>     static constexpr  double alpha = 7.297352568e-3; <span class=comment>// e*e/2/epsilon0/h/c;      (CODATA value, 2006)</span>
+<a name="__line350"></a>
+<a name="__line351"></a>     <span class=comment>// gravitational constexprant: F = G*m1*m2/r^2</span>
+<a name="__line352"></a>     static constexpr  double G     = 6.67428e-11 * blop::unit::Newton*blop::unit::m*blop::unit::m/(blop::unit::kg*blop::unit::kg);
+<a name="__line353"></a>     <span class=comment>// standard gravity (acceleration on the surface of earth)</span>
+<a name="__line354"></a>     static constexpr  double g     = 9.80665 * blop::unit::m/(blop::unit::s*blop::unit::s); <span class=comment>// http://en.wikipedia.org/wiki/Pound-force</span>
+<a name="__line355"></a>
+<a name="__line356"></a>
+<a name="__line357"></a>}
+<a name="__line358"></a>
+<a name="__line359"></a>namespace unit
+<a name="__line360"></a>{
+<a name="__line361"></a>   <span class=comment>// ---------- atomic units --------------------------------------------------------</span>
+<a name="__line362"></a>
+<a name="__line363"></a>     static constexpr  double atomic_mass     = cons::m_electron;
+<a name="__line364"></a>
+<a name="__line365"></a>     static constexpr  double atomic_charge   = cons::e;
+<a name="__line366"></a>
+<a name="__line367"></a>     static constexpr  double atomic_length   = cons::bohr_radius;
+<a name="__line368"></a>
+<a name="__line369"></a>    <span class=comment>// atomic unit of velocity: velocity in first bohr orbit</span>
+<a name="__line370"></a>     static constexpr  double atomic_velocity = cons::e*cons::e/(4*cons::pi*cons::epsilon0*cons::hbar);
+<a name="__line371"></a>
+<a name="__line372"></a>    <span class=comment>// atomic unit of time: period of the first bohr orbit divided by 2pi</span>
+<a name="__line373"></a>     static constexpr  double atomic_time     = cons::bohr_radius / atomic_velocity;
+<a name="__line374"></a>	                                       
+<a name="__line375"></a>     static constexpr  double atomic_frequency = 1.0/atomic_time;
+<a name="__line376"></a>
+<a name="__line377"></a>    <span class=comment>// atomic unit of energy, twice the ionization otential of atomic hydrogen, 27.2113845 eV</span>
+<a name="__line378"></a>     static constexpr  double atomic_energy   = cons::e*cons::e/(4*cons::pi*cons::epsilon0*cons::bohr_radius);
+<a name="__line379"></a>     static constexpr  double hartree         = atomic_energy;
+<a name="__line380"></a>
+<a name="__line381"></a>     static constexpr  double eV      = cons::e * unit::V;   <span class=comment>//1.602176462e-19 * J;</span>
+<a name="__line382"></a>     static constexpr  double keV     = eV * 1e3;
+<a name="__line383"></a>     static constexpr  double MeV     = eV * 1e6;
+<a name="__line384"></a>     static constexpr  double GeV     = eV * 1e9;
+<a name="__line385"></a>     static constexpr  double TeV     = eV * 1e12;
+<a name="__line386"></a>     static constexpr  double meV     = eV * 1e-3;
+<a name="__line387"></a>
+<a name="__line388"></a>     <span class=comment>// units for masses of elementary particles</span>
+<a name="__line389"></a>     static constexpr  double MeVc2   = MeV*cons::c*cons::c;
+<a name="__line390"></a>     static constexpr  double keVc2   = keV*cons::c*cons::c;
+<a name="__line391"></a>     static constexpr  double GeVc2   = GeV*cons::c*cons::c;
+<a name="__line392"></a>
+<a name="__line393"></a>    <span class=comment>// Rydberg = ionization potential of hydrogen</span>
+<a name="__line394"></a>     static constexpr  double Ry              = 0.5 * hartree;   <span class=comment>// 13.60569172 * eV;</span>
+<a name="__line395"></a>     static constexpr  double Rydberg         = Ry;
+<a name="__line396"></a>    
+<a name="__line397"></a>    <span class=comment>// electric dipole</span>
+<a name="__line398"></a>     static constexpr  double atomic_dipole   = atomic_charge * atomic_length;  <span class=comment>// 2.54175*Debye</span>
+<a name="__line399"></a>
+<a name="__line400"></a>
+<a name="__line401"></a>     string default_format();
+<a name="__line402"></a>     void default_format(const var &amp;f);
+<a name="__line403"></a>
+<a name="__line404"></a>}
+<a name="__line405"></a>
+<a name="__line406"></a>namespace cons
+<a name="__line407"></a>{
+<a name="__line408"></a>     static constexpr double m_muon     = 105.658367*unit::MeV/(blop::cons::c*blop::cons::c); <span class=comment>// http://pdg.lbl.gov/2010/tables/rpp2010-sum-leptons.pdf</span>
+<a name="__line409"></a>     static constexpr double m_pion0    = 134.9766 * unit::MeV/(blop::cons::c*blop::cons::c); <span class=comment>// http://pdg.lbl.gov/2010/tables/rpp2010-sum-mesons.pdf</span>
+<a name="__line410"></a>     static constexpr double m_pionpm   = 139.57018* unit::MeV/(blop::cons::c*blop::cons::c);
+<a name="__line411"></a>     static constexpr double m_pion     = 0.5*(m_pion0+m_pionpm);
+<a name="__line412"></a>     static constexpr double m_kaonpm   = 493.677  * unit::MeV/(blop::cons::c*blop::cons::c);
+<a name="__line413"></a>     static constexpr double m_Kpm      = m_kaonpm;
+<a name="__line414"></a>     static constexpr double m_kaon0    = 497.614  * unit::MeV/(blop::cons::c*blop::cons::c);
+<a name="__line415"></a>     static constexpr double m_K0       = m_kaon0;
+<a name="__line416"></a>
+<a name="__line417"></a>}
+<a name="__line418"></a>
+<a name="__line419"></a>bool find_unit_or_cons(const var &amp;name, double *value, string *symbol=0);
+<a name="__line420"></a>std::string symbol_of_unit_or_cons(const var &amp;name);
+<a name="__line421"></a>double      value_of_unit_or_cons(const var &amp;name);
+<a name="__line422"></a>
+<a name="__line423"></a>
+<a name="__line424"></a>}
+<a name="__line425"></a>
+<a name="__line426"></a>#endif
+<a name="__line427"></a>
+<a name="__line428"></a>
+<a name="__line429"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

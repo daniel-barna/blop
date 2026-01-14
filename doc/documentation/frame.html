@@ -1,0 +1,198 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Frame</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="canvas-pad.html">
+   <link rel="Next" href="mframe.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="canvas-pad.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: canvas-pad.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="mframe.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: mframe.html">
+    </a> <br>
+
+<center class=title><b>
+Frame
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u><br>
+<pre>
+frame &f = frame::mknew().roffset(3*MM).lmargin(4*CM);   // create a new frame
+f.grid(axis::x1|axis::y1);                  // switch on grids along both axes
+</pre>
+</div>
+<hr>
+
+<div class=description>
+... under construction
+
+<ul>
+<li><a href="#what">      What is a frame?    </a>
+<li><a href="#current">   The current frame   </a>
+<li><a href="#grid">      Setting a grid      </a>
+<li><a href="#title">     Setting the title   </a>
+<li><a href="#legendbox"> The legendbox       </a>
+<li><a href="#mirror">    Mirroring axis tics </a>
+<li><a href="#nodistort"> Fixing aspect ratio to reflect plotted range</a>
+</ul>
+
+<! ============== What  is a frame? =================================>
+
+<p><div class=sectiontitle><a  name="what">What is a  frame?</a></div> 
+
+A frame is an  object (also a <a href="container.html">container</a>),
+which sets up 4 axes (2 horizontal: x1 and x2, and 2 vertical ones: y1
+and y2) and a coordinate system for drawing graphs. When a set of data
+is plotted (for  example <tt>plot("datafile");</tt>), then the created
+graph  is  automatically placed  into  the <a  href="#current">current
+frame</a>.
+
+<! ============== The current frame =================================>
+
+<p><div class=sectiontitle><a  name="current">The current frame</a></div>  
+
+In  order to make  life easier  (so that  you do  not have  to specify
+always, into which  frame a certain graph should  be placed), there is
+always a  <i>current frame</i>, and  the plot commands will  place the
+resulting graphs  into this current  frame.  This frame  is accessible
+via  the  static  <tt>frame::current()</tt>  member  function  of  the
+<tt>frame</tt> class. This function  returns a <b>reference</b> to the
+current frame.
+
+<! ==============  Setting a grid ===================================>
+<p><div class=sectiontitle><a  name="grid">Setting  a grid</a></div>  
+
+One can  draw a grid  (dotted horizontal and/or vertical  lines across
+the frame)  at the  tics of  any of the  4 axes.  For example  to draw
+gridlines    at    the    tics    of    the   x1    and    y1    axes:
+<tt>frame::current().grid(axis::x1|axis::y1)</tt>
+
+
+<! ==============  Setting frame title  =============================>
+<p><div class=sectiontitle><a name="title">Title</a></div>  
+
+To set a frame  title, call the <tt>title(const&nbsp;var&)</tt> member
+function.  This will automatically make  space above the frame for the
+title. Calling this  function with an empty string  removes the title,
+and resets the topmargin to  the default value.  To obtain the current
+title, call the argument-less <tt>title()</tt> function.  The distance
+of  the  title  from  the  frame  itself  can  be  controlled  by  the
+<tt>titlesep(const&nbsp;length&)</tt>  member  function  (the  default
+value can be set by <tt>default_titlesep(const&nbsp;length&)</tt>, see
+<a href="design-concepts.html#default">here</a>).
+
+<p>A wrapper function exists to easily set the title of the current frame:
+<pre>set::title("Title of frame");</pre>
+
+<! ==============  Legendbox ========================================>
+<p><div class=sectiontitle><a name="legendbox">The legendbox</a></div> 
+
+This is a  rectangular area within the frame, where  the legend of the
+plotted  graphs (a  short  explanation with  sample  from the  graph's
+drawstyle)     is     shown.      The     C++     object     is     <a
+href="legendbox.html"><tt>legendbox</tt></a>, and this can be accessed
+by frame's member function: <pre>legendbox *legend();</pre>
+
+<p><a  name="legendpos">Positioning the  legendbox:</a>  The legendbox
+(within the frame) can be  positioned by the following member function
+of frame:
+
+<pre>legendpos(int xalign,int yalign)</pre> 
+
+where      <tt>xalign</tt>      can      be      <tt>sym::left</tt>,
+<tt>sym::center</tt>  or <tt>sym::right</tt>,  and <tt>yalign</tt>
+can     be    <tt>sym::bottom</tt>,     <tt>sym::center</tt>    or
+<tt>sym::top</tt>. These give the  possibility for a quick alignment
+of the legendbox to the different corners of the frame. By this method
+the ticlengths of  the axes are also taken into  account, so that they
+do  not overlap  with the  legendbox. The  following example  puts the
+legendbox to the upper left corner of the frame:
+
+<pre>frame::current().legendpos(sym::left, sym::top);</pre>
+
+<p>For more precise alignment of the legendbox you can use the methods
+of         <tt>legendbox</tt>         inherited        from         <a
+href="box.html"><tt>box</tt></a>. For example:
+<pre>frame::current().legend()->left(2*CM);</pre>
+
+<! ==============  Mirroring axis tics ==============================>
+<p><div class=sectiontitle><a  name="mirror">Mirroring axis  tics</a></div>
+
+To   switch   on/off   mirroring   of   axis  tics,   you   can   say:
+<tt>frame::current().mirror_y1(false)</tt>, etc.
+
+<p>Sometimes you  do not want the axes  and the frame to  be drawn. To
+switch off axis  drawing, call the <tt>draw_frame(false)</tt> function
+on a specific  frame.  To switch off frame  drawing globally, call the
+static <tt>frame::default_draw_frame(false)</tt>  function: all frames
+created after this statement will not draw themselves.
+
+(The script producing the following plot is <a href="figs/frame.C">here</a>).
+<center>
+<img src="figs/frame.png">
+</center>
+
+
+<! ==============  Nodistort ========================================>
+<p><div class=sectiontitle><a  name="nodistort">Fixing aspect ratio</a></div>
+
+<p>There are two ways to fix the aspect ratio of a frame:
+<ul>
+<li>To call the <tt>caspect(double y_per_x)</tt> function, which fixes
+the printed aspect ratio to the given value.
+<li>However, a more useful thing might be the <tt>nodistort(true)</tt>
+function, which will cause that the printed aspect ratio of the frame
+will be identical to the ratio of the plotting y- and x-ranges (for
+the x1 and y1 axes. Does not work with logscale). This is useful if
+your x and y variables correspond to some geometrical distances (for
+example x and y coordinates), and you want to have the picture without
+distortion. <br><br>
+To set nodistort for the current frame, you can use the shorthand
+<tt>set::nodistort(true)</tt> instead of writing
+<tt>frame::current().nodistort(true)</tt> 
+</ul>
+
+In both of these cases the lmargin, bmargin, rmargin and tmargins are
+set such that the aspect ratio is correct. The user should not set
+these to depend on some other dimension of the frame, for example this
+is wrong:
+<pre>frame::current().lmargin(!frame::current().cwidth());
+frame::current().caspect(1.0);</pre>
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="frame.h.html">frame.h</a>
+   <a href="frame.cc.html">frame.cc</a>
+</pre><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="canvas-pad.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: canvas-pad.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="mframe.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: mframe.html">
+    </a> 
+
+</body>
+</html>

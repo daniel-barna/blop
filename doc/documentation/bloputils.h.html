@@ -1,0 +1,289 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: bloputils.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_BLOPUTILS_H__
+<a name="__line1"></a>#define __BLOP_BLOPUTILS_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="array.h.html">array.h</a>"
+<a name="__line4"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line5"></a>#include "<a href="pad.h.html">pad.h</a>"
+<a name="__line6"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line7"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line8"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line9"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line10"></a>#include "<a href="text.h.html">text.h</a>"
+<a name="__line11"></a>#include "<a href="dgraph.h.html">dgraph.h</a>"
+<a name="__line12"></a>#include &lt;algorithm&gt;
+<a name="__line13"></a>
+<a name="__line14"></a>namespace blop
+<a name="__line15"></a>{
+<a name="__line16"></a>
+<a name="__line17"></a>    inline bool file_exists(const string &amp;filename)
+<a name="__line18"></a>    {
+<a name="__line19"></a>	ifstream f(filename.c_str());
+<a name="__line20"></a>	return f.good();
+<a name="__line21"></a>    }
+<a name="__line22"></a>
+<a name="__line23"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line24"></a>
+<a name="__line25"></a>    bool isfinite(double v);
+<a name="__line26"></a>    bool isnan(double v);
+<a name="__line27"></a>    bool isinf(double v);
+<a name="__line28"></a>    bool isnormal(double v);
+<a name="__line29"></a>
+<a name="__line30"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line31"></a>
+<a name="__line32"></a>    std::istream *openin(const var &amp;filename);
+<a name="__line33"></a>    std::ostream *openout(const var &amp;filename);
+<a name="__line34"></a>
+<a name="__line35"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line36"></a>
+<a name="axislength"></a>
+<a name="__line38"></a>    length axislength(axis *a, double from, double to=unset);
+<a name="__line39"></a>    length x1len(double a,double b=unset);
+<a name="__line40"></a>    length x2len(double a,double b=unset);
+<a name="__line41"></a>    length y1len(double a,double b=unset);
+<a name="__line42"></a>    length y2len(double a,double b=unset);
+<a name="__line43"></a>
+<a name="__line44"></a>#ifndef __MAKECINT__
+<a name="__line45"></a>    template &lt;int ax&gt;
+<a name="__line46"></a>        length xlen(double a, double b=unset) 
+<a name="__line47"></a>    { 
+<a name="__line48"></a>        if(ax==axis::x1) return length::base_axis_t(frame::current().x1axis(),a,b);
+<a name="__line49"></a>        if(ax==axis::x2) return length::base_axis_t(frame::current().x2axis(),a,b);
+<a name="__line50"></a>        return 0.0;
+<a name="__line51"></a>    }
+<a name="__line52"></a>    template &lt;int ax&gt;
+<a name="__line53"></a>        length ylen(double a, double b=unset) 
+<a name="__line54"></a>    { 
+<a name="__line55"></a>        if(ax==axis::y1) return length::base_axis_t(frame::current().y1axis(),a,b);
+<a name="__line56"></a>        if(ax==axis::y2) return length::base_axis_t(frame::current().y2axis(),a,b);
+<a name="__line57"></a>        return 0.0;
+<a name="__line58"></a>    }
+<a name="__line59"></a>    template &lt;int ax&gt;
+<a name="__line60"></a>        length alen(double a, double b=unset) 
+<a name="__line61"></a>    { 
+<a name="__line62"></a>        if(ax==axis::x1) return length::base_axis_t(frame::current().x1axis(),a,b);
+<a name="__line63"></a>        if(ax==axis::x2) return length::base_axis_t(frame::current().x2axis(),a,b);
+<a name="__line64"></a>        if(ax==axis::y1) return length::base_axis_t(frame::current().y1axis(),a,b);
+<a name="__line65"></a>        if(ax==axis::y2) return length::base_axis_t(frame::current().y2axis(),a,b);
+<a name="__line66"></a>        return 0.0;
+<a name="__line67"></a>    }
+<a name="__line68"></a>#endif    
+<a name="__line69"></a>
+<a name="__line70"></a>    <span class=comment>// return the length along the x1/x2/y1/y2 axes:</span>
+<a name="__line71"></a>    <span class=comment>// - from the origin to 'a', if 'b'==unset,</span>
+<a name="__line72"></a>    <span class=comment>// - from 'a' to 'b', if 'b' is not unset</span>
+<a name="__line73"></a>
+<a name="__line74"></a>
+<a name="__line75"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line76"></a>    <span class=comment>// Print the current canvas to a terminal</span>
+<a name="__line77"></a>
+<a name="__line78"></a>    void print(terminal *term);
+<a name="__line79"></a>
+<a name="__line80"></a>
+<a name=system></a>
+<a name="__line82"></a>    <span class=comment>// ---------- system --------------------------------------------------------------</span>
+<a name="__line83"></a>    <span class=comment>// Like the usual 'system(const char *cmd)' function of C,</span>
+<a name="__line84"></a>    <span class=comment>// but for 'var' argument</span>
+<a name="__line85"></a>
+<a name="__line86"></a>    int system(const var &amp;);
+<a name="__line87"></a>
+<a name="__line88"></a>    <span class=comment>// Run a command in the background, return it's process-id. This process-id is also</span>
+<a name="__line89"></a>    <span class=comment>// automatically registered, and will be waited for before quitting the program.</span>
+<a name="__line90"></a>    int system_bg(const var &amp;cmd);
+<a name="__line91"></a>
+<a name=shell></a>
+<a name="__line93"></a>    <span class=comment>// ---------- shell ---------------------------------------------------------------</span>
+<a name="__line94"></a>    <span class=comment>// The same as the 'system' function, but the same shell process</span>
+<a name="__line95"></a>    <span class=comment>// is used for all subsequent calls. For example a 'cd /tmp' command</span>
+<a name="__line96"></a>    <span class=comment>// processed by this function will have an effect for all later calls</span>
+<a name="__line97"></a>    <span class=comment>// of this function. These two commands list the /tmp directory:</span>
+<a name="__line98"></a>    <span class=comment>// shell("cd /tmp");</span>
+<a name="__line99"></a>    <span class=comment>// shell("ls");</span>
+<a name="__line100"></a>
+<a name="__line101"></a>    void shell(const var &amp;command);
+<a name="__line102"></a>
+<a name="__line103"></a>
+<a name=readcmd></a>
+<a name="__line105"></a>    <span class=comment>// ---------- readcmd -------------------------------------------------------------</span>
+<a name="__line106"></a>    <span class=comment>// Read the output of the provided command (which is executed</span>
+<a name="__line107"></a>    <span class=comment>// in /bin/sh). The first character MAY be a '&lt;', in which</span>
+<a name="__line108"></a>    <span class=comment>// case it is removed from it (this is introduced in order to</span>
+<a name="__line109"></a>    <span class=comment>// match the 'plot' command, where the initial '&lt;' in the filename</span>
+<a name="__line110"></a>    <span class=comment>// to be plotted indicates that it is to be treated as a pipe)</span>
+<a name="__line111"></a>    <span class=comment>// If 'rc' is provided, the return code of the command</span>
+<a name="__line112"></a>    <span class=comment>// is returned in this variable</span>
+<a name="__line113"></a>    
+<a name="__line114"></a>    var readcmd(const var &amp;cmd,int *rc = 0);
+<a name="__line115"></a>    int readcmd(const var &amp;cmd, array &amp;out, const var &amp;separator = "\n", int *rc = 0);
+<a name="__line116"></a>    int readcmd(const var &amp;cmd, std::vector&lt;std::string&gt; &amp;out, const var &amp;separator = "\n", int *rc = 0);
+<a name="__line117"></a>
+<a name=readfile></a>
+<a name="__line119"></a>    <span class=comment>// ---------- readfile ------------------------------------------------------------</span>
+<a name="__line120"></a>    <span class=comment>// Reads and returns the content of the provided file. The second version reads</span>
+<a name="__line121"></a>    <span class=comment>// the file, and splits its contents (by default at newlines) into the array 'out',</span>
+<a name="__line122"></a>    <span class=comment>// and returns the number of entries in out</span>
+<a name="__line123"></a>
+<a name="__line124"></a>    var readfile(const var &amp;filename);
+<a name="__line125"></a>    int readfile(const var &amp;filename, array &amp;out, const var &amp;separator = "\n");
+<a name="__line126"></a>
+<a name='draw_file_content'></a>
+<a name="__line128"></a>    <span class=comment>// ---------- draw the content of a file ------------------------------------------</span>
+<a name="__line129"></a>
+<a name="__line130"></a>    text &amp;fdraw_file_content(const var &amp;filename);
+<a name="__line131"></a>    text &amp;pdraw_file_content(const var &amp;filename);
+<a name="__line132"></a>    text &amp;cdraw_file_content(const var &amp;filename);
+<a name="__line133"></a>
+<a name=sequence></a>
+<a name="__line135"></a>    <span class=comment>// Create a sequence of numbers</span>
+<a name="__line136"></a>    array sequence(var start, var stop, var step=1);
+<a name="__line137"></a>
+<a name=splitjoin></a>
+<a name="__line139"></a>    <span class=comment>// ---------- split and join ------------------------------------------------------</span>
+<a name="__line140"></a>    <span class=comment>// Splits the string 's' into the vector 'out', and returns the number of entries</span>
+<a name="__line141"></a>
+<a name="__line142"></a>    array split(const var &amp;s, const var &amp;separator = " \t\n");
+<a name="__line143"></a>    int   split(const string &amp;s,const string &amp;separator, std::vector&lt;std::string&gt; &amp;out);
+<a name="__line144"></a>    var   join(const array &amp;a, const var &amp;separator = array::outfs());
+<a name="__line145"></a>    var   join(const std::vector&lt;double&gt; &amp;a, const var &amp;separator = array::outfs());
+<a name="__line146"></a>    var   join(const std::vector&lt;std::string&gt; &amp;a, const var &amp;separator = array::outfs());
+<a name="__line147"></a>
+<a name=split_data_line>
+<a name="__line149"></a>    <span class=comment>// ---------- split a data line (interpret quoation marks, etc) -------------------</span>
+<a name="__line150"></a>    void split_quoted(std::string line, std::vector&lt;blop::var&gt; &amp;fields);
+</a>
+<a name="__line152"></a>
+<a name=split_contains>
+<a name="__line154"></a>    bool split_contains(const var &amp;haystack, const var &amp;separator, const var &amp;needle);
+</a>
+<a name="__line156"></a>    
+<a name=getfield></a>
+<a name="__line158"></a>    <span class=comment>// ---------- getfield  -----------------------------------------------------------</span>
+<a name="__line159"></a>    <span class=comment>// Split the provided string 's' at characters specified by 'separator', and return</span>
+<a name="__line160"></a>    <span class=comment>// the 'i'th element</span>
+<a name="__line161"></a>
+<a name="__line162"></a>    var getfield(const var &amp;s, unsigned int i, const var &amp;separator = " \t\n");
+<a name="__line163"></a>
+<a name="__line164"></a>
+<a name=getline></a>
+<a name="__line166"></a>    <span class=comment>// ---------- getline  ------------------------------------------------------------</span>
+<a name="__line167"></a>    <span class=comment>// Read a line from the input stream and return it in 'v' (the first version)</span>
+<a name="__line168"></a>    <span class=comment>// or immediately split it as well (at whitespaces) into the array 'a'</span>
+<a name="__line169"></a>    <span class=comment>// line_separator specifies the character to be interpreted as end-of-line (only</span>
+<a name="__line170"></a>    <span class=comment>// the first character of this string is used)</span>
+<a name="__line171"></a>    <span class=comment>// field_separator contains the characters at which the line will be split</span>
+<a name="__line172"></a>    <span class=comment>// (it will be the second argument to the 'split' function described above)</span>
+<a name="__line173"></a>
+<a name="__line174"></a>    istream &amp;getline(istream &amp;, var &amp;v, const var &amp;line_separator = "\n");
+<a name="__line175"></a>    istream &amp;getline(istream &amp;, array &amp;a, const var &amp;line_separator = "\n", const var &amp;field_separator = "\t ");
+<a name="__line176"></a>    istream &amp;getline(istream &amp;, std::vector&lt;std::string&gt; &amp;a, const std::string &amp;line_separator = "\n", const std::string &amp;field_separator = "\t ");
+<a name="__line177"></a>
+<a name=tolatex></a>
+<a name="__line179"></a>    <span class=comment>// ---------- tolatex  ------------------------------------------------------------</span>
+<a name="__line180"></a>    <span class=comment>// Transform a string (possibly containing _, $, and other latex-special chars)</span>
+<a name="__line181"></a>    <span class=comment>// to latex, where these characters are escaped</span>
+<a name="__line182"></a>
+<a name="__line183"></a>    var tolatex(const var &amp;);
+<a name="__line184"></a>
+<a name='parallel_sort'></a>
+<a name="__line186"></a>    <span class=comment>// ---------- parallel_sort -------------------------------------------------------</span>
+<a name="__line187"></a>    <span class=comment>// Sort two arrays based on the values of the first array. The elements of the second</span>
+<a name="__line188"></a>    <span class=comment>// array will correspond to the same elements of the first array.</span>
+<a name="__line189"></a>
+<a name="__line190"></a>    template &lt;class A, class B&gt;
+<a name="__line191"></a>    class LessThanPairFirst
+<a name="__line192"></a>    {
+<a name="__line193"></a><span class=public>    public:
+<a name="__line194"></a>	<span class=comment>// compare by the 'first' element of a pair (if they are equal,</span>
+<a name="__line195"></a>	<span class=comment>// compare by the 'second' element of the pair)</span>
+<a name="__line196"></a>	bool operator()(const std::pair&lt;A,B&gt; &amp;a, const std::pair&lt;A,B&gt; &amp;b)
+<a name="__line197"></a>	{
+<a name="__line198"></a>	    if(a.first&lt;b.first) return true;
+<a name="__line199"></a>	    if(a.first&lt;=b.first &amp;&amp; a.second&lt;b.second) return true;
+<a name="__line200"></a>	    return false;
+<a name="__line201"></a>	}
+<a name="__line202"></a>    };
+<a name="__line203"></a>
+<a name="__line204"></a>    template &lt;class Container1, class Container2&gt;
+<a name="__line205"></a>    void parallel_sort(Container1 &amp;v1,Container2 &amp;v2,bool unique=false)
+<a name="__line206"></a>    {
+<a name="__line207"></a>	std::vector&lt;std::pair&lt;typename Container1::value_type,typename Container2::value_type&gt; &gt; a;
+<a name="__line208"></a>	const unsigned int n = std::min(v1.size(),v2.size());
+<a name="__line209"></a>	for(unsigned int i=0; i&lt;n; ++i)
+<a name="__line210"></a>	{
+<a name="__line211"></a>	    a.push_back(std::pair&lt;typename Container1::value_type,typename Container2::value_type&gt;(v1[i],v2[i]));
+<a name="__line212"></a>	}
+<a name="__line213"></a>        auto comparator = LessThanPairFirst&lt;typename Container1::value_type, typename Container2::value_type&gt;();
+<a name="__line214"></a>	sort(a.begin(), a.end(), comparator);
+<a name="__line215"></a>        unsigned int i_out=0;
+<a name="__line216"></a>	for(unsigned int i=0; i&lt;n; ++i)
+<a name="__line217"></a>	{
+<a name="__line218"></a>            <span class=comment>// If we require unique sorting, then skip those which are equal to the last one</span>
+<a name="__line219"></a>            if(unique &amp;&amp; i&gt;0)
+<a name="__line220"></a>            {
+<a name="__line221"></a>                if(!comparator(a[i],a[i-1]) &amp;&amp; !comparator(a[i-1],a[i])) continue;
+<a name="__line222"></a>            }
+<a name="__line223"></a>	    v1[i_out] = a[i].first;
+<a name="__line224"></a>	    v2[i_out] = a[i].second;
+<a name="__line225"></a>            ++i_out;
+<a name="__line226"></a>	}
+<a name="__line227"></a>        v1.resize(i_out);
+<a name="__line228"></a>        v2.resize(i_out);
+<a name="__line229"></a>    }
+<a name="__line230"></a>
+<a name="__line231"></a>    void parallel_sort(std::vector&lt;double&gt; &amp;x, std::vector&lt;double&gt; &amp;y,bool unique=false);
+<a name="__line232"></a>    void parallel_sort(std::vector&lt;blop::var&gt; &amp;x, std::vector&lt;blop::var&gt; &amp;y,bool unique=false);
+<a name="__line233"></a>    void parallel_sort(array &amp;x, array &amp;y,bool unique=false);
+<a name="__line234"></a>
+<a name="__line235"></a>    
+<a name="__line236"></a>
+<a name="__line237"></a>    int find_crossings(const dgraph &amp;g, const std::vector&lt;double&gt; &amp;values, std::vector&lt;double&gt; &amp;crosspoints, const function &amp;x = _1, const function &amp;y = _2);
+<a name="__line238"></a>
+<a name="__line239"></a>
+<a name="__line240"></a>
+<a name="__line241"></a>
+<a name="__line242"></a>    <span class=comment>// A utility class to in-line initialize a std::vector. Usage:</span>
+<a name="__line243"></a>    <span class=comment>// vector&lt;int&gt;     i = initvector(1)(2)(3)(4)(5);</span>
+<a name="__line244"></a>    <span class=comment>// vector&lt;double&gt;  d = initvector(1.1)(2.2)(3.3);</span>
+<a name="__line245"></a>    <span class=comment>// vector&lt;double&gt;  d2 = initvector&lt;double&gt;(1)(2)(3);  </span>
+<a name="__line246"></a>    template &lt;typename T&gt; class vector_initializer
+<a name="__line247"></a>    {
+<a name="__line248"></a></span><span class=private>    private:
+<a name="__line249"></a>        std::vector&lt;T&gt; vector_;
+<a name="__line250"></a></span><span class=public>    public:
+<a name="__line251"></a>        vector_initializer(const T &amp;t) { vector_.push_back(t); }
+<a name="__line252"></a>        vector_initializer&lt;T&gt; &amp;operator()(const T &amp;t) { vector_.push_back(t); return *this; }
+<a name="__line253"></a>        operator std::vector&lt;T&gt;() const { return vector_; }
+<a name="__line254"></a>    };
+<a name="__line255"></a>    template &lt;typename T&gt; vector_initializer&lt;T&gt; initvector(const T &amp;t) { return vector_initializer&lt;T&gt;(t); }
+<a name="__line256"></a>}
+<a name="__line257"></a>
+<a name="__line258"></a>
+<a name="__line259"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

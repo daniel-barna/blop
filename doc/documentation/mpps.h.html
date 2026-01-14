@@ -1,0 +1,233 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mpps.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MPPS_H__
+<a name="__line1"></a>#define __BLOP_MPPS_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="blopeps.h.html">blopeps.h</a>"
+<a name="__line4"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line5"></a>#include &lt;fstream&gt;
+<a name="__line6"></a>#include &lt;string&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    class mpps : public blop::terminal, public std::ofstream
+<a name="__line11"></a>    {
+<a name="__line12"></a><span class=private>    private:
+<a name="__line13"></a>        int flush_frequency_;
+<a name="__line14"></a>        int pagecount_;
+<a name="__line15"></a>        bool needs_flush_;
+<a name="__line16"></a>
+<a name="__line17"></a>	std::string texfilename_, psfilename_;
+<a name="__line18"></a>	blopeps *beps_;
+<a name="__line19"></a>	bool header_printed_;
+<a name="__line20"></a>
+<a name="__line21"></a>	static string &amp;default_papersize_();
+<a name="__line22"></a>	string papersize_;
+<a name="__line23"></a>
+<a name="__line24"></a>	static bool default_landscape_;
+<a name="__line25"></a>	bool landscape_;
+<a name="__line26"></a>
+<a name="__line27"></a>	static int default_verbose_;
+<a name="__line28"></a>	int verbose_;
+<a name="__line29"></a>
+<a name="__line30"></a>	static std::string default_dvips_options_;
+<a name="__line31"></a>	std::string dvips_options_;
+<a name="__line32"></a>
+<a name="__line33"></a>	static var default_options_;
+<a name="__line34"></a>	var options_, opts_;
+<a name="__line35"></a>
+<a name="__line36"></a>        std::string command_;
+<a name="__line37"></a>
+<a name="__line38"></a>	void init();
+<a name="__line39"></a>
+<a name="__line40"></a></span><span class=public>    public:
+<a name="__line41"></a>	mpps();
+<a name="__line42"></a>	mpps(const var &amp;filename);
+<a name="__line43"></a>	virtual ~mpps();
+<a name="__line44"></a>
+<a name="__line45"></a>	virtual void open(const var &amp;filename);
+<a name="__line46"></a>	virtual void close();
+<a name="__line47"></a>	virtual bool flush();
+<a name="__line48"></a>
+<a name="__line49"></a>        <span class=comment>//SEP</span>
+<a name="__line50"></a>        <span class=comment>// Return the output filename</span>
+<a name="__line51"></a>        virtual string filename() const { return psfilename_; }
+<a name="__line52"></a>
+<a name="__line53"></a>	<span class=comment>//SEP</span>
+<a name="__line54"></a>	<span class=comment>// The mpps terminal is derived from ofstream. It means, you can</span>
+<a name="__line55"></a>	<span class=comment>// write to it using the &lt;&lt; operator, for example. </span>
+<a name="__line56"></a>	<span class=comment>// The things you write with this operator go to the LaTeX source</span>
+<a name="__line57"></a>	<span class=comment>// file (which then will be compiled to a PostScript file).</span>
+<a name="__line58"></a>	<span class=comment>// You can either rely on the default header written by blop</span>
+<a name="__line59"></a>	<span class=comment>// (which uses the 'article' documentclass, etc). In this case</span>
+<a name="__line60"></a>	<span class=comment>// you do not have to do anything. Just print your figures</span>
+<a name="__line61"></a>	<span class=comment>// sequentially to this terminal. Otherwise, if you print your</span>
+<a name="__line62"></a>	<span class=comment>// header, do not forget to call this 'header_printed(true)'</span>
+<a name="__line63"></a>	<span class=comment>// function to inform the terminal, that it does not have</span>
+<a name="__line64"></a>	<span class=comment>// to write the header.</span>
+<a name="__line65"></a>
+<a name="__line66"></a>	mpps &amp;header_printed(bool f) { header_printed_ = f; return *this; }
+<a name="__line67"></a>
+<a name="__line68"></a>
+<a name="__line69"></a>	<span class=comment>// If you use the default LaTeX header (i.e. you do not make anything</span>
+<a name="__line70"></a>	<span class=comment>// extra...), then you can control the orientation of the page</span>
+<a name="__line71"></a>	<span class=comment>// </span>
+<a name="__line72"></a>
+<a name="__line73"></a>	mpps &amp;landscape(bool f) { landscape_ = f; return *this; }
+<a name="__line74"></a>	bool  landscape() const { return landscape_; }
+<a name="__line75"></a>	static void default_landscape(bool f) { default_landscape_ = f; }
+<a name="__line76"></a>
+<a name="__line77"></a>	mpps &amp;papersize(const var &amp;s);
+<a name="__line78"></a>	var   papersize() const { return papersize_; }
+<a name="__line79"></a>	static void default_papersize(const var &amp;s) { default_papersize_() = s.str(); }
+<a name="__line80"></a>
+<a name="__line81"></a>        <span class=comment>//SEP</span>
+<a name="__line82"></a>        <span class=comment>// You can specify a LaTeX command, which will be put into the LaTeX file before including</span>
+<a name="__line83"></a>        <span class=comment>// any plots</span>
+<a name="__line84"></a>        mpps &amp;command(const var &amp;c) { command_ = c.str(); return *this; }
+<a name="__line85"></a>        var   command() const       { return command_; }
+<a name="__line86"></a>
+<a name="__line87"></a>	<span class=comment>//SEP</span>
+<a name="__line88"></a>	<span class=comment>// You can specify extra dvips options to be used when converting</span>
+<a name="__line89"></a>	<span class=comment>// the .dvi file to .ps</span>
+<a name="__line90"></a>
+<a name="__line91"></a>	mpps &amp;dvips_options(const var &amp;f) { dvips_options_ = f.str(); return *this; }
+<a name="__line92"></a>	const std::string &amp;dvips_options() const { return dvips_options_; }
+<a name="__line93"></a>	static void default_dvips_options(const var &amp;f) { default_dvips_options_ = f.str(); }
+<a name="__line94"></a>
+<a name="__line95"></a>
+<a name="__line96"></a>	<span class=comment>//SEP</span>
+<a name="__line97"></a>	<span class=comment>// Verbose levels: 0 = no LaTeX/dvips messages printed</span>
+<a name="__line98"></a>	<span class=comment>//                 1 = LaTeX/dvips output printed, if they fail</span>
+<a name="__line99"></a>	<span class=comment>//                 2 = LaTeX/dvips output is printed </span>
+<a name="__line100"></a>	static void default_verbose(int f) { default_verbose_ = f; }
+<a name="__line101"></a>	mpps &amp;verbose(int f) { verbose_ = f; return *this; }
+<a name="__line102"></a>	int   verbose() const { return verbose_; }
+<a name="__line103"></a>
+<a name="__line104"></a>
+<a name="__line105"></a>	<span class=comment>//SEP</span>
+<a name="__line106"></a>	<span class=comment>// with these functions you can </span>
+<a name="__line107"></a>
+<a name="__line108"></a>	static void default_options(const var &amp;f) { default_options_ = f; }
+<a name="__line109"></a>	mpps &amp;options(const var &amp;f) { options_ = f; return *this; }
+<a name="__line110"></a>	const var &amp;options() const { return options_; }
+<a name="__line111"></a>
+<a name="__line112"></a>	mpps &amp;print_header();
+<a name="__line113"></a>
+<a name="__line114"></a>	void print(const var &amp;opts="");
+<a name="__line115"></a>
+<a name="__line116"></a>	void picture_begin();
+<a name="__line117"></a>	void picture_end();
+<a name="__line118"></a>
+<a name="__line119"></a>	int newlength();
+<a name="__line120"></a>	int overwrite(int i, double f1, const terminal::id &amp;i1);
+<a name="__line121"></a>	int overwrite(int i,
+<a name="__line122"></a>		      double f1, const terminal::id &amp;i1,
+<a name="__line123"></a>		      double f2, const terminal::id &amp;i2);
+<a name="__line124"></a>	int lincombi(terminal::double_id f, const terminal::id &amp;i);
+<a name="__line125"></a>	int lincombi(terminal::double_id f1, const terminal::id &amp;i1,
+<a name="__line126"></a>		     terminal::double_id f2, const terminal::id &amp;i2);
+<a name="__line127"></a>	int lincombi(const std::vector&lt;double&gt; &amp;f,
+<a name="__line128"></a>		     const std::vector&lt;blop::terminal::id&gt; &amp;id);
+<a name="__line129"></a>	int maxlength(const std::vector&lt;blop::terminal::id&gt; &amp;id);
+<a name="__line130"></a>	int minlength(const std::vector&lt;blop::terminal::id&gt; &amp;id);
+<a name="__line131"></a>	int textwidth(const string &amp;, double angle=0);
+<a name="__line132"></a>	int textheight(const string &amp;, double angle=0);
+<a name="__line133"></a>	int textlheight(const string &amp;, double angle=0);
+<a name="__line134"></a>	int textsize(const string &amp;, double angle=0);
+<a name="__line135"></a>	int max_textwidth(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line136"></a>	int max_textheight(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line137"></a>	int max_textlheight(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line138"></a>
+<a name="__line139"></a>	void subpicture_begin(const terminal::coord &amp;lower_left,
+<a name="__line140"></a>			      const terminal::coord &amp;upper_right);
+<a name="__line141"></a>	void subpicture_end();
+<a name="__line142"></a>
+<a name="__line143"></a>	void draw_dot(const terminal::coord &amp;c);
+<a name="__line144"></a>
+<a name="__line145"></a>	void draw_text(const terminal::coord &amp;pos,
+<a name="__line146"></a>		       const string &amp;s,
+<a name="__line147"></a>		       int xalign,
+<a name="__line148"></a>		       int yalign,
+<a name="__line149"></a>		       const blop::terminal::id &amp;dx,
+<a name="__line150"></a>		       const blop::terminal::id &amp;dy,
+<a name="__line151"></a>		       bool rotatedsystem=true);
+<a name="__line152"></a>	void draw_arc(const terminal::coord &amp;center,
+<a name="__line153"></a>		      const terminal::id &amp;r,
+<a name="__line154"></a>		      double ang1 = 0,
+<a name="__line155"></a>		      double ang2 = 360);
+<a name="__line156"></a>	void fill_arc(const terminal::coord &amp;center,
+<a name="__line157"></a>		      const terminal::id &amp;r,
+<a name="__line158"></a>		      double ang1 = 0,
+<a name="__line159"></a>		      double ang2 = 360);
+<a name="__line160"></a>	
+<a name="__line161"></a>	void draw_line (const terminal::coord &amp;c1,
+<a name="__line162"></a>			const terminal::coord &amp;c2);
+<a name="__line163"></a>	void draw_lines (const std::vector&lt;blop::terminal::coord&gt; &amp;c);
+<a name="__line164"></a>	void draw_rlines(const terminal::coord &amp;start,
+<a name="__line165"></a>			 const std::vector&lt;blop::terminal::id&gt; &amp;dx,
+<a name="__line166"></a>			 const std::vector&lt;blop::terminal::id&gt; &amp;dy);
+<a name="__line167"></a>	void fill_polygon(const std::vector&lt;blop::terminal::coord&gt; &amp;c);
+<a name="__line168"></a>	
+<a name="__line169"></a>
+<a name="__line170"></a>	void reset_transformation();
+<a name="__line171"></a>	void translate(const id &amp;, const id &amp;);
+<a name="__line172"></a>	void rotate   (double angle);
+<a name="__line173"></a>	void rotate   (const id &amp;, const id &amp;);
+<a name="__line174"></a>	void scale    (double s);
+<a name="__line175"></a>	void scale    (double xs, double ys);
+<a name="__line176"></a>	void scale    (const id &amp;xfrom, const id &amp;xto,
+<a name="__line177"></a>		       const id &amp;yfrom, const id &amp;yto);
+<a name="__line178"></a>
+<a name="__line179"></a>	void set_color(const color &amp;c);
+<a name="__line180"></a>	void set_linewidth(const terminal::id &amp;);
+<a name="__line181"></a>	void set_linestyle(sym::linestyle);
+<a name="__line182"></a>	
+<a name="__line183"></a>	
+<a name="__line184"></a>	int  atan(const terminal::id &amp;x,const terminal::id &amp;y);
+<a name="__line185"></a>	int  add_dbl(const terminal::double_id &amp;, const terminal::double_id &amp;);
+<a name="__line186"></a>	int  sin_dbl(int);
+<a name="__line187"></a>	int  cos_dbl(int);
+<a name="__line188"></a>	int  neg_dbl(int);
+<a name="__line189"></a>	
+<a name="__line190"></a>	bool clip(const terminal::coord &amp;lower_left,
+<a name="__line191"></a>		  const terminal::coord &amp;upper_right);
+<a name="__line192"></a>	
+<a name="__line193"></a>	void noclip();
+<a name="__line194"></a>
+<a name="__line195"></a>	void open_layer(const var &amp;);
+<a name="__line196"></a>	void close_layer(const var &amp;);
+<a name="__line197"></a>	
+<a name="__line198"></a>	
+<a name="__line199"></a>    };
+<a name="__line200"></a>
+<a name="__line201"></a>}
+<a name="__line202"></a>
+<a name="__line203"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

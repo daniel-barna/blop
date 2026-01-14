@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- The blopeps terminal</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="terminals.html">
+   <link rel="Next" href="eps.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="terminals.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: terminals.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="eps.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: eps.html">
+    </a> <br>
+
+<center class=title><b>
+The blopeps terminal
+</b></center>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#what"> What is blopeps?</a>
+<li><a href="#print">The print function</a>
+<li><a href="#macro">The \blopeps LaTeX-macro for inclusion into LaTeX</a>
+<li><a href="#pick"> Picking figures from PostScript documents</a>
+</ul>
+
+<p><div  class=sectiontitle><a name="what">What  is blopeps?</a></div>
+This is  blop's first implemented  terminal, which was designed  to be
+used in LaTeX documents.  This is an encapsulated postscript-like file
+(hence the <i>eps</i> in its name).  But looking at it as a postscript
+file (using a postscript-viewer, like gv) would make you cry: it looks
+terribly.  The  reason is simple:  the preamble of this  file contains
+LaTeX-commands (preceded  by a %  so that the  postscript interpreters
+treat them  as comments), which  are read by  LaTeX when this  file is
+included  in your  document  (this is  done  by the  <tt>\blopeps</tt>
+LaTeX-macro   provided  by   the  blopeps.sty   package   coming  with
+blop). These  clever commands put  PostScript commands into  the final
+output  file  before the  inclusion  of  the  plot file  itself  (like
+dimensions of text labels, etc), which will therefore be available for
+the plot file. (This is the reason why the blopeps file looks horrible
+when looking  at it  standalone: these dimensions  are not set  by the
+LaTeX commands).
+
+<p><div       class=sectiontitle><a       name="print">The       print
+function</a></div>  The  <tt>blopeps</tt>  class provides  the  static
+<tt>print(const var &filename)</tt> function, which prints the current
+canvas into a file specified by its argument:<br>
+
+<pre>
+plot("datafile",_1,_2*_3);
+blopeps::print("output.beps"); 
+</pre><br>
+
+You will  practically never need to  know more about this  class, so I
+don't write it down now.
+
+
+<p><div      class=sectiontitle><a      name="macro">The      \blopeps
+LaTeX-macro</a></div> Once the plotfile  is produced (as shown above),
+the  file   can  be   included  into  a   LaTeX  document   using  the
+<tt>\blopeps</tt> macro proided  by the blopeps.sty LaTeX-package.  So
+don't  forget  to put  into  the  preamble  of your  LaTeX-source:<br>
+<tt>\usepackage{blopeps}</tt>
+
+<p>The     syntax    of     the     <tt>\blopeps</tt>    macro     is:
+<tt>\blopeps[optargs]{filename}</tt>.    Here   <tt>optargs</tt>   are
+optional  (you  can  simply write:  <tt>\blopeps{filename}</tt>),  and
+specify  the size  and other  geometrical parameters  of  the included
+figure. These optional args are:
+
+<dl>
+
+<dt><tt><a         name="width">width=&lt;dimen&gt;</a></tt>        or
+<tt>pw=&lt;dimen&gt;</tt></dt> <dd>Defines  the width of  the included
+figure. If omitted, the width of the figure will be the default value,
+which can be set by the  macro <tt>\bloppw</tt>, so if you want to set
+the   default  width   of  the   figures,  use   this,   for  example:
+<tt>\bloppw{7cm}</tt>. This macro in fact simply sets <tt>\blopPW</tt>.
+That is, the two are equivalent:<br>
+<tt>\bloppw{7cm}</tt><br>
+<tt>\def\blopPW{7cm}</tt><br>
+This also means, that you can obtain the width of your current figure
+as a LaTeX dimension, in any text within your figure. For example:
+<pre>text::fdraw("\\begin{minipage}{\\blopPW}\\begin{center} first line \\\\ second line\\end{center}\\end{minipage}", 0.2, 0.3);</pre>
+
+Note that  you  have to  write  every  backslash  duplicated (blop's 
+interface  language is C++, and  backslash has to be  'escaped' by a
+backslash) 
+<dd>
+
+<dt><tt><a        name="height">height=&lt;dimen&gt;</a></tt>       or
+<tt>ph=&lt;dimen&gt;</tt></dt> <dd>Defines the  height of the included
+figure. If omitted, the height of  the figure will be the default one,
+which can be set by the  macro <tt>\blopph</tt>, so if you want to set
+the   default  height  of   the  figures,   say  this,   for  example:
+<tt>\blopph{7cm}</tt> </dd>
+
+<dt><tt><a  name="ps">ps=&lt;dimen&gt;</a></tt></dt>  <dd>Defines  the
+value of the <a href="length.html">PS</a> unit within the figure (that
+is, all objects which are sized  to the multiples of this unit, can be
+scaled  <b>at the time  of the  inclusion of  the figure</b>  into the
+document. The symbols for drawing graphs have by default this size, so
+they can  also be scaled  this way. If  this argument is  omitted, the
+default   value  is   used,  which   can   be  set   with  the   macro
+<tt>\blopps</tt>.  Use this if you  want to change the default for the
+whole document, for example: <tt>\blopps{3mm}</tt></dd>
+
+<dt><tt><a  name="lw">lw=&lt;dimen&gt;</a></tt></dt>  <dd>Defines  the
+vale of  the <a href="length.html">LW</a> unit within  the plot, which
+is the default width  of all lines drawn in a plot  (you can of course
+change the width of any line in your blop-script, but then it will not
+be possible to scale it at the  time of the inclusion of the figure to
+the   document).   The   default    value   is   can   be   set   with
+<tt>\bloplw</tt>. </dd>
+
+<dt><tt><a name="text">text=text-to-be-shown</a></tt></dt> <dd>Defines an
+annotation text to be shown on top of the figure (If it contains a comma, or
+maybe spaces, surround it with { } ) This possibility serves to better
+separate the logical content of a figure from its role in the
+document. For example, when creating a plot, one should only be
+concerned about what quantity is plotted (and how), and not about its
+final position in a document. Later, when included in a document, as a
+sub-figure of a large figure, one may want to label this figure as the
+a) subfigure. If the figure's position is changed later (it is not
+subfigure a) anymore, but subfigure b), then the figure does not need
+to be recreated.
+</dd>
+
+<dt><tt><a name="textpos">textpos={xcoord,ycoord}</a></tt></dt> <dd>
+Defines the position of the text annotation. The coordinates can be
+LaTeX dimens (like <tt>1cm</tt>, etc), or a simple number without
+unit (where 0,0 refers to the lower left corner of the picture, 1,1
+refers to the top right corner)</dd>
+
+<dt><tt><a name="textalign">textalign=xx</a></tt></dt> <dd>Alignment
+of the annotation text. <tt>xx</tt> should be replaced by the
+following letters: l (for left), r (for right), c (for center), t (for
+top), b (for bottom) </dd>
+
+<dt><tt><a name="lon">lon=&lt;num&gt;</a></tt></dt> 
+<dd>
+Switch on layer number &lt;num&gt;. By default, all objects and graphs
+are put to layer 1, and this is the only layer switched on. If some
+objects or graphs are on different layers, they will by default not be
+visible, unless one switches on those layers.
+</dd>
+
+
+</dl>
+
+<p>  My suggestion  is that  you don't  change the  pointsize  of your
+graphs (from the default PS), or  if you need points of different size
+in a plot, use the multiples of PS. This way you can scale the size of
+points in all  of your figures in your document  with one single LaTeX
+commandat the  beginning of  the document. The  same holds  for lines:
+don't change  the width of  lines, or if  you need lines  of different
+widths, use multiples of LW.
+
+<p> The <tt>\blopcmd</tt> macro can be used to specify LaTeX commands,
+which  should be called before inserting any figure. For example if
+you want that text in all of your figures be typeset with slanted
+font, and with a smaller fontsize, call at the beginning of your
+document: <br>
+<tt>\blopcmd{\sf\scriptsize}</tt><br>
+Otherwise, if you want it to have an effect only for one figure,
+include it in the following way:
+<pre>
+{\sf\scriptsize \blopeps{figure.beps}}
+</pre>
+
+<p><div class=sectiontitle><a name="pick">Picking figures from
+PostScript documents</a></div>  
+
+You often  want to pick a figure  from a PostScript document. You  can
+very  easily do this  with blop's figures  as well:   since  they  are
+included  into  the  LaTeX/PostScript  document as  a PostScript  file
+(with  some extra  bookkeeping, as  explained above), 
+simply load  your PostScript  file into a  text editor, searh  for the
+text <tt>Creator:&nbsp;blop</tt>  (this is about  the 3rd row  in the
+blopeps       file,       look       for       a       line       like
+<tt>%!PS-Adobe-2.0&nbsp;EPSF-2.0</tt> somewhat above it). Now look for
+a line like <tt>%--EndOfFile--</tt>.  The text between these two lines
+(inclusive) was  the content of  the blopeps file, which  was included
+into the  document. Copy this  content to a  separate file, and  it is
+ready   to  be   included  into   a  new   LaTeX  document   with  the
+<tt>\blopeps</tt> macro.
+
+</div>
+<hr>
+
+<pre div=implementation>
+Source files:
+   <a href="blopeps.h.html">blopeps.h</a>
+   <a href="blopeps.cc.html">blopeps.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="terminals.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: terminals.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="eps.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: eps.html">
+    </a> 
+
+</body>
+</html>

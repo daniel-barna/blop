@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Cutting out axis ranges</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="axis-tics.html">
+   <link rel="Next" href="axis-transform.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-tics.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-tics.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-transform.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-transform.html">
+    </a> <br>
+
+<center class=title><b>
+Cutting out axis ranges
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<p><pre>
+frame::current().x1axis()->cut(10,20); // cut out this range from x1 axis
+plot("&lt;&lt;
+      5  1
+      15 2
+      25 3");
+</pre>
+
+The middle point in the above example will not be shown, since this
+falls into the cut-out region. The cut-out region is indicated on the
+axis with a wavy line.
+</div>
+Shorthand:
+<pre>set::y1cut(10,20); </pre>
+<hr>
+
+<div class=description>
+
+<p>
+This feature is useful for example if one wants to plot a set of data,
+which spans a  huge region of values, with a large  gap in between. In
+this case it is  quite ugly to have datapoints at the  two ends of the
+axis, and a  large empty area in the middle. This  empty region can be
+cut out using the <tt>cut(low,high)</tt> function of the axis. Several
+regions can  be cut out, by  calling this function  several times. The
+position of these  cut-out regions will be indicated  by wavy lines on
+the axis. 
+
+<p>
+Another application possibility is to show different datasets in the
+same frame, shifted from each other. Below is an example for this (the
+<a href="graph-drawer.html#ticlabels">xticlabels</a> drawstyle draws
+the given graph with the specified drawstyle, and, in addition, puts a
+ticlabel (taken from the 3rd column) on the x axis at every datapoint
+- this is why there are twice the same labels on the x axis)
+
+<table>
+<tr>
+<td>
+<pre>
+    var data = "&lt;&lt;
+        1   2	3
+	2   6	4
+	3   8.2 4.5
+	4   8.0 5
+	5   7.5 5.5
+	6   2   4
+	7   1	3
+	8   0	1";  
+
+    frame::current().x1axis()->cut(10,99);
+
+    plot(data,_1,_2).ds(xticlabels(points())).pt(square()).legend("2nd column");
+
+    // plot 3rd column, shifted by hundred on the x axis, but use ticlabels
+    // from the first column
+    mplot(data,_1+100,_3,_1).ds(xticlabels(points())).pt(star4()).legend("3rd column");
+</pre>
+</td>
+<td>
+<img src="figs/axis-cut.png">
+</td>
+</table>
+
+
+<p>  The  gap  between  the  two  wavy  lines  can  be  set  with  the
+<tt>axis::cut_gap(length)</tt>         function.         The        <a
+href="design-concepts.html#default">default</a> value  of this gap can
+be   set   via   the   static   <tt>axis::default_cut_gap(length)</tt>
+function.  Other sizes  of the  wavy line  will be  adjustable  in the
+future. 
+
+
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="axis.h.html">axis.h</a>
+   <a href="axis.cc.html">axis.cc</a>
+</pre><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-tics.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-tics.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-transform.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-transform.html">
+    </a> 
+
+</body>
+</html>

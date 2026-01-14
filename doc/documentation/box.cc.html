@@ -1,0 +1,367 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: box.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="box.h.html">box.h</a>"
+<a name="__line1"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>#include &lt;cstdio&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    using namespace std;
+<a name="__line8"></a>
+<a name="__line9"></a>    box &amp;box::fix_width(bool f)
+<a name="__line10"></a>    {
+<a name="__line11"></a>	if(f &amp;&amp; (width_.depends_on(left_) || width_.depends_on(right_) || width_.depends_on(xcenter_)))
+<a name="__line12"></a>	{
+<a name="__line13"></a>	    warning::print("Please set the width of the box to an independent value before fixing it","box::fix_width(true)");
+<a name="__line14"></a>	    return *this;
+<a name="__line15"></a>	}
+<a name="__line16"></a>	width_fixed_ = f;
+<a name="__line17"></a>	return *this;
+<a name="__line18"></a>    }
+<a name="__line19"></a>    box &amp;box::fix_height(bool f)
+<a name="__line20"></a>    {
+<a name="__line21"></a>	if(f &amp;&amp; (height_.depends_on(bottom_) || height_.depends_on(top_) || height_.depends_on(ycenter_)))
+<a name="__line22"></a>	{
+<a name="__line23"></a>	    warning::print("Please set the height of the box to an independent value before fixing it","box::fix_height(true)");
+<a name="__line24"></a>	    return *this;
+<a name="__line25"></a>	}
+<a name="__line26"></a>	height_fixed_ = f;
+<a name="__line27"></a>	return *this;
+<a name="__line28"></a>    }
+<a name="__line29"></a>
+<a name="__line30"></a>    <span class=comment>// This function is using variables like 'left', 'right', 'width'. This is only to</span>
+<a name="__line31"></a>    <span class=comment>// simplify the understanding. This function is in fact also used for setting the</span>
+<a name="__line32"></a>    <span class=comment>// vertical position/size, but this is a completely analogous algorithm, substituting</span>
+<a name="__line33"></a>    <span class=comment>// left-&gt;bottom, right-&gt;top, width-&gt;height, etc</span>
+<a name="__line34"></a>    void box::set_(const length &amp;l,
+<a name="__line35"></a>		   length &amp;left,
+<a name="__line36"></a>		   length &amp;right,
+<a name="__line37"></a>		   length &amp;width,
+<a name="__line38"></a>		   length &amp;center,
+<a name="__line39"></a>		   bool width_fixed,
+<a name="__line40"></a>		   history_values history[2],
+<a name="__line41"></a>		   history_values todo,
+<a name="__line42"></a>		   bool &amp;left_modified,
+<a name="__line43"></a>		   bool &amp;right_modified)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	left_modified = false;
+<a name="__line46"></a>	right_modified = false;
+<a name="__line47"></a>
+<a name="__line48"></a>	<span class=comment>// First of all, set the corresponding length, which is to be set. Other values</span>
+<a name="__line49"></a>	<span class=comment>// will be updated later, if needed (for example if the last action was to set left,</span>
+<a name="__line50"></a>	<span class=comment>// and now we are setting right, then width and center will be updated later to</span>
+<a name="__line51"></a>	<span class=comment>// keep consistency)</span>
+<a name="__line52"></a>	switch(todo)
+<a name="__line53"></a>	{
+<a name="__line54"></a>	case LeftBottom: left = l; left_modified = true;  break;
+<a name="__line55"></a>	case RightTop: right = l; right_modified = true; break;
+<a name="__line56"></a>	case WidthHeight:
+<a name="__line57"></a>	    if(width_fixed)
+<a name="__line58"></a>	    {
+<a name="__line59"></a>		warning::print("This should never happen: trying to set width/height of box although it's fixed");
+<a name="__line60"></a>		return;
+<a name="__line61"></a>	    }
+<a name="__line62"></a>	    width = l; break;
+<a name="__line63"></a>	case Center: center = l; break;
+<a name="__line64"></a>	default: err("This should not happen...");
+<a name="__line65"></a>	}
+<a name="__line66"></a>
+<a name="__line67"></a>	<span class=comment>// This is the same as the last action before, all the dependent</span>
+<a name="__line68"></a>	<span class=comment>// lengths are set up such that it is sufficient to update the</span>
+<a name="__line69"></a>	<span class=comment>// corresponding length</span>
+<a name="__line70"></a>	if(history[1] == todo)
+<a name="__line71"></a>	{
+<a name="__line72"></a>	    return;
+<a name="__line73"></a>	}
+<a name="__line74"></a>
+<a name="__line75"></a>	<span class=comment>// This is the same as the butlast action: also no need to change</span>
+<a name="__line76"></a>	<span class=comment>// the dependent lengths. Only update the history</span>
+<a name="__line77"></a>	if(history[0] == todo)
+<a name="__line78"></a>	{
+<a name="__line79"></a>	    history[0] = history[1];
+<a name="__line80"></a>	    history[1] = todo;
+<a name="__line81"></a>	    return;
+<a name="__line82"></a>	}
+<a name="__line83"></a>
+<a name="__line84"></a>	<span class=comment>// now update the other values. If width is fixed, then ignore the history, and</span>
+<a name="__line85"></a>	<span class=comment>// update all other values based on only the current operation.</span>
+<a name="__line86"></a>	if(width_fixed)
+<a name="__line87"></a>	{
+<a name="__line88"></a>	    <span class=comment>// make a quick check to make sure that width is not dependent on left/right/xcenter</span>
+<a name="__line89"></a>	    if(width.depends_on(left) || width.depends_on(right) || width.depends_on(center))
+<a name="__line90"></a>	    {
+<a name="__line91"></a>		warning::print("Width/height depends on other values, although it is fixed. This should never happen...");
+<a name="__line92"></a>		return;
+<a name="__line93"></a>	    }
+<a name="__line94"></a>	    
+<a name="__line95"></a>	    switch(todo)
+<a name="__line96"></a>	    {
+<a name="__line97"></a>	    case LeftBottom: right = !left + !width;  center=0.5*(!left+!right); right_modified=true; break;
+<a name="__line98"></a>	    case RightTop:   left  = !right - !width; center=0.5*(!left+!right); left_modified =true; break;
+<a name="__line99"></a>	    case Center:     left  = !center - 0.5*!width; right = !center + 0.5*!width; right_modified=true; left_modified=true; break;
+<a name="__line100"></a>	    default: warning::print("This should never happen","box::set_"); break;
+<a name="__line101"></a>	    }
+<a name="__line102"></a>	}
+<a name="__line103"></a>
+<a name="__line104"></a>	<span class=comment>// otherwise take into account the history, i.e. if the last action was for example</span>
+<a name="__line105"></a>	<span class=comment>// setting left, and now we are setting right, then center and width must be</span>
+<a name="__line106"></a>	<span class=comment>// updated accordingly. </span>
+<a name="__line107"></a>	else
+<a name="__line108"></a>	{
+<a name="__line109"></a>	    history_values h1=history[1], h2=todo;
+<a name="__line110"></a>	    if(h1&gt;h2) swap(h1,h2);
+<a name="__line111"></a>	    
+<a name="__line112"></a>	    if(h1 == LeftBottom &amp;&amp; h2 == RightTop)
+<a name="__line113"></a>	    {
+<a name="__line114"></a>		width = !right - !left;
+<a name="__line115"></a>		center = 0.5*(!left + !right);
+<a name="__line116"></a>	    }
+<a name="__line117"></a>	    else if(h1 == LeftBottom &amp;&amp; h2 == WidthHeight)
+<a name="__line118"></a>	    {
+<a name="__line119"></a>		right = !left + !width;
+<a name="__line120"></a>		center = !left + 0.5*!width;
+<a name="__line121"></a>		right_modified = true;
+<a name="__line122"></a>	    }
+<a name="__line123"></a>	    else if(h1 == LeftBottom &amp;&amp; h2 == Center)
+<a name="__line124"></a>	    {
+<a name="__line125"></a>		width = 2*(!center - !left);
+<a name="__line126"></a>		right = 2*!center - !left;
+<a name="__line127"></a>		right_modified = true;
+<a name="__line128"></a>	    }
+<a name="__line129"></a>	    else if(h1 == RightTop &amp;&amp; h2 == WidthHeight)
+<a name="__line130"></a>	    {
+<a name="__line131"></a>		left = !right - !width;
+<a name="__line132"></a>		center = !right - 0.5*!width;
+<a name="__line133"></a>		left_modified = true;
+<a name="__line134"></a>	    }
+<a name="__line135"></a>	    else if(h1 == RightTop &amp;&amp; h2 == Center)
+<a name="__line136"></a>	    {
+<a name="__line137"></a>		width = 2*(!right - !center);
+<a name="__line138"></a>		left = 2*!center - !right;
+<a name="__line139"></a>		left_modified = true;
+<a name="__line140"></a>	    }
+<a name="__line141"></a>	    else if(h1 == WidthHeight &amp;&amp; h2 == Center)
+<a name="__line142"></a>	    {
+<a name="__line143"></a>		left = !center - 0.5*!width;
+<a name="__line144"></a>		right = !center + 0.5*!width;
+<a name="__line145"></a>		left_modified = right_modified = true;
+<a name="__line146"></a>	    }
+<a name="__line147"></a>	    else
+<a name="__line148"></a>	    {
+<a name="__line149"></a>		err("h1 and h2 has impossible values");
+<a name="__line150"></a>	    }
+<a name="__line151"></a>	}
+<a name="__line152"></a>
+<a name="__line153"></a>	history[0] = history[1];
+<a name="__line154"></a>	history[1] = todo;
+<a name="__line155"></a>    }
+<a name="__line156"></a>
+<a name="__line157"></a>    void box::prepare_for_draw()
+<a name="__line158"></a>    {
+<a name="__line159"></a><span class=comment>//	left_.set_scale(x_unit());</span>
+<a name="__line160"></a><span class=comment>//	right_.set_scale(x_unit());</span>
+<a name="__line161"></a><span class=comment>//	width_.set_scale(x_unit());</span>
+<a name="__line162"></a><span class=comment>//	xcenter_.set_scale(x_unit());</span>
+<a name="__line163"></a><span class=comment>//	bottom_.set_scale(y_unit());</span>
+<a name="__line164"></a><span class=comment>//	top_.set_scale(y_unit());</span>
+<a name="__line165"></a><span class=comment>//	height_.set_scale(y_unit());</span>
+<a name="__line166"></a><span class=comment>//	ycenter_.set_scale(y_unit());</span>
+<a name="__line167"></a>	left_.register_me();
+<a name="__line168"></a>	right_.register_me();
+<a name="__line169"></a>	bottom_.register_me();
+<a name="__line170"></a>	top_.register_me();
+<a name="__line171"></a>    }
+<a name="__line172"></a>
+<a name="__line173"></a>    box::box() : left_(0.0), right_(CM), bottom_(0.0), top_(1.0)
+<a name="__line174"></a>    {
+<a name="__line175"></a>	name("box");
+<a name="__line176"></a>	width_fixed_ = false;
+<a name="__line177"></a>	height_fixed_ = false;
+<a name="__line178"></a>	width_ = !right_ - !left_;
+<a name="__line179"></a>	xcenter_ = 0.5*(!left_ + !right_);
+<a name="__line180"></a>	height_ = !top_ - !bottom_;
+<a name="__line181"></a>	ycenter_ = 0.5*(!bottom_ + !top_);
+<a name="__line182"></a>	xhistory_[0] = RightTop;
+<a name="__line183"></a>	xhistory_[1] = LeftBottom;
+<a name="__line184"></a>	yhistory_[0] = RightTop;
+<a name="__line185"></a>	yhistory_[1] = LeftBottom;
+<a name="__line186"></a>
+<a name="__line187"></a>	left_.set_scale(x_unit());
+<a name="__line188"></a>	right_.set_scale(x_unit());
+<a name="__line189"></a>	width_.set_scale(x_unit());
+<a name="__line190"></a>	xcenter_.set_scale(x_unit());
+<a name="__line191"></a>	bottom_.set_scale(y_unit());
+<a name="__line192"></a>	top_.set_scale(y_unit());
+<a name="__line193"></a>	height_.set_scale(y_unit());
+<a name="__line194"></a>	ycenter_.set_scale(y_unit());
+<a name="__line195"></a>    }
+<a name="__line196"></a>
+<a name="__line197"></a>    void box::set_left_(const length &amp;l, bool &amp;left_modified, bool &amp;right_modified)
+<a name="__line198"></a>    {
+<a name="__line199"></a>	modified_ = true;
+<a name="__line200"></a>	set_(l,left_,right_,width_,xcenter_,width_fixed_,xhistory_,LeftBottom,
+<a name="__line201"></a>	     left_modified,right_modified);
+<a name="__line202"></a>	left_.set_scale(x_unit());
+<a name="__line203"></a>    }
+<a name="__line204"></a>    box &amp;box::left(const length &amp;l)
+<a name="__line205"></a>    {
+<a name="__line206"></a>	bool b;
+<a name="__line207"></a>	set_left_(l,b,b);
+<a name="__line208"></a>	return *this;
+<a name="__line209"></a>    }
+<a name="__line210"></a>
+<a name="__line211"></a>    void box::set_right_(const length &amp;l, bool &amp;left_modified, bool &amp;right_modified)
+<a name="__line212"></a>    {
+<a name="__line213"></a>	modified_ = true;
+<a name="__line214"></a>	set_(l,left_,right_,width_,xcenter_,width_fixed_,xhistory_,RightTop,
+<a name="__line215"></a>	     left_modified,right_modified);
+<a name="__line216"></a>	right_.set_scale(x_unit());
+<a name="__line217"></a>    }
+<a name="__line218"></a>    box &amp;box::right(const length &amp;l)
+<a name="__line219"></a>    {
+<a name="__line220"></a>	bool b;
+<a name="__line221"></a>	set_right_(l,b,b);
+<a name="__line222"></a>	return *this;
+<a name="__line223"></a>    }
+<a name="__line224"></a>
+<a name="__line225"></a>
+<a name="__line226"></a>    void box::set_width_(const length &amp;l, bool &amp;left_modified, bool &amp;right_modified)
+<a name="__line227"></a>    {
+<a name="__line228"></a>	modified_ = true;
+<a name="__line229"></a>	set_(l,left_,right_,width_,xcenter_,width_fixed_,xhistory_,WidthHeight,
+<a name="__line230"></a>	     left_modified,right_modified);
+<a name="__line231"></a>	width_.set_scale(x_unit());
+<a name="__line232"></a>    }
+<a name="__line233"></a>    box &amp;box::width(const length &amp;l)
+<a name="__line234"></a>    {
+<a name="__line235"></a>	if(width_fixed_)
+<a name="__line236"></a>	{
+<a name="__line237"></a>	    warning::print("The width of this box is fixed","box::width(const length &amp;)");
+<a name="__line238"></a>	    return *this;
+<a name="__line239"></a>	}
+<a name="__line240"></a>	bool b;
+<a name="__line241"></a>	set_width_(l,b,b);
+<a name="__line242"></a>	return *this;
+<a name="__line243"></a>    }
+<a name="__line244"></a>
+<a name="__line245"></a>
+<a name="__line246"></a>    void box::set_xcenter_(const length &amp;l, bool &amp;left_modified, bool &amp;right_modified)
+<a name="__line247"></a>    {
+<a name="__line248"></a>	modified_ = true;
+<a name="__line249"></a>	set_(l,left_,right_,width_,xcenter_,width_fixed_,xhistory_,Center,
+<a name="__line250"></a>	     left_modified,right_modified);
+<a name="__line251"></a>	xcenter_.set_scale(x_unit());
+<a name="__line252"></a>    }
+<a name="__line253"></a>    box &amp;box::xcenter(const length &amp;l)
+<a name="__line254"></a>    {
+<a name="__line255"></a>	bool b;
+<a name="__line256"></a>	set_xcenter_(l,b,b);
+<a name="__line257"></a>	return *this;
+<a name="__line258"></a>    }
+<a name="__line259"></a>
+<a name="__line260"></a>    void box::set_bottom_(const length &amp;l, bool &amp;bottom_modified, bool &amp;top_modified)
+<a name="__line261"></a>    {
+<a name="__line262"></a>	modified_ = true;
+<a name="__line263"></a>	set_(l,bottom_,top_,height_,ycenter_,height_fixed_,yhistory_,LeftBottom,
+<a name="__line264"></a>	     bottom_modified,top_modified);
+<a name="__line265"></a>	bottom_.set_scale(y_unit());
+<a name="__line266"></a>    }
+<a name="__line267"></a>    box &amp;box::bottom(const length &amp;l)
+<a name="__line268"></a>    {
+<a name="__line269"></a>	bool b;
+<a name="__line270"></a>	set_bottom_(l,b,b);
+<a name="__line271"></a>	return *this;
+<a name="__line272"></a>    }
+<a name="__line273"></a>
+<a name="__line274"></a>    void box::set_top_(const length &amp;l, bool &amp;bottom_modified, bool &amp;top_modified)
+<a name="__line275"></a>    {
+<a name="__line276"></a>	modified_ = true;
+<a name="__line277"></a>	set_(l,bottom_,top_,height_,ycenter_,height_fixed_,yhistory_,RightTop,
+<a name="__line278"></a>	     bottom_modified,top_modified);
+<a name="__line279"></a>	top_.set_scale(y_unit());
+<a name="__line280"></a>    }
+<a name="__line281"></a>    box &amp;box::top(const length &amp;l)
+<a name="__line282"></a>    {
+<a name="__line283"></a>	bool b;
+<a name="__line284"></a>	set_top_(l,b,b);
+<a name="__line285"></a>	return *this;
+<a name="__line286"></a>    }
+<a name="__line287"></a>
+<a name="__line288"></a>    void box::set_height_(const length &amp;l, bool &amp;bottom_modified, bool &amp;top_modified)
+<a name="__line289"></a>    {
+<a name="__line290"></a>	modified_ = true;
+<a name="__line291"></a>	set_(l,bottom_,top_,height_,ycenter_,height_fixed_,yhistory_,WidthHeight,
+<a name="__line292"></a>	     bottom_modified,top_modified);
+<a name="__line293"></a>	height_.set_scale(y_unit());
+<a name="__line294"></a>    }
+<a name="__line295"></a>    box &amp;box::height(const length &amp;l)
+<a name="__line296"></a>    {
+<a name="__line297"></a>	if(height_fixed_)
+<a name="__line298"></a>	{
+<a name="__line299"></a>	    warning::print("The height of this box is fixed","box::height(const length &amp;)");
+<a name="__line300"></a>	    return *this;
+<a name="__line301"></a>	}
+<a name="__line302"></a>	bool b;
+<a name="__line303"></a>	set_height_(l,b,b);
+<a name="__line304"></a>	return *this;
+<a name="__line305"></a>    }
+<a name="__line306"></a>
+<a name="__line307"></a>    void box::set_ycenter_(const length &amp;l, bool &amp;bottom_modified, bool &amp;top_modified)
+<a name="__line308"></a>    {
+<a name="__line309"></a>	modified_ = true;
+<a name="__line310"></a>	set_(l,bottom_,top_,height_,ycenter_,height_fixed_,yhistory_,Center,
+<a name="__line311"></a>	     bottom_modified,top_modified);
+<a name="__line312"></a>	ycenter_.set_scale(y_unit());
+<a name="__line313"></a>    }
+<a name="__line314"></a>    box &amp;box::ycenter(const length &amp;l)
+<a name="__line315"></a>    {
+<a name="__line316"></a>	bool b;
+<a name="__line317"></a>	set_ycenter_(l,b,b);
+<a name="__line318"></a>	return *this;
+<a name="__line319"></a>    }
+<a name="__line320"></a>
+<a name="__line321"></a>    const length &amp;box::left() const {return left_;}
+<a name="__line322"></a>    const length &amp;box::right() const {return right_;}
+<a name="__line323"></a>    const length &amp;box::width() const {return width_;}
+<a name="__line324"></a>    const length &amp;box::xcenter() const {return xcenter_;}
+<a name="__line325"></a>    const length &amp;box::bottom() const {return bottom_;}
+<a name="__line326"></a>    const length &amp;box::top() const {return top_;}
+<a name="__line327"></a>    const length &amp;box::height() const {return height_;}
+<a name="__line328"></a>    const length &amp;box::ycenter() const {return ycenter_;}
+<a name="__line329"></a>
+<a name="__line330"></a>
+<a name="__line331"></a>
+<a name="__line332"></a>}
+<a name="__line333"></a>
+<a name="__line334"></a>
+<a name="__line335"></a>
+<a name="__line336"></a>
+<a name="__line337"></a>
+<a name="__line338"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,550 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: levenberg-marquardt.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __LEVENBERG_MARQUARDT_H__
+<a name="__line1"></a>#define __LEVENBERG_MARQUARDT_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="matrix.h.html">matrix.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    <span class=comment>// The Levenberg-Marquardt fitting algorithm is implemented here in a general way,</span>
+<a name="__line8"></a>    <span class=comment>// using template functions, so that it can be used for any type of variables,</span>
+<a name="__line9"></a>    <span class=comment>// on which a fitfunction is evaluated (i.e. the fitfunction does not need to be</span>
+<a name="__line10"></a>    <span class=comment>// of type double (func)(double), can have any type of arguments and any type</span>
+<a name="__line11"></a>    <span class=comment>// of return value.</span>
+<a name="__line12"></a>    <span class=comment>// The template classes throughout this file are the following:</span>
+<a name="__line13"></a>    <span class=comment>// </span>
+<a name="__line14"></a>    <span class=comment>//   x_type          The type of the argument(s) of the fitfunction, normally a double</span>
+<a name="__line15"></a>    <span class=comment>//                   in more exotic cases it can be anything</span>
+<a name="__line16"></a>    <span class=comment>//   y_type          The type of the return value(es) of the fitfunction</span>
+<a name="__line17"></a>    <span class=comment>//   par_type        The type of the parameter(s) of the fitfunction (over which the fit</span>
+<a name="__line18"></a>    <span class=comment>//                   finds the optimum)</span>
+<a name="__line19"></a>    <span class=comment>//   func_type       The function type. This class must implement the following members:</span>
+<a name="__line20"></a>    <span class=comment>//                   - operator()(const std::vector&lt;x_type&gt; &amp;args, const std::vector&lt;par_type&gt; &amp;pars, std::vector&lt;y_type&gt; &amp;results)</span>
+<a name="__line21"></a>    <span class=comment>//   der0_type       </span>
+<a name="__line22"></a>    <span class=comment>//   der1_type</span>
+<a name="__line23"></a>    <span class=comment>//   der2_type       Function-like types, which should implement the () operator (returning double) with the argument lists as below,</span>
+<a name="__line24"></a>    <span class=comment>//                   to evaluate the 'error' (chisq) between a set of measured y[i] points and</span>
+<a name="__line25"></a>    <span class=comment>//                   the corresponding fitfunc(x[i]) values. In the most common case (assuming normal-distribution</span>
+<a name="__line26"></a>    <span class=comment>//                   for the measurement errors on y[i])</span>
+<a name="__line27"></a>    <span class=comment>//                   der0(const std::vector&lt;x_type&gt; &amp;x,const std::vector&lt;x_type&gt; &amp;sigmax,</span>
+<a name="__line28"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;y,const std::vector&lt;y_type&gt; &amp;sigmay,</span>
+<a name="__line29"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;funcvalues) = sum_i |y[i]-funcvalues[i]|^2/sigmay[i]^2</span>
+<a name="__line30"></a>    <span class=comment>//                   der1 and der2 return the 1st and 2nd derivative of this value w.r.t. changes of funcvalues</span>
+<a name="__line31"></a>    <span class=comment>//                   given as extra parameters:</span>
+<a name="__line32"></a>    <span class=comment>//                   der1(const std::vector&lt;x_type&gt; &amp;x,const std::vector&lt;x_type&gt; &amp;sigmax,</span>
+<a name="__line33"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;y,const std::vector&lt;y_type&gt; &amp;sigmay,</span>
+<a name="__line34"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;funcvalues, const std::vector&lt;y_type&gt; &amp;dfda) =</span>
+<a name="__line35"></a>    <span class=comment>//                           2*sum_i (funcvalues[i]-y[i])*dfda[i]/sigmay[i]^2</span>
+<a name="__line36"></a>    <span class=comment>//                   der2(const std::vector&lt;x_type&gt; &amp;x,const std::vector&lt;x_type&gt; &amp;sigmax,</span>
+<a name="__line37"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;y,const std::vector&lt;y_type&gt; &amp;sigmay,</span>
+<a name="__line38"></a>    <span class=comment>//                        const std::vector&lt;y_type&gt; &amp;funcvalues, const std::vector&lt;y_type&gt; &amp;dfda1, const std::vector&lt;y_type&gt; &amp;dfda2) =</span>
+<a name="__line39"></a>    <span class=comment>//                           2*sum_i dfda1[i]*dfda2[i]/sigmay[i]^2</span>
+<a name="__line40"></a>    <span class=comment>// </span>
+<a name="__line41"></a>    <span class=comment>//   convfunc_type   A function-like object which is called in each iteration step, and judges if the fit has converged</span>
+<a name="__line42"></a>    <span class=comment>//                   It must implement the () operator:</span>
+<a name="__line43"></a>    <span class=comment>//                   int operator()(double old_chi2, double chi2,</span>
+<a name="__line44"></a>    <span class=comment>//                                  const std::vector&lt;par_type&gt; &amp;oldpars,</span>
+<a name="__line45"></a>    <span class=comment>//                                  const std::vector&lt;par_type&gt; &amp;newpars,</span>
+<a name="__line46"></a>    <span class=comment>//                                  int nsteps)</span>
+<a name="__line47"></a>
+<a name="__line48"></a>    <span class=comment>// ---------- gauss-jordan elimination --------------------------------------------</span>
+<a name="__line49"></a>    <span class=comment>// the routine solves the equation 'x = A * y' for y (A is a NxN matrix,</span>
+<a name="__line50"></a>    <span class=comment>// x and y are vectors). The argument 'vec' is 'x' at input, and</span>
+<a name="__line51"></a>    <span class=comment>// it will contain the solution at output. The routine uses only</span>
+<a name="__line52"></a>    <span class=comment>// the ndim x ndim (left upper) part of the matrix, and the first</span>
+<a name="__line53"></a>    <span class=comment>// ndim elemenets of the vector.</span>
+<a name="__line54"></a>    
+<a name="__line55"></a>    template &lt;class par_type&gt;
+<a name="__line56"></a>    inline bool gaussj(matrix&lt;par_type&gt; &amp;a, double b[], int n, int *indxc, int *indxr, int *ipiv)
+<a name="__line57"></a>    {
+<a name="__line58"></a>	int irow=0, icol=0;
+<a name="__line59"></a>
+<a name="__line60"></a>	for(int j=0; j&lt;n; ++j) ipiv[j] = 0;
+<a name="__line61"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line62"></a>	{
+<a name="__line63"></a>	    double big = 0;
+<a name="__line64"></a>	    for(int j=0; j&lt;n; ++j)
+<a name="__line65"></a>	    {
+<a name="__line66"></a>		if( ipiv[j] != 1)
+<a name="__line67"></a>		{
+<a name="__line68"></a>		    for(int k=0; k&lt;n; ++k)
+<a name="__line69"></a>		    {
+<a name="__line70"></a>			if(ipiv[k] == 0)
+<a name="__line71"></a>			{
+<a name="__line72"></a>			    if(::fabs(a(j,k).dbl()) &gt;= big)
+<a name="__line73"></a>			    {
+<a name="__line74"></a>				big = ::fabs(a(j,k).dbl());
+<a name="__line75"></a>				irow = j;
+<a name="__line76"></a>				icol = k;
+<a name="__line77"></a>			    }
+<a name="__line78"></a>			}
+<a name="__line79"></a>		    }
+<a name="__line80"></a>		}
+<a name="__line81"></a>	    }
+<a name="__line82"></a>	    ++(ipiv[icol]);
+<a name="__line83"></a>	    if(irow != icol)
+<a name="__line84"></a>	    {
+<a name="__line85"></a>		for(int l=0; l&lt;n; ++l) swap(a(irow,l).dbl(),a(icol,l).dbl());
+<a name="__line86"></a>		swap(b[irow],b[icol]);
+<a name="__line87"></a>	    }
+<a name="__line88"></a>	    indxr[i] = irow;
+<a name="__line89"></a>	    indxc[i] = icol;
+<a name="__line90"></a>	    if(a(icol,icol).dbl() == 0.0) return false;
+<a name="__line91"></a>
+<a name="__line92"></a>	    double pivinv = 1.0/a(icol,icol).dbl();
+<a name="__line93"></a>	    a(icol,icol).dbl() = 1.0;
+<a name="__line94"></a>	    for(int l=0; l&lt;n; ++l) a(icol,l).dbl() *= pivinv;
+<a name="__line95"></a>	    b[icol] *= pivinv;
+<a name="__line96"></a>	    for(int ll=0; ll&lt;n; ++ll)
+<a name="__line97"></a>	    {
+<a name="__line98"></a>		if(ll != icol)
+<a name="__line99"></a>		{
+<a name="__line100"></a>		    double dum=a(ll,icol).dbl();
+<a name="__line101"></a>		    a(ll,icol).dbl() = 0.0;
+<a name="__line102"></a>		    for(int l=0; l&lt;n; ++l) a(ll,l).dbl() -= a(icol,l).dbl()*dum;
+<a name="__line103"></a>		    b[ll] -= b[icol]*dum;
+<a name="__line104"></a>		}
+<a name="__line105"></a>	    }
+<a name="__line106"></a>	}
+<a name="__line107"></a>	for(int l=n-1; l&gt;=0; --l)
+<a name="__line108"></a>	{
+<a name="__line109"></a>	    if(indxr[l] != indxc[l])
+<a name="__line110"></a>	    {
+<a name="__line111"></a>		for(int k=0; k&lt;n; ++k)
+<a name="__line112"></a>		{
+<a name="__line113"></a>		    swap(a(k,indxr[l]).dbl(),a(k,indxc[l]).dbl());
+<a name="__line114"></a>		}
+<a name="__line115"></a>	    }
+<a name="__line116"></a>	}
+<a name="__line117"></a>	return true;
+<a name="__line118"></a>    }
+<a name="__line119"></a>
+<a name="__line120"></a>    <span class=comment>/*
+<a name="__line121"></a>    int gauss_jordan(matrix&lt;var&gt; &amp;mat,double vec[],int ndim)
+<a name="__line122"></a>    {
+<a name="__line123"></a>	for(int i=0; i&lt;ndim-1; ++i)
+<a name="__line124"></a>	{
+<a name="__line125"></a>	    for(int j=i+1; j&lt;ndim; ++j)
+<a name="__line126"></a>	    {
+<a name="__line127"></a>		double ratio = mat(j,i).dbl()/mat(i,i).dbl();
+<a name="__line128"></a>		if(!isfinite(ratio)) return 0;
+<a name="__line129"></a>		mat(j,i).dbl() = 0;
+<a name="__line130"></a>		for(int k=i+1; k&lt;ndim; ++k)
+<a name="__line131"></a>		{
+<a name="__line132"></a>		    mat(j,k).dbl() -= ratio * mat(i,k).dbl();
+<a name="__line133"></a>		}
+<a name="__line134"></a>		vec[j] -= ratio * vec[i];
+<a name="__line135"></a>	    }
+<a name="__line136"></a>	}
+<a name="__line137"></a>
+<a name="__line138"></a>	for(int i=ndim-1; i&gt;=0; --i)
+<a name="__line139"></a>	{
+<a name="__line140"></a>	    double others = 0;
+<a name="__line141"></a>	    for(int j=i+1; j&lt;ndim; ++j) others += mat(i,j).dbl()*vec[j];
+<a name="__line142"></a>	    vec[i] = (vec[i]-others)/mat(i,i).dbl();
+<a name="__line143"></a>	    //if(!isfinite(vec[i])) return 0;
+<a name="__line144"></a>	}
+<a name="__line145"></a>	return 1;
+<a name="__line146"></a>    }
+<a name="__line147"></a>    */</span>
+<a name="__line148"></a>
+<a name="__line149"></a>
+<a name="__line150"></a>    <span class=comment>// ---------- invert_hessian  -----------------------------------------------------</span>
+<a name="__line151"></a>    <span class=comment>// INPUT:</span>
+<a name="__line152"></a>    <span class=comment>// alpha               -- hessian matrix of chi2</span>
+<a name="__line153"></a>    <span class=comment>// beta                -- gradient of chi2</span>
+<a name="__line154"></a>    <span class=comment>// </span>
+<a name="__line155"></a>    <span class=comment>// OUTPUT:</span>
+<a name="__line156"></a>    <span class=comment>// covar               -- alpha_lambda inverted, where alpha_lambda is</span>
+<a name="__line157"></a>    <span class=comment>//                        the same as 'alpha', except diagonal elements</span>
+<a name="__line158"></a>    <span class=comment>//                        multiplied by (1+lambda)</span>
+<a name="__line159"></a>    <span class=comment>// beta_temp           -- the solution of beta = alpha_lambda * beta_temp</span>
+<a name="__line160"></a>
+<a name="__line161"></a>    template &lt;class par_type&gt;
+<a name="__line162"></a>    inline bool invert_hessian(const matrix&lt;par_type&gt; &amp;alpha, matrix&lt;par_type&gt; &amp;covar,
+<a name="__line163"></a>			       const double beta[], double beta_temp[],
+<a name="__line164"></a>			       int NFREE, double lambda,
+<a name="__line165"></a>			       int *indxc, int *indxr, int *ipiv)
+<a name="__line166"></a>    {
+<a name="__line167"></a>	for(int j=0; j&lt;NFREE; ++j)
+<a name="__line168"></a>	{
+<a name="__line169"></a>	    for(int k=0; k&lt;NFREE; ++k) covar(j,k).dbl() = alpha(j,k).dbl();
+<a name="__line170"></a>	    covar(j,j).dbl() = alpha(j,j).dbl() * (1 + lambda);
+<a name="__line171"></a>	    beta_temp[j] = beta[j];
+<a name="__line172"></a>	}
+<a name="__line173"></a>	return gaussj(covar,beta_temp,NFREE,indxc,indxr,ipiv);
+<a name="__line174"></a>	<span class=comment>// return gauss_jordan(covar,beta_temp,NFREE);</span>
+<a name="__line175"></a>    }
+<a name="__line176"></a>
+<a name="__line177"></a>    <span class=comment>// Calculate the chisq at the given values, using the error-function der0</span>
+<a name="__line178"></a>    template &lt;class x_type, class y_type, class par_type, class func_type, class der0_type&gt;
+<a name="__line179"></a>    inline double  calc_chisq(const matrix&lt;x_type&gt; &amp;x, const matrix&lt;x_type&gt; &amp;sigma_x,
+<a name="__line180"></a>			      const matrix&lt;y_type&gt; &amp;y, const matrix&lt;y_type&gt; &amp;sigma_y,
+<a name="__line181"></a>			      const std::vector&lt;par_type&gt; &amp;parameters,
+<a name="__line182"></a>			      const func_type &amp;fitfunc,
+<a name="__line183"></a>			      matrix&lt;y_type&gt; &amp;y_out,
+<a name="__line184"></a>			      der0_type &amp;der0)
+<a name="__line185"></a>    {
+<a name="__line186"></a>	const int NDATA = x.rows();
+<a name="__line187"></a>
+<a name="__line188"></a>	double chisq = 0;
+<a name="__line189"></a>	for(int idata=0; idata&lt;NDATA; ++idata)
+<a name="__line190"></a>	{
+<a name="__line191"></a>	    fitfunc(x.row(idata), parameters, y_out.row(idata)); <span class=comment>// the last arg is the output</span>
+<a name="__line192"></a>
+<a name="__line193"></a>	    chisq += der0(x.row(idata),
+<a name="__line194"></a>			  sigma_x.row(idata),
+<a name="__line195"></a>			  y.row(idata),
+<a name="__line196"></a>			  sigma_y.row(idata),
+<a name="__line197"></a>			  y_out.row(idata));
+<a name="__line198"></a>	}
+<a name="__line199"></a>	return chisq;
+<a name="__line200"></a>    }
+<a name="__line201"></a>
+<a name="__line202"></a>    template &lt;class x_type, class y_type, class par_type, class func_type, class der1_type, class der2_type&gt;
+<a name="__line203"></a>    inline void calc_der(const matrix&lt;x_type&gt; &amp;x, const matrix&lt;x_type&gt; &amp;sigma_x,
+<a name="__line204"></a>			 const matrix&lt;y_type&gt; &amp;y, const matrix&lt;y_type&gt; &amp;sigma_y,
+<a name="__line205"></a>			 std::vector&lt;par_type&gt; parameters,
+<a name="__line206"></a>			 const std::vector&lt;bool&gt; &amp;parameter_free,
+<a name="__line207"></a>			 const int NPARS, const int NFREE,
+<a name="__line208"></a>			 matrix&lt;par_type&gt; &amp;alpha, double beta[],
+<a name="__line209"></a>			 const std::vector&lt;func_type&gt; &amp;fitfunc_derivs,
+<a name="__line210"></a>			 const matrix&lt;y_type&gt; &amp;func_values,
+<a name="__line211"></a>			 matrix&lt;y_type&gt; dfda[],
+<a name="__line212"></a>			 der1_type &amp;der1,
+<a name="__line213"></a>			 der2_type &amp;der2)
+<a name="__line214"></a>    <span class=comment>// INPUT VARIABLES</span>
+<a name="__line215"></a>    <span class=comment>// x(idata,ix)           is the ix-th component of the idata-th X-point</span>
+<a name="__line216"></a>    <span class=comment>// sigma_x(idata,ix)     is its error</span>
+<a name="__line217"></a>    <span class=comment>// y(idata,iy)           is the iy-th component of the idata-th Y-point</span>
+<a name="__line218"></a>    <span class=comment>// sigma_y(idata,iy)     is its error</span>
+<a name="__line219"></a>    <span class=comment>// parameters            the set of parameters (0..NPARS)</span>
+<a name="__line220"></a>    <span class=comment>// parameter_free        indicates wheter fit with respect to this parameter</span>
+<a name="__line221"></a>    <span class=comment>// fitfunc_derivs[i]     is the (multi-valued) derivative with respect to</span>
+<a name="__line222"></a>    <span class=comment>//                       the i+1 th parameter</span>
+<a name="__line223"></a>    <span class=comment>//                       (i is 0-based, and parameters are numbered from 1!)</span>
+<a name="__line224"></a>    <span class=comment>// func_values(idata,iy) the iy-th component of the function's value at the idata-th point</span>
+<a name="__line225"></a>    <span class=comment>//                       (at the current values of the parameters)</span>
+<a name="__line226"></a>	
+<a name="__line227"></a>    <span class=comment>// TO BE CALCULATED HERE:</span>
+<a name="__line228"></a>    <span class=comment>// alpha(i,j)            0.5 x the 'compactified' hessian matrix at the current values of parameters</span>
+<a name="__line229"></a>    <span class=comment>//                       'compactified' means that only derivs with respect to the free parameters</span>
+<a name="__line230"></a>    <span class=comment>//                       are included, rows/cols corresponding to fixed parameters are dropped</span>
+<a name="__line231"></a>    <span class=comment>//                       i,j=0..NFREE</span>
+<a name="__line232"></a>    <span class=comment>// beta[i]               0.5 x the 'compactified' gradient of the chi2 function at the current point</span>
+<a name="__line233"></a>    <span class=comment>//                       (with respect to free parameters)</span>
+<a name="__line234"></a>    <span class=comment>//                       i=0..NFREE</span>
+<a name="__line235"></a>    <span class=comment>// dfda[ipar](idata,iy)  is the derivative of the model function's iy-th component</span>
+<a name="__line236"></a>    <span class=comment>//                       at the idata-th X-point, with respect to the ipar-th parameter</span>
+<a name="__line237"></a>    <span class=comment>//                       ipar=0..NPARS-1</span>
+<a name="__line238"></a>    {
+<a name="__line239"></a>
+<a name="__line240"></a>	const int NDATA = y.rows();
+<a name="__line241"></a>
+<a name="__line242"></a>	for(int j=0; j&lt;NFREE; ++j)
+<a name="__line243"></a>	{
+<a name="__line244"></a>	    for(int k=0; k&lt;=j; ++k) alpha(j,k).dbl() = 0;
+<a name="__line245"></a>	    beta[j] = 0;
+<a name="__line246"></a>	}
+<a name="__line247"></a>
+<a name="__line248"></a>
+<a name="__line249"></a>	for(int idata=0; idata&lt;NDATA; ++idata)
+<a name="__line250"></a>	{
+<a name="__line251"></a>	    for(int i1=-1,i1_all=0; i1_all&lt;NPARS; ++i1_all)
+<a name="__line252"></a>	    {
+<a name="__line253"></a>		if(!parameter_free[i1_all])  continue;
+<a name="__line254"></a>		++i1;
+<a name="__line255"></a>
+<a name="__line256"></a>		<span class=comment>// itt van a hiba!!!!</span>
+<a name="__line257"></a>		fitfunc_derivs[i1_all](x.row(idata), parameters, dfda[i1_all].row(idata));
+<a name="__line258"></a>
+<a name="__line259"></a>		beta[i1] -= 0.5* der1(x.row(idata), sigma_x.row(idata),
+<a name="__line260"></a>				      y.row(idata), sigma_y.row(idata),
+<a name="__line261"></a>				      func_values.row(idata),
+<a name="__line262"></a>				      dfda[i1_all].row(idata));
+<a name="__line263"></a>		
+<a name="__line264"></a>		for(int i2=-1,i2_all=0; i2_all &lt;= i1_all; ++i2_all)
+<a name="__line265"></a>		{
+<a name="__line266"></a>		    if(!parameter_free[i2_all]) continue;
+<a name="__line267"></a>		    ++i2;
+<a name="__line268"></a>
+<a name="__line269"></a>                    alpha(i1,i2).dbl() += 0.5 * der2(x.row(idata), sigma_x.row(idata),
+<a name="__line270"></a>						     y.row(idata), sigma_y.row(idata),
+<a name="__line271"></a>						     func_values.row(idata),
+<a name="__line272"></a>						     dfda[i1_all].row(idata),
+<a name="__line273"></a>						     dfda[i2_all].row(idata));
+<a name="__line274"></a>		}
+<a name="__line275"></a>	    }
+<a name="__line276"></a>	}
+<a name="__line277"></a>	for(int j=1; j&lt;NFREE; ++j)
+<a name="__line278"></a>	{
+<a name="__line279"></a>	    for(int k=0; k&lt;j; ++k) alpha(k,j).dbl() = alpha(j,k).dbl();
+<a name="__line280"></a>	}
+<a name="__line281"></a>    }
+<a name="__line282"></a>    
+<a name="__line283"></a>    template &lt;class par_type&gt;
+<a name="__line284"></a>    void expand_covar(matrix&lt;par_type&gt; &amp;covar,const std::vector&lt;bool&gt; &amp;parameter_free,int nfit)
+<a name="__line285"></a>    {
+<a name="__line286"></a>	int npars = covar.rows();
+<a name="__line287"></a>
+<a name="__line288"></a>	<span class=comment>// if all parameters were free (and fitted), nothing</span>
+<a name="__line289"></a>	<span class=comment>// has to be done</span>
+<a name="__line290"></a>	if(nfit == npars) return;
+<a name="__line291"></a>
+<a name="__line292"></a>	int i = nfit-1;
+<a name="__line293"></a>	for(int i_out = npars-1; i_out &gt;= 0; --i_out)
+<a name="__line294"></a>	{
+<a name="__line295"></a>	    if(!parameter_free[i_out])
+<a name="__line296"></a>	    {
+<a name="__line297"></a>		for(int j=0; j&lt;=i_out; ++j) covar(i_out,j).dbl() = covar(j,i_out).dbl() = 0;
+<a name="__line298"></a>	    }
+<a name="__line299"></a>	    else
+<a name="__line300"></a>	    {
+<a name="__line301"></a>		int k=0;
+<a name="__line302"></a>		for(int j=0; j&lt;=i_out; ++j)
+<a name="__line303"></a>		{
+<a name="__line304"></a>		    if(parameter_free[j]) covar(i_out,j).dbl() = covar(j,i_out).dbl() = covar(i,k++).dbl();
+<a name="__line305"></a>		    else covar(i_out,j).dbl() = covar(j,i_out).dbl() = 0;
+<a name="__line306"></a>		}
+<a name="__line307"></a>		--i;
+<a name="__line308"></a>	    }
+<a name="__line309"></a>	}
+<a name="__line310"></a>    }
+<a name="__line311"></a>
+<a name="__line312"></a>    <span class=comment>// The Levenberg-Marquardt fitting algorithm. </span>
+<a name="__line313"></a>    <span class=comment>// It returns the number of iterations. </span>
+<a name="__line314"></a>    template &lt;class x_type, class y_type, class par_type, class func_type, class der0_type, class der1_type, class der2_type, class convfunc_type&gt;
+<a name="__line315"></a>    int levenberg_marquardt(const matrix&lt;x_type&gt; &amp;x, const matrix&lt;x_type&gt; &amp;sigma_x,
+<a name="__line316"></a>			    const matrix&lt;y_type&gt; &amp;y, const matrix&lt;y_type&gt; &amp;sigma_y,
+<a name="__line317"></a>			    std::vector&lt;par_type&gt; &amp;parameters,
+<a name="__line318"></a>			    const std::vector&lt;bool&gt; &amp;parameter_free,
+<a name="__line319"></a>			    matrix&lt;par_type&gt; &amp;covar, double *chisq_out,int verbose,
+<a name="__line320"></a>			    func_type &amp;fitfunc,
+<a name="__line321"></a>			    const std::vector&lt;func_type&gt; &amp;fitfunc_derivs,
+<a name="__line322"></a>			    int fitfunc_components,
+<a name="__line323"></a>			    int maxstep, double lambda,
+<a name="__line324"></a>			    der0_type &amp;der0,
+<a name="__line325"></a>			    der1_type &amp;der1,
+<a name="__line326"></a>			    der2_type &amp;der2,
+<a name="__line327"></a>			    convfunc_type convergence_criterion)
+<a name="__line328"></a>	
+<a name="__line329"></a>    {
+<a name="__line330"></a>	const int NPARS = parameters.size();
+<a name="__line331"></a>
+<a name="__line332"></a>	const int NDATA = x.rows();
+<a name="__line333"></a>	<span class=comment>// const int NX    = x.cols();</span>
+<a name="__line334"></a>	const int NY    = y.cols();
+<a name="__line335"></a>
+<a name="__line336"></a>	<span class=comment>// some cross checks</span>
+<a name="__line337"></a>	if(x.rows() != y.rows() ||
+<a name="__line338"></a>	   x.rows() != sigma_x.rows() ||
+<a name="__line339"></a>	   x.rows() != sigma_y.rows())
+<a name="__line340"></a>	{
+<a name="__line341"></a>	    warning::print("Mismatch in the number of data points!","levenberg_marquardt(...)");
+<a name="__line342"></a>	    return 0;
+<a name="__line343"></a>	}
+<a name="__line344"></a>
+<a name="__line345"></a>	if(y.cols() != sigma_y.cols())
+<a name="__line346"></a>	{
+<a name="__line347"></a>	    warning::print("# of components in y and sigma_y do not agree","levenberg_marquardt(...)");
+<a name="__line348"></a>	    return 0;
+<a name="__line349"></a>	}
+<a name="__line350"></a>	if(y.cols() != fitfunc_components)
+<a name="__line351"></a>	{
+<a name="__line352"></a>	    warning::print("# of components in y and fitfunc do not agree","levenberg_marquardt(...)");
+<a name="__line353"></a>	    return 0;
+<a name="__line354"></a>	}
+<a name="__line355"></a>	if(x.cols() != sigma_x.cols())
+<a name="__line356"></a>	{
+<a name="__line357"></a>	    warning::print("# of components in x and sigma_x do not agree","levenberg_marquardt(...)");
+<a name="__line358"></a>	    return 0;
+<a name="__line359"></a>	}
+<a name="__line360"></a>
+<a name="__line361"></a>	if(covar.rows() != NPARS || covar.cols() != NPARS)
+<a name="__line362"></a>	{
+<a name="__line363"></a>	    warning::print("Mismatch in the number of parameters and covariance matrix dimension","levenberg_marquardt(...)");
+<a name="__line364"></a>	    return 0;
+<a name="__line365"></a>	}
+<a name="__line366"></a>
+<a name="__line367"></a>	matrix&lt;par_type&gt; alpha(NPARS,NPARS);
+<a name="__line368"></a>
+<a name="__line369"></a>	double *beta             = new double[NPARS];
+<a name="__line370"></a>	double *beta_temp        = new double[NPARS];
+<a name="__line371"></a>	std::vector&lt;blop::var&gt; trial_parameters(NPARS);
+<a name="__line372"></a>	double *delta_parameters = new double[NPARS];
+<a name="__line373"></a>
+<a name="__line374"></a>	matrix&lt;y_type&gt; func_values(NDATA,NY);
+<a name="__line375"></a>
+<a name="__line376"></a>	double chisq;
+<a name="__line377"></a>
+<a name="__line378"></a>	matrix&lt;y_type&gt;::default_nrows(NDATA);
+<a name="__line379"></a>	matrix&lt;y_type&gt;::default_ncols(NY);
+<a name="__line380"></a>	matrix&lt;y_type&gt; *dfda = new matrix&lt;y_type&gt;[NPARS];
+<a name="__line381"></a>
+<a name="__line382"></a>	<span class=comment>// number of free parameters</span>
+<a name="__line383"></a>	int NFREE=0;
+<a name="__line384"></a>	for(int i=0; i&lt;NPARS; ++i)
+<a name="__line385"></a>	{
+<a name="__line386"></a>	    if(parameter_free[i])
+<a name="__line387"></a>	    {
+<a name="__line388"></a>		++NFREE;
+<a name="__line389"></a>		if(verbose&gt;1) cerr&lt;&lt;"parameter["&lt;&lt;i&lt;&lt;"] is free"&lt;&lt;endl;
+<a name="__line390"></a>	    }
+<a name="__line391"></a>	    else
+<a name="__line392"></a>	    {
+<a name="__line393"></a>		if(verbose&gt;1) cerr&lt;&lt;"parameter["&lt;&lt;i&lt;&lt;"] is fixed"&lt;&lt;endl;
+<a name="__line394"></a>	    }
+<a name="__line395"></a>	}
+<a name="__line396"></a>	if(verbose&gt;1) cerr&lt;&lt;"Free params = "&lt;&lt;NFREE&lt;&lt;endl;
+<a name="__line397"></a>
+<a name="__line398"></a>	<span class=comment>// buffers for gaussj</span>
+<a name="__line399"></a>	int *indxc = new int[NFREE];
+<a name="__line400"></a>	int *indxr = new int[NFREE];
+<a name="__line401"></a>	int *ipiv  = new int[NFREE];
+<a name="__line402"></a>
+<a name="__line403"></a>	<span class=comment>/*
+<a name="__line404"></a>	function *func_derivs = new function[NPARS];
+<a name="__line405"></a>	for(int ipar=0; ipar&lt;NPARS; ++ipar)
+<a name="__line406"></a>	{
+<a name="__line407"></a>	    if(parameter_free[ipar]) func_derivs[ipar] = funcs.derivative(-ipar-1);
+<a name="__line408"></a>	    else for(int iy=0; iy&lt;NY; ++iy) func_derivs[ipar].append(function(0.0));    // component(iy,0);
+<a name="__line409"></a>	}
+<a name="__line410"></a>	*/</span>
+<a name="__line411"></a>
+<a name="__line412"></a>	if(verbose&gt;2)
+<a name="__line413"></a>	{
+<a name="__line414"></a>	    cerr&lt;&lt;"..: Fitted function: "&lt;&lt;fitfunc&lt;&lt;endl;
+<a name="__line415"></a>	    for(int ipar=0; ipar&lt;NPARS; ++ipar)
+<a name="__line416"></a>	    {
+<a name="__line417"></a>		cerr&lt;&lt;"..: Derivative wrt par #"&lt;&lt;ipar+1&lt;&lt;": "&lt;&lt;fitfunc_derivs[ipar]&lt;&lt;endl;
+<a name="__line418"></a>	    }
+<a name="__line419"></a>	}
+<a name="__line420"></a>
+<a name="__line421"></a>	*chisq_out = calc_chisq(x,sigma_x,y,sigma_y,parameters,fitfunc,func_values,der0);
+<a name="__line422"></a>
+<a name="__line423"></a>	calc_der(x,sigma_x,y,sigma_y,parameters,parameter_free,NPARS,NFREE,alpha,beta,
+<a name="__line424"></a>		 fitfunc_derivs,func_values,dfda,der1,der2);
+<a name="__line425"></a>
+<a name="__line426"></a>	if(verbose&gt;1)
+<a name="__line427"></a>	{
+<a name="__line428"></a>	    cerr&lt;&lt;"..: Fit initialized"&lt;&lt;endl;
+<a name="__line429"></a>	    cerr&lt;&lt;"    Starting parameters: ";
+<a name="__line430"></a>	    for(int i=0; i&lt;NPARS; ++i) cerr&lt;&lt;parameters[i].dbl()&lt;&lt;"  ";
+<a name="__line431"></a>	    cerr&lt;&lt;endl;
+<a name="__line432"></a>	    cerr&lt;&lt;"    Initial chi2 = "&lt;&lt;*chisq_out&lt;&lt;endl;
+<a name="__line433"></a>	}
+<a name="__line434"></a>
+<a name="__line435"></a>	if(maxstep &lt;= 0) maxstep = NFREE * 50;
+<a name="__line436"></a>
+<a name="__line437"></a>	int it_numb;
+<a name="__line438"></a>
+<a name="__line439"></a>	for(it_numb = 0; it_numb &lt; maxstep; ++it_numb)
+<a name="__line440"></a>	{
+<a name="__line441"></a>	    if(verbose&gt;1) cerr&lt;&lt;"..: iterations step #"&lt;&lt;it_numb&lt;&lt;endl;
+<a name="__line442"></a>
+<a name="__line443"></a>	    if(invert_hessian(alpha,covar,beta,beta_temp,NFREE,lambda,indxc,indxr,ipiv))
+<a name="__line444"></a>	    {
+<a name="__line445"></a>		if(verbose&gt;1) cerr&lt;&lt;"    gauss_jordan succeeded"&lt;&lt;endl;
+<a name="__line446"></a>		for(int j=0; j&lt;NFREE; ++j) delta_parameters[j] = beta_temp[j];
+<a name="__line447"></a>	    }
+<a name="__line448"></a>	    else
+<a name="__line449"></a>	    {
+<a name="__line450"></a>		if(verbose&gt;1) cerr&lt;&lt;"..: gauss_jordan failed"&lt;&lt;endl;
+<a name="__line451"></a>		double a=0;
+<a name="__line452"></a>		for(int j=0; j&lt;NFREE; ++j)  a += ::fabs(covar(j,j).dbl())*(1+lambda);
+<a name="__line453"></a>		if(a &lt;= 0) a = lambda;
+<a name="__line454"></a>		for(int j=0; j&lt;NFREE; ++j)  delta_parameters[j] = beta[j]/a;
+<a name="__line455"></a>	    }
+<a name="__line456"></a>
+<a name="__line457"></a>	    for(int j=0,l=0; l&lt;NPARS; ++l)
+<a name="__line458"></a>	    {
+<a name="__line459"></a>		if(parameter_free[l]) trial_parameters[l].dbl() = parameters[l].dbl()+delta_parameters[j++];
+<a name="__line460"></a>		else trial_parameters[l].dbl() = parameters[l].dbl();
+<a name="__line461"></a>	    }
+<a name="__line462"></a>
+<a name="__line463"></a>	    <span class=comment>// calculate the chisq with the trial parameters, and store</span>
+<a name="__line464"></a>	    <span class=comment>// the evaluated function values in 'func_values'</span>
+<a name="__line465"></a>	    chisq = calc_chisq(x,sigma_x,y,sigma_y,trial_parameters,fitfunc,func_values,der0);
+<a name="__line466"></a>
+<a name="__line467"></a>	    if(verbose&gt;1) 
+<a name="__line468"></a>	    {
+<a name="__line469"></a>		cerr&lt;&lt;"    Lambda       = "&lt;&lt;lambda&lt;&lt;endl;
+<a name="__line470"></a>		cerr&lt;&lt;"    Delta params = ";
+<a name="__line471"></a>		for(int i=0; i&lt;NPARS; ++i) cerr&lt;&lt;delta_parameters[i]&lt;&lt;" ";
+<a name="__line472"></a>		cerr&lt;&lt;endl;
+<a name="__line473"></a>		cerr&lt;&lt;"    Trial params = ";
+<a name="__line474"></a>		for(int i=0; i&lt;NPARS; ++i) cerr&lt;&lt;trial_parameters[i].dbl()&lt;&lt;" ";
+<a name="__line475"></a>		cerr&lt;&lt;endl;
+<a name="__line476"></a>		cerr&lt;&lt;"    chi2         = "&lt;&lt;*chisq_out&lt;&lt;"  --&gt;  "&lt;&lt;chisq&lt;&lt;endl;
+<a name="__line477"></a>	    }
+<a name="__line478"></a>
+<a name="__line479"></a>	    int converged = convergence_criterion(*chisq_out, chisq, trial_parameters, parameters, it_numb);
+<a name="__line480"></a>
+<a name="__line481"></a>	    if(chisq &lt; *chisq_out)
+<a name="__line482"></a>	    {
+<a name="__line483"></a>		if(verbose&gt;1) cerr&lt;&lt;"    Step accepted"&lt;&lt;endl;
+<a name="__line484"></a>		for(int j=0; j&lt;NPARS; ++j) parameters[j].dbl() = trial_parameters[j].dbl();
+<a name="__line485"></a>		calc_der(x,sigma_x,y,sigma_y,parameters,parameter_free,NPARS,NFREE,
+<a name="__line486"></a>			 alpha,beta,fitfunc_derivs,func_values,dfda,der1,der2);
+<a name="__line487"></a>		lambda *= 0.1;
+<a name="__line488"></a>		*chisq_out = chisq;
+<a name="__line489"></a>	    }
+<a name="__line490"></a>	    else
+<a name="__line491"></a>	    {
+<a name="__line492"></a>		if(verbose&gt;1) cerr&lt;&lt;"    Step rejected"&lt;&lt;endl;
+<a name="__line493"></a>		lambda *= 10;
+<a name="__line494"></a>		chisq = *chisq_out;
+<a name="__line495"></a>	    }
+<a name="__line496"></a>	    if(verbose&gt;1) cerr&lt;&lt;endl;
+<a name="__line497"></a>
+<a name="__line498"></a>	    if(converged) break;
+<a name="__line499"></a>	}
+<a name="__line500"></a>	if(it_numb &gt;= maxstep &amp;&amp; verbose&gt;0) cerr&lt;&lt;"FIT REACHED MAX ITERATION NUMBER: "&lt;&lt;maxstep&lt;&lt;endl;
+<a name="__line501"></a>
+<a name="__line502"></a>	if(!invert_hessian(alpha,covar,beta,beta_temp,NFREE,0,indxc,indxr,ipiv))
+<a name="__line503"></a>	{
+<a name="__line504"></a>	    cerr&lt;&lt;"Failed to invert the hessian matrix of chi2!"&lt;&lt;endl;
+<a name="__line505"></a>	    cerr&lt;&lt;"The reported covariance matrix is meaningless"&lt;&lt;endl;
+<a name="__line506"></a>	}
+<a name="__line507"></a>	expand_covar(covar,parameter_free,NFREE);
+<a name="__line508"></a>
+<a name="__line509"></a>	delete [] dfda;
+<a name="__line510"></a>	delete [] delta_parameters;
+<a name="__line511"></a>	delete [] beta;
+<a name="__line512"></a>	delete [] beta_temp;
+<a name="__line513"></a>	delete [] indxr;
+<a name="__line514"></a>	delete [] indxc;
+<a name="__line515"></a>	delete [] ipiv;
+<a name="__line516"></a>	return it_numb;
+<a name="__line517"></a>    }
+<a name="__line518"></a>
+<a name="__line519"></a>}
+<a name="__line520"></a>
+<a name="__line521"></a>#endif
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

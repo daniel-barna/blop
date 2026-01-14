@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: multiloop.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MULTILOOP_H__
+<a name="__line1"></a>#define __BLOP_MULTILOOP_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>class multiloop
+<a name="__line6"></a>{
+<a name="__line7"></a><span class=private>private:
+<a name="__line8"></a>    std::vector&lt;int&gt; current_, from_, to_;
+<a name="__line9"></a>    bool permutations_; <span class=comment>// Allow permutations</span>
+<a name="__line10"></a>    bool init_(int j=0);
+<a name="__line11"></a>    bool state_;
+<a name="__line12"></a>    unsigned int pos_;
+<a name="__line13"></a>
+<a name="__line14"></a></span><span class=public>public:
+<a name="__line15"></a>    multiloop(unsigned int size, int to, int from=0, bool permutations=true);
+<a name="__line16"></a>    unsigned int size() const { return current_.size(); }
+<a name="__line17"></a>    bool operator++();
+<a name="__line18"></a>    int &amp;operator[](int);
+<a name="__line19"></a>    const int &amp;operator[](int) const;
+<a name="__line20"></a>    operator bool() const { return state_; }
+<a name="__line21"></a>    void reset();
+<a name="__line22"></a>    void set(unsigned int i);
+<a name="__line23"></a>    unsigned int get() const { return pos_; }
+<a name="__line24"></a>};
+<a name="__line25"></a>
+<a name="__line26"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

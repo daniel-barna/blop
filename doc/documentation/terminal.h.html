@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: terminal.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_TERMINAL_H__
+<a name="__line1"></a>#define __BLOP_TERMINAL_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;string&gt;
+<a name="__line4"></a>#include &lt;vector&gt;
+<a name="__line5"></a>#include "<a href="color.h.html">color.h</a>"
+<a name="__line6"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>#ifdef __CINT__
+<a name="__line9"></a>#pragma define G__NOALGORITHM
+<a name="__line10"></a>#endif
+<a name="__line11"></a>
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    using namespace std;
+<a name="__line16"></a>
+<a name="__line17"></a><span class=comment>//    enum {left=1,right=2,bottom=4,top=8,center=16};</span>
+<a name="__line18"></a>
+<a name="__line19"></a>    class length;
+<a name="__line20"></a>    class terminal;
+<a name="__line21"></a>
+<a name="__line22"></a>
+<a name="__line23"></a>
+<a name="__line24"></a>    class terminal
+<a name="__line25"></a>	{
+<a name="__line26"></a>	    <span class=comment>// base class for all terminals (to which a canvas can be printed)</span>
+<a name="__line27"></a>	    <span class=comment>// since this is not meant for use by users, this is somewhat</span>
+<a name="__line28"></a>	    <span class=comment>// underdocumented (check if there are any comments at all below...)</span>
+<a name="__line29"></a>
+<a name="__line30"></a><span class=public>	public:
+<a name="__line31"></a>
+<a name="__line32"></a>
+<a name="__line33"></a>
+<a name="__line34"></a>	    class double_id
+<a name="__line35"></a>	    {
+<a name="__line36"></a></span><span class=public>	        public:
+<a name="__line37"></a>		    int    id;
+<a name="__line38"></a>		    double value;
+<a name="__line39"></a>                    double_id(double v,int i=0) : id(i), value(v) {}
+<a name="__line40"></a>	    };
+<a name="__line41"></a>
+<a name="__line42"></a>	    class id
+<a name="__line43"></a>	    {
+<a name="__line44"></a></span><span class=public>		public:
+<a name="__line45"></a>		    int    length_id;
+<a name="__line46"></a>		    double relcoord;
+<a name="__line47"></a>		    int    direction;
+<a name="__line48"></a>
+<a name="__line49"></a>	            id() : length_id(0), relcoord(0), direction(0) {}
+<a name="__line50"></a>
+<a name="__line51"></a>		    <span class=comment>// specify a length from a termspecific_id of length.</span>
+<a name="__line52"></a>	            id(int i) : length_id(i), relcoord(0), direction(0) {}
+<a name="__line53"></a>
+<a name="__line54"></a>		    <span class=comment>// specify a length as 'd' times the width (if dir==1) or height (if dir==2)</span>
+<a name="__line55"></a>		    <span class=comment>// of the current subpicture environment. </span>
+<a name="__line56"></a>                    id(double d, int dir) : length_id(0), relcoord(d), direction(dir) {} 
+<a name="__line57"></a>
+<a name="__line58"></a>		    bool operator== (const blop::terminal::id &amp;o) const;
+<a name="__line59"></a>		    bool operator&lt; (const blop::terminal::id &amp;) const {return false;}
+<a name="__line60"></a>		    bool operator&gt; (const blop::terminal::id &amp;) const {return false;}
+<a name="__line61"></a>	    };
+<a name="__line62"></a>
+<a name="__line63"></a>	    class coord
+<a name="__line64"></a>	    {
+<a name="__line65"></a></span><span class=public>                public:
+<a name="__line66"></a>		id x,y;
+<a name="__line67"></a>
+<a name="__line68"></a>                coord() : x(0), y(0) {}
+<a name="__line69"></a>	        coord(id xx, id yy) : x(xx), y(yy) {}
+<a name="__line70"></a>		bool operator== (const blop::terminal::coord &amp;o) const
+<a name="__line71"></a>		{
+<a name="__line72"></a>		    return x == o.x &amp;&amp; y == o.y;
+<a name="__line73"></a>		}
+<a name="__line74"></a>		bool operator&lt; (const blop::terminal::coord &amp;) const { return false; }
+<a name="__line75"></a>		bool operator&gt; (const blop::terminal::coord &amp;) const { return false; }
+<a name="__line76"></a>	    };
+<a name="__line77"></a>
+<a name="__line78"></a>
+<a name="__line79"></a>            enum {ZERO=1,PW,PH,PS,LW,CM,MM,PT,EM,EX,NOF_UNITS };
+<a name="__line80"></a>
+<a name="__line81"></a>	          <span class=comment>// NOF_UNITS *must* be the last one !!!</span>
+<a name="__line82"></a>
+<a name="__line83"></a>	    <span class=comment>// ---------- write a comment into the terminal -----------------------------------</span>
+<a name="__line84"></a>	    <span class=comment>// (debugging purposes)</span>
+<a name="__line85"></a>
+<a name="__line86"></a>	    virtual void comment(const string &amp;) {}
+<a name="__line87"></a>
+<a name="__line88"></a>
+<a name="__line89"></a>	    <span class=comment>// ---------- open/close a layer --------------------------------------------------</span>
+<a name="__line90"></a>	    <span class=comment>// (conditional drawing: layers can be switched on/off later, when</span>
+<a name="__line91"></a>	    <span class=comment>// including into the latex document, etc</span>
+<a name="__line92"></a>
+<a name="__line93"></a>	    virtual void open_layer(const var &amp;) = 0;
+<a name="__line94"></a>	    virtual void close_layer(const var &amp;) = 0;
+<a name="__line95"></a>
+<a name="__line96"></a>
+<a name="__line97"></a>	    virtual int  newlength() = 0;
+<a name="__line98"></a>
+<a name="__line99"></a>	    virtual int  overwrite(int i,
+<a name="__line100"></a>				   double f1,const terminal::id &amp;i1) = 0;
+<a name="__line101"></a>	    virtual int  overwrite(int id,
+<a name="__line102"></a>				   double f1,const terminal::id &amp;i1,
+<a name="__line103"></a>				   double f2,const terminal::id &amp;i2) = 0;
+<a name="__line104"></a>
+<a name="__line105"></a>	    <span class=comment>// ---------- linear combination --------------------------------------------------</span>
+<a name="__line106"></a>	    <span class=comment>//  create the linear combination of lengths. the</span>
+<a name="__line107"></a>	    <span class=comment>// factors are contained in the array 'f', and 'id'</span>
+<a name="__line108"></a>	    <span class=comment>// contains the lengths IDs of the lengths</span>
+<a name="__line109"></a>	    
+<a name="__line110"></a>	    virtual int  lincombi(double_id f,const terminal::id &amp;i) = 0;
+<a name="__line111"></a>	    virtual int  lincombi(double_id f1,const terminal::id &amp;i1,
+<a name="__line112"></a>				  double_id f2,const terminal::id &amp;i2) = 0;
+<a name="__line113"></a>	    virtual int  lincombi(const std::vector&lt;double&gt; &amp;f,
+<a name="__line114"></a>				  const std::vector&lt;blop::terminal::id&gt; &amp;id)  = 0;
+<a name="__line115"></a>
+<a name="__line116"></a>
+<a name="__line117"></a>	    <span class=comment>// ---------- minimum or maximum of listed lengths --------------------------------</span>
+<a name="__line118"></a>	    virtual int  maxlength(const std::vector&lt;blop::terminal::id&gt; &amp;id) = 0;
+<a name="__line119"></a>	    virtual int  minlength(const std::vector&lt;blop::terminal::id&gt; &amp;id) = 0;
+<a name="__line120"></a>
+<a name="__line121"></a>
+<a name="__line122"></a>	    virtual int  textwidth (const string &amp;,double angle=0) = 0;
+<a name="__line123"></a>	    virtual int  textheight(const string &amp;,double angle=0) = 0;
+<a name="__line124"></a>	    virtual int  textlheight(const string &amp;,double angle=0) = 0;
+<a name="__line125"></a>
+<a name="__line126"></a>                  <span class=comment>// create a new length, which holds the width or height</span>
+<a name="__line127"></a>                  <span class=comment>// of the specified string</span>
+<a name="__line128"></a>
+<a name="__line129"></a>	    virtual int  textsize  (const string &amp;,double angle=0) = 0;
+<a name="__line130"></a>
+<a name="__line131"></a>                  <span class=comment>// create two new lengths, holding the width and height</span>
+<a name="__line132"></a>	          <span class=comment>// of the string. the returned length ID corresponds to</span>
+<a name="__line133"></a>	          <span class=comment>// the length holding the width, ID+1 corresponds to</span>
+<a name="__line134"></a>	          <span class=comment>// the length holding the height</span>
+<a name="__line135"></a>
+<a name="__line136"></a>	    virtual int max_textwidth (const std::vector&lt;std::string&gt;&amp;)=0;
+<a name="__line137"></a>	    virtual int max_textheight(const std::vector&lt;std::string&gt;&amp;)=0;
+<a name="__line138"></a>	    virtual int max_textlheight(const std::vector&lt;std::string&gt;&amp;)=0;
+<a name="__line139"></a>
+<a name="__line140"></a>	          <span class=comment>// create a new length whic is the maximum of the</span>
+<a name="__line141"></a>	          <span class=comment>// widths or heights or the provided strings</span>
+<a name="__line142"></a>
+<a name="__line143"></a>	    virtual void picture_begin() = 0;
+<a name="__line144"></a>	    virtual void picture_end()   = 0;
+<a name="__line145"></a>
+<a name="__line146"></a>	    virtual void subpicture_begin(const coord &amp;lower_left,
+<a name="__line147"></a>					  const coord &amp;upper_right) = 0;
+<a name="__line148"></a>	    virtual void subpicture_end()  = 0;
+<a name="__line149"></a>
+<a name="__line150"></a>	    virtual void draw_dot(const coord &amp;pos) = 0;
+<a name="__line151"></a>	    virtual void draw_text(const coord &amp;position,
+<a name="__line152"></a>				   const string &amp;s,
+<a name="__line153"></a>				   int xalign,
+<a name="__line154"></a>				   int yalign,
+<a name="__line155"></a>				   const blop::terminal::id &amp;dx,
+<a name="__line156"></a>				   const blop::terminal::id &amp;dy,
+<a name="__line157"></a>				   bool rotatedsystem = true) = 0;
+<a name="__line158"></a>	    virtual void draw_text(const coord &amp;position,
+<a name="__line159"></a>				   const string &amp;s,
+<a name="__line160"></a>				   int xalign,
+<a name="__line161"></a>				   int yalign,
+<a name="__line162"></a>				   double angle,
+<a name="__line163"></a>				   bool rotatedsystem = true)
+<a name="__line164"></a>	    {
+<a name="__line165"></a>		draw_text(position,s,xalign,yalign,terminal::id(1.0,1),terminal::id(::tan(angle/180.0*3.14159265358979323846),1));
+<a name="__line166"></a>	    }
+<a name="__line167"></a>	    virtual void draw_arc(const coord &amp;center, const id &amp;r,
+<a name="__line168"></a>				  double ang1 = 0,
+<a name="__line169"></a>				  double ang2 = 360) = 0;
+<a name="__line170"></a>	    virtual void fill_arc(const coord &amp;center, const id &amp;r,
+<a name="__line171"></a>				  double ang1 = 0,
+<a name="__line172"></a>				  double ang2 = 360) = 0;
+<a name="__line173"></a>
+<a name="__line174"></a>	    virtual void draw_line   (const coord &amp;c1,const coord &amp;c2) = 0;
+<a name="__line175"></a>	    virtual void draw_lines  (const std::vector&lt;blop::terminal::coord&gt; &amp;c) = 0;
+<a name="__line176"></a>	    virtual void draw_rlines (const blop::terminal::coord &amp;start,
+<a name="__line177"></a>				      const std::vector&lt;blop::terminal::id&gt; &amp;x,
+<a name="__line178"></a>				      const std::vector&lt;blop::terminal::id&gt; &amp;y) = 0;
+<a name="__line179"></a>	    virtual void fill_polygon(const std::vector&lt;blop::terminal::coord&gt; &amp;c) = 0;
+<a name="__line180"></a>
+<a name="__line181"></a>
+<a name="__line182"></a>	    virtual void reset_transformation() = 0;
+<a name="__line183"></a>	    virtual void translate(const id &amp;, const id &amp;) = 0;
+<a name="__line184"></a>	    virtual void rotate   (double angle) = 0;
+<a name="__line185"></a>	    virtual void rotate   (const id &amp;, const id &amp;) = 0;
+<a name="__line186"></a>	    virtual void scale    (double s) = 0;
+<a name="__line187"></a>	    virtual void scale    (double xscale, double yscale) = 0;
+<a name="__line188"></a>	    virtual void scale    (const id &amp;xfrom, const id &amp;xto,
+<a name="__line189"></a>				   const id &amp;yfrom, const id &amp;yto) = 0;
+<a name="__line190"></a>
+<a name="__line191"></a>	    <span class=comment>//virtual void move_origin(const id &amp;,const id &amp;) = 0;</span>
+<a name="__line192"></a>
+<a name="__line193"></a>	    virtual void set_color(const color &amp;c) = 0;
+<a name="__line194"></a>	    virtual void set_linewidth(const id &amp;) = 0;
+<a name="__line195"></a>	    virtual void set_linestyle(sym::linestyle) = 0;
+<a name="__line196"></a>
+<a name="__line197"></a>
+<a name="__line198"></a>	    virtual int  atan(const id &amp;x,const id &amp;y) = 0;
+<a name="__line199"></a>	    virtual int  add_dbl(const double_id &amp;, const double_id &amp;) = 0;
+<a name="__line200"></a>	    virtual int  sin_dbl(int) = 0;
+<a name="__line201"></a>	    virtual int  cos_dbl(int) = 0;
+<a name="__line202"></a>	    virtual int  neg_dbl(int) = 0;
+<a name="__line203"></a>
+<a name="__line204"></a><span class=comment>//	    virtual bool clip(const id &amp;x1, const id &amp;y1,</span>
+<a name="__line205"></a><span class=comment>//			      const id &amp;x2, const id &amp;y2) { return false; }</span>
+<a name="__line206"></a>	    virtual bool clip(const coord &amp;lower_left,
+<a name="__line207"></a>			      const coord &amp;upper_right) { return false; }
+<a name="__line208"></a>
+<a name="__line209"></a>	    virtual void noclip() {};
+<a name="__line210"></a>
+<a name="__line211"></a>	    virtual ~terminal() {}
+<a name="__line212"></a>
+<a name="__line213"></a>	};
+<a name="__line214"></a>
+<a name="__line215"></a>
+<a name="__line216"></a>
+<a name="__line217"></a>}
+<a name="__line218"></a>
+<a name="__line219"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: color_legend.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __COLOR_LEGEND_H__
+<a name="__line1"></a>#define __COLOR_LEGEND_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="box.h.html">box.h</a>"
+<a name="__line4"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line5"></a>#include &lt;vector&gt;
+<a name="__line6"></a>
+<a name="__line7"></a><span class=comment>/*
+<a name="__line8"></a>  color_legend is a class (a grob, a graphical object), which displays
+<a name="__line9"></a>  a color bar, colors representing numerical values.
+<a name="__line10"></a>  This object is typically used by cbox and similar drawstyles, which
+<a name="__line11"></a>  plot data on a 2D map by colors.
+<a name="__line12"></a>
+<a name="__line13"></a> */</span>
+<a name="__line14"></a>
+<a name="__line15"></a>namespace blop
+<a name="__line16"></a>{
+<a name="__line17"></a>    class graphd_colorscale;
+<a name="__line18"></a>    class tic;
+<a name="__line19"></a>
+<a name="__line20"></a>    class color_legend : public box
+<a name="__line21"></a>    {
+<a name="__line22"></a><span class=private>    private:
+<a name="__line23"></a>	void init_();
+<a name="__line24"></a>	std::vector&lt;blop::tic&gt; colortics_;
+<a name="__line25"></a>	static length default_sample_width_;
+<a name="__line26"></a>	length sample_width_;
+<a name="__line27"></a>	length sample_right_;
+<a name="__line28"></a>	length tic_left_;
+<a name="__line29"></a>	length sep_;
+<a name="__line30"></a>	length ticlabel_pos_;
+<a name="__line31"></a>	length ticlabel_width_;
+<a name="__line32"></a>        bool   ticlabel_width_fixed_;
+<a name="__line33"></a>	label  title_;
+<a name="__line34"></a>	std::vector&lt;blop::graphd_colorscale*&gt; owners_;
+<a name="__line35"></a>	friend class graphd_colorscale;
+<a name="__line36"></a>	double min_, max_;
+<a name="__line37"></a>	color_legend(const color_legend &amp;);
+<a name="__line38"></a>	const color_legend &amp;operator= (const color_legend &amp;rhs);
+<a name="__line39"></a>
+<a name="__line40"></a></span><span class=public>    public:
+<a name="__line41"></a>	color_legend();
+<a name="__line42"></a>	color_legend(graphd_colorscale *d);
+<a name="__line43"></a>	~color_legend();
+<a name="__line44"></a>
+<a name="__line45"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line46"></a>	<span class=comment>// Create a color_legend and put it to the current pad, right-aligned</span>
+<a name="__line47"></a>
+<a name="__line48"></a>	static color_legend &amp;mknew();
+<a name="__line49"></a>
+<a name="__line50"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line51"></a>	<span class=comment>// Specify the title of the color_legend (i.e. the text which is</span>
+<a name="__line52"></a>	<span class=comment>// printed vertically to the right of the color-bar)</span>
+<a name="__line53"></a>
+<a name="__line54"></a>	color_legend &amp;title(const var &amp;t);
+<a name="__line55"></a>	const var &amp;title() const;
+<a name="__line56"></a>	
+<a name="__line57"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line58"></a>	<span class=comment>// Specify the width of the the color-sample bar. The default</span>
+<a name="__line59"></a>	<span class=comment>// is 3*EX</span>
+<a name="__line60"></a>
+<a name="__line61"></a>	color_legend &amp;sample_width(const length &amp;l);
+<a name="__line62"></a>	static void   default_sample_width(const length &amp;l);
+<a name="__line63"></a>        color_legend &amp;ticlabel_width(const length &amp;l);
+<a name="__line64"></a>
+<a name="__line65"></a>	void print(terminal *term);
+<a name="__line66"></a>	void prepare_for_draw();
+<a name="__line67"></a>	void calculate_tics();
+<a name="__line68"></a>	void clear_tics();
+<a name="__line69"></a>	void remove_owner(graphd_colorscale *);
+<a name="__line70"></a>	const std::vector&lt;blop::tic&gt; tics() const { return colortics_; }
+<a name="__line71"></a>	double min() const;
+<a name="__line72"></a>	double max() const;
+<a name="__line73"></a>    };
+<a name="__line74"></a>}
+<a name="__line75"></a>
+<a name="__line76"></a>
+<a name="__line77"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

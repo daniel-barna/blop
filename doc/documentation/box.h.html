@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: box.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_BOX_H__
+<a name="__line1"></a>#define __BLOP_BOX_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line4"></a>#include "<a href="grob.h.html">grob.h</a>"
+<a name="__line5"></a>#include &lt;string&gt;
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop 
+<a name="__line8"></a>{
+<a name="__line9"></a>    using namespace std;
+<a name="__line10"></a>
+<a name="__line11"></a>    class box : public grob
+<a name="__line12"></a>    {
+<a name="__line13"></a><span class=private>    private:
+<a name="__line14"></a>	friend class container;
+<a name="__line15"></a>	enum history_values {LeftBottom,RightTop,WidthHeight,Center} xhistory_[2], yhistory_[2];
+<a name="__line16"></a>	
+<a name="__line17"></a>
+<a name="__line18"></a></span><span class=private>    private:
+<a name="__line19"></a>	length left_,right_,width_,xcenter_;
+<a name="__line20"></a>	length bottom_,top_,height_,ycenter_;
+<a name="__line21"></a>	bool   width_fixed_, height_fixed_;
+<a name="__line22"></a>
+<a name="__line23"></a>	static void set_(const length &amp;l,
+<a name="__line24"></a>			 length &amp;left,
+<a name="__line25"></a>			 length &amp;right,
+<a name="__line26"></a>			 length &amp;width,
+<a name="__line27"></a>			 length &amp;center,
+<a name="__line28"></a>			 bool width_fixed,
+<a name="__line29"></a>			 history_values history[2],
+<a name="__line30"></a>			 history_values todo,
+<a name="__line31"></a>			 bool &amp;left_modified,
+<a name="__line32"></a>			 bool &amp;right_modified);
+<a name="__line33"></a>
+<a name="__line34"></a>	void set_left_(const length &amp;, bool &amp;left_modified, bool &amp;right_modified);
+<a name="__line35"></a>	void set_right_(const length &amp;, bool &amp;left_modified, bool &amp;right_modified);
+<a name="__line36"></a>	void set_xcenter_(const length &amp;, bool &amp;left_modified, bool &amp;right_modified);
+<a name="__line37"></a>	void set_width_(const length &amp;, bool &amp;left_modified, bool &amp;right_modified);
+<a name="__line38"></a>	void set_bottom_(const length &amp;, bool &amp;bottom_modified, bool &amp;top_modified);
+<a name="__line39"></a>	void set_top_(const length &amp;, bool &amp;bottom_modified, bool &amp;top_modified);
+<a name="__line40"></a>	void set_height_(const length &amp;, bool &amp;bottom_modified, bool &amp;top_modified);
+<a name="__line41"></a>	void set_ycenter_(const length &amp;, bool &amp;bottom_modified, bool &amp;top_modified);
+<a name="__line42"></a>
+<a name="__line43"></a></span><span class=public>    public:
+<a name="__line44"></a>	box();
+<a name="__line45"></a>
+<a name="__line46"></a>        box &amp;above_grid(bool f) { grob::above_grid(f); return *this; }
+<a name="__line47"></a>
+<a name="__line48"></a>	const length &amp;left() const;
+<a name="__line49"></a>	virtual box  &amp;left(const length &amp;);
+<a name="__line50"></a>
+<a name="__line51"></a>	const length &amp;right() const;
+<a name="__line52"></a>	virtual box  &amp;right(const length &amp;);
+<a name="__line53"></a>
+<a name="__line54"></a>	const length &amp;width() const;
+<a name="__line55"></a>	virtual box  &amp;width(const length &amp;);
+<a name="__line56"></a>
+<a name="__line57"></a>	const length &amp;xcenter() const;
+<a name="__line58"></a>	virtual box  &amp;xcenter(const length &amp;);
+<a name="__line59"></a>
+<a name="__line60"></a>	const length &amp;bottom() const;
+<a name="__line61"></a>	virtual box  &amp;bottom(const length &amp;);
+<a name="__line62"></a>
+<a name="__line63"></a>	const length &amp;top() const;
+<a name="__line64"></a>	virtual box  &amp;top(const length &amp;);
+<a name="__line65"></a>
+<a name="__line66"></a>	const length &amp;height() const;
+<a name="__line67"></a>	virtual box  &amp;height(const length &amp;);
+<a name="__line68"></a>
+<a name="__line69"></a>	const length &amp;ycenter() const;
+<a name="__line70"></a>	virtual box  &amp;ycenter(const length &amp;);
+<a name="__line71"></a>
+<a name="__line72"></a>	virtual box  &amp;fix_width(bool f);
+<a name="__line73"></a>	virtual box  &amp;fix_height(bool f);
+<a name="__line74"></a>
+<a name="__line75"></a>	virtual ~box() {}
+<a name="__line76"></a>
+<a name="__line77"></a>	void prepare_for_draw();
+<a name="__line78"></a>	void print(terminal *) {}
+<a name="__line79"></a>    };
+<a name="__line80"></a>
+<a name="__line81"></a>}
+<a name="__line82"></a>
+<a name="__line83"></a>#ifdef __MAKECINT__
+<a name="__line84"></a>#pragma link off function blop::box::prepare_for_draw();
+<a name="__line85"></a>#endif
+<a name="__line86"></a>
+<a name="__line87"></a>#endif
+<a name="__line88"></a>
+<a name="__line89"></a>
+<a name="__line90"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

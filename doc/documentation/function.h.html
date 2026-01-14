@@ -1,0 +1,1087 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: function.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_FUNCTION_H__
+<a name="__line1"></a>#define __BLOP_FUNCTION_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;valarray&gt;
+<a name="__line5"></a>#include &lt;map&gt;
+<a name="__line6"></a>#include &lt;functional&gt;
+<a name="__line7"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line8"></a>#include "<a href="array.h.html">array.h</a>"
+<a name="__line9"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line10"></a><span class=comment>//#include "geometry.h"</span>
+<a name="__line11"></a>#include "<a href="meas.h.html">meas.h</a>"
+<a name="__line12"></a>#ifndef __MAKECINT__
+<a name="__line13"></a>#include &lt;complex&gt;
+<a name="__line14"></a>#endif
+<a name="__line15"></a>#include "<a href="config.h.html">config.h</a>"
+<a name="__line16"></a>
+<a name="__line17"></a>namespace blop
+<a name="__line18"></a>{
+<a name="__line19"></a>    class plottable;
+<a name="__line20"></a>
+<a name="__line21"></a>    namespace geom
+<a name="__line22"></a>    {
+<a name="__line23"></a>        class vec3;
+<a name="__line24"></a>    }
+<a name="__line25"></a>
+<a name="__line26"></a>    <span class=comment>// forward declaration </span>
+<a name="__line27"></a>    namespace function_core
+<a name="__line28"></a>    {
+<a name="__line29"></a>	class col;
+<a name="__line30"></a>	class bessel;
+<a name="__line31"></a>	class ifelse;
+<a name="__line32"></a>        class join_args;
+<a name="__line33"></a>    }
+<a name="__line34"></a>
+<a name="__line35"></a>    class fgraph;
+<a name="__line36"></a>
+<a name="__line37"></a>    class dgraph;
+<a name="__line38"></a>
+<a name="__line39"></a>    class function;
+<a name="__line40"></a>    function ARG(int i);
+<a name="__line41"></a>    function PAR(int i);
+<a name="__line42"></a>
+<a name="__line43"></a>    <span class=comment>// ---------- Functions returning simply their 1st, 2nd, etc. arguments  ----------</span>
+<a name="__line44"></a>
+<a name="__line45"></a>    extern function _1,_2,_3,_4,_5,_6,_7,_8,_9,_10,_11,_12,_13,_14,_15,_16,_17,_18,_19,_20,_21,_22,_23,_24,_25,_26,_27,_28,_29,_30;
+<a name="__line46"></a>    extern function _0, _b, _B, _g;
+<a name="__line47"></a>    extern function _n(const var &amp;id);  <span class=comment>// named parameter</span>
+<a name="__line48"></a>    
+<a name="__line49"></a>    function PREV(int nprevious=1);
+<a name="__line50"></a>
+<a name="__line51"></a>    class function
+<a name="__line52"></a>    {
+<a name="__line53"></a>
+<a name="__line54"></a><span class=public>    public:
+<a name="__line55"></a>        class core
+<a name="__line56"></a>        {
+<a name="__line57"></a></span><span class=protected>        protected:
+<a name="__line58"></a>            int nargs_, npars_;
+<a name="__line59"></a>	
+<a name="__line60"></a></span><span class=public>        public:
+<a name="__line61"></a>            core() : nargs_(-1), npars_(-1) {}
+<a name="__line62"></a>            virtual ~core() {}
+<a name="__line63"></a>	
+<a name="__line64"></a>            <span class=comment>// create a copy of this expression, recursively (daughters are</span>
+<a name="__line65"></a>            <span class=comment>// also cloned)</span>
+<a name="__line66"></a>            virtual function::core  *clone()              const = 0;
+<a name="__line67"></a>	
+<a name="__line68"></a>            <span class=comment>// evaluate the expression. the second version avoids the overhead</span>
+<a name="__line69"></a>            <span class=comment>// due to the 'var' return values, it is used in the fitting algorithm</span>
+<a name="__line70"></a>            <span class=comment>// </span>
+<a name="__line71"></a>	
+<a name="__line72"></a>            virtual void       eval(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line73"></a>                                    const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line74"></a>                                    const std::vector&lt;blop::var&gt; &amp;params,
+<a name="__line75"></a>                                    std::vector&lt;blop::var&gt; &amp;result, int *ind)  const = 0;
+<a name="__line76"></a>	
+<a name="__line77"></a>            virtual void       eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line78"></a>                                        const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line79"></a>                                        const std::vector&lt;blop::var&gt; &amp;params,
+<a name="__line80"></a>                                        std::vector&lt;blop::var&gt; &amp;result, int *ind)  const = 0;
+<a name="__line81"></a>
+<a name="__line82"></a>            <span class=comment>// return the number of arguments used by this expression</span>
+<a name="__line83"></a>            <span class=comment>// (to be more exact, the highest index of the used arguments)</span>
+<a name="__line84"></a>            <span class=comment>// if the expression uses args 1 and 3, 3 is returned</span>
+<a name="__line85"></a>            virtual int       nargs()          const = 0;
+<a name="__line86"></a>            virtual int       npars()          const = 0;
+<a name="__line87"></a>	
+<a name="__line88"></a>            virtual void      nargs(int i)     { nargs_ = i; }
+<a name="__line89"></a>            virtual void      npars(int i)     { npars_ = i; }
+<a name="__line90"></a>	
+<a name="__line91"></a>            <span class=comment>// check if this expression uses the 'i'th argument</span>
+<a name="__line92"></a>            virtual bool      uses_arg(int i) const = 0; <span class=comment>//{return false;}</span>
+<a name="__line93"></a>            virtual bool      uses_par(int i) const {return false;}
+<a name="__line94"></a>	
+<a name="__line95"></a>            <span class=comment>// return the character-representation of this expression</span>
+<a name="__line96"></a>            virtual var sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names = {}, std::map&lt;int,blop::var&gt; param_names = {}) const = 0;
+<a name="__line97"></a>            virtual var sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
+<a name="__line98"></a>                                     const var &amp;x="x", const var &amp;y="y", const var &amp;z="z") const
+<a name="__line99"></a>            {
+<a name="__line100"></a>                return sprint(pars, parvalue);
+<a name="__line101"></a>            }
+<a name="__line102"></a>	
+<a name="__line103"></a>            <span class=comment>// create the derivative expression. it is dynamically allocated,</span>
+<a name="__line104"></a>            <span class=comment>// so it should not be copied, when attached to a function</span>
+<a name="__line105"></a>            virtual function::core* create_derivative(int i) const { return 0; }
+<a name="__line106"></a>	
+<a name="__line107"></a>            <span class=comment>// check if it is the same </span>
+<a name="__line108"></a>            virtual bool equals(const function::core *) const = 0;
+<a name="__line109"></a>	
+<a name="__line110"></a>            <span class=comment>// return the number of output variables</span>
+<a name="__line111"></a>            virtual int n_out() const { return 1; }
+<a name="__line112"></a>
+<a name="__line113"></a>            <span class=comment>// Hint about how many returned values a caller (argument_subst) requires</span>
+<a name="__line114"></a>            virtual void n_out_hint(int n) 
+<a name="__line115"></a>            {
+<a name="__line116"></a>                if(n_out() &lt; n) warning::print("Function might return less values than required");
+<a name="__line117"></a>            }
+<a name="__line118"></a>	
+<a name="__line119"></a>            virtual bool is_constant() const { return false; }
+<a name="__line120"></a>
+<a name="__line121"></a>        };
+<a name="__line122"></a>        
+<a name="__line123"></a>
+<a name="__line124"></a></span><span class=private>    private:
+<a name="__line125"></a>        
+<a name="__line126"></a>
+<a name="__line127"></a>        <span class=comment>//int nargs_, npars_;</span>
+<a name="__line128"></a>
+<a name="__line129"></a>        <span class=comment>// cint takes these friend-declarations as function declarations,</span>
+<a name="__line130"></a>        <span class=comment>// causing troubles. </span>
+<a name="__line131"></a>#ifndef __MAKECINT__
+<a name="__line132"></a>        friend function     format(const function &amp;func, const function &amp;form);
+<a name="__line133"></a>        friend function     format(const function &amp;func, const var &amp;form);
+<a name="__line134"></a>
+<a name="__line135"></a>        friend function     ifelse(const function &amp;condition, const function &amp;iftrue, const function &amp;iffalse);
+<a name="__line136"></a>        friend blop::function     replace(const blop::function &amp;from, const blop::function &amp;to, const blop::function &amp;in);
+<a name="__line137"></a>        friend blop::function     substr(const blop::function &amp;s, const blop::function &amp;from, const blop::function &amp;to);
+<a name="__line138"></a>
+<a name="__line139"></a>        friend function     operator==(const function &amp;left, const function &amp;right);
+<a name="__line140"></a>        friend function     operator==(const function &amp;left, const std::string &amp;right);
+<a name="__line141"></a>        friend function     operator==(const std::string &amp;left, const function &amp;right);
+<a name="__line142"></a>        friend function     operator==(const function &amp;left, const var      &amp;right);
+<a name="__line143"></a>        friend function     operator==(const var      &amp;left, const function &amp;right);
+<a name="__line144"></a>        friend function     operator==(const function &amp;left, const char *right);
+<a name="__line145"></a>        friend function     operator==(const char *left, const function &amp;right);
+<a name="__line146"></a>        friend function     operator==(double left, const function &amp;right);
+<a name="__line147"></a>        friend function     operator==(const function &amp;left, double right);
+<a name="__line148"></a>        friend function     operator==(int left, const function &amp;right);
+<a name="__line149"></a>        friend function     operator==(const function &amp;left, int right);
+<a name="__line150"></a>
+<a name="__line151"></a>        friend function     operator!=(const function &amp;left, const function &amp;right);
+<a name="__line152"></a>        friend function     operator&lt; (const function &amp;left, const function &amp;right);
+<a name="__line153"></a>        friend function     operator&lt;=(const function &amp;left, const function &amp;right);
+<a name="__line154"></a>        friend function     operator&gt; (const function &amp;left, const function &amp;right);
+<a name="__line155"></a>        friend function     operator&gt;=(const function &amp;left, const function &amp;right);
+<a name="__line156"></a>
+<a name="__line157"></a>        friend function     max       (const function &amp;left, const function &amp;right);
+<a name="__line158"></a>        friend function     min       (const function &amp;left, const function &amp;right);
+<a name="__line159"></a>        friend function     maximum(const function &amp;, const function &amp;,
+<a name="__line160"></a>                                    const function &amp;, const function &amp;);
+<a name="__line161"></a>        friend function     minimum(const function &amp;, const function &amp;,
+<a name="__line162"></a>                                    const function &amp;, const function &amp;);
+<a name="__line163"></a>        friend function     integral      (const function &amp;, const function &amp;,
+<a name="__line164"></a>                                           const function &amp;, const function &amp;);
+<a name="__line165"></a>
+<a name="__line166"></a>
+<a name="__line167"></a>        friend function     operator+ (const function &amp;left, const function &amp;right);
+<a name="__line168"></a>        friend function     operator+ (const function &amp;left, double right);
+<a name="__line169"></a>        friend function     operator+ (double left, const function &amp;right);
+<a name="__line170"></a>        friend function     operator+ (const function &amp;left, int right);
+<a name="__line171"></a>        friend function     operator+ (int left, const function &amp;right);
+<a name="__line172"></a>        friend function     operator- (const function &amp;left, const function &amp;right);
+<a name="__line173"></a>        friend function     operator- (const function &amp;left, double right);
+<a name="__line174"></a>        friend function     operator- (double left, const function &amp;right);
+<a name="__line175"></a>        friend function     operator- (const function &amp;left, int right);
+<a name="__line176"></a>        friend function     operator- (int left, const function &amp;right);
+<a name="__line177"></a>        friend function     operator* (const function &amp;left, const function &amp;right);
+<a name="__line178"></a>        friend function     operator* (const function &amp;left, double right);
+<a name="__line179"></a>        friend function     operator* (double left, const function &amp;right);
+<a name="__line180"></a>        friend function     operator* (const function &amp;left, int right);
+<a name="__line181"></a>        friend function     operator* (int left, const function &amp;right);
+<a name="__line182"></a>        friend function     operator/ (const function &amp;left, const function &amp;right);
+<a name="__line183"></a>        friend function     operator/ (const function &amp;left, double right);
+<a name="__line184"></a>        friend function     operator/ (double left, const function &amp;right);
+<a name="__line185"></a>        friend function     operator/ (const function &amp;left, int right);
+<a name="__line186"></a>        friend function     operator/ (int left, const function &amp;right);
+<a name="__line187"></a>        friend function     operator- (const function &amp;operand);
+<a name="__line188"></a>
+<a name="__line189"></a>        friend function     cmp_mul(const function &amp;left, const function &amp;right);
+<a name="__line190"></a>        friend function     cmp_div(const function &amp;left, const function &amp;right);
+<a name="__line191"></a>
+<a name="__line192"></a>        friend function     operator%  (const function &amp;left, const function &amp;right);
+<a name="__line193"></a><span class=comment>//    friend function     operator%  (const function &amp;left, int right);</span>
+<a name="__line194"></a><span class=comment>//    friend function     operator%  (int left, const function &amp;right);</span>
+<a name="__line195"></a>
+<a name="__line196"></a>        friend function     operator&amp;  (const function &amp;left, const function &amp;right);
+<a name="__line197"></a>        friend function     operator&amp;&amp; (const function &amp;left, const function &amp;right);
+<a name="__line198"></a>        friend function     operator|| (const function &amp;left, const function &amp;right);
+<a name="__line199"></a>        friend function     random    ();
+<a name="__line200"></a>        friend function     random    (double);
+<a name="__line201"></a>        friend function     random    (double,double);
+<a name="__line202"></a>        friend function     random_gauss(double a, double s, int parameter_index);
+<a name="__line203"></a>        friend function     random_exponential(double a, int parameter_index);
+<a name="__line204"></a>        friend function     random_idexponential(double a, int parameter_index);
+<a name="__line205"></a>        friend function     exp       (const function &amp;o);
+<a name="__line206"></a>        friend function     log       (const function &amp;o);
+<a name="__line207"></a>        friend function     log10     (const function &amp;o);
+<a name="__line208"></a>        friend function     sqrt      (const function &amp;o);
+<a name="__line209"></a>        friend function     sin       (const function &amp;o);
+<a name="__line210"></a>        friend function     asin      (const function &amp;o);
+<a name="__line211"></a>        friend function     cos       (const function &amp;o);
+<a name="__line212"></a>        friend function     acos      (const function &amp;o);
+<a name="__line213"></a>        friend function     tan       (const function &amp;o);
+<a name="__line214"></a>        friend function     atan      (const function &amp;o);
+<a name="__line215"></a>        friend function     cot       (const function &amp;o);
+<a name="__line216"></a>        friend function     acot      (const function &amp;o);
+<a name="__line217"></a>        friend function     sinh      (const function &amp;o);
+<a name="__line218"></a>        friend function     cosh      (const function &amp;o);
+<a name="__line219"></a>        friend function     tanh      (const function &amp;);
+<a name="__line220"></a>        friend function     atanh     (const function &amp;);
+<a name="__line221"></a>        friend function     asinh     (const function &amp;);
+<a name="__line222"></a>        friend function     acosh     (const function &amp;);
+<a name="__line223"></a>        friend function     floor     (const function &amp;);
+<a name="__line224"></a>        friend function     ceil      (const function &amp;);
+<a name="__line225"></a>        friend function     round     (const function &amp;);
+<a name="__line226"></a>        friend function     erf       (const function &amp;);
+<a name="__line227"></a>        friend function     atan2     (const function &amp;, const function &amp;);
+<a name="__line228"></a>        friend function     pow       (const function &amp;, const function &amp;);
+<a name="__line229"></a>        friend function     pow       (const function &amp;, int);
+<a name="__line230"></a>        friend function     pow       (const function &amp;, double);
+<a name="__line231"></a>        friend function     pow       (double, const function &amp;);
+<a name="__line232"></a>        friend function     pow       (const function &amp;, const var &amp;);
+<a name="__line233"></a>        friend function     sign      (const function &amp;);
+<a name="__line234"></a>        friend function     abs       (const function &amp;);
+<a name="__line235"></a>        friend function     fabs      (const function &amp;);
+<a name="__line236"></a>        friend function     periodic_function(const function &amp;, double x1, double x2);
+<a name="__line237"></a>        friend function     periodic_function(const function &amp;, double x1, double x2, double y1, double y2);
+<a name="__line238"></a>        friend function     periodic_function(const function &amp;, double x1, double x2, double y1, double y2, double z1, double z2);
+<a name="__line239"></a>#ifdef HAVE_GSL
+<a name="__line240"></a>        friend function     bessel_J(int n, const function &amp;x);
+<a name="__line241"></a>        friend function     bessel_Y(int n, const function &amp;x);
+<a name="__line242"></a>        friend function     bessel_I(int n, const function &amp;x);
+<a name="__line243"></a>        friend function     bessel_K(int n, const function &amp;x);
+<a name="__line244"></a>        friend function     bessel_j(int n, const function &amp;x);
+<a name="__line245"></a>        friend function     bessel_y(int n, const function &amp;x);
+<a name="__line246"></a>        friend function     bessel_i_scaled(int n, const function &amp;x);
+<a name="__line247"></a>        friend function     bessel_k_scaled(int n, const function &amp;x);
+<a name="__line248"></a>        friend class        blop::function_core::bessel;
+<a name="__line249"></a>#endif
+<a name="__line250"></a>        friend function     ARG       (int i);
+<a name="__line251"></a>        friend function     PAR       (int i);
+<a name="__line252"></a>
+<a name="__line253"></a>        friend function     cfunc     (void *p);
+<a name="__line254"></a>        friend function     cfunc     (var (*p)(var));
+<a name="__line255"></a>        friend function     cfunc     (var (*p)(var,var));
+<a name="__line256"></a>        friend function     cfunc     (var (*p)(var,var,var));
+<a name="__line257"></a>        friend function     cfunc     (var (*p)(var,var,var,var));
+<a name="__line258"></a>        friend function     cfunc     (double (*p)(double));
+<a name="__line259"></a>        friend function     cfunc     (double (*p)(double,double));
+<a name="__line260"></a>        friend function     cfunc     (double (*p)(double,double,double));
+<a name="__line261"></a>        friend function     cfunc     (double (*p)(double,double,double,double));
+<a name="__line262"></a>        friend function     cfunc     (complex&lt;double&gt; (*p)(double));
+<a name="__line263"></a>        friend function     cfunc     (complex&lt;double&gt; (*p)(double,double));
+<a name="__line264"></a>        friend function     cfunc     (var (*p)(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line265"></a>                                                const std::vector&lt;blop::var&gt; &amp;pars),
+<a name="__line266"></a>                                       int nargs,
+<a name="__line267"></a>                                       int npars);
+<a name="__line268"></a>        friend function     cfunc     (void (*p)(double*, double*, double*), int nargs, int npars, int nout);
+<a name="__line269"></a>
+<a name="__line270"></a><span class=comment>//        friend function     cppfunc   (void (*p)(double*,double*,double*), int nargs, int npars, int nout);</span>
+<a name="__line271"></a>        friend function     cppfunc   (const std::function&lt;void(double*,double*,double*)&gt; &amp;func, int nargs, int npars, int nout);
+<a name="__line272"></a>
+<a name="__line273"></a>        friend function     charfunc(const function &amp;,const function &amp;, bool, bool);
+<a name="__line274"></a>        friend function     between_lines(const function &amp;, const function &amp;);
+<a name="__line275"></a>        friend function     contained_in(const function &amp;);
+<a name="__line276"></a>
+<a name="__line277"></a>        friend class        blop::function_core::col;
+<a name="__line278"></a>        friend class        blop::fgraph;
+<a name="__line279"></a>        friend class        blop::function_core::ifelse;
+<a name="__line280"></a>        friend class        blop::function_core::join_args;
+<a name="__line281"></a>
+<a name="__line282"></a><span class=comment>//        friend blop::function     replace(const blop::function &amp;from, const blop::function &amp;to, const blop::function &amp;in);</span>
+<a name="__line283"></a>
+<a name="__line284"></a>#endif
+<a name="__line285"></a>
+<a name="__line286"></a>        static std::vector&lt;std::string&gt; column_names_;
+<a name="__line287"></a>        std::vector&lt;blop::var&gt; default_args_;
+<a name="__line288"></a>
+<a name="__line289"></a>        template &lt;class T&gt; void init_binary_(const function &amp;left, const function &amp;right);
+<a name="__line290"></a>        template &lt;class T&gt; void init_unary_ (const function &amp;arg);
+<a name="__line291"></a>
+<a name="__line292"></a>        core* base_;
+<a name="__line293"></a>        typedef std::map&lt;int, blop::function::core*&gt; deriv_map;
+<a name="__line294"></a>        deriv_map derivatives_;
+<a name="__line295"></a>
+<a name="__line296"></a>        bool     print_param_value_;
+<a name="__line297"></a>        static bool default_print_param_value_;
+<a name="__line298"></a>
+<a name="__line299"></a>        void init_();
+<a name="__line300"></a>        mutable std::vector&lt;blop::var&gt;    result_;
+<a name="__line301"></a>        std::vector&lt;blop::var&gt;    parameters_;
+<a name="__line302"></a>        std::vector&lt;blop::var&gt;    parnames_;
+<a name="__line303"></a>        std::map&lt;int, blop::var&gt;  parformats_;
+<a name="__line304"></a>
+<a name="__line305"></a>        function(const std::vector&lt;function::core*&gt; &amp;bases, bool clone_them=true);
+<a name="__line306"></a>
+<a name="__line307"></a>        void copy_arg_ranges_(const function &amp;f1,
+<a name="__line308"></a>                              const function &amp;f2=blop::unset,
+<a name="__line309"></a>                              const function &amp;f3=blop::unset,
+<a name="__line310"></a>                              const function &amp;f4=blop::unset,
+<a name="__line311"></a>                              const function &amp;f5=blop::unset,
+<a name="__line312"></a>                              const function &amp;f6=blop::unset);
+<a name="__line313"></a>        std::vector&lt;double&gt; arg_min_, arg_max_;
+<a name="__line314"></a>        bool make_arg_check_(const std::vector&lt;blop::var&gt; &amp;args) const;
+<a name="__line315"></a>        bool check_args_;
+<a name="__line316"></a>        static bool default_check_args_;
+<a name="__line317"></a>
+<a name="__line318"></a>        double eval_meas_error(const std::vector&lt;blop::var&gt; &amp;vals, const std::vector&lt;blop::var&gt; &amp;errors) const;
+<a name="__line319"></a>
+<a name="__line320"></a></span><span class=public>    public:
+<a name="__line321"></a>
+<a name="__line322"></a>        class global_initializer
+<a name="__line323"></a>        {
+<a name="__line324"></a></span><span class=public>        public:
+<a name="__line325"></a>            global_initializer();
+<a name="__line326"></a>        };
+<a name="__line327"></a>
+<a name="__line328"></a>        <span class=comment>// ---------- Constructors  -------------------------------------------------------</span>
+<a name="__line329"></a>
+<a name="__line330"></a>        function();                    <span class=comment>// the default constructor creates an uninitialized function</span>
+<a name="__line331"></a>
+<a name="__line332"></a>        <span class=comment>// Initialization to a constant value. If the value (double) is unset, the function</span>
+<a name="__line333"></a>        <span class=comment>// is set to an uninitialized state</span>
+<a name="__line334"></a>        function(double value);        
+<a name="__line335"></a>        function(double v1,double v2);  
+<a name="__line336"></a>        function(double v1,double v2,double v3);
+<a name="__line337"></a>        function(double v1,double v2,double v3,double v4);
+<a name="__line338"></a>        function(int i1);                 
+<a name="__line339"></a>        function(int i1,int i2);                 
+<a name="__line340"></a>        function(int i1,int i2,int i3);                 
+<a name="__line341"></a>        function(int i1,int i2,int i3,int i4);                 
+<a name="__line342"></a>        function(int i1, double d2);
+<a name="__line343"></a>        function(double d1, int i2);
+<a name="__line344"></a>        function(const var &amp;);         
+<a name="__line345"></a>        function(const char *);        
+<a name="__line346"></a>        function(const string &amp;);
+<a name="__line347"></a>        function(const std::vector&lt;blop::var&gt; &amp;);   <span class=comment>// multi-valued constant</span>
+<a name="__line348"></a>
+<a name="__line349"></a>        function(const function &amp;);    <span class=comment>// copy another function</span>
+<a name="__line350"></a>        function(const function &amp;f1, const function &amp;f2);   <span class=comment>// concatenate them</span>
+<a name="__line351"></a>        function(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line352"></a>        function(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4);
+<a name="__line353"></a>        function(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5);
+<a name="__line354"></a>        function(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5, const function &amp;f6);
+<a name="__line355"></a>
+<a name="__line356"></a>        <span class=comment>// Initialize from a C-function pointer</span>
+<a name="__line357"></a>        function(void *fptr);
+<a name="__line358"></a>
+<a name="__line359"></a>        ~function();
+<a name="__line360"></a>
+<a name="__line361"></a>        function(const function::core &amp;); <span class=comment>// clone the given base</span>
+<a name="__line362"></a>
+<a name="__line363"></a>        <span class=comment>// Do not call this function!!! It should in fact be private</span>
+<a name="__line364"></a>        <span class=comment>// (but many internal classes use it, so for the moment it is public....</span>
+<a name="__line365"></a>        <span class=comment>// it's a design flaw)</span>
+<a name="__line366"></a>        function(      function::core *); <span class=comment>// do not clone, only store pointer</span>
+<a name="__line367"></a>
+<a name="__line368"></a>
+<a name="__line369"></a>
+<a name="__line370"></a>        <span class=comment>// ---------- Append more components to it ----------------------------------------</span>
+<a name="__line371"></a>
+<a name="__line372"></a>        function &amp;append(const function &amp;);
+<a name="__line373"></a>
+<a name="__line374"></a>        <span class=comment>// ---- Set the format of the parameters (if they are set later to a numerial</span>
+<a name="__line375"></a>        <span class=comment>// value, for example during a fit, this format will be used for the string-representation)</span>
+<a name="__line376"></a>
+<a name="__line377"></a>        <span class=comment>//function &amp;param_format(const var &amp;fmt); // already implemented as parformat</span>
+<a name="__line378"></a>
+<a name="__line379"></a>        <span class=comment>// ---------- Get or set value of a given parameter  ------------------------------</span>
+<a name="__line380"></a>
+<a name="__line381"></a>
+<a name="__line382"></a>        function  &amp;param(unsigned int parindex, const var &amp;value); <span class=comment>// set parameter</span>
+<a name="__line383"></a>        function  &amp;param(unsigned int parindex, double     value); <span class=comment>// set parameter</span>
+<a name="__line384"></a>        function  &amp;param(unsigned int parindex, const var &amp;value, const var &amp;name); <span class=comment>// set value+name</span>
+<a name="__line385"></a>        function  &amp;param(unsigned int parindex, double     value, const var &amp;name); 
+<a name="__line386"></a>        function  &amp;params(double p1,double p2,
+<a name="__line387"></a>                          double p3=unset,
+<a name="__line388"></a>                          double p4=unset,
+<a name="__line389"></a>                          double p5=unset,
+<a name="__line390"></a>                          double p6=unset);
+<a name="__line391"></a>
+<a name="__line392"></a>        function  &amp;params(const std::vector&lt;double&gt; &amp;p);
+<a name="__line393"></a>        function  &amp;params(const std::vector&lt;blop::var&gt; &amp;p);
+<a name="__line394"></a>
+<a name="__line395"></a>        <span class=comment>// It is often useful to use more descriptive names for parameters, for example:</span>
+<a name="__line396"></a>        <span class=comment>// function center = PAR(1);</span>
+<a name="__line397"></a>        <span class=comment>// function sigma = PAR(2);</span>
+<a name="__line398"></a>        <span class=comment>// function x = _1;</span>
+<a name="__line399"></a>        <span class=comment>// function gauss = exp(-(x-center)*(x-center)/(2*sigma*sigma));</span>
+<a name="__line400"></a>        <span class=comment>// This function makes it possible to also set the parameter value using these</span>
+<a name="__line401"></a>        <span class=comment>// descriptive names:</span>
+<a name="__line402"></a>        <span class=comment>// gauss.param(sigma,1.1);</span>
+<a name="__line403"></a>        <span class=comment>// The first argument of this function MUST be a pure function-parameter function, i.e.</span>
+<a name="__line404"></a>        <span class=comment>// PAR(...), as above</span>
+<a name="__line405"></a>
+<a name="__line406"></a>        function &amp;param(const function &amp;p, var value);
+<a name="__line407"></a>        function &amp;param(const function &amp;p, double value) { return param(p,var(value)); }
+<a name="__line408"></a>        function &amp;param(const function &amp;p, const string &amp;value) { return param(p,var(value)); }
+<a name="__line409"></a>
+<a name="__line410"></a>        function &amp;param(const function &amp;p, const var &amp;value, const var &amp;name);
+<a name="__line411"></a>        function &amp;param(const function &amp;p, double value, const var &amp;name) { return param(p,var(value),name); }
+<a name="__line412"></a>        function &amp;param(const function &amp;p, const string &amp;value, const var &amp;name) { return param(p,var(value),name); }
+<a name="__line413"></a>
+<a name="__line414"></a>
+<a name="__line415"></a>
+<a name="__line416"></a>        const var &amp;param(unsigned int parindex) const;             <span class=comment>// read parameter</span>
+<a name="__line417"></a>        var &amp;param(unsigned int parindex);                         <span class=comment>// read parameter</span>
+<a name="__line418"></a>        const var &amp;param(const function &amp;p) const;
+<a name="__line419"></a>        var &amp;param(const function &amp;p);
+<a name="__line420"></a>
+<a name="__line421"></a>        var        parname(unsigned int parindex);   <span class=comment>// get parameter name</span>
+<a name="__line422"></a>        function  &amp;parname(unsigned int parindex, const var &amp;parname); <span class=comment>// set parameter name</span>
+<a name="__line423"></a>
+<a name="__line424"></a>        <span class=comment>// set the format of a given parameter (for printing by value);</span>
+<a name="__line425"></a>        <span class=comment>// if parindex==0, the formats of all parameters are set</span>
+<a name="__line426"></a>        function  &amp;parformat(unsigned int parindex, const var &amp;format);
+<a name="__line427"></a>
+<a name="__line428"></a>        <span class=comment>// ---------- Specify default arguments -------------------------------------------</span>
+<a name="__line429"></a>
+<a name="__line430"></a>        function &amp;def_arg(int arg_index, const var &amp;value);
+<a name="__line431"></a>        var       def_arg(int arg_index) const;
+<a name="__line432"></a>        function &amp;clear_def_args(); 
+<a name="__line433"></a>
+<a name="__line434"></a>        <span class=comment>// ---------- Get the number of required arguments or parameters ------------------</span>
+<a name="__line435"></a>
+<a name="__line436"></a>        int nargs()         const;
+<a name="__line437"></a>        <span class=comment>//function &amp;nargs(int i);</span>
+<a name="__line438"></a>
+<a name="__line439"></a>        int npars()         const;
+<a name="__line440"></a>        <span class=comment>//function &amp;npars(int i);</span>
+<a name="__line441"></a>
+<a name="__line442"></a>        <span class=comment>// ---------- Query wether this function uses a given argument --------------------</span>
+<a name="__line443"></a>
+<a name="__line444"></a>        bool uses_arg(int)  const;
+<a name="__line445"></a>        bool uses_par(int)  const;
+<a name="__line446"></a>
+<a name="__line447"></a>        <span class=comment>// ---------- Get/set argument ranges ---------------------------------------------</span>
+<a name="__line448"></a>
+<a name="__line449"></a>        function &amp;arg_min(int arg_no, double value);
+<a name="__line450"></a>        function &amp;arg_max(int arg_no, double value);
+<a name="__line451"></a>        function &amp;arg_range(int arg_no, double min, double max);
+<a name="__line452"></a>        double arg_min(int arg_no);
+<a name="__line453"></a>        double arg_max(int arg_no);
+<a name="__line454"></a>        function &amp;check_args(bool flag);           <span class=comment>// turn on/off checking if args are in range</span>
+<a name="__line455"></a>        static void default_check_args(bool flag); <span class=comment>// make it globally</span>
+<a name="__line456"></a>        <span class=comment>// (all future functions effected)</span>
+<a name="__line457"></a>	
+<a name="__line458"></a>        <span class=comment>// ---------- Get maximum value of a given component in given range ---------------</span>
+<a name="__line459"></a>    
+<a name="__line460"></a>
+<a name="__line461"></a>        <span class=comment>// ---------- Printing parameters by value ----------------------------------------</span>
+<a name="__line462"></a>        <span class=comment>// set this property to true, if you want to substitute the actual value of the</span>
+<a name="__line463"></a>        <span class=comment>// parameters of the function, when the function's formula is printed (in </span>
+<a name="__line464"></a>        <span class=comment>// legends, for example), instead of the formal [n] notation (where n is substituted</span>
+<a name="__line465"></a>        <span class=comment>// with the index of the parameter)</span>
+<a name="__line466"></a>
+<a name="__line467"></a>        static void default_print_param_value(bool i) { default_print_param_value_ = i; }
+<a name="__line468"></a>        function &amp;print_param_value(bool i) { print_param_value_ = i; return *this; }
+<a name="__line469"></a>        bool print_param_value() const { return print_param_value_; }
+<a name="__line470"></a>
+<a name="__line471"></a>
+<a name="__line472"></a>        <span class=comment>// ---------- Print the function's formula into a 'var' ---------------------------</span>
+<a name="__line473"></a>
+<a name="__line474"></a>        var sprint() const;
+<a name="__line475"></a>        var sprint(std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names={}) const;
+<a name="__line476"></a>        var sprint_latex(const var &amp;x="x", const var &amp;y="y", const var &amp;z="z") const;
+<a name="__line477"></a>        void print(std::ostream &amp;out = cout) const;
+<a name="__line478"></a>
+<a name="__line479"></a>
+<a name="__line480"></a>        static function create_narg();
+<a name="__line481"></a>
+<a name="__line482"></a>
+<a name="__line483"></a>        <span class=comment>// ---------- Provide a formula ---------------------------------------------------</span>
+<a name="__line484"></a>        <span class=comment>// It makes only sense in a compiled code, to make an interactively</span>
+<a name="__line485"></a>        <span class=comment>// defineable function. I only works with CINT support of blop</span>
+<a name="__line486"></a>        <span class=comment>// (see  blop -h cint)</span>
+<a name="__line487"></a>        <span class=comment>// The argument string is passed to the CINT interpreter (it must</span>
+<a name="__line488"></a>        <span class=comment>// be a C++ code to build up a function). For example:</span>
+<a name="__line489"></a>        <span class=comment>// function f;</span>
+<a name="__line490"></a>        <span class=comment>// f.formula("_1*sin(_2) + PAR(1)");</span>
+<a name="__line491"></a>        <span class=comment>// the formula string is typically read from stdin, a config file, or</span>
+<a name="__line492"></a>        <span class=comment>// whatever</span>
+<a name="__line493"></a>        <span class=comment>// Before it is called, G__init_cint should be called, otherwise segfault!</span>
+<a name="__line494"></a>
+<a name="__line495"></a>        void formula(const var &amp;f);
+<a name="__line496"></a>
+<a name="__line497"></a>        <span class=comment>// ---------- Derivative ----------------------------------------------------------</span>
+<a name="__line498"></a>        <span class=comment>// Return the derivative function of this function with respect to </span>
+<a name="__line499"></a>        <span class=comment>// the ith argument</span>
+<a name="__line500"></a>        <span class=comment>// if 'i' is negative, returns the derivative with respect to the ith parameter</span>
+<a name="__line501"></a>        <span class=comment>// The second version can be used to define this function's derivative</span>
+<a name="__line502"></a>        <span class=comment>// (if you do not trust blop's calculation, or if it can not calculate the</span>
+<a name="__line503"></a>        <span class=comment>// derivative itself, for example in case of a C-function)</span>
+<a name="__line504"></a>
+<a name="__line505"></a>        function  derivative(int i) const;                <span class=comment>// returns the derivative</span>
+<a name="__line506"></a>        function &amp;derivative(int i, const function &amp;);    <span class=comment>// specify derivative explicitely, return *this</span>
+<a name="__line507"></a>
+<a name="__line508"></a>        const function &amp;operator=(const function &amp;);
+<a name="__line509"></a>        const function &amp;operator=(const var      &amp;);
+<a name="__line510"></a>        const function &amp;operator=(double);
+<a name="__line511"></a>        const function &amp;operator=(const char *);
+<a name="__line512"></a>        const function &amp;operator=(const string &amp;);
+<a name="__line513"></a>
+<a name="__line514"></a>        const function &amp;operator += (const function &amp;);
+<a name="__line515"></a>        const function &amp;operator -= (const function &amp;);
+<a name="__line516"></a>        const function &amp;operator *= (const function &amp;);
+<a name="__line517"></a>        const function &amp;operator /= (const function &amp;);
+<a name="__line518"></a>
+<a name="__line519"></a>
+<a name="__line520"></a>        <span class=comment>// ---------- function evaluation operators () ------------------------------------</span>
+<a name="__line521"></a>        <span class=comment>// You can use the parenthesis operators on a function (with 'var' or 'double' </span>
+<a name="__line522"></a>        <span class=comment>// arguments) to evaluate the function at the provided arguments.</span>
+<a name="__line523"></a>        <span class=comment>// The parenthesis operators are defined with up to 6 arguments. If you want</span>
+<a name="__line524"></a>        <span class=comment>// to call a function with more arguments, you have to put them into a</span>
+<a name="__line525"></a>        <span class=comment>// vector&lt;var&gt;, and call 'eval' instead</span>
+<a name="__line526"></a>
+<a name="__line527"></a>        var operator()() const;
+<a name="__line528"></a>        var operator()(const var &amp;) const;
+<a name="__line529"></a>        var operator()(const var &amp;,const var &amp;) const;
+<a name="__line530"></a>        var operator()(const var &amp;,const var &amp;,const var &amp;) const;
+<a name="__line531"></a>        var operator()(const var &amp;,const var &amp;,const var &amp;,const var &amp;) const;
+<a name="__line532"></a>        var operator()(const var &amp;,const var &amp;,const var &amp;,const var &amp;,const var &amp;) const;
+<a name="__line533"></a>        var operator()(const var &amp;,const var &amp;,const var &amp;,const var &amp;,const var &amp;,const var &amp;) const;
+<a name="__line534"></a>
+<a name="__line535"></a>        var operator()(const char* v1) const                     { return operator()(var(v1)); }
+<a name="__line536"></a>        var operator()(const char* v1,const char* v2) const           { return operator()(var(v1),var(v2)); }
+<a name="__line537"></a>        var operator()(const char* v1,const char* v2,const char* v3) const { return operator()(var(v1),var(v2),var(v3)); }
+<a name="__line538"></a>        var operator()(const char* v1,const char* v2,const char* v3,const char* v4) const
+<a name="__line539"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4)); }
+<a name="__line540"></a>        var operator()(const char* v1,const char* v2,const char* v3,const char* v4,const char* v5) const
+<a name="__line541"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4),var(v5)); }
+<a name="__line542"></a>        var operator()(const char* v1,const char* v2,const char* v3,const char* v4,const char* v5,const char* v6) const
+<a name="__line543"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4),var(v5),var(v6)); }
+<a name="__line544"></a>
+<a name="__line545"></a>        var operator()(double v1) const                     { return operator()(var(v1)); }
+<a name="__line546"></a>        var operator()(double v1,double v2) const           { return operator()(var(v1),var(v2)); }
+<a name="__line547"></a>        var operator()(double v1,double v2,double v3) const { return operator()(var(v1),var(v2),var(v3)); }
+<a name="__line548"></a>        var operator()(double v1,double v2,double v3,double v4) const
+<a name="__line549"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4)); }
+<a name="__line550"></a>        var operator()(double v1,double v2,double v3,double v4,double v5) const
+<a name="__line551"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4),var(v5)); }
+<a name="__line552"></a>        var operator()(double v1,double v2,double v3,double v4,double v5,double v6) const
+<a name="__line553"></a>	{ return operator()(var(v1),var(v2),var(v3),var(v4),var(v5),var(v6)); }
+<a name="__line554"></a>
+<a name="__line555"></a>        var    eval(const std::vector&lt;blop::var&gt; &amp;args) const;
+<a name="__line556"></a>        double eval_dbl(const std::vector&lt;blop::var&gt; &amp;args) const;
+<a name="__line557"></a>        double eval_dbl(const std::vector&lt;blop::var&gt; &amp;args, const std::vector&lt;blop::var&gt; &amp;pars) const;
+<a name="__line558"></a>
+<a name="__line559"></a>        void meval(const std::vector&lt;blop::var&gt;     &amp;args, std::vector&lt;blop::var&gt; &amp;result) const;
+<a name="__line560"></a>        void meval_dbl(const std::vector&lt;blop::var&gt; &amp;args, std::vector&lt;blop::var&gt; &amp;result) const;
+<a name="__line561"></a>        void meval_dbl(const std::vector&lt;blop::var&gt; &amp;args, const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line562"></a>                       std::vector&lt;blop::var&gt; &amp;result) const;
+<a name="__line563"></a>
+<a name="__line564"></a>        <span class=comment>// do the same as meval_dbl(....), for the levenberg_marquardt algorithm</span>
+<a name="__line565"></a>        inline void operator()(const std::vector&lt;blop::var&gt; &amp;args, const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line566"></a>                               std::vector&lt;blop::var&gt; &amp;result) const
+<a name="__line567"></a>        {
+<a name="__line568"></a>            meval_dbl(args,pars,result);
+<a name="__line569"></a>        }
+<a name="__line570"></a>
+<a name="__line571"></a>        meas operator() (const meas &amp;) const;
+<a name="__line572"></a>        meas operator() (const meas &amp;, const meas &amp;) const;
+<a name="__line573"></a>        meas operator() (const meas &amp;, const meas &amp;, const meas &amp;) const;
+<a name="__line574"></a>        meas operator() (const meas &amp;, const meas &amp;, const meas &amp;, const meas &amp;) const;
+<a name="__line575"></a>
+<a name="__line576"></a>
+<a name="__line577"></a>        <span class=comment>// ---------- Argument substitution via () operator -------------------------------</span>
+<a name="__line578"></a>        <span class=comment>// These parenthesis operators (with 'function' arguments) DO NOT EVALUATE</span>
+<a name="__line579"></a>        <span class=comment>// the function, but return another function instead. This new function</span>
+<a name="__line580"></a>        <span class=comment>// is a wrapper for the old one, when it is evaluated, it evaluates</span>
+<a name="__line581"></a>        <span class=comment>// the original function, with substituted arguments. For example</span>
+<a name="__line582"></a>        <span class=comment>// if f1 is a function, which can handle 2 arguments, and you type:</span>
+<a name="__line583"></a>        <span class=comment>// function f2 = f1( _1 + sin(_2), _3 );</span>
+<a name="__line584"></a>        <span class=comment>// then f2 will be a new function, which needs 3 arguments, and when it is</span>
+<a name="__line585"></a>        <span class=comment>// evaluated: f2(2,4,6), the return value will be the value of f1 with</span>
+<a name="__line586"></a>        <span class=comment>// arguments '2+sin(4)' and '6': f1(2+sin(4),6)</span>
+<a name="__line587"></a>
+<a name="__line588"></a>        function operator() (const function &amp;) const;
+<a name="__line589"></a>        function operator() (const function &amp;,const function &amp;) const;
+<a name="__line590"></a>        function operator() (const function &amp;,const function &amp;,const function &amp;) const;
+<a name="__line591"></a>        function operator() (const function &amp;,const function &amp;,const function &amp;,const function &amp;) const;
+<a name="__line592"></a>        function operator() (const function &amp;,const function &amp;,const function &amp;,const function &amp;,const function &amp;) const;
+<a name="__line593"></a>
+<a name="__line594"></a><span class=comment>//    operator double() const;</span>
+<a name="__line595"></a>
+<a name="__line596"></a>        int components() const;
+<a name="__line597"></a>
+<a name="__line598"></a>        <span class=comment>// return the given component (0-based)</span>
+<a name="__line599"></a>        function operator[]  (unsigned int i) const;
+<a name="__line600"></a>    
+<a name="__line601"></a>        bool is_constant() const;
+<a name="__line602"></a>
+<a name="__line603"></a>        bool initialized() const;
+<a name="__line604"></a>
+<a name="__line605"></a>        bool equals(const function &amp;f) const;
+<a name="__line606"></a>
+<a name="__line607"></a>        static var tmp;
+<a name="__line608"></a>
+<a name="__line609"></a>        static void clear_named_params();
+<a name="__line610"></a>        static void named_param(const var &amp;id, const var &amp;value);
+<a name="__line611"></a>        static void named_params(const std::map&lt;std::string,blop::var&gt; &amp;v);
+<a name="__line612"></a>
+<a name="__line613"></a>        static void column_names(const std::vector&lt;std::string&gt; &amp;v) { column_names_ = v; }
+<a name="__line614"></a>
+<a name="__line615"></a>
+<a name="__line616"></a>        <span class=comment>// ---------- interpolated functions ----------------------------------------------</span>
+<a name="__line617"></a>
+<a name="__line618"></a>        <span class=comment>// Read the content of the file (or any stream, see 'blop -h openin' about opening pipes, remote files, etc)</span>
+<a name="__line619"></a>        <span class=comment>// and return a linear-interpolated function from these values.</span>
+<a name="__line620"></a>        <span class=comment>// The functions 'x' and 'y' specify the independent and dependent variables. If 'x' is multi-valued,</span>
+<a name="__line621"></a>        <span class=comment>// the interpolation will be done in multiple dimensions. (Note that spline and sppchip can only be done in</span>
+<a name="__line622"></a>        <span class=comment>// one dimension!)</span>
+<a name="__line623"></a>        <span class=comment>// For example to make a linear interpolation on a 2D grid (x,y values stored in the columns 1&amp;2,</span>
+<a name="__line624"></a>        <span class=comment>// z value stored in the 3rd column) function::interpolate_linear("filename",function(_1,_2),_3);</span>
+<a name="__line625"></a>
+<a name="__line626"></a>        static function interpolate_linear (const var &amp;filename, const function &amp;x=_1, const function &amp;y=_2);
+<a name="__line627"></a>        static function interpolate_linear (const array &amp;x, const array &amp;y);
+<a name="__line628"></a>        static function interpolate_linear (const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y);
+<a name="__line629"></a>#ifndef __MAKECINT__        
+<a name="__line630"></a>        static function interpolate_linear (const std::initializer_list&lt;double&gt; &amp;x, const std::initializer_list&lt;double&gt; &amp;y);
+<a name="__line631"></a>#endif
+<a name="__line632"></a>        static function interpolate_linear (const std::vector&lt;double&gt; &amp;x, const std::vector&lt;blop::geom::vec3&gt; &amp;y);
+<a name="__line633"></a>        static function interpolate_linear (const double x[], const double y[], int n);
+<a name="__line634"></a>        static function interpolate_linear (const plottable &amp;g);
+<a name="__line635"></a>        static function interpolate_linear (const plottable &amp;g, const function &amp;x, const function &amp;y);
+<a name="__line636"></a>
+<a name="__line637"></a>        static function interpolate_spline (const var &amp;filename, const function &amp;x=_1, const function &amp;y=_2);
+<a name="__line638"></a>        static function interpolate_spline (const array &amp;x, const array &amp;y);
+<a name="__line639"></a>        static function interpolate_spline (const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y);
+<a name="__line640"></a>        static function interpolate_spline (const std::vector&lt;double&gt; &amp;x, const std::vector&lt;blop::geom::vec3&gt; &amp;y);
+<a name="__line641"></a>        static function interpolate_spline (const double x[], const double y[], int n);
+<a name="__line642"></a>        static function interpolate_spline (const dgraph &amp;g);
+<a name="__line643"></a>#ifndef __MAKECINT__
+<a name="__line644"></a>        static function interpolate_spline (const std::initializer_list&lt;double&gt; &amp;x, const std::initializer_list&lt;double&gt; &amp;y);
+<a name="__line645"></a>#endif        
+<a name="__line646"></a>
+<a name="__line647"></a>        static function interpolate_sppchip(const var &amp;filename, const function &amp;x=_1, const function &amp;y=_2);
+<a name="__line648"></a>        static function interpolate_sppchip(const array &amp;x, const array &amp;y);
+<a name="__line649"></a>        static function interpolate_sppchip(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y);
+<a name="__line650"></a>        static function interpolate_sppchip(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;blop::geom::vec3&gt; &amp;y);
+<a name="__line651"></a>        static function interpolate_sppchip(const double x[], const double y[], int n);
+<a name="__line652"></a>        static function interpolate_sppchip(const dgraph &amp;g);
+<a name="__line653"></a>#ifndef __MAKECINT__
+<a name="__line654"></a>        static function interpolate_sppchip(const std::initializer_list&lt;double&gt; &amp;x, const std::initializer_list&lt;double&gt; &amp;y);
+<a name="__line655"></a>#endif        
+<a name="__line656"></a>
+<a name="__line657"></a>#ifdef HAVE_GTS_H    
+<a name="__line658"></a>        static function interpolate_delaunay(const var &amp;filename);  <span class=comment>// (x,y) is in the first 2 columns, z is in the 3rd one</span>
+<a name="__line659"></a>        static function interpolate_delaunay(const var &amp;filename, const function &amp;x, const function &amp;y);
+<a name="__line660"></a>#endif
+<a name="__line661"></a>
+<a name="polynomial">
+<a name="__line663"></a>        <span class=comment>// Define a polynomial function: PAR(1)+PAR(2)*x+PAR(3)*x^2+...PAR(n+1)*x^n</span>
+<a name="__line664"></a>        static function polynomial(int n);
+</a>
+<a name="__line666"></a>
+<a name="find_root_func
+<a name="__line668"></a>        <span class=comment>// Create a blop function, which returns the root of a given equation, specified by 'f'. </span>
+<a name="__line669"></a>        <span class=comment>// Upon evaluation, the &lt;b&gt;arguments&lt;/b&gt; will be substituted into the &lt;b&gt;parameters&lt;/b&gt; of the function 'f', then</span>
+<a name="__line670"></a>        <span class=comment>// the root-finding limits (x1, x2) and stepsize (epsilon) are calculated by calling the corresponding</span>
+<a name="__line671"></a>        <span class=comment>// functions with the actual arguments, then the root-finding algorithm is executed, and the result is returned</span>
+<a name="__line672"></a>        <span class=comment>// So for example if a data file "data.dat" contains the parameters of a linear function a*x+b, the parameter 'a' being stored</span>
+<a name="__line673"></a>        <span class=comment>// in the 3rd column, and the parameter 'b' being stored in the 4th column, and we want to plot the root of a*x+b=3 in</span>
+<a name="__line674"></a>        <span class=comment>// the range 0-10 as a function of the 1st and 2nd columns, then  we can do</span>
+<a name="__line675"></a>        <span class=comment>// plot("data.dat",_1,_2,function::find_root(PAR(3)*_1+PAR(4)-3,0,10,1e-3));</span>
+<a name="__line676"></a>        static function find_root(const function &amp;f, const function &amp;x1, const function &amp;x2, const function &amp;epsilon);
+</a>
+<a name="__line678"></a>
+<a name="__line679"></a>        <span class=comment>/*
+<a name="__line680"></a>          static function linear(const var &amp;filename,
+<a name="__line681"></a>          const function &amp;f1=blop::unset,
+<a name="__line682"></a>          const function &amp;f2=blop::unset,
+<a name="__line683"></a>          const function &amp;f3=blop::unset,
+<a name="__line684"></a>          const function &amp;f4=blop::unset);
+<a name="__line685"></a>          static function linear(const array &amp;x, const array &amp;y);
+<a name="__line686"></a>          static function linear(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y);
+<a name="__line687"></a>          static function linear(const double x[], const double y[], int n);
+<a name="__line688"></a>
+<a name="__line689"></a>          static function spline(const var &amp;filename,
+<a name="__line690"></a>          const function &amp;f1=blop::unset,
+<a name="__line691"></a>          const function &amp;f2=blop::unset,
+<a name="__line692"></a>          const function &amp;f3=blop::unset,
+<a name="__line693"></a>          const function &amp;f4=blop::unset);
+<a name="__line694"></a>          static function spline(const array &amp;x, const array &amp;y);
+<a name="__line695"></a>          static function spline(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y);
+<a name="__line696"></a>          static function spline(const double x[], const double y[], int n);
+<a name="__line697"></a>
+<a name="__line698"></a>          static function sppchip(const var &amp;filename,
+<a name="__line699"></a>          const function &amp;f1=blop::unset,
+<a name="__line700"></a>          const function &amp;f2=blop::unset,
+<a name="__line701"></a>          const function &amp;f3=blop::unset,
+<a name="__line702"></a>          const function &amp;f4=blop::unset);
+<a name="__line703"></a>          static function sppchip(const array &amp;x, const array &amp;y);
+<a name="__line704"></a>          static function sppchip(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y);
+<a name="__line705"></a>          static function sppchip(const double x[], const double y[], int n);
+<a name="__line706"></a>
+<a name="__line707"></a>        */</span>
+<a name="__line708"></a>
+<a name="__line709"></a>    };
+<a name="__line710"></a>
+<a name="__line711"></a>    <span class=comment>// Create an expanded legend, assuming that the function is a polynomial of degree n (i.e. PAR(1)+PAR(2)*x+PAR(3)*x^2+ ... +PAR(n+1)*x^n</span>
+<a name="__line712"></a>    var polylegend(const function &amp;f, int n, const var &amp;independent_variable="x");
+<a name="__line713"></a>
+<a name="__line714"></a>    int sample(dgraph &amp;g, double dx, double from, double to,
+<a name="__line715"></a>               const function &amp;f1,
+<a name="__line716"></a>               const function &amp;f2=unset,
+<a name="__line717"></a>               const function &amp;f3=unset,
+<a name="__line718"></a>               const function &amp;f4=unset);
+<a name="__line719"></a>
+<a name="__line720"></a>    typedef function argdef;
+<a name="__line721"></a>
+<a name="__line722"></a>    function     operator==(const function &amp;left, const function &amp;right);
+<a name="__line723"></a>    function     operator==(const function &amp;left, const std::string &amp;right);
+<a name="__line724"></a>    function     operator==(const std::string &amp;left, const function &amp;right);
+<a name="__line725"></a>    function     operator==(const function &amp;left, const var      &amp;right);
+<a name="__line726"></a>    function     operator==(const var      &amp;left, const function &amp;right);
+<a name="__line727"></a>    function     operator==(const function &amp;left, const char *right);
+<a name="__line728"></a>    function     operator==(const char *left, const function &amp;right);
+<a name="__line729"></a>    function     operator==(double left, const function &amp;right);
+<a name="__line730"></a>    function     operator==(const function &amp;left, double right);
+<a name="__line731"></a>    function     operator==(int left, const function &amp;right);
+<a name="__line732"></a>    function     operator==(const function &amp;left, int right);
+<a name="__line733"></a>    function     operator!=(const function &amp;left, const function &amp;right);
+<a name="__line734"></a>    function     operator!=(const function &amp;left, double right);
+<a name="__line735"></a>    function     operator!=(double left, const function &amp;right);
+<a name="__line736"></a>    function     operator&lt; (const function &amp;left, const function &amp;right);
+<a name="__line737"></a>    function     operator&lt; (const function &amp;left, double right);
+<a name="__line738"></a>    function     operator&lt; (double left, const function &amp;right);
+<a name="__line739"></a>    function     operator&lt;=(const function &amp;left, const function &amp;right);
+<a name="__line740"></a>    function     operator&lt;=(const function &amp;left, double right);
+<a name="__line741"></a>    function     operator&lt;=(double left, const function &amp;right);
+<a name="__line742"></a>    function     operator&gt; (const function &amp;left, const function &amp;right);
+<a name="__line743"></a>    function     operator&gt; (const function &amp;left, double right);
+<a name="__line744"></a>    function     operator&gt; (double left, const function &amp;right);
+<a name="__line745"></a>    function     operator&gt;=(const function &amp;left, const function &amp;right);
+<a name="__line746"></a>    function     operator&gt;=(const function &amp;left, double right);
+<a name="__line747"></a>    function     operator&gt;=(double left, const function &amp;right);
+<a name="__line748"></a>
+<a name="__line749"></a>    function     format    (const function &amp;f, const var &amp;form);
+<a name="__line750"></a>
+<a name="__line751"></a>    function     max       (const function &amp;left, const function &amp;right);
+<a name="__line752"></a>    function     max       (const function &amp;left, double right);
+<a name="__line753"></a>    function     max       (double left, const function &amp;right);
+<a name="__line754"></a>    function     min       (const function &amp;left, const function &amp;right);
+<a name="__line755"></a>    function     min       (const function &amp;left, double right);
+<a name="__line756"></a>    function     min       (double left, const function &amp;right);
+<a name="__line757"></a>
+<a name="__line758"></a>    function     maximum(const function &amp;func,
+<a name="__line759"></a>                         const function &amp;from,
+<a name="__line760"></a>                         const function &amp;to,
+<a name="__line761"></a>                         const function &amp;step=0.0);
+<a name="__line762"></a>    function     minimum(const function &amp;func,
+<a name="__line763"></a>                         const function &amp;from,
+<a name="__line764"></a>                         const function &amp;to,
+<a name="__line765"></a>                         const function &amp;step=0.0);
+<a name="__line766"></a>    function     integral(const function &amp;func,
+<a name="__line767"></a>                          const function &amp;from,
+<a name="__line768"></a>                          const function &amp;to,
+<a name="__line769"></a>                          const function &amp;step=0.0);  
+<a name="__line770"></a>    double       integral(const function &amp;func,
+<a name="__line771"></a>                          double from,
+<a name="__line772"></a>                          double to,
+<a name="__line773"></a>                          double step=0.0);
+<a name="__line774"></a>
+<a name="__line775"></a>    function     operator+ (const function &amp;left, const function &amp;right);
+<a name="__line776"></a>    function     operator+ (const function &amp;left, double right);
+<a name="__line777"></a>    function     operator+ (double left, const function &amp;right);
+<a name="__line778"></a>    function     operator+ (const function &amp;left, int right);
+<a name="__line779"></a>    function     operator+ (int left, const function &amp;right);
+<a name="__line780"></a>    function     operator+ (const function &amp;left, const var &amp;right);
+<a name="__line781"></a>    function     operator+ (const var &amp;left, const function &amp;right);
+<a name="__line782"></a>
+<a name="__line783"></a>    function     operator- (const function &amp;left, const function &amp;right);
+<a name="__line784"></a>    function     operator- (const function &amp;left, double right);
+<a name="__line785"></a>    function     operator- (double left, const function &amp;right);
+<a name="__line786"></a>    function     operator- (const function &amp;left, int right);
+<a name="__line787"></a>    function     operator- (int left, const function &amp;right);
+<a name="__line788"></a>    function     operator- (const function &amp;left, const var &amp;right);
+<a name="__line789"></a>    function     operator- (const var &amp;left, const function &amp;right);
+<a name="__line790"></a>
+<a name="__line791"></a>    function     operator* (const function &amp;left, const function &amp;right);
+<a name="__line792"></a>    function     operator* (const function &amp;left, double right);
+<a name="__line793"></a>    function     operator* (double left, const function &amp;right);
+<a name="__line794"></a>    function     operator* (const function &amp;left, int right);
+<a name="__line795"></a>    function     operator* (int left, const function &amp;right);
+<a name="__line796"></a>    function     operator* (const function &amp;left, const var &amp;right);
+<a name="__line797"></a>    function     operator* (const var &amp;left, const function &amp;right);
+<a name="__line798"></a>
+<a name="__line799"></a>    function     cmp_mul(const function &amp;left, const function &amp;right);
+<a name="__line800"></a>    function     cmp_div(const function &amp;left, const function &amp;right);
+<a name="__line801"></a>
+<a name="__line802"></a>    function     operator/ (const function &amp;left, const function &amp;right);
+<a name="__line803"></a>    function     operator/ (const function &amp;left, double right);
+<a name="__line804"></a>    function     operator/ (double left, const function &amp;right);
+<a name="__line805"></a>    function     operator/ (const function &amp;left, int right);
+<a name="__line806"></a>    function     operator/ (int left, const function &amp;right);
+<a name="__line807"></a>    function     operator/ (const function &amp;left, const var &amp;right);
+<a name="__line808"></a>    function     operator/ (const var &amp;left, const function &amp;right);
+<a name="__line809"></a>
+<a name="__line810"></a>    function     operator- (const function &amp;operand); 
+<a name="__line811"></a>
+<a name="__line812"></a>    function     random();
+<a name="__line813"></a>    function     random(double to);
+<a name="__line814"></a>    function     random(double from,double to);
+<a name="__line815"></a>    function     random_gauss(double a, double s, int parindex=0); 
+<a name="__line816"></a>    function     random_exponential(double a, int parindex=0);
+<a name="__line817"></a>    function     random_idexponential(double a, int parindex=0);
+<a name="__line818"></a>    function     exp  (const function &amp;o);
+<a name="__line819"></a>    function     log  (const function &amp;o); 
+<a name="__line820"></a>    function     log10(const function &amp;o); 
+<a name="__line821"></a>    function     sqrt (const function &amp;o);
+<a name="__line822"></a>    function     sin  (const function &amp;);
+<a name="__line823"></a>    function     asin (const function &amp;);
+<a name="__line824"></a>    function     cos  (const function &amp;);
+<a name="__line825"></a>    function     acos (const function &amp;);
+<a name="__line826"></a>    function     tan  (const function &amp;);
+<a name="__line827"></a>    function     atan (const function &amp;);
+<a name="__line828"></a>    function     cot  (const function &amp;);
+<a name="__line829"></a>    function     acot (const function &amp;);
+<a name="__line830"></a>    function     sinh (const function &amp;);
+<a name="__line831"></a>    function     cosh (const function &amp;);
+<a name="__line832"></a>    function     tanh (const function &amp;);
+<a name="__line833"></a>    function     atanh (const function &amp;);
+<a name="__line834"></a>    function     asinh (const function &amp;);
+<a name="__line835"></a>    function     acosh (const function &amp;);
+<a name="__line836"></a>    function     floor (const function &amp;);
+<a name="__line837"></a>    function     ceil  (const function &amp;);
+<a name="__line838"></a>    function     round (const function &amp;);
+<a name="__line839"></a>    function     erf   (const function &amp;);
+<a name="__line840"></a>    function     atan2(const function &amp;y, const function &amp;x);
+<a name="__line841"></a>    function     atan2(double y, const function &amp;x);
+<a name="__line842"></a>    function     atan2(const function &amp;y, double x);
+<a name="__line843"></a>    function     pow  (const function &amp;a,const function &amp;b);
+<a name="__line844"></a>    function     pow  (const function &amp;a,int exponent);
+<a name="__line845"></a>    function     pow  (const function &amp;a,double exponent);
+<a name="__line846"></a>    function     pow  (const function &amp;a,const var &amp;exponent);
+<a name="__line847"></a>    function     pow  (double a, const function &amp;exponent);
+<a name="__line848"></a>    function     sign (const function &amp;);
+<a name="__line849"></a>    function     abs  (const function &amp;);
+<a name="__line850"></a>    function     fabs (const function &amp;);
+<a name="periodic">
+<a name="__line852"></a><span class=comment>// create a periodic version of 'func' (take it between the values [x1,x2], and</span>
+<a name="__line853"></a><span class=comment>// repeat this infinitely</span>
+<a name="__line854"></a>    function     periodic_function(const function &amp;func, double x1, double x2);
+<a name="__line855"></a>    function     periodic_function(const function &amp;func, double x1, double x2, double y1, double y2);
+<a name="__line856"></a>    function     periodic_function(const function &amp;func, double x1, double x2, double y1, double y2, double z1, double z2);
+</a>
+<a name="__line858"></a>
+<a name="__line859"></a>    function     ifelse(const function &amp;condition, const function &amp;iftrue, const function &amp;iffalse);
+<a name="__line860"></a>
+<a name="__line861"></a>
+<a name="bessel">
+<a name="__line863"></a>#ifdef HAVE_GSL
+<a name="__line864"></a>    double       bessel_J_zero(int n, int s);       <span class=comment>// s-th root of Jn</span>
+<a name="__line865"></a>    double       bessel_Jprime_zero(int n, int s);  <span class=comment>// s-th root of the derivative of Jn</span>
+<a name="__line866"></a>
+<a name="__line867"></a>    function     bessel_J(int n, const function &amp;x);
+<a name="__line868"></a>    double       bessel_J(int n, double x);
+<a name="__line869"></a>    function     bessel_Y(int n, const function &amp;x);
+<a name="__line870"></a>    double       bessel_Y(int n, double x);
+<a name="__line871"></a>    function     bessel_I(int n, const function &amp;x);
+<a name="__line872"></a>    double       bessel_I(int n, double x);
+<a name="__line873"></a>    function     bessel_K(int n, const function &amp;x);
+<a name="__line874"></a>    double       bessel_K(int n, double x);
+<a name="__line875"></a>    function     bessel_j(int n, const function &amp;x);
+<a name="__line876"></a>    double       bessel_j(int n, double x);
+<a name="__line877"></a>    function     bessel_y(int n, const function &amp;x);
+<a name="__line878"></a>    double       bessel_y(int n, double x);
+<a name="__line879"></a>    function     bessel_i_scaled(int n, const function &amp;x);
+<a name="__line880"></a>    double       bessel_i_scaled(int n, double x);
+<a name="__line881"></a>    function     bessel_k_scaled(int n, const function &amp;x);
+<a name="__line882"></a>    double       bessel_k_scaled(int n, double x);
+<a name="__line883"></a>#endif
+</a>
+<a name="__line885"></a>
+<a name="__line886"></a>    function     charfunc(const function &amp;low, const function &amp;high, bool low_in=true, bool high_in=false);
+<a name="__line887"></a>
+<a name="__line888"></a>    function     between_lines(const function &amp;start, const function &amp;end=true);
+<a name="__line889"></a>
+<a name="__line890"></a>    function     operator&amp;  (const function &amp;left, const function &amp;right);
+<a name="__line891"></a>    function     operator&amp;&amp; (const function &amp;left, const function &amp;right);
+<a name="__line892"></a>    function     operator|| (const function &amp;left, const function &amp;right);
+<a name="__line893"></a>
+<a name="__line894"></a>    function     operator%   (const function &amp;left, const function &amp;right);
+<a name="__line895"></a><span class=comment>//function     operator%   (const function &amp;left, int right);</span>
+<a name="__line896"></a><span class=comment>//function     operator%   (int left, const function &amp;right);</span>
+<a name="__line897"></a>
+<a name="__line898"></a>
+<a name="__line899"></a>
+<a name="__line900"></a><span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line901"></a><span class=comment>// The symbols _1 ... _20 are defined to access the 1st .. 20th</span>
+<a name="__line902"></a><span class=comment>// arguments of a function (they are functions, which return the</span>
+<a name="__line903"></a><span class=comment>// value of the 1st, .... etc argument).</span>
+<a name="__line904"></a><span class=comment>// If you have more than 20 arguments, you can use ARG(i) instead</span>
+<a name="__line905"></a><span class=comment>// with arbitrary 'i', where 'i' denotes the index of the argument  </span>
+<a name="__line906"></a>
+<a name="__line907"></a>    function     ARG(int i);
+<a name="__line908"></a>    function     PAR(int i);
+<a name="__line909"></a>
+<a name="__line910"></a><span class=comment>// ---------- Number of arguments -------------------------------------------------</span>
+<a name="__line911"></a><span class=comment>// A function, which returns the number of arguments with which it was called</span>
+<a name="__line912"></a>
+<a name="__line913"></a>    extern function _N;
+<a name="__line914"></a>
+<a name="__line915"></a>#ifdef __MAKECINT__
+<a name="__line916"></a>    function     cfunc     (void *p);
+<a name="__line917"></a>#endif
+<a name="__line918"></a>
+<a name="__line919"></a><span class=comment>// the following two functions need to be explicitely disabled in CINT</span>
+<a name="__line920"></a><span class=comment>// because (although it most of the time calls  cfunc(void*) if called</span>
+<a name="__line921"></a><span class=comment>// with a function pointer, sometimes it calls cfunc(var (*p)(var))</span>
+<a name="__line922"></a><span class=comment>// which leads to problems (namely segfault) </span>
+<a name="__line923"></a>#ifndef __MAKECINT__
+<a name="__line924"></a>    function     cfunc     (var (*p)(var));
+<a name="__line925"></a>    function     cfunc     (var (*p)(var,var));
+<a name="__line926"></a>    function     cfunc     (var (*p)(var,var,var));
+<a name="__line927"></a>    function     cfunc     (var (*p)(var,var,var,var));
+<a name="__line928"></a>    function     cfunc     (double (*p)(double));
+<a name="__line929"></a>    function     cfunc     (double (*p)(double,double));
+<a name="__line930"></a>    function     cfunc     (double (*p)(double,double,double));
+<a name="__line931"></a>    function     cfunc     (double (*p)(double,double,double,double));
+<a name="__line932"></a>    function     cfunc     (complex&lt;double&gt; (*p)(double));
+<a name="__line933"></a>    function     cfunc     (var (*p)(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line934"></a>                                     const std::vector&lt;blop::var&gt; &amp;pars),
+<a name="__line935"></a>                            int nargs,
+<a name="__line936"></a>                            int npars);
+<a name="__line937"></a>
+<a name="__line938"></a>    function     cfunc     (void (*p)(double*, double*, double*), int nargs, int npars, int nout);
+<a name="__line939"></a><span class=comment>//    function     cppfunc   (void (*p)(double*,double*,double*), int nargs, int npars, int nout);</span>
+<a name="__line940"></a>    function     cppfunc   (const std::function&lt;void(double*,double*,double*)&gt; &amp;func, int nargs, int npars, int nout);
+<a name="__line941"></a>
+<a name="__line942"></a>#endif
+<a name="__line943"></a>
+<a name="__line944"></a>
+<a name="__line945"></a>    std::ostream &amp; operator&lt;&lt; (std::ostream &amp;out, const blop::function &amp;f);
+<a name="__line946"></a>
+<a name="__line947"></a>    <span class=comment>// ---------- join_args -----------------------------------------------------------</span>
+<a name="__line948"></a>    <span class=comment>// Join the arguments using a separator. The range specified by 'from' and 'to'</span>
+<a name="__line949"></a>    <span class=comment>// is inclusive, i.e. join_args(" ",1,3) will join the arguments 1,2 &amp; 3 separated</span>
+<a name="__line950"></a>    <span class=comment>// by a space</span>
+<a name="__line951"></a>
+<a name="__line952"></a>    function     join_args(const function &amp;separator="", const function &amp;from=1, const function &amp;to=_N);
+<a name="__line953"></a>
+<a name="__line954"></a>
+<a name="__line955"></a><span class=comment>// ---------- contained_in --------------------------------------------------------</span>
+<a name="__line956"></a><span class=comment>// The created function will return 1 if its first argument is contained</span>
+<a name="__line957"></a><span class=comment>// in the return-value of fff (which might be a multi-valued result)</span>
+<a name="__line958"></a><span class=comment>// 0 otherwise</span>
+<a name="__line959"></a>    function     contained_in(const function &amp;ff);
+<a name="__line960"></a>
+<a name="__line961"></a>    <span class=comment>// The returned function returns a substring of its argument. </span>
+<a name="__line962"></a>    function substr(const function &amp;s, const function &amp;from, const function &amp;to);
+<a name="__line963"></a>
+<a name='replace'>
+<a name="__line965"></a>    <span class=comment>//SEP</span>
+<a name="__line966"></a>    <span class=comment>// Returns a function, which replaces 'from' to 'to' in 'in'</span>
+</a>
+<a name="__line968"></a>    function replace(const function &amp;from, const function &amp;to, const function &amp;in);
+<a name="__line969"></a>
+<a name="__line970"></a>    double tan(double);
+<a name="__line971"></a>
+<a name=find_root>
+<a name="__line973"></a>    <span class=comment>//SEP</span>
+<a name="__line974"></a>    <span class=comment>// Find the root of the provided function (i.e. where f(x)=0), within</span>
+<a name="__line975"></a>    <span class=comment>// the range [x1,x2]. The function values at these two points must have</span>
+<a name="__line976"></a>    <span class=comment>// opposite sign: f(x1)*f(x2)&lt;0</span>
+<a name="__line977"></a>    <span class=comment>// epsilon is the error, the algorithm stops when the 0-crossing is found</span>
+<a name="__line978"></a>    <span class=comment>// with less than this error.</span>
+<a name="__line979"></a>    <span class=comment>// If it is left at its default value, (x2-x1)/1e6 is used</span>
+<a name="__line980"></a>    double find_root(const function &amp;f, double x1, double x2, double epsilon=-1);
+<a name="__line981"></a>
+<a name="__line982"></a>    <span class=comment>// find the root of the interpolated function (given by the points x,y), for value 'yvalue',</span>
+<a name="__line983"></a>    <span class=comment>// that is, x0 which satisfies function::interpolate_linear(x,y)(x0)-yvalue==0</span>
+<a name="__line984"></a>    double find_root(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y, double yvalue=0.0);
+<a name="__line985"></a>
+<a name="__line986"></a>    <span class=comment>// find the root of an interpolated function given by the (x,y) pairs stored in this dgraph</span>
+<a name="__line987"></a>    double find_root(const dgraph &amp;g, double yvalue=0.0);
+<a name="__line988"></a>
+<a name="__line989"></a>    <span class=comment>// Find all roots (i.e. where the graph crosses 'yvalue') and return them in the 'roots' vector.</span>
+<a name="__line990"></a>    <span class=comment>// return the number of roots found (i.e. the size of the vector)</span>
+<a name="__line991"></a>    unsigned int find_roots(const dgraph &amp;g, std::vector&lt;double&gt; &amp;roots, double yvalue=0.0);
+<a name="__line992"></a>
+<a name="__line993"></a>    <span class=comment>// find the x-value where the piecewise linearly interpolated curve given by the arrays X and Y, and the</span>
+<a name="__line994"></a>    <span class=comment>// function F cross each other. </span>
+<a name="__line995"></a>    double find_root(const std::vector&lt;double&gt; &amp;X, const std::vector&lt;double&gt; &amp;Y, const function &amp;F, double epsilon=-1);
+<a name="__line996"></a>
+</a>
+<a name="__line998"></a>
+<a name='implicit_solve'>
+<a name="__line1000"></a>    <span class=comment>// Numerically solve the equation f(x,y(x))=0 for y(x), by first calculating the 0-isoline of the two-argument</span>
+<a name="__line1001"></a>    <span class=comment>// function 'f' in the range [x1,x2] and [y1,y2] with number of samples along the two axes 'n1' and 'n2'</span>
+<a name="__line1002"></a>    <span class=comment>// Then create an interpolated function using the isoline. The x,y values of the isoline are sorted</span>
+<a name="__line1003"></a>    <span class=comment>// by the x values, so make sure the solution function is single-valued.</span>
+<a name="__line1004"></a>    function implicit_solve(const function &amp;f, double x1, double x2, double y1, double y2, int n1=100, int n2=100); 
+<a name="__line1005"></a>
+<a name="__line1006"></a>    <span class=comment>// Search the isoline (at the value 'zcut') of the given graph, and create a linearly interpolated function</span>
+<a name="__line1007"></a>    <span class=comment>// from that iso-line</span>
+<a name="__line1008"></a>    function implicit_solve(const dgraph   &amp;g, double zcut);
+</a>
+<a name="__line1010"></a>
+<a name="__line1011"></a>    function date2epoch(const var &amp;format="%y/%m/%d %H:%M:%S");
+<a name="__line1012"></a>
+<a name="__line1013"></a>    <span class=comment>// Create the vectorial cross-product of two functions. Both input functions, and the returned</span>
+<a name="__line1014"></a>    <span class=comment>// function have 3 components</span>
+<a name="__line1015"></a>    blop::function cross_product(const blop::function &amp;x1, const blop::function &amp;x2);
+<a name="__line1016"></a>
+<a name="__line1017"></a>    <span class=comment>// Create the scalar product of two vectors. x1 and x2 must have 3 components</span>
+<a name="__line1018"></a>    blop::function dot(const blop::function &amp;x1, const blop::function &amp;x2);
+<a name="__line1019"></a>
+<a name="__line1020"></a>    <span class=comment>// Normalize the vector-function to the given norm. v must have 3 components</span>
+<a name="__line1021"></a>    blop::function normalize(const function &amp;v, double norm=1);
+<a name="__line1022"></a>}
+<a name="__line1023"></a>
+<a name="__line1024"></a>namespace 
+<a name="__line1025"></a>{
+<a name="__line1026"></a>    blop::function::global_initializer blop_function_global_initializer_instance;
+<a name="__line1027"></a>}
+<a name="__line1028"></a>
+<a name="__line1029"></a>
+<a name="__line1030"></a>#ifdef __CINT__
+<a name="__line1031"></a>blop::function     operator==(const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1032"></a>blop::function     operator==(const blop::function &amp;left, const std::string &amp;right);
+<a name="__line1033"></a>blop::function     operator==(const std::string &amp;left, const blop::function &amp;right);
+<a name="__line1034"></a>blop::function     operator==(const blop::function &amp;left, const blop::var      &amp;right);
+<a name="__line1035"></a>blop::function     operator==(const blop::var      &amp;left, const blop::function &amp;right);
+<a name="__line1036"></a>blop::function     operator==(const blop::function &amp;left, const char *right);
+<a name="__line1037"></a>blop::function     operator==(const char *left, const blop::function &amp;right);
+<a name="__line1038"></a>blop::function     operator==(double left, const blop::function &amp;right);
+<a name="__line1039"></a>blop::function     operator==(const blop::function &amp;left, double right);
+<a name="__line1040"></a>blop::function     operator==(int left, const blop::function &amp;right);
+<a name="__line1041"></a>blop::function     operator==(const blop::function &amp;left, int right);
+<a name="__line1042"></a>blop::function     operator!=(const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1043"></a>blop::function     operator&lt; (const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1044"></a>blop::function     operator&lt;=(const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1045"></a>blop::function     operator&gt; (const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1046"></a>blop::function     operator&gt;=(const blop::function &amp;left, const blop::function &amp;right);
+<a name="__line1047"></a>#pragma define G__NOALGORITHM
+<a name="__line1048"></a>#endif
+<a name="__line1049"></a>
+<a name="__line1050"></a>
+<a name="__line1051"></a><span class=comment>//#ifdef __MAKECINT__</span>
+<a name="__line1052"></a><span class=comment>//#pragma link off namespace blop::function_core</span>
+<a name="__line1053"></a><span class=comment>//#endif</span>
+<a name="__line1054"></a>
+<a name="__line1055"></a>
+<a name="__line1056"></a>
+<a name="__line1057"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

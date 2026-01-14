@@ -1,0 +1,489 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mpps.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="mpps.h.html">mpps.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line3"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line4"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line5"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    using namespace std;
+<a name="__line10"></a>
+<a name="__line11"></a>    string &amp;mpps::default_papersize_()
+<a name="__line12"></a>    {
+<a name="__line13"></a>	static string s = "a4";
+<a name="__line14"></a>	return s;
+<a name="__line15"></a>    }
+<a name="__line16"></a>    bool mpps::default_landscape_ = true;
+<a name="__line17"></a>    string mpps::default_dvips_options_ = "";
+<a name="__line18"></a>    var mpps::default_options_ = "width=\\linewidth,height=\\textheight";
+<a name="__line19"></a>    int mpps::default_verbose_ = 1;
+<a name="__line20"></a>
+<a name="__line21"></a>    mpps &amp;mpps::papersize(const var &amp;s)
+<a name="__line22"></a>    {
+<a name="__line23"></a>	if(s != "a4" &amp;&amp; s != "a3") warning::print("Allowed papersizes: a3, a4");
+<a name="__line24"></a>	else papersize_ = s.str();
+<a name="__line25"></a>	return *this;
+<a name="__line26"></a>    }
+<a name="__line27"></a>
+<a name="__line28"></a>    void mpps::print(const var &amp;options)
+<a name="__line29"></a>    {
+<a name="__line30"></a>	if(options.str() == "") opts_ = options_;
+<a name="__line31"></a>	else opts_ = options;
+<a name="__line32"></a>	canvas::current().print(this);
+<a name="__line33"></a>        needs_flush_ = true;
+<a name="__line34"></a>        ++pagecount_;
+<a name="__line35"></a>        if(pagecount_%flush_frequency_ == 0) flush();
+<a name="__line36"></a>    }
+<a name="__line37"></a>
+<a name="__line38"></a>    void mpps::init()
+<a name="__line39"></a>    {
+<a name="__line40"></a>        pagecount_ = 0;
+<a name="__line41"></a>        flush_frequency_ = 1;
+<a name="__line42"></a>        needs_flush_ = false;
+<a name="__line43"></a>	texfilename_ = "";
+<a name="__line44"></a>	psfilename_ = "";
+<a name="__line45"></a>	beps_ = 0;
+<a name="__line46"></a>	opts_ = "";
+<a name="__line47"></a>	header_printed_ = false;
+<a name="__line48"></a>	landscape_ = default_landscape_;
+<a name="__line49"></a>	dvips_options_ = default_dvips_options_;
+<a name="__line50"></a>	options_ = default_options_;
+<a name="__line51"></a>	verbose_ = default_verbose_;
+<a name="__line52"></a>	papersize_ = default_papersize_();
+<a name="__line53"></a>    }
+<a name="__line54"></a>
+<a name="__line55"></a>    mpps::mpps() 
+<a name="__line56"></a>    {
+<a name="__line57"></a>	init();
+<a name="__line58"></a>    }
+<a name="__line59"></a>
+<a name="__line60"></a>    mpps::mpps(const var &amp;filename)
+<a name="__line61"></a>    {
+<a name="__line62"></a>	init();
+<a name="__line63"></a>	mpps::open(filename);
+<a name="__line64"></a>    }
+<a name="__line65"></a>
+<a name="__line66"></a>
+<a name="__line67"></a>    mpps::~mpps()
+<a name="__line68"></a>    {
+<a name="__line69"></a>	flush();
+<a name="__line70"></a>    }
+<a name="__line71"></a>
+<a name="__line72"></a>    void mpps::open(const var &amp; filename)
+<a name="__line73"></a>    {
+<a name="__line74"></a>	psfilename_ = filename.str();
+<a name="__line75"></a>	texfilename_ = blop_bookkeeper::tmpfile("mpps_XXXXXX.tex");
+<a name="__line76"></a>	ofstream::open(texfilename_.c_str());
+<a name="__line77"></a>	beps_ = 0;
+<a name="__line78"></a>	header_printed_ = false;
+<a name="__line79"></a>    }
+<a name="__line80"></a>
+<a name="__line81"></a>    void mpps::close()
+<a name="__line82"></a>    {
+<a name="__line83"></a>	if(psfilename_ != "" &amp;&amp; texfilename_ != "") flush();
+<a name="__line84"></a>	ofstream::close();
+<a name="__line85"></a>	beps_ = 0;
+<a name="__line86"></a>	psfilename_ = "";
+<a name="__line87"></a>	texfilename_ = "";
+<a name="__line88"></a>	header_printed_ = false;
+<a name="__line89"></a>    }
+<a name="__line90"></a>
+<a name="__line91"></a>    bool mpps::flush()
+<a name="__line92"></a>    {
+<a name="__line93"></a>        if(!needs_flush_) return false;
+<a name="__line94"></a>        needs_flush_ = false;
+<a name="__line95"></a>
+<a name="__line96"></a>	if(!is_open()) return false;
+<a name="__line97"></a>
+<a name="__line98"></a>	if(psfilename_ == "" || texfilename_ == "")
+<a name="__line99"></a>	{
+<a name="__line100"></a>	    warning::print("Use 'open' before you want to flush mpps","mpps::flush()");
+<a name="__line101"></a>	    return false;
+<a name="__line102"></a>	}
+<a name="__line103"></a>
+<a name="__line104"></a>	if(!header_printed_)
+<a name="__line105"></a>	{
+<a name="__line106"></a>	    warning::print("Empty mpps file is being flushed","mpps::flush()");
+<a name="__line107"></a>	    return false;
+<a name="__line108"></a>	}
+<a name="__line109"></a>
+<a name="__line110"></a>	int pos = ofstream::tellp();
+<a name="__line111"></a>
+<a name="__line112"></a>	(*this)&lt;&lt;"\\end{document}"&lt;&lt;endl;
+<a name="__line113"></a>	ofstream::flush();
+<a name="__line114"></a>
+<a name="__line115"></a>	var cmd;
+<a name="__line116"></a>
+<a name="__line117"></a>	var tmpfilename(texfilename_);
+<a name="__line118"></a>
+<a name="__line119"></a>	cmd = "cd `dirname " &amp; tmpfilename &amp; "`; ";
+<a name="__line120"></a>	cmd &amp;= "echo Q | latex " &amp; tmpfilename;
+<a name="__line121"></a>
+<a name="__line122"></a>	int latex_rc = 0;
+<a name="__line123"></a>	var latex_output = readcmd(cmd &amp; " 2&gt;&amp;1", &amp;latex_rc);
+<a name="__line124"></a>
+<a name="__line125"></a>	if(verbose_ == 0)
+<a name="__line126"></a>        {
+<a name="__line127"></a>	    if(latex_rc != 0) warning::print("LaTeX compilation failed for " &amp; var(psfilename_));
+<a name="__line128"></a>	}
+<a name="__line129"></a>	else if(verbose_ == 1)
+<a name="__line130"></a>	{
+<a name="__line131"></a>	    if(latex_rc != 0)
+<a name="__line132"></a>	    {
+<a name="__line133"></a>		warning::print("LaTeX compilation failed for " &amp; var(psfilename_));
+<a name="__line134"></a>		cerr&lt;&lt;latex_output&lt;&lt;endl;
+<a name="__line135"></a>	    }
+<a name="__line136"></a>	}
+<a name="__line137"></a>	else
+<a name="__line138"></a>	{
+<a name="__line139"></a>	    if(latex_rc != 0) warning::print("LaTeX compilation failed for " &amp; var(psfilename_));
+<a name="__line140"></a>	    cerr&lt;&lt;latex_output&lt;&lt;endl;
+<a name="__line141"></a>	}
+<a name="__line142"></a>	
+<a name="__line143"></a>	if(latex_rc == 0)
+<a name="__line144"></a>	{
+<a name="__line145"></a>	    tmpfilename.replace(".tex",".dvi");
+<a name="__line146"></a>	    cmd = "dvips -o " &amp; psfilename_ &amp; " ";
+<a name="__line147"></a>	    cmd &amp;= dvips_options_;
+<a name="__line148"></a>	    if(landscape_) cmd &amp;= " -t landscape ";
+<a name="__line149"></a>	    cmd &amp;= " ";
+<a name="__line150"></a>	    cmd &amp;= tmpfilename;
+<a name="__line151"></a>
+<a name="__line152"></a>	    int dvips_rc = 0;
+<a name="__line153"></a>	    var dvips_output = readcmd(cmd &amp; " 2&gt;&amp;1",&amp;dvips_rc);
+<a name="__line154"></a>
+<a name="__line155"></a>	    if(verbose_ == 0)
+<a name="__line156"></a>	    {
+<a name="__line157"></a>		if(dvips_rc != 0) warning::print("dvips failed for " &amp; var(psfilename_));
+<a name="__line158"></a>	    }
+<a name="__line159"></a>	    else if(verbose_ == 1)
+<a name="__line160"></a>	    {
+<a name="__line161"></a>		if(dvips_rc != 0)
+<a name="__line162"></a>		{
+<a name="__line163"></a>		    warning::print("dvips failed for " &amp; var(psfilename_));
+<a name="__line164"></a>		    cerr&lt;&lt;dvips_output&lt;&lt;endl;
+<a name="__line165"></a>		}
+<a name="__line166"></a>	    }
+<a name="__line167"></a>	    else
+<a name="__line168"></a>	    {
+<a name="__line169"></a>		if(dvips_rc != 0) warning::print("dvips failed for " &amp; var(psfilename_));
+<a name="__line170"></a>		cerr&lt;&lt;dvips_output&lt;&lt;endl;
+<a name="__line171"></a>	    }
+<a name="__line172"></a>	}
+<a name="__line173"></a>
+<a name="__line174"></a>	ofstream::seekp(pos);
+<a name="__line175"></a>        return true;
+<a name="__line176"></a>    }
+<a name="__line177"></a>
+<a name="__line178"></a>    mpps &amp;mpps::print_header()
+<a name="__line179"></a>    {
+<a name="__line180"></a>        needs_flush_ = true;
+<a name="__line181"></a>	(*this)&lt;&lt;"\\documentclass["&lt;&lt;papersize_&lt;&lt;"paper";
+<a name="__line182"></a>	if(landscape_) (*this)&lt;&lt;",landscape";
+<a name="__line183"></a>	(*this)&lt;&lt;"]{article}"&lt;&lt;endl;
+<a name="__line184"></a>	if(landscape_) (*this)&lt;&lt;"\\special{! TeXDict begin /landplus90{true}store end }"&lt;&lt;endl;
+<a name="__line185"></a>	(*this)&lt;&lt;"\\usepackage[hscale=0.95,vscale=0.95]{geometry}"&lt;&lt;endl;
+<a name="__line186"></a>	(*this)&lt;&lt;"\\usepackage{blopeps}"&lt;&lt;endl;
+<a name="__line187"></a>	(*this)&lt;&lt;"\\usepackage{color}"&lt;&lt;endl;
+<a name="__line188"></a>	(*this)&lt;&lt;"\\parindent=0cm"&lt;&lt;endl;
+<a name="__line189"></a>	(*this)&lt;&lt;"\\pagestyle{empty}"&lt;&lt;endl;
+<a name="__line190"></a>	(*this)&lt;&lt;"\\begin{document}"&lt;&lt;endl;
+<a name="__line191"></a>	<span class=comment>//(*this)&lt;&lt;"\\LARGE"&lt;&lt;endl;</span>
+<a name="__line192"></a>        if(command_ != "") (*this)&lt;&lt;command_&lt;&lt;endl;
+<a name="__line193"></a>	header_printed_ = true;
+<a name="__line194"></a>	return *this;
+<a name="__line195"></a>    }
+<a name="__line196"></a>
+<a name="__line197"></a>    void mpps::open_layer(const var &amp;l)
+<a name="__line198"></a>    {
+<a name="__line199"></a>        needs_flush_ = true;
+<a name="__line200"></a>	if(beps_) beps_-&gt;open_layer(l);
+<a name="__line201"></a>    }
+<a name="__line202"></a>    void mpps::close_layer(const var &amp;l)
+<a name="__line203"></a>    {
+<a name="__line204"></a>        needs_flush_ = true;
+<a name="__line205"></a>	if(beps_) beps_-&gt;close_layer(l);
+<a name="__line206"></a>    }
+<a name="__line207"></a>
+<a name="__line208"></a>    void mpps::picture_begin()
+<a name="__line209"></a>    {
+<a name="__line210"></a>        needs_flush_ = true;
+<a name="__line211"></a>	if(header_printed_ == false) print_header();
+<a name="__line212"></a>
+<a name="__line213"></a>	if(beps_) delete beps_;
+<a name="__line214"></a>	beps_ = new blopeps(blop_bookkeeper::tmpfile("mpps_BEPS_XXXXXX.beps"));
+<a name="__line215"></a>	beps_-&gt;picture_begin();
+<a name="__line216"></a>    }
+<a name="__line217"></a>
+<a name="__line218"></a>    void mpps::picture_end()
+<a name="__line219"></a>    {
+<a name="__line220"></a>        needs_flush_ = true;
+<a name="__line221"></a>	beps_-&gt;picture_end();
+<a name="__line222"></a>	(*this)&lt;&lt;"\\blopeps";
+<a name="__line223"></a>	if(opts_.str() != "") (*this)&lt;&lt;"["&lt;&lt;opts_.str()&lt;&lt;"]";
+<a name="__line224"></a>	(*this)&lt;&lt;"{"&lt;&lt;beps_-&gt;filename()&lt;&lt;"}"&lt;&lt;endl;
+<a name="__line225"></a>    }
+<a name="__line226"></a>	    
+<a name="__line227"></a>    int mpps::newlength()
+<a name="__line228"></a>    {
+<a name="__line229"></a>        needs_flush_ = true;
+<a name="__line230"></a>        return beps_-&gt;newlength();
+<a name="__line231"></a>    }
+<a name="__line232"></a>    int mpps::overwrite(int i, double f1, const terminal::id &amp;i1)
+<a name="__line233"></a>    {
+<a name="__line234"></a>        needs_flush_ = true;
+<a name="__line235"></a>	return beps_-&gt;overwrite(i,f1,i1);
+<a name="__line236"></a>    }
+<a name="__line237"></a>    int mpps::overwrite(int i,
+<a name="__line238"></a>			double f1, const terminal::id &amp;i1,
+<a name="__line239"></a>			double f2, const terminal::id &amp;i2)
+<a name="__line240"></a>    {
+<a name="__line241"></a>        needs_flush_ = true;
+<a name="__line242"></a>	return beps_-&gt;overwrite(i,f1,i1,f2,i2);
+<a name="__line243"></a>    }
+<a name="__line244"></a>    int mpps::lincombi(double_id f, const terminal::id &amp;i)
+<a name="__line245"></a>    {
+<a name="__line246"></a>        needs_flush_ = true;
+<a name="__line247"></a>	return beps_-&gt;lincombi(f,i);
+<a name="__line248"></a>    }
+<a name="__line249"></a>    int mpps::lincombi(double_id f1, const terminal::id &amp;i1,
+<a name="__line250"></a>		       double_id f2, const terminal::id &amp;i2)
+<a name="__line251"></a>    {
+<a name="__line252"></a>        needs_flush_ = true;
+<a name="__line253"></a>	return beps_-&gt;lincombi(f1,i1,f2,i2);
+<a name="__line254"></a>    }
+<a name="__line255"></a>    int mpps::lincombi(const std::vector&lt;double&gt; &amp;f, const std::vector&lt;blop::terminal::id&gt; &amp;id)
+<a name="__line256"></a>    {
+<a name="__line257"></a>        needs_flush_ = true;
+<a name="__line258"></a>	return beps_-&gt;lincombi(f,id);
+<a name="__line259"></a>    }
+<a name="__line260"></a>    int mpps::maxlength(const std::vector&lt;blop::terminal::id&gt; &amp;id)
+<a name="__line261"></a>    {
+<a name="__line262"></a>        needs_flush_ = true;
+<a name="__line263"></a>	return beps_-&gt;maxlength(id);
+<a name="__line264"></a>    }
+<a name="__line265"></a>    int mpps::minlength(const std::vector&lt;blop::terminal::id&gt; &amp;id)
+<a name="__line266"></a>    {
+<a name="__line267"></a>        needs_flush_ = true;
+<a name="__line268"></a>	return beps_-&gt;minlength(id);
+<a name="__line269"></a>    }
+<a name="__line270"></a>    int mpps::textwidth(const string &amp;s, double a)
+<a name="__line271"></a>    {
+<a name="__line272"></a>        needs_flush_ = true;
+<a name="__line273"></a>	return beps_-&gt;textwidth(s,a);
+<a name="__line274"></a>    }
+<a name="__line275"></a>    int mpps::textheight(const string &amp;s, double a)
+<a name="__line276"></a>    {
+<a name="__line277"></a>        needs_flush_ = true;
+<a name="__line278"></a>	return beps_-&gt;textheight(s,a);
+<a name="__line279"></a>    }
+<a name="__line280"></a>    int mpps::textlheight(const string &amp;s, double a)
+<a name="__line281"></a>    {
+<a name="__line282"></a>        needs_flush_ = true;
+<a name="__line283"></a>	return beps_-&gt;textlheight(s,a);
+<a name="__line284"></a>    }
+<a name="__line285"></a>    int mpps::textsize(const string &amp;s, double a)
+<a name="__line286"></a>    {
+<a name="__line287"></a>        needs_flush_ = true;
+<a name="__line288"></a>	return beps_-&gt;textsize(s,a);
+<a name="__line289"></a>    }
+<a name="__line290"></a>    int mpps::max_textwidth(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line291"></a>    {
+<a name="__line292"></a>        needs_flush_ = true;
+<a name="__line293"></a>	return beps_-&gt;max_textwidth(s);
+<a name="__line294"></a>    }
+<a name="__line295"></a>    int mpps::max_textheight(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line296"></a>    {
+<a name="__line297"></a>        needs_flush_ = true;
+<a name="__line298"></a>	return beps_-&gt;max_textheight(s);
+<a name="__line299"></a>    }
+<a name="__line300"></a>    int mpps::max_textlheight(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line301"></a>    {
+<a name="__line302"></a>        needs_flush_ = true;
+<a name="__line303"></a>	return beps_-&gt;max_textlheight(s);
+<a name="__line304"></a>    }
+<a name="__line305"></a>
+<a name="__line306"></a>    void mpps::subpicture_begin(const terminal::coord &amp;lower_left,
+<a name="__line307"></a>				const terminal::coord &amp;upper_right)
+<a name="__line308"></a>    {
+<a name="__line309"></a>        needs_flush_ = true;
+<a name="__line310"></a>	beps_-&gt;subpicture_begin(lower_left, upper_right);
+<a name="__line311"></a>    }
+<a name="__line312"></a>    void mpps::subpicture_end()
+<a name="__line313"></a>    {
+<a name="__line314"></a>        needs_flush_ = true;
+<a name="__line315"></a>	beps_-&gt;subpicture_end();
+<a name="__line316"></a>    }
+<a name="__line317"></a>
+<a name="__line318"></a>    void mpps::draw_dot(const terminal::coord &amp;c)
+<a name="__line319"></a>    {
+<a name="__line320"></a>        needs_flush_ = true;
+<a name="__line321"></a>	beps_-&gt;draw_dot(c);
+<a name="__line322"></a>    }
+<a name="__line323"></a>    void mpps::draw_text(const terminal::coord &amp;pos,
+<a name="__line324"></a>			 const string &amp;s,
+<a name="__line325"></a>			 int xalign, int yalign,
+<a name="__line326"></a>			 const blop::terminal::id &amp;angle_dx,
+<a name="__line327"></a>			 const blop::terminal::id &amp;angle_dy,
+<a name="__line328"></a>			 bool rotatedsystem)
+<a name="__line329"></a>    {
+<a name="__line330"></a>        needs_flush_ = true;
+<a name="__line331"></a>	beps_-&gt;draw_text(pos,s,xalign,yalign,angle_dx,angle_dy,rotatedsystem);
+<a name="__line332"></a>    }
+<a name="__line333"></a>    void mpps::draw_arc(const terminal::coord &amp;center,
+<a name="__line334"></a>			const id &amp;r,
+<a name="__line335"></a>			double ang1, double ang2)
+<a name="__line336"></a>    {
+<a name="__line337"></a>        needs_flush_ = true;
+<a name="__line338"></a>	beps_-&gt;draw_arc(center,r,ang1,ang2);
+<a name="__line339"></a>    }
+<a name="__line340"></a>    void mpps::fill_arc(const terminal::coord &amp;center,
+<a name="__line341"></a>			const id &amp;r, double a1, double a2)
+<a name="__line342"></a>    {
+<a name="__line343"></a>        needs_flush_ = true;
+<a name="__line344"></a>	beps_-&gt;fill_arc(center,r,a1,a2);
+<a name="__line345"></a>    }
+<a name="__line346"></a>    void mpps::draw_line(const coord &amp;c1, const coord &amp;c2)
+<a name="__line347"></a>    {
+<a name="__line348"></a>        needs_flush_ = true;
+<a name="__line349"></a>	beps_-&gt;draw_line(c1,c2);
+<a name="__line350"></a>    }
+<a name="__line351"></a>    void mpps::draw_lines(const std::vector&lt;blop::terminal::coord&gt; &amp;c)
+<a name="__line352"></a>    {
+<a name="__line353"></a>        needs_flush_ = true;
+<a name="__line354"></a>	beps_-&gt;draw_lines(c);
+<a name="__line355"></a>    }
+<a name="__line356"></a>    void mpps::draw_rlines(const terminal::coord &amp;start,
+<a name="__line357"></a>			   const std::vector&lt;blop::terminal::id&gt; &amp;dx,
+<a name="__line358"></a>			   const std::vector&lt;blop::terminal::id&gt; &amp;dy)
+<a name="__line359"></a>    {
+<a name="__line360"></a>        needs_flush_ = true;
+<a name="__line361"></a>	beps_-&gt;draw_rlines(start,dx,dy);
+<a name="__line362"></a>    }
+<a name="__line363"></a>    void mpps::fill_polygon(const std::vector&lt;blop::terminal::coord&gt; &amp;c)
+<a name="__line364"></a>    {
+<a name="__line365"></a>        needs_flush_ = true;
+<a name="__line366"></a>	beps_-&gt;fill_polygon(c);
+<a name="__line367"></a>    }
+<a name="__line368"></a>
+<a name="__line369"></a>    void mpps::reset_transformation()
+<a name="__line370"></a>    {
+<a name="__line371"></a>        needs_flush_ = true;
+<a name="__line372"></a>	beps_-&gt;reset_transformation();
+<a name="__line373"></a>    }
+<a name="__line374"></a>    void mpps::translate(const id &amp;x, const id &amp;y)
+<a name="__line375"></a>    {
+<a name="__line376"></a>        needs_flush_ = true;
+<a name="__line377"></a>	beps_-&gt;translate(x,y);
+<a name="__line378"></a>    }
+<a name="__line379"></a>    void mpps::rotate(double angle)
+<a name="__line380"></a>    {
+<a name="__line381"></a>        needs_flush_ = true;
+<a name="__line382"></a>	beps_-&gt;rotate(angle);
+<a name="__line383"></a>    }
+<a name="__line384"></a>    void mpps::rotate(const id &amp;x, const id &amp;y)
+<a name="__line385"></a>    {
+<a name="__line386"></a>        needs_flush_ = true;
+<a name="__line387"></a>	beps_-&gt;rotate(x,y);
+<a name="__line388"></a>    }
+<a name="__line389"></a>    void mpps::scale(double s)
+<a name="__line390"></a>    {
+<a name="__line391"></a>        needs_flush_ = true;
+<a name="__line392"></a>	beps_-&gt;scale(s);
+<a name="__line393"></a>    }
+<a name="__line394"></a>    void mpps::scale(double xs, double ys)
+<a name="__line395"></a>    {
+<a name="__line396"></a>        needs_flush_ = true;
+<a name="__line397"></a>	beps_-&gt;scale(xs,ys);
+<a name="__line398"></a>    }
+<a name="__line399"></a>    void mpps::scale(const id &amp;xfrom, const id &amp;xto,
+<a name="__line400"></a>		     const id &amp;yfrom, const id &amp;yto)
+<a name="__line401"></a>    {
+<a name="__line402"></a>        needs_flush_ = true;
+<a name="__line403"></a>	beps_-&gt;scale(xfrom,xto,yfrom,yto);
+<a name="__line404"></a>    }
+<a name="__line405"></a>
+<a name="__line406"></a>
+<a name="__line407"></a>
+<a name="__line408"></a>    void mpps::set_color(const color &amp;c)
+<a name="__line409"></a>    {
+<a name="__line410"></a>        needs_flush_ = true;
+<a name="__line411"></a>	beps_-&gt;set_color(c);
+<a name="__line412"></a>    }
+<a name="__line413"></a>    void mpps::set_linewidth(const id &amp;i)
+<a name="__line414"></a>    {
+<a name="__line415"></a>        needs_flush_ = true;
+<a name="__line416"></a>	beps_-&gt;set_linewidth(i);
+<a name="__line417"></a>    }
+<a name="__line418"></a>    void mpps::set_linestyle(sym::linestyle i)
+<a name="__line419"></a>    {
+<a name="__line420"></a>        needs_flush_ = true;
+<a name="__line421"></a>	beps_-&gt;set_linestyle(i);
+<a name="__line422"></a>    }
+<a name="__line423"></a>
+<a name="__line424"></a>    int mpps::atan(const id &amp;x, const id &amp;y)
+<a name="__line425"></a>    {
+<a name="__line426"></a>        needs_flush_ = true;
+<a name="__line427"></a>	return beps_-&gt;atan(x,y);
+<a name="__line428"></a>    }
+<a name="__line429"></a>    int mpps::add_dbl(const double_id &amp;a, const double_id &amp;b)
+<a name="__line430"></a>    {
+<a name="__line431"></a>        needs_flush_ = true;
+<a name="__line432"></a>	return beps_-&gt;add_dbl(a,b);
+<a name="__line433"></a>    }
+<a name="__line434"></a>    int mpps::sin_dbl(int i)
+<a name="__line435"></a>    {
+<a name="__line436"></a>        needs_flush_ = true;
+<a name="__line437"></a>	return beps_-&gt;sin_dbl(i);
+<a name="__line438"></a>    }
+<a name="__line439"></a>    int mpps::cos_dbl(int i)
+<a name="__line440"></a>    {
+<a name="__line441"></a>        needs_flush_ = true;
+<a name="__line442"></a>	return beps_-&gt;cos_dbl(i);
+<a name="__line443"></a>    }
+<a name="__line444"></a>    int mpps::neg_dbl(int i)
+<a name="__line445"></a>    {
+<a name="__line446"></a>        needs_flush_ = true;
+<a name="__line447"></a>	return beps_-&gt;neg_dbl(i);
+<a name="__line448"></a>    }
+<a name="__line449"></a>    bool mpps::clip(const terminal::coord &amp;lower_left, const terminal::coord &amp;upper_right)
+<a name="__line450"></a>    {
+<a name="__line451"></a>        needs_flush_ = true;
+<a name="__line452"></a>	return beps_-&gt;clip(lower_left, upper_right);
+<a name="__line453"></a>    }
+<a name="__line454"></a>    void mpps::noclip()
+<a name="__line455"></a>    {
+<a name="__line456"></a>        needs_flush_ = true;
+<a name="__line457"></a>	beps_-&gt;noclip();
+<a name="__line458"></a>    }
+<a name="__line459"></a>
+<a name="__line460"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

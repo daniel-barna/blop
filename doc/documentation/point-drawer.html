@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Point drawer</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="graph-drawer.html">
+   <link rel="Next" href="label.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="graph-drawer.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: graph-drawer.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="label.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: label.html">
+    </a> <br>
+
+<center class=title><b>
+Point drawer
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u> 
+
+<p>Point-drawers are objects, which draw  specific symbols, if a graph is
+to   be   plotted   with   the   <a   href="graph-drawer.html#points">
+<tt>points</tt> drawstyle</a>.
+
+<pre>
+plot("file1").ds(points()).pointtype(square());    // draw with squares
+mplot("file2).ds(points()).pt       (fsquare());   // draw with filled squares.
+                                                   // pt is a shorthand for pointtype
+</pre>
+
+In the above example, <tt>square</tt> and <tt>fsquare</tt> are
+point-drawer classes.
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#types">        Point types </a>
+<li><a href="#autopoint">    Automatic point type (autopoint) </a>
+</ul>
+
+<p><div class=sectiontitle><a name="types">Point types</a></div>
+
+<p>
+When graphs are plotted with the <tt>points</tt> style, a symbol is
+drawn at each datapoint. The type of this symbol is determined by the
+<tt>pointtype</tt> property of the graph, which can be set via the
+<pre>
+graph &graph::pointtype(point_drawer &xxx);
+graph &graph::pt       (point_drawer &xxx);   // shorthand version
+</pre>
+where <tt>xxx</tt> can be one of the following (an initial 'f' means 'filled')<br>
+<img src="figs/point-types.png">
+
+<p><div class=sectiontitle><a name="autopoint">Automatic point type (autopoint)</a></div>
+<p>A special pointtype (not listed in the figure) is
+<tt>autopoint</tt>. If one sets this point-type for a graph (this is the default),
+then the pointtype is chosen automatically such that the least graphs
+in the frame have the same pointtype. (This is only done, when the
+canvas is printed to a terminal, i.e. when it gets realized. Before a
+print, autopoint can evaluate to any other pointtype - in case you
+wanted to test it programmatically)
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="point_drawer.h.html">point_drawer.h</a>
+   <a href="point_drawer.cc.html">point_drawer.cc</a>
+</pre>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="graph-drawer.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: graph-drawer.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="label.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: label.html">
+    </a> 
+
+</body>
+</html>

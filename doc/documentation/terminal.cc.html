@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: terminal.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>using namespace std;
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>    bool terminal::id::operator== (const terminal::id &amp;o) const
+<a name="__line7"></a>    {
+<a name="__line8"></a>	if(length_id != 0)
+<a name="__line9"></a>	{
+<a name="__line10"></a>	    if(length_id == o.length_id) return true;
+<a name="__line11"></a>	    return false;
+<a name="__line12"></a>	}
+<a name="__line13"></a>	
+<a name="__line14"></a>	if(relcoord == o.relcoord &amp;&amp; direction == o.direction) return true;
+<a name="__line15"></a>	return false;
+<a name="__line16"></a>    }
+<a name="__line17"></a>    
+<a name="__line18"></a>
+<a name="__line19"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

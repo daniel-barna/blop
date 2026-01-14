@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Pipe streams, remote files, opening of input/output files/pipes</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="sorting-data.html">
+   <link rel="Next" href="terminals.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="sorting-data.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: sorting-data.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="terminals.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: terminals.html">
+    </a> <br>
+
+<center class=title><b>
+Pipe streams, remote files, opening of input/output files/pipes
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<p>
+Pipes are implemented in blop in a form of standard C++ streams:
+
+<p><pre>
+ipstream inputcmd("cat somefile");
+string s;
+while(inputcmd&gt;&gt;s) cerr&lt;&lt;s&lt;&lt;endl;
+
+opstream outputcmd("cat");
+outputcmd&lt;&lt;"Hello World"&lt;&lt;endl;
+</pre>
+
+<p>You can use remote files:
+<pre>iscpstream file1("user@remote.machine:dir1/dir2/filename");  // read remote file via scp
+oscpstream file2("user@remote.machine:dir1/dir2/filename"); // write a remote file via scp
+ihttpstream file3("http://www.machine.com/url");            // read a file downloaded from the web
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#pstream">   Pipe streams            </a>
+<li><a href="#scpstream"> Remote file I/O via scp </a>
+<li><a href="#httpstream">Remote file via http    </a>
+<li><a href="#open">   The general <tt>openin</tt> and <tt>openout</tt> functions</a>
+</ul>
+
+<div class=sectiontitle><a name="pstream">Pipe streams</a></div>
+
+Pipe streams can  be used (hopefully) exactly as  any other streams in
+C++  (ifstream, ofstream,  istringstream, etc).  I feel  that  no more
+comments are needed here. Maybe one: the buffersize can be set easily:
+
+<p><pre>
+void ipstream::ibufsize(int size);
+void opstream::obufsize(int size);
+</pre>
+
+<p>
+A related topic: the output of commands (pipes) can be plotted in blop
+with the usual <tt>plot</tt>  or <tt>mplot</tt> commands: if the last
+letter of  the filename  is <tt>|</tt>, the  preceding part  of the
+filename  is interpreted as  a command,  the output  of which  will be
+plotted.
+
+<div class=sectiontitle><a name="scpstream">Remote file I/O via scp</a></div>
+
+<p>To access remote files for read or write via scp as a c++-stream,
+you can use the following classes: <tt>iscpstream</tt> or
+<tt>oscpstream</tt>. Both have a constructor accepting a filename
+(which should be of the form
+<tt>user@machine.address.com:dir1/dir2/filename</tt>, or,
+alternatively, their <tt>open(const char *)</tt> member function can
+be used. 
+
+<p>The <tt>iscpstream</tt> first downloads the remote file, and then
+opens it for reading locally. The <tt>oscpstream</tt> first opens a
+local temporary file for writing, and upon closing (which is also
+called from its destructor) it uploads it to the remote location via scp.
+
+<div class=sectiontitle><a name="httpstream">Read remote file via http</a></div>
+
+<p>Similarly to <tt>iscpstream</tt> above, the <tt>ihttpstream</tt>
+class downloads the file via <tt>wget</tt> from the given URL
+(provided as the filename  to the constructor or the <tt>open(const
+char *url)</tt> member function). 
+
+<div class=sectiontitle><a name="open">The openin and openout functions</a></div>
+
+<dl>
+<dt><tt>istream *openin(const var &name)</tt></dt>
+<dd>
+<ul>
+<li>If <tt>name</tt> begins with &lt;&lt;, the remaining part of
+<tt>name</tt> is taken to be a <i>here-document</i>, and the returned
+input stream is an <tt>istringstream</tt>, which will read from this
+string
+<li>If <tt>name</tt> ends with a |, then it is interpreted as a shell
+command, and the returned stream is an <tt>ipstream</tt>, which will
+read from the standard output of this command
+<li>If <tt>name</tt> starts with <tt>scp://</tt>, the remaining part
+of it is taken to be a remote file location (via scp), which should be
+of the form <tt>user@remote.machine.com:dir1/dir2/filename</tt> The
+opened c++ stream is an iscpstream (see above)
+<li>If <tt>name</tt> starts with <tt>http://</tt>, it is taken to be a
+URL, which is downloaded via the <tt>wget</tt> function. The opened
+c++ stream is an ihttpstream (see above)
+<li>Otherwise <tt>name</tt> is interpreted as a filename, and an
+<tt>ifstream</tt> is returned
+</ul>
+</dd>
+
+<dt><tt>ostream *openout(const var &name)</tt></dt>
+<dd>
+<ul>
+<li>If <tt>name</tt> begins with |, the rest of it is interpreted as a
+shell command, an <tt>opstream</tt> is returned, which will write to
+the standard input of this command
+<li>If <tt>name</tt> begins with &gt;&gt;, then the rest of it is
+interpreted as a file, which will be opened in append mode, and an
+<tt>ofstream</tt> is returned
+<li>If <tt>name</tt> begins with <tt>scp://</tt>, the remaining part
+of it is interpreted as a remote file (via scp), which should be of
+the form <tt>user@remote.machine.com:dir1/dir2/filename</tt> The
+opened c++ stream is an <tt>oscpstream</tt> (see above). 
+<li>Otherwise <tt>name</tt> is interpreted as a filename, and will be
+opened in overwrite mode
+</ul>
+</dd>
+</dl>
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="pstream.h.html">pstream.h</a>
+   <a href="pstream.cc.html">pstream.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="sorting-data.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: sorting-data.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="terminals.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: terminals.html">
+    </a> 
+
+</body>
+</html>

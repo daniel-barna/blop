@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Arrays</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="var.html">
+   <link rel="Next" href="function.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="var.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: var.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="function.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: function.html">
+    </a> <br>
+
+<center class=title><b>
+Arrays
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<p>
+An <tt>array</tt> is like a <tt>vector&lt;var&gt;</tt>, with some additional 
+features added. 
+
+<pre>
+array a = array::make(1)(2)(3)(5)(10);   // initialize an array
+array b = array::sequence(2,0,10.01);    // create an array with stepsize 2, from 0 to 10
+array c = split("first second third");   // initialize an array by splitting a string
+
+a[1] = 100;              // indexing works like in C/C++ (0-based)
+
+for(a.setfirst(); a; ++a)   // loop over an array: it has its own iterator
+{
+    cout&lt;&lt;a()&lt;&lt;endl;     // use the () operator to access the current element
+}
+
+</pre>
+</div>
+<hr>
+<div class=description>
+
+<ul>
+<li><a href="#init"> Initialization </a>
+<li><a href="#sequence"> Creating a sequence </a>
+<li><a href="#iterator"> Iterating over an array </a>
+<li><a href="#sorting"> Sorting </a>
+</ul>
+
+<a name="init"><div class='sectiontitle'>Initialization</div></a> 
+
+<p>
+I more and more frequently 
+face the liminations of C++ as a scripting language, and wish I would
+have written this software in perl for example. One example is the
+lack of arbitrary-length array initialization. In order to overcome
+this problem, the following method is implemented: an arbitrary-length
+array can be created by appending the elements in () parentheses after
+<tt>array::make</tt>:<br>
+<pre>array a = array::make(1)(3)(6);</pre><br>
+The return value of such a statement is an array consisting of the
+listed elements. Be careful, however, because at every call of the
+above statement the same (static) array is returned, so don't use 2 or
+more such statements as different arguments of a function, for example
+the following is bad:<br>
+<pre>some_func(array::make(1)(2), array::make(4)(5)(6));</pre><br>
+See the <a href="#init_impl">implementation details</a>.
+
+<p>Another way to create an array is splitting a string:
+<pre>
+void f(var &v)
+{
+  array a;
+  split(v,a);
+  // ... do whatever
+}
+
+f("one two three");
+</pre>
+
+<a name="sequence"><div class='sectiontitle'>Creating a sequence:</div></a> 
+
+An array with an equal stepsize within a range can be created like this:
+<pre>array a = array::sequence(stepsize, from, to); </pre>
+The array will start from '<tt>from</tt>' (no surprise), and will stop
+at '<tt>to</tt>', inclusive. Be aware of floating point problems, for
+example 
+<pre>
+double from = 1.342;
+double to   = 3.2543;
+array::sequence((to-from)/7, from, to);
+</pre>
+may or may not finally contain <tt>to</tt>. The safest is to add a
+small number (a fraction of the stepsize) to '<tt>to</tt>'.
+
+<a name="iterator"><div class='sectiontitle'>Iteration:</div></a> 
+
+<p> The following method is  provided to easily iterate over an array:
+an array has a built-in, own iterator, which stores the <i>current</i>
+position in the  array. The current element can be  accessed by the ()
+operator, the iterator can be  incremented or decremented by the ++ or
+-- operators, the validity of the iterator position (within range) can
+be tested with the 'bool' conversion.
+
+
+<dl>
+<dt>setfirst(), setlast(), set(int i)</dt>
+<dd>Set the iterator to the first, last, or <i>i</i>th element</dd>
+
+<dt>operator bool</dt>
+<dd>Test validity (in-range) of the iterator</dd>
+
+<dt>var &operator()()</dt>
+<dd>Access the current element</dd>
+
+<dt>operator++, operator--</dt>
+<dd>Increment/decrement iterator</dd>
+</dl>
+
+Example:
+<pre>
+for(array a=split("2 4 6 8"); a; ++a)
+{
+  cerr&lt;&lt;a()&lt;&lt;endl;
+}
+</pre>
+
+<a name="sorting"><div class='sectiontitle'>Sorting</div></a>
+
+<p>Use the <tt>sort_n()</tt> or <tt>sort_s()</tt> member functions to sort an array as numbers or strings
+
+<a name="replace"><div class='sectiontitle'>Replace</div></a>
+
+One can replace occurences of a string to another string
+in all elements of an array by using the replace member function:
+
+<pre>
+array a = split("filename1.dat filename2.dat filename3.dat");
+a.replace(".dat",".eps");
+</pre>
+
+</div>
+<hr>
+<div class=implementation>
+See the source files for more info:
+<pre>
+   <a href="array.h.html">array.h</a>
+   <a href="array.cc.html">array.cc</a>
+</pre>
+
+<p>
+<a name="init_impl"><u>Initialization:</u></a> the static function
+<pre>array::make(var)</pre> returns a reference to a (static) array
+initialized with the provided single value. In the statement
+<pre>array::make(1)(2)</pre> the parenthesis operator is called on the
+returned array, which appends the given element to the array, and
+returns a reference to the array itself. In this way these parenthesis
+operators can be chained, the array is initialized to contain the
+provided values. Since at every occurence of this statement a
+reference to the same (static) array is returned, 2 or more such
+statements should not be provided as arguments to the same function
+call. 
+</div><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="var.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: var.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="function.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: function.html">
+    </a> 
+
+</body>
+</html>

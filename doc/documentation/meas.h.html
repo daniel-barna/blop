@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: meas.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __MEAS_H
+<a name="__line1"></a>#define __MEAS_H
+<a name="__line2"></a>
+<a name="__line3"></a>
+<a name="__line4"></a>
+<a name="__line5"></a>
+<a name="__line6"></a>#include &lt;cmath&gt;
+<a name="__line7"></a>#include &lt;iostream&gt;
+<a name="__line8"></a>#include &lt;fstream&gt;
+<a name="__line9"></a>#include &lt;string&gt;
+<a name="__line10"></a>#include &lt;sstream&gt;
+<a name="__line11"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line12"></a><span class=comment>//#include "function.h"</span>
+<a name="__line13"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line14"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line15"></a>
+<a name="__line16"></a>
+<a name="__line17"></a>namespace blop
+<a name="__line18"></a>{
+<a name="__line19"></a>
+<a name="__line20"></a>
+<a name="__line21"></a><span class=comment>// Class to store measured values with errors. Knows the Gaussian error </span>
+<a name="__line22"></a><span class=comment>// propagation. Knows the error of enties in case of a histogram </span>
+<a name="__line23"></a><span class=comment>// (error = square root of entries, due to Poisson distribution).</span>
+<a name="__line24"></a>
+<a name="__line25"></a>class meas
+<a name="__line26"></a>{
+<a name="__line27"></a><span class=public>    public:
+<a name="__line28"></a>	<span class=comment>// Value:</span>
+<a name="__line29"></a>	double v;
+<a name="__line30"></a>	<span class=comment>// Error:</span>
+<a name="__line31"></a>	double e;
+<a name="__line32"></a>
+<a name="__line33"></a></span><span class=public>    public:
+<a name="__line34"></a>	<span class=comment>// Constructors, destructor:</span>
+<a name="__line35"></a>	meas();
+<a name="__line36"></a>	meas(const double);
+<a name="__line37"></a>	meas(const double, const double);
+<a name="__line38"></a>	meas(const meas&amp;);
+<a name="__line39"></a>	~meas();
+<a name="__line40"></a>
+<a name="__line41"></a>	double value() const { return v; }
+<a name="__line42"></a>	double error() const { return e; }
+<a name="__line43"></a>	meas &amp;value(double a) { v = a; return *this; }
+<a name="__line44"></a>	meas &amp;error(double a) { e = a; return *this; }
+<a name="__line45"></a>
+<a name="__line46"></a>	<span class=comment>// Increment with an entry, as a histogram bin:</span>
+<a name="__line47"></a>	void fill();
+<a name="__line48"></a>	<span class=comment>// Increment with a weighted entry, as a histogram bin:</span>
+<a name="__line49"></a>	void fill(const double weight);
+<a name="__line50"></a>	void fill(const var &amp;weight);
+<a name="__line51"></a>	<span class=comment>// Decrement with an entry, as a histogram bin:</span>
+<a name="__line52"></a>	void remove();
+<a name="__line53"></a>	<span class=comment>// Decrement with a weighted entry, as a histogram bin:</span>
+<a name="__line54"></a>	void remove(const double weight);
+<a name="__line55"></a>	void remove(const var &amp;weight);
+<a name="__line56"></a>
+<a name="__line57"></a>	<span class=comment>// Operations:</span>
+<a name="__line58"></a>	const meas&amp; operator=(const meas&amp;);
+<a name="__line59"></a>	const meas&amp; operator=(const double);
+<a name="__line60"></a>	const meas&amp; operator+=(const meas&amp;);
+<a name="__line61"></a>	const meas&amp; operator+=(const double);
+<a name="__line62"></a>	const meas&amp; operator-=(const meas&amp;);
+<a name="__line63"></a>	const meas&amp; operator-=(const double);
+<a name="__line64"></a>	const meas&amp; operator*=(const meas&amp;);
+<a name="__line65"></a>	const meas&amp; operator*=(const double);
+<a name="__line66"></a>	const meas&amp; operator/=(const meas&amp;);
+<a name="__line67"></a>	const meas&amp; operator/=(const double);
+<a name="__line68"></a>	const meas&amp; operator++();
+<a name="__line69"></a>	const meas&amp; operator--();
+<a name="__line70"></a>	bool operator==(const meas&amp;) const;
+<a name="__line71"></a>	bool operator==(const double) const;
+<a name="__line72"></a>	bool operator!=(const meas&amp;) const;
+<a name="__line73"></a>	bool operator!=(const double) const;
+<a name="__line74"></a>	bool operator&lt;(const meas&amp;) const;
+<a name="__line75"></a>	bool operator&lt;(const double) const;
+<a name="__line76"></a>	bool operator&gt;(const meas&amp;) const;
+<a name="__line77"></a>	bool operator&gt;(const double) const;
+<a name="__line78"></a>	bool operator&lt;=(const meas&amp;) const;
+<a name="__line79"></a>	bool operator&lt;=(const double) const;
+<a name="__line80"></a>	bool operator&gt;=(const meas&amp;) const;
+<a name="__line81"></a>	bool operator&gt;=(const double) const;
+<a name="__line82"></a>
+<a name="__line83"></a>	<span class=comment>// Apply a function to a meas (modify it)</span>
+<a name="__line84"></a><span class=comment>//	meas &amp;transform(const function &amp;f);</span>
+<a name="__line85"></a>
+<a name="__line86"></a>	<span class=comment>// Check for finiteness:</span>
+<a name="__line87"></a>	bool isfinite	() const;
+<a name="__line88"></a>	bool isinf	() const;
+<a name="__line89"></a>	bool isnan	() const;
+<a name="__line90"></a>	bool isset	() const;
+<a name="__line91"></a>	bool isunset	() const;
+<a name="__line92"></a>	bool isok	() const;
+<a name="__line93"></a>	static bool isfinite	(const meas&amp;);
+<a name="__line94"></a>	static bool isinf	(const meas&amp;);
+<a name="__line95"></a>	static bool isnan	(const meas&amp;);
+<a name="__line96"></a>	static bool isset	(const meas&amp;);
+<a name="__line97"></a>	static bool isunset	(const meas&amp;);
+<a name="__line98"></a>	static bool isok	(const meas&amp;);
+<a name="__line99"></a>
+<a name="__line100"></a>	<span class=comment>// Explicit conversion to a var string:</span>
+<a name="__line101"></a>	var to_var(const var &amp;format="%g") const;
+<a name="__line102"></a>
+<a name="__line103"></a>};
+<a name="__line104"></a>
+<a name="__line105"></a> meas operator+(const meas&amp;, const meas&amp;);
+<a name="__line106"></a> meas operator+(const meas&amp;, const double);
+<a name="__line107"></a> meas operator+(const double, const meas&amp;);
+<a name="__line108"></a> meas operator-(const meas&amp;, const meas&amp;);
+<a name="__line109"></a> meas operator-(const meas&amp;, const double);
+<a name="__line110"></a> meas operator-(const double, const meas&amp;);
+<a name="__line111"></a> meas operator-(const meas&amp;);
+<a name="__line112"></a> meas operator*(const meas&amp;, const meas&amp;);
+<a name="__line113"></a> meas operator*(const meas&amp;, const double);
+<a name="__line114"></a> meas operator*(const double, const meas&amp;);
+<a name="__line115"></a> meas operator/(const meas&amp;, const meas&amp;);
+<a name="__line116"></a> meas operator/(const meas&amp;, const double);
+<a name="__line117"></a> meas operator/(const double, const meas&amp;);
+<a name="__line118"></a><span class=comment>// meas apply(const function &amp;, const meas &amp;);</span>
+<a name="__line119"></a>
+<a name="__line120"></a><span class=comment>// Iostream operators:</span>
+<a name="__line121"></a>std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, const meas&amp;);
+<a name="__line122"></a>std::istream&amp; operator&gt;&gt;(std::istream&amp;, meas&amp;);
+<a name="__line123"></a>
+<a name="__line124"></a>}
+<a name="__line125"></a>
+<a name="__line126"></a>
+<a name="__line127"></a>#ifdef __CINT__
+<a name="__line128"></a><span class=comment>// Iostream operators:</span>
+<a name="__line129"></a>std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, const blop::meas&amp;);
+<a name="__line130"></a>std::istream&amp; operator&gt;&gt;(std::istream&amp;, blop::meas&amp;);
+<a name="__line131"></a>#endif
+<a name="__line132"></a>
+<a name="__line133"></a>#endif
+<a name="__line134"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,703 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: meas.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="meas.h.html">meas.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>namespace blop
+<a name="__line3"></a>{
+<a name="__line4"></a>
+<a name="__line5"></a>
+<a name="__line6"></a><span class=comment>// Class to store measured values with errors. Knows the Gaussian error </span>
+<a name="__line7"></a><span class=comment>// propagation. Knows the error of enties in case of a histogram </span>
+<a name="__line8"></a><span class=comment>// (error = square root of entries, due to Poisson distribution).</span>
+<a name="__line9"></a>
+<a name="__line10"></a>meas::meas()
+<a name="__line11"></a> : v(0.0), e(0.0)
+<a name="__line12"></a>{
+<a name="__line13"></a>}
+<a name="__line14"></a>
+<a name="__line15"></a>
+<a name="__line16"></a>meas::meas(const double V)
+<a name="__line17"></a> : v(V), e(0.0)
+<a name="__line18"></a>{
+<a name="__line19"></a>}
+<a name="__line20"></a>
+<a name="__line21"></a>
+<a name="__line22"></a>meas::meas(const double V, const double E)
+<a name="__line23"></a> : v(V), e(E)
+<a name="__line24"></a>{
+<a name="__line25"></a>}
+<a name="__line26"></a>
+<a name="__line27"></a>
+<a name="__line28"></a>meas::meas(const meas &amp;m_other)
+<a name="__line29"></a> : v(m_other.v), e(m_other.e)
+<a name="__line30"></a>{
+<a name="__line31"></a>}
+<a name="__line32"></a>
+<a name="__line33"></a>
+<a name="__line34"></a>meas::~meas()
+<a name="__line35"></a>{
+<a name="__line36"></a>}
+<a name="__line37"></a>
+<a name="__line38"></a>
+<a name="__line39"></a>void meas::fill()
+<a name="__line40"></a>{
+<a name="__line41"></a>    if ( isok() )
+<a name="__line42"></a>    {
+<a name="__line43"></a>	e=::sqrt(e*e+1.0);
+<a name="__line44"></a>	++v;
+<a name="__line45"></a>    }
+<a name="__line46"></a>}
+<a name="__line47"></a>
+<a name="__line48"></a>
+<a name="__line49"></a>void meas::fill(const double weight)
+<a name="__line50"></a>{
+<a name="__line51"></a>    if ( isok() &amp;&amp; std::isfinite(weight) &amp;&amp; weight!=unset )
+<a name="__line52"></a>    {
+<a name="__line53"></a>	e=::sqrt(e*e+weight*weight);
+<a name="__line54"></a>	v+=weight;
+<a name="__line55"></a>    }
+<a name="__line56"></a>}
+<a name="__line57"></a>
+<a name="__line58"></a>
+<a name="__line59"></a>void meas::fill(const var &amp;weight)
+<a name="__line60"></a>{
+<a name="__line61"></a>    if ( isok() &amp;&amp; std::isfinite(weight.dbl()) &amp;&amp; weight.dbl()!=unset )
+<a name="__line62"></a>    {
+<a name="__line63"></a>	e=::sqrt(e*e+weight.dbl()*weight.dbl());
+<a name="__line64"></a>	v+=weight.dbl();
+<a name="__line65"></a>    }
+<a name="__line66"></a>}
+<a name="__line67"></a>
+<a name="__line68"></a>
+<a name="__line69"></a>void meas::remove()
+<a name="__line70"></a>{
+<a name="__line71"></a>    if ( isok() )
+<a name="__line72"></a>    {
+<a name="__line73"></a>	e=e*e-1.0;
+<a name="__line74"></a>	e=(e&lt;0.0 ? 0.0 : ::sqrt(e));
+<a name="__line75"></a>	--v;
+<a name="__line76"></a>	v=(v&lt;0.0 ? 0.0 : v);
+<a name="__line77"></a>    }
+<a name="__line78"></a>}
+<a name="__line79"></a>
+<a name="__line80"></a>
+<a name="__line81"></a>void meas::remove(const double weight)
+<a name="__line82"></a>{
+<a name="__line83"></a>    if ( isok() &amp;&amp; std::isfinite(weight) &amp;&amp; weight!=unset )
+<a name="__line84"></a>    {
+<a name="__line85"></a>	e=e*e-weight*weight;
+<a name="__line86"></a>	e=(e&lt;0.0 ? 0.0 : ::sqrt(e));
+<a name="__line87"></a>	v-=weight;
+<a name="__line88"></a>	v=(v&lt;0.0 ? 0.0 : v);
+<a name="__line89"></a>    }
+<a name="__line90"></a>}
+<a name="__line91"></a>
+<a name="__line92"></a>
+<a name="__line93"></a>void meas::remove(const var &amp;weight)
+<a name="__line94"></a>{
+<a name="__line95"></a>    if ( isok() &amp;&amp; std::isfinite(weight.dbl()) &amp;&amp; weight.dbl()!=unset )
+<a name="__line96"></a>    {
+<a name="__line97"></a>	e=e*e-weight.dbl()*weight.dbl();
+<a name="__line98"></a>	e=(e&lt;0.0 ? 0.0 : ::sqrt(e));
+<a name="__line99"></a>	v-=weight.dbl();
+<a name="__line100"></a>	v=(v&lt;0.0 ? 0.0 : v);
+<a name="__line101"></a>    }
+<a name="__line102"></a>}
+<a name="__line103"></a>
+<a name="__line104"></a>
+<a name="__line105"></a>const meas&amp; meas::operator=(const meas &amp;m_other)
+<a name="__line106"></a>{
+<a name="__line107"></a>    e=m_other.e;
+<a name="__line108"></a>    v=m_other.v;
+<a name="__line109"></a>    return *this;
+<a name="__line110"></a>}
+<a name="__line111"></a>
+<a name="__line112"></a>
+<a name="__line113"></a>const meas&amp; meas::operator=(const double V)
+<a name="__line114"></a>{
+<a name="__line115"></a>    e=0.0;
+<a name="__line116"></a>    v=V;
+<a name="__line117"></a>    return *this;
+<a name="__line118"></a>}
+<a name="__line119"></a>
+<a name="__line120"></a>
+<a name="__line121"></a>const meas&amp; meas::operator+=(const meas &amp;m_other)
+<a name="__line122"></a>{
+<a name="__line123"></a>    if ( isok() &amp;&amp; m_other.isok() )
+<a name="__line124"></a>    {
+<a name="__line125"></a>	e=::sqrt(e*e+m_other.e*m_other.e);
+<a name="__line126"></a>	v+=m_other.v;
+<a name="__line127"></a>    }
+<a name="__line128"></a>    else
+<a name="__line129"></a>    {
+<a name="__line130"></a>	e=unset;
+<a name="__line131"></a>	v=unset;
+<a name="__line132"></a>    }
+<a name="__line133"></a>    return *this;
+<a name="__line134"></a>}
+<a name="__line135"></a>
+<a name="__line136"></a>
+<a name="__line137"></a>const meas&amp; meas::operator+=(const double V)
+<a name="__line138"></a>{
+<a name="__line139"></a>    if ( isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line140"></a>    {
+<a name="__line141"></a>	v+=V;
+<a name="__line142"></a>    }
+<a name="__line143"></a>    else
+<a name="__line144"></a>    {
+<a name="__line145"></a>	e=unset;
+<a name="__line146"></a>	v=unset;
+<a name="__line147"></a>    }
+<a name="__line148"></a>    return *this;
+<a name="__line149"></a>}
+<a name="__line150"></a>
+<a name="__line151"></a>
+<a name="__line152"></a>const meas&amp; meas::operator-=(const meas &amp;m_other)
+<a name="__line153"></a>{
+<a name="__line154"></a>    if ( isok() &amp;&amp; m_other.isok() )
+<a name="__line155"></a>    {
+<a name="__line156"></a>	e=::sqrt(e*e+m_other.e*m_other.e);
+<a name="__line157"></a>	v-=m_other.v;
+<a name="__line158"></a>    }
+<a name="__line159"></a>    else
+<a name="__line160"></a>    {
+<a name="__line161"></a>	e=unset;
+<a name="__line162"></a>	v=unset;
+<a name="__line163"></a>    }
+<a name="__line164"></a>    return *this;
+<a name="__line165"></a>}
+<a name="__line166"></a>
+<a name="__line167"></a>
+<a name="__line168"></a>const meas&amp; meas::operator-=(const double V)
+<a name="__line169"></a>{
+<a name="__line170"></a>    if ( isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line171"></a>    {
+<a name="__line172"></a>	v-=V;
+<a name="__line173"></a>    }
+<a name="__line174"></a>    else
+<a name="__line175"></a>    {
+<a name="__line176"></a>	e=unset;
+<a name="__line177"></a>	v=unset;
+<a name="__line178"></a>    }
+<a name="__line179"></a>    return *this;
+<a name="__line180"></a>}
+<a name="__line181"></a>
+<a name="__line182"></a>
+<a name="__line183"></a>const meas&amp; meas::operator*=(const meas &amp;m_other)
+<a name="__line184"></a>{
+<a name="__line185"></a>    if ( isok() &amp;&amp; m_other.isok() )
+<a name="__line186"></a>    {
+<a name="__line187"></a>	e=::sqrt(m_other.v*m_other.v*e*e+v*v*m_other.e*m_other.e);
+<a name="__line188"></a>	v*=m_other.v;
+<a name="__line189"></a>    }
+<a name="__line190"></a>    else
+<a name="__line191"></a>    {
+<a name="__line192"></a>	e=unset;
+<a name="__line193"></a>	v=unset;
+<a name="__line194"></a>    }
+<a name="__line195"></a>    return *this;
+<a name="__line196"></a>}
+<a name="__line197"></a>
+<a name="__line198"></a>
+<a name="__line199"></a>const meas&amp; meas::operator*=(const double V)
+<a name="__line200"></a>{
+<a name="__line201"></a>    if ( isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line202"></a>    {
+<a name="__line203"></a>	e*=::fabs(V);
+<a name="__line204"></a>	v*=V;
+<a name="__line205"></a>    }
+<a name="__line206"></a>    else
+<a name="__line207"></a>    {
+<a name="__line208"></a>	e=unset;
+<a name="__line209"></a>	v=unset;
+<a name="__line210"></a>    }
+<a name="__line211"></a>    return *this;
+<a name="__line212"></a>}
+<a name="__line213"></a>
+<a name="__line214"></a>
+<a name="__line215"></a>const meas&amp; meas::operator/=(const meas &amp;m_other)
+<a name="__line216"></a>{
+<a name="__line217"></a>    if ( isok() &amp;&amp; m_other.isok() )
+<a name="__line218"></a>    {
+<a name="__line219"></a>	e=::sqrt(e*e/(m_other.v*m_other.v)+v*v/(m_other.v*m_other.v*m_other.v*m_other.v)*m_other.e*m_other.e);
+<a name="__line220"></a>	v/=m_other.v;
+<a name="__line221"></a>    }
+<a name="__line222"></a>    else
+<a name="__line223"></a>    {
+<a name="__line224"></a>	e=unset;
+<a name="__line225"></a>	v=unset;
+<a name="__line226"></a>    }
+<a name="__line227"></a>    return *this;
+<a name="__line228"></a>}
+<a name="__line229"></a>
+<a name="__line230"></a>
+<a name="__line231"></a>const meas&amp; meas::operator/=(const double V)
+<a name="__line232"></a>{
+<a name="__line233"></a>    if ( isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line234"></a>    {
+<a name="__line235"></a>	e/=::fabs(V);
+<a name="__line236"></a>	v/=V;
+<a name="__line237"></a>    }
+<a name="__line238"></a>    else
+<a name="__line239"></a>    {
+<a name="__line240"></a>	e=unset;
+<a name="__line241"></a>	v=unset;
+<a name="__line242"></a>    }
+<a name="__line243"></a>    return *this;
+<a name="__line244"></a>}
+<a name="__line245"></a>
+<a name="__line246"></a>
+<a name="__line247"></a>const meas&amp; meas::operator++()
+<a name="__line248"></a>{
+<a name="__line249"></a>    if ( isok() )
+<a name="__line250"></a>    {
+<a name="__line251"></a>	++v;
+<a name="__line252"></a>    }
+<a name="__line253"></a>    return *this;
+<a name="__line254"></a>}
+<a name="__line255"></a>
+<a name="__line256"></a>
+<a name="__line257"></a>const meas&amp; meas::operator--()
+<a name="__line258"></a>{
+<a name="__line259"></a>    if ( isok() )
+<a name="__line260"></a>    {
+<a name="__line261"></a>	--v;
+<a name="__line262"></a>    }
+<a name="__line263"></a>    return *this;
+<a name="__line264"></a>}
+<a name="__line265"></a>
+<a name="__line266"></a>
+<a name="__line267"></a>bool meas::operator==(const meas &amp;m) const
+<a name="__line268"></a>{
+<a name="__line269"></a>    return (v==m.v &amp;&amp; e==m.e ? true : false);
+<a name="__line270"></a>}
+<a name="__line271"></a>
+<a name="__line272"></a>
+<a name="__line273"></a>bool meas::operator==(const double d) const
+<a name="__line274"></a>{
+<a name="__line275"></a>    return (v==d &amp;&amp; e==0.0 ? true : false);
+<a name="__line276"></a>}
+<a name="__line277"></a>
+<a name="__line278"></a>
+<a name="__line279"></a>bool meas::operator!=(const meas &amp;m) const
+<a name="__line280"></a>{
+<a name="__line281"></a>    return (v!=m.v || e!=m.e ? true : false);
+<a name="__line282"></a>}
+<a name="__line283"></a>
+<a name="__line284"></a>
+<a name="__line285"></a>bool meas::operator!=(const double d) const
+<a name="__line286"></a>{
+<a name="__line287"></a>    return (v!=d || e!=0.0 ? true : false);
+<a name="__line288"></a>}
+<a name="__line289"></a>
+<a name="__line290"></a>
+<a name="__line291"></a>bool meas::operator&lt;(const meas &amp;m) const
+<a name="__line292"></a>{
+<a name="__line293"></a>    return (v&lt;m.v ? true : false);
+<a name="__line294"></a>}
+<a name="__line295"></a>
+<a name="__line296"></a>
+<a name="__line297"></a>bool meas::operator&lt;(const double d) const
+<a name="__line298"></a>{
+<a name="__line299"></a>    return (v&lt;d ? true : false);
+<a name="__line300"></a>}
+<a name="__line301"></a>
+<a name="__line302"></a>
+<a name="__line303"></a>bool meas::operator&gt;(const meas &amp;m) const
+<a name="__line304"></a>{
+<a name="__line305"></a>    return (v&gt;m.v ? true : false);
+<a name="__line306"></a>}
+<a name="__line307"></a>
+<a name="__line308"></a>
+<a name="__line309"></a>bool meas::operator&gt;(const double d) const
+<a name="__line310"></a>{
+<a name="__line311"></a>    return (v&gt;d ? true : false);
+<a name="__line312"></a>}
+<a name="__line313"></a>
+<a name="__line314"></a>
+<a name="__line315"></a>bool meas::operator&lt;=(const meas &amp;m) const
+<a name="__line316"></a>{
+<a name="__line317"></a>    return (v&lt;=m.v ? true : false);
+<a name="__line318"></a>}
+<a name="__line319"></a>
+<a name="__line320"></a>
+<a name="__line321"></a>bool meas::operator&lt;=(const double d) const
+<a name="__line322"></a>{
+<a name="__line323"></a>    return (v&lt;=d ? true : false);
+<a name="__line324"></a>}
+<a name="__line325"></a>
+<a name="__line326"></a>
+<a name="__line327"></a>bool meas::operator&gt;=(const meas &amp;m) const
+<a name="__line328"></a>{
+<a name="__line329"></a>    return (v&gt;=m.v ? true : false);
+<a name="__line330"></a>}
+<a name="__line331"></a>
+<a name="__line332"></a>
+<a name="__line333"></a>bool meas::operator&gt;=(const double d) const
+<a name="__line334"></a>{
+<a name="__line335"></a>    return (v&gt;=d ? true : false);
+<a name="__line336"></a>}
+<a name="__line337"></a>
+<a name="__line338"></a>
+<a name="__line339"></a>meas operator+(const meas &amp;m, const meas &amp;m_other)
+<a name="__line340"></a>{ 
+<a name="__line341"></a>    if ( m.isok() &amp;&amp; m_other.isok() )
+<a name="__line342"></a>    {
+<a name="__line343"></a>	return meas(m.v+m_other.v, ::sqrt(m.e*m.e+m_other.e*m_other.e));
+<a name="__line344"></a>    }
+<a name="__line345"></a>    else
+<a name="__line346"></a>    {
+<a name="__line347"></a>	return meas(unset, unset);
+<a name="__line348"></a>    }
+<a name="__line349"></a>}
+<a name="__line350"></a>
+<a name="__line351"></a>
+<a name="__line352"></a>meas operator+(const meas &amp;m, const double V)
+<a name="__line353"></a>{
+<a name="__line354"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line355"></a>    {
+<a name="__line356"></a>	return meas(m.v+V, m.e);
+<a name="__line357"></a>    }
+<a name="__line358"></a>    else
+<a name="__line359"></a>    {
+<a name="__line360"></a>	return meas(unset, unset);
+<a name="__line361"></a>    }
+<a name="__line362"></a>}
+<a name="__line363"></a>
+<a name="__line364"></a>
+<a name="__line365"></a>meas operator+(const double V, const meas &amp;m)
+<a name="__line366"></a>{
+<a name="__line367"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line368"></a>    {
+<a name="__line369"></a>	return meas(V+m.v, m.e);
+<a name="__line370"></a>    }
+<a name="__line371"></a>    else
+<a name="__line372"></a>    {
+<a name="__line373"></a>	return meas(unset, unset);
+<a name="__line374"></a>    }
+<a name="__line375"></a>}
+<a name="__line376"></a>
+<a name="__line377"></a>
+<a name="__line378"></a>meas operator-(const meas &amp;m, const meas &amp;m_other)
+<a name="__line379"></a>{
+<a name="__line380"></a>    if ( m.isok() &amp;&amp; m_other.isok() )
+<a name="__line381"></a>    {
+<a name="__line382"></a>	return meas(m.v-m_other.v, ::sqrt(m.e*m.e+m_other.e*m_other.e));
+<a name="__line383"></a>    }
+<a name="__line384"></a>    else
+<a name="__line385"></a>    {
+<a name="__line386"></a>	return meas(unset, unset);
+<a name="__line387"></a>    }
+<a name="__line388"></a>}
+<a name="__line389"></a>
+<a name="__line390"></a>
+<a name="__line391"></a>meas operator-(const meas &amp;m, const double V)
+<a name="__line392"></a>{
+<a name="__line393"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line394"></a>    {
+<a name="__line395"></a>	return meas(m.v-V, m.e);
+<a name="__line396"></a>    }
+<a name="__line397"></a>    else
+<a name="__line398"></a>    {
+<a name="__line399"></a>	return meas(unset, unset);
+<a name="__line400"></a>    }
+<a name="__line401"></a>}
+<a name="__line402"></a>
+<a name="__line403"></a>
+<a name="__line404"></a>meas operator-(const double V, const meas &amp;m)
+<a name="__line405"></a>{
+<a name="__line406"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line407"></a>    {
+<a name="__line408"></a>	return meas(V-m.v, m.e);
+<a name="__line409"></a>    }
+<a name="__line410"></a>    else
+<a name="__line411"></a>    {
+<a name="__line412"></a>	return meas(unset, unset);
+<a name="__line413"></a>    }
+<a name="__line414"></a>}
+<a name="__line415"></a>
+<a name="__line416"></a>
+<a name="__line417"></a>meas operator-(const meas &amp;m)
+<a name="__line418"></a>{
+<a name="__line419"></a>    if ( m.isok() )
+<a name="__line420"></a>    {
+<a name="__line421"></a>	return meas(-m.v, m.e);
+<a name="__line422"></a>    }
+<a name="__line423"></a>    else
+<a name="__line424"></a>    {
+<a name="__line425"></a>	return meas(unset, unset);
+<a name="__line426"></a>    }
+<a name="__line427"></a>}
+<a name="__line428"></a>
+<a name="__line429"></a>
+<a name="__line430"></a>meas operator*(const meas &amp;m, const meas &amp;m_other)
+<a name="__line431"></a>{
+<a name="__line432"></a>    if ( m.isok() &amp;&amp; m_other.isok() )
+<a name="__line433"></a>    {
+<a name="__line434"></a>	return meas(m.v*m_other.v, ::sqrt(m_other.v*m_other.v*m.e*m.e+m.v*m.v*m_other.e*m_other.e));
+<a name="__line435"></a>    }
+<a name="__line436"></a>    else
+<a name="__line437"></a>    {
+<a name="__line438"></a>	return meas(unset, unset);
+<a name="__line439"></a>    }
+<a name="__line440"></a>}
+<a name="__line441"></a>
+<a name="__line442"></a>
+<a name="__line443"></a>meas operator*(const meas &amp;m, const double V)
+<a name="__line444"></a>{
+<a name="__line445"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line446"></a>    {
+<a name="__line447"></a>	return meas(m.v*V, ::fabs(m.e*V));
+<a name="__line448"></a>    }
+<a name="__line449"></a>    else
+<a name="__line450"></a>    {
+<a name="__line451"></a>	return meas(unset, unset);
+<a name="__line452"></a>    }
+<a name="__line453"></a>}
+<a name="__line454"></a>
+<a name="__line455"></a>
+<a name="__line456"></a>meas operator*(const double V, const meas &amp;m)
+<a name="__line457"></a>{
+<a name="__line458"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line459"></a>    {
+<a name="__line460"></a>	return meas(V*m.v, ::fabs(V*m.e));
+<a name="__line461"></a>    }
+<a name="__line462"></a>    else
+<a name="__line463"></a>    {
+<a name="__line464"></a>	return meas(unset, unset);
+<a name="__line465"></a>    }
+<a name="__line466"></a>}
+<a name="__line467"></a>
+<a name="__line468"></a>
+<a name="__line469"></a>meas operator/(const meas &amp;m, const meas &amp;m_other)
+<a name="__line470"></a>{
+<a name="__line471"></a>    if ( m.isok() &amp;&amp; m_other.isok() )
+<a name="__line472"></a>    {
+<a name="__line473"></a>	return meas(m.v/m_other.v, ::sqrt(m.e*m.e/(m_other.v*m_other.v)+m.v*m.v/(m_other.v*m_other.v*m_other.v*m_other.v)*m_other.e*m_other.e));
+<a name="__line474"></a>    }
+<a name="__line475"></a>    else
+<a name="__line476"></a>    {
+<a name="__line477"></a>	return meas(unset, unset);
+<a name="__line478"></a>    }
+<a name="__line479"></a>}
+<a name="__line480"></a>
+<a name="__line481"></a>
+<a name="__line482"></a>meas operator/(const meas &amp;m, const double V)
+<a name="__line483"></a>{
+<a name="__line484"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line485"></a>    {
+<a name="__line486"></a>	return meas(m.v/V, ::fabs(m.e/V));
+<a name="__line487"></a>    }
+<a name="__line488"></a>    else
+<a name="__line489"></a>    {
+<a name="__line490"></a>	return meas(unset, unset);
+<a name="__line491"></a>    }
+<a name="__line492"></a>}
+<a name="__line493"></a>
+<a name="__line494"></a>
+<a name="__line495"></a>meas operator/(const double V, const meas &amp;m)
+<a name="__line496"></a>{
+<a name="__line497"></a>    if ( m.isok() &amp;&amp; std::isfinite(V) &amp;&amp; V!=unset )
+<a name="__line498"></a>    {
+<a name="__line499"></a>	return meas(V/m.v, ::fabs(V*m.e/(m.v*m.v)));
+<a name="__line500"></a>    }
+<a name="__line501"></a>    else
+<a name="__line502"></a>    {
+<a name="__line503"></a>	return meas(unset, unset);
+<a name="__line504"></a>    }
+<a name="__line505"></a>}
+<a name="__line506"></a>
+<a name="__line507"></a>
+<a name="__line508"></a>bool meas::isfinite() const
+<a name="__line509"></a>{
+<a name="__line510"></a>    return (std::isfinite(v) &amp;&amp; std::isfinite(e) ? true : false);
+<a name="__line511"></a>}
+<a name="__line512"></a>
+<a name="__line513"></a>
+<a name="__line514"></a>bool meas::isinf() const
+<a name="__line515"></a>{
+<a name="__line516"></a>    return (std::isinf(v) || std::isinf(e) ? true : false);
+<a name="__line517"></a>}
+<a name="__line518"></a>
+<a name="__line519"></a>
+<a name="__line520"></a>bool meas::isnan() const
+<a name="__line521"></a>{
+<a name="__line522"></a>    return (std::isnan(v) || std::isnan(e) ? true : false);
+<a name="__line523"></a>}
+<a name="__line524"></a>
+<a name="__line525"></a>
+<a name="__line526"></a>bool meas::isset() const
+<a name="__line527"></a>{
+<a name="__line528"></a>    return (v!=unset &amp;&amp; e!=unset ? true : false);
+<a name="__line529"></a>}
+<a name="__line530"></a>
+<a name="__line531"></a>
+<a name="__line532"></a>bool meas::isunset() const
+<a name="__line533"></a>{
+<a name="__line534"></a>    return (v==unset || e==unset ? true : false);
+<a name="__line535"></a>}
+<a name="__line536"></a>
+<a name="__line537"></a>
+<a name="__line538"></a>bool meas::isok() const
+<a name="__line539"></a>{
+<a name="__line540"></a>    return (std::isfinite(v) &amp;&amp; std::isfinite(e) &amp;&amp; v!=unset &amp;&amp; e!=unset ? true : false);
+<a name="__line541"></a>}
+<a name="__line542"></a>
+<a name="__line543"></a>
+<a name="__line544"></a>bool meas::isfinite(const meas &amp;m)
+<a name="__line545"></a>{
+<a name="__line546"></a>    return m.isfinite();
+<a name="__line547"></a>}
+<a name="__line548"></a>
+<a name="__line549"></a>
+<a name="__line550"></a>bool meas::isinf(const meas &amp;m)
+<a name="__line551"></a>{
+<a name="__line552"></a>    return m.isinf();
+<a name="__line553"></a>}
+<a name="__line554"></a>
+<a name="__line555"></a>
+<a name="__line556"></a>bool meas::isnan(const meas &amp;m)
+<a name="__line557"></a>{
+<a name="__line558"></a>    return m.isnan();
+<a name="__line559"></a>}
+<a name="__line560"></a>
+<a name="__line561"></a>
+<a name="__line562"></a>bool meas::isset(const meas &amp;m)
+<a name="__line563"></a>{
+<a name="__line564"></a>    return m.isset();
+<a name="__line565"></a>}
+<a name="__line566"></a>
+<a name="__line567"></a>
+<a name="__line568"></a>bool meas::isunset(const meas &amp;m)
+<a name="__line569"></a>{
+<a name="__line570"></a>    return m.isunset();
+<a name="__line571"></a>}
+<a name="__line572"></a>
+<a name="__line573"></a>
+<a name="__line574"></a>bool meas::isok(const meas &amp;m)
+<a name="__line575"></a>{
+<a name="__line576"></a>    return m.isok();
+<a name="__line577"></a>}
+<a name="__line578"></a>
+<a name="__line579"></a>
+<a name="__line580"></a>var meas::to_var(const var &amp;format) const
+<a name="__line581"></a>{
+<a name="__line582"></a>    var result = (v==unset ? var("unset") : var(v,format));
+<a name="__line583"></a>    result    &amp;= " +/- ";
+<a name="__line584"></a>    result    &amp;= (e==unset ? var("unset") : var(e,format));
+<a name="__line585"></a>    return result;
+<a name="__line586"></a>}
+<a name="__line587"></a>
+<a name="__line588"></a><span class=comment>/*
+<a name="__line589"></a>meas &amp;meas::transform(const function &amp;f)
+<a name="__line590"></a>{
+<a name="__line591"></a>    if ( isok() &amp;&amp; f.initialized() )
+<a name="__line592"></a>    {
+<a name="__line593"></a>	var mv=v;
+<a name="__line594"></a>	v = f(mv).dbl();
+<a name="__line595"></a>	e = ::fabs(f.derivative(1)(mv).dbl()*e);
+<a name="__line596"></a>    }
+<a name="__line597"></a>    else
+<a name="__line598"></a>    {
+<a name="__line599"></a>	v=unset;
+<a name="__line600"></a>	e=unset;
+<a name="__line601"></a>    }
+<a name="__line602"></a>    return *this;
+<a name="__line603"></a>}
+<a name="__line604"></a>
+<a name="__line605"></a>meas apply(const function &amp;f, const meas &amp;m)
+<a name="__line606"></a>{
+<a name="__line607"></a>    if ( m.isok() &amp;&amp; f.initialized() )
+<a name="__line608"></a>    {
+<a name="__line609"></a>	var mv=m.v;
+<a name="__line610"></a>	return meas(f(mv).dbl(), ::fabs(f.derivative(1)(mv).dbl()*m.e));
+<a name="__line611"></a>    }
+<a name="__line612"></a>    else
+<a name="__line613"></a>    {
+<a name="__line614"></a>	return meas(unset, unset);
+<a name="__line615"></a>    }
+<a name="__line616"></a>}
+<a name="__line617"></a>*/</span>
+<a name="__line618"></a>
+<a name="__line619"></a>std::ostream&amp; operator&lt;&lt;(std::ostream &amp;out, const meas &amp;m)
+<a name="__line620"></a>{
+<a name="__line621"></a><span class=comment>//    out&lt;&lt;m.to_var(var("%.")&amp;out.precision()&amp;var("f"));</span>
+<a name="__line622"></a>    out&lt;&lt;m.to_var(var("%.")&amp;(int)out.precision()&amp;var("f")); 
+<a name="__line623"></a>    return out;
+<a name="__line624"></a>}
+<a name="__line625"></a>
+<a name="__line626"></a>std::istream&amp; operator&gt;&gt;(std::istream &amp;in, meas &amp;m)
+<a name="__line627"></a>{
+<a name="__line628"></a>    std::string s;
+<a name="__line629"></a>    std::istringstream iss;
+<a name="__line630"></a>    static double zero=0.0;
+<a name="__line631"></a>    static double minusone=-1.0;
+<a name="__line632"></a>    if ( !(in&gt;&gt;s) ) return in;
+<a name="__line633"></a>    iss.str(s);
+<a name="__line634"></a>    if ( !(iss&gt;&gt;m.v) )
+<a name="__line635"></a>    {
+<a name="__line636"></a>	if ( s=="inf" ) m.v=1.0/zero;
+<a name="__line637"></a>	else if ( s=="-inf" ) m.v=-1.0/zero;
+<a name="__line638"></a>	else if ( s=="nan" ) m.v=::sqrt(minusone);
+<a name="__line639"></a>	else if ( s=="unset" ) m.v=unset;
+<a name="__line640"></a>	else { in.setstate(std::istream::failbit); return in; }
+<a name="__line641"></a>    }
+<a name="__line642"></a>    iss.clear();
+<a name="__line643"></a>    if ( !(in&gt;&gt;s) ) return in;
+<a name="__line644"></a>    iss.str(s);
+<a name="__line645"></a>    if ( s!="+/-" )
+<a name="__line646"></a>    {
+<a name="__line647"></a>	if ( !(iss&gt;&gt;m.e) )
+<a name="__line648"></a>	{
+<a name="__line649"></a>	    if ( s=="inf" ) m.e=1.0/zero;
+<a name="__line650"></a>	    else if ( s=="-inf" ) m.e=-1.0/zero;
+<a name="__line651"></a>	    else if ( s=="nan" ) m.e=::sqrt(minusone);
+<a name="__line652"></a>	    else if ( s=="unset" ) m.e=unset;
+<a name="__line653"></a>	    else { in.setstate(std::istream::failbit); return in; }
+<a name="__line654"></a>	}
+<a name="__line655"></a>	return in;
+<a name="__line656"></a>    }
+<a name="__line657"></a>    iss.clear();
+<a name="__line658"></a>    if ( !(in&gt;&gt;s) ) return in;
+<a name="__line659"></a>    iss.str(s);
+<a name="__line660"></a>    if ( !(iss&gt;&gt;m.e) )
+<a name="__line661"></a>    {
+<a name="__line662"></a>	if ( s=="inf" ) m.e=1.0/zero;
+<a name="__line663"></a>	else if ( s=="-inf" ) m.e=-1.0/zero;
+<a name="__line664"></a>	else if ( s=="nan" ) m.e=::sqrt(minusone);
+<a name="__line665"></a>	else if ( s=="unset" ) m.e=unset;
+<a name="__line666"></a>	else { in.setstate(std::istream::failbit); return in; }
+<a name="__line667"></a>    }
+<a name="__line668"></a>    return in;
+<a name="__line669"></a>}
+<a name="__line670"></a>
+<a name="__line671"></a>
+<a name="__line672"></a>}
+<a name="__line673"></a>
+<a name="__line674"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

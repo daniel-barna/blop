@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Multi-page terminals</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="printer.html ">
+   <link rel="Next" href="video.html ">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="printer.html ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: printer.html ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="video.html ">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: video.html ">
+    </a> <br>
+
+<center class=title><b>
+Multi-page terminals
+</b></center>
+<hr>
+
+<div class=prguide>
+<u>Practical Guide:</u> 
+Two terminals are described here: 
+<ul>
+<li><tt>mpps</tt> and <tt>mppdf</tt>
+<li><tt>versatile_pdf</tt>
+</ul>
+
+<p>The first two create a multi-page PostScript/PDF output by printing the current canvas into .beps files, including them in a LaTeX document and compiling the LaTeX document. That is, the different pages are in the same context. 
+
+<p><tt>versatile_pdf</tt> produces a multipage pdf output, which can be assembled from different types of documents (jpg, pdf, etc).
+
+In these examples and documentation, <tt>mpps</tt> can be substituted everywhere by <tt>mppdf</tt>, in which case a multi-page pdf file is produced instead, and not a postscript file. 
+<pre> 
+mpps out("output.ps");
+mpps.papersize("a3");      // set larger papersize instead of default a4
+
+plot(...);                 // plot something 
+out.print();               // and print this figure to the output terminal
+
+plot(...);                 // plot  something else  
+out.print("height=18cm");  // and print this to the file,  also specifying the optional arguments to the \blopeps latex-macro
+
+out.options("height=10cm,width=10cm");  // from  now  on, all  figures will be printed with these options,
+                                        // unless explicitely specified by the argument of  the 'print(...)'  function 
+plot(...); 
+out.print();               // this figure will be printed  in 10x10 cm size 
+
+out.flush();               // flush it (.. compile with latex; file remains open)
+
+out.close();               // flush and close the file (also compile with  latex) 
+                           // now you can reuse this variable, via the open("filename")
+//---------------------------
+
+versatile_pdf output("output.pdf");
+
+// simple plot, print it as pdf, appending as the last page to the document
+plot(_1,_1);
+output.print&lt;pdf&gt;();
+
+// this plot is quite heavy, it it's printed as a pdf, it will be huge.
+// print it as a bitmap (jpg) instead, and include it like that.
+plot(_1,_2,sin(_1*_2)).p1range(0,10).p2range(0,10).nsamples(500).ds(cboxes());
+output.print&lt;jpg&gt;("-w 10cm -h 8cm");
+
+// add one more page from an existing graphics
+output.include("some_file.png");
+
+// Print with default options, inserting it at page #1
+output.print&lt;pdf&gt;("",1);        
+
+</pre>
+</div> 
+<hr>
+
+<div class=description>
+
+<p>If you  want to  put several figures  into a  multi-page postscript(PDF)
+file, then  the <tt>mpps</tt>(<tt>mppdf</tt>)  terminal is your  right choice.   It is
+nothing  else than  a .tex  file.  When  a figure  is printed  to this
+terminal,  a  separate   <a  href="blopeps.html">blopeps</a>  file  is
+created, and  automatically included  into this LaTeX  document (using
+the  <a href="blopeps.html#macro"><tt>\blopeps</tt>  macro</a>).  This
+way it can accomodate several figures. It is automatically compiled by
+latex if  you call  the <tt>flush()</tt> function  of it, or  when you
+call <tt>close()</tt>, or when its destructor is called.
+
+<p>You  can initialize  it with  a filename  (this will  be  the final
+postscript/PDF file):<br>
+<tt>mpps out("output.ps")</tt><br>
+or if you want to postpone  the specification of the filename, you can
+use the <tt>open</tt> member function:<br>
+<tt>
+mpps out;<br>
+out.open("output.ps");<br>
+</tt>
+
+<p>The current  canvas can be  printed to it using  the <tt>print</tt>
+member  function of  <tt>mpps</tt>. This  <tt>print(...)</tt> function
+has an optional argument, which specifies the optional arguments to be
+given to  the <tt>\blopeps</tt> macro  when including this  figure. In
+the following example the first figure (containing a sine) is included
+with the  default settings,  for the second  (containig a  cosine) the
+linewidth and height of the figure is changed.
+<pre>
+mpps out("output.ps");
+
+plot(_1,sin(_1)).p1range(0,10);
+out.print();
+
+plot(_1,cos(_1)).p1range(0,10);
+out.print("linewidth=1pt,height=18cm");
+
+out.flush();
+system("gv output.ps &");
+</pre>
+
+<p>The   <tt>mpps</tt>    terminal   is   derived    not   only   from
+<tt>blop::terminal</tt>, but also  from <tt>std::ofstream</tt>, so you
+can also  treat it  as an  output file (which  is your  LaTeX document
+source), and write  directly to it. It automatically  writes a default
+LaTeX document header (beginning from <tt>\documentclass{article}</tt>
+up   to    <tt>\begin{document}</tt>,   and   additionally    also   a
+<tt>\LARGE</tt> macro) into the  file, but <b>not before</b> the first
+output  of  a figure  into  this  terminal.   This has  the  following
+consequences:
+
+<ul>
+
+<li>  If you  only want  to  print figures  to the  terminal with  the
+default header, simply use the following sequences:
+<pre>mpps out("output.ps");
+plot(...);
+out.print();
+plot(...);
+out.print();</pre>
+
+<li> If  you want to rely on  the default header, but  write also some
+text into the file, you should explicitely request the printing of the
+header before you write something:
+<pre>mpps out("output.ps");
+out.print_header();
+out&lt;&lt;"This will be my first figure:"&lt;&lt;endl;
+plot(...);
+out.print();</pre>
+
+<li>  If you want  to provide  your own  header, and  not rely  on the
+default one, proceed the following way:
+<pre>mpps out("output.ps");
+out&lt;&lt;"\\documentclass{foils}"&lt;&lt;endl;
+out&lt;&lt;"\\usepackage{blopeps}"&lt;&lt;endl;
+out&lt;&lt;"whatever you want to write here"&lt;&lt;endl;
+out&lt;&lt;"\\begin{document}}"&lt;&lt;endl;
+
+// and notify the terminal that you have written the header,
+// so that it does not print it again
+out.header_printed(true);
+
+plot(...);
+out.print();
+</ul>
+
+<p>The mpps terminal has 3 verbosity levels (to be set via the <tt>verbose(int)</tt> member function): 
+<ul>
+<li>0 - No LaTeX/dvips messages are printed, even if they fail
+<li>1 - (default): output of LaTeX/dvips is printed, if they fail
+<li>2 - output of LaTeX/dvips is anyway printed
+</ul>
+
+
+</div>
+<hr>
+
+<pre class=implementation>
+Souce files:
+   <a href="mpps.h.html">mpps.h</a>
+   <a href="mpps.cc.html">mpps.cc</a>
+   <a href="mppdf.h.html">mppdf.h</a>
+   <a href="mppdf.cc.html">mppdf.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="printer.html ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: printer.html ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="video.html ">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: video.html ">
+    </a> 
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: array.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_ARRAY_H__
+<a name="__line1"></a>#define __BLOP_ARRAY_H__
+<a name="__line2"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>    class array : public std::vector&lt;blop::var&gt;
+<a name="__line7"></a>    {
+<a name="__line8"></a><span class=private>    private:
+<a name="__line9"></a>	unsigned int iterator_;
+<a name="__line10"></a>
+<a name="__line11"></a>	static var outfs_;
+<a name="__line12"></a>	static var infs_;
+<a name="__line13"></a>
+<a name="__line14"></a>	static array tmp_;
+<a name="__line15"></a></span><span class=public>    public:
+<a name="__line16"></a>	array();
+<a name="__line17"></a>	array(const array &amp;);
+<a name="__line18"></a>	array(unsigned int size);
+<a name="__line19"></a>
+<a name="__line20"></a>#ifndef __MAKECINT__
+<a name="__line21"></a>        array(const std::initializer_list&lt;double&gt; &amp;l);
+<a name="__line22"></a>        array(const std::initializer_list&lt;int&gt; &amp;l);
+<a name="__line23"></a>        array(const std::initializer_list&lt;std::string&gt; &amp;l);
+<a name="__line24"></a>        array(const std::initializer_list&lt;const char *&gt; &amp;l);
+<a name="__line25"></a>        array(const std::initializer_list&lt;blop::var&gt; &amp;l);
+<a name="__line26"></a>#endif    
+<a name="__line27"></a>
+<a name="__line28"></a>	<span class=comment>// output and input field separators (infs not yet used)</span>
+<a name="__line29"></a>	static const var &amp;outfs();
+<a name="__line30"></a>	static void       outfs(const var &amp;);
+<a name="__line31"></a>
+<a name="__line32"></a>	static const var &amp;infs();
+<a name="__line33"></a>	static void       infs(const var &amp;);
+<a name="__line34"></a>
+<a name="__line35"></a>	<span class=comment>// return the last element of the array, and remove it</span>
+<a name="__line36"></a>	var pop_back();
+<a name="__line37"></a>
+<a name="__line38"></a>	array &amp;push_back(const array &amp;);
+<a name="__line39"></a>	void push_back(const var &amp;v) { vector&lt;var&gt;::push_back(v); }
+<a name="__line40"></a>        void push_back(double d) { vector&lt;var&gt;::push_back(d); }
+<a name="__line41"></a>        void push_back(int i) { vector&lt;var&gt;::push_back(i); }
+<a name="__line42"></a>
+<a name="__line43"></a>	<span class=comment>// assigmnemt</span>
+<a name="__line44"></a>	const array &amp;operator= (const array &amp;rhs);
+<a name="__line45"></a>
+<a name="__line46"></a>	<span class=comment>// the same as push_back, but returns reference</span>
+<a name="__line47"></a>	<span class=comment>// to itself, so that it can be chained</span>
+<a name="__line48"></a>	array &amp;operator() (const var &amp;v);
+<a name="__line49"></a>
+<a name="__line50"></a>	void push_front(const var &amp;);
+<a name="__line51"></a>	void push_front(const array &amp;);
+<a name="__line52"></a>
+<a name="__line53"></a>	<span class=comment>// std::vector has only an erase(iterator) function</span>
+<a name="__line54"></a>	<span class=comment>// this is an added feature for ease of use</span>
+<a name="__line55"></a>	array &amp;erase(unsigned int pos);
+<a name="__line56"></a>
+<a name="__line57"></a>	static array &amp;make(const var &amp;v);
+<a name="__line58"></a>
+<a name="__line59"></a>	<span class=comment>// Make a sequence of numbers, starting from 'from', not extending 'to'</span>
+<a name="__line60"></a>	<span class=comment>// (that is, 'to' is included in the sequence, but be aware of finite-precision</span>
+<a name="__line61"></a>	<span class=comment>// artefacts)</span>
+<a name="__line62"></a>	static array &amp;sequence(const var &amp;step, const var &amp;from, const var &amp;to);
+<a name="__line63"></a>
+<a name="__line64"></a>	<span class=comment>// replace the string 'from' to 'to' in all of the elements</span>
+<a name="__line65"></a>	array &amp;replace(const var &amp;from, const var &amp;to);
+<a name="__line66"></a>
+<a name="__line67"></a>        array &amp;replace_re(const var &amp;pattern, const var &amp;replacement);
+<a name="__line68"></a>
+<a name="__line69"></a>        <span class=comment>// ---------- concatenate all elements using a separator --------------------------</span>
+<a name="__line70"></a>
+<a name="__line71"></a>        var join(const var &amp;separator="", unsigned int from=0, int to=-1) const;
+<a name="__line72"></a>
+<a name="__line73"></a>	<span class=comment>// ---------- iterating over a vector  --------------------------------------------</span>
+<a name="__line74"></a>
+<a name="__line75"></a>	<span class=comment>// set innter iterator to first, last  or any other element</span>
+<a name="__line76"></a>	void setfirst();  
+<a name="__line77"></a>	void setlast();   
+<a name="__line78"></a>	void set(int i);
+<a name="__line79"></a>
+<a name="__line80"></a>	<span class=comment>// get the current index (0-based);</span>
+<a name="__line81"></a>	int pos() const;
+<a name="__line82"></a>
+<a name="__line83"></a>	<span class=comment>// test if iterator is within range</span>
+<a name="__line84"></a>	operator bool() const;  
+<a name="__line85"></a>
+<a name="__line86"></a>	<span class=comment>// increment or decrement iterator</span>
+<a name="__line87"></a>	const array &amp;operator++();
+<a name="__line88"></a>	const array &amp;operator--();
+<a name="__line89"></a>
+<a name="__line90"></a>	<span class=comment>// access current element</span>
+<a name="__line91"></a>	var &amp;operator()();
+<a name="__line92"></a>	const var &amp;operator()() const;
+<a name="__line93"></a>
+<a name="__line94"></a>	<span class=comment>// ---------- sorting -------------------------------------------------------------</span>
+<a name="__line95"></a>
+<a name="__line96"></a>	void sort_s(); <span class=comment>// sort as strings</span>
+<a name="__line97"></a>	void sort_n(); <span class=comment>// sort as numbers</span>
+<a name="__line98"></a>
+<a name="__line99"></a>    };
+<a name="__line100"></a>
+<a name="__line101"></a>
+<a name="__line102"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line103"></a>    <span class=comment>// remove duplicate entries from the array 'a', and return</span>
+<a name="__line104"></a>    <span class=comment>// a new array</span>
+<a name="__line105"></a>
+<a name="__line106"></a>    array array_unique(const array &amp;a);
+<a name="__line107"></a>}
+<a name="__line108"></a>
+<a name="__line109"></a>std::ostream&amp; operator&lt;&lt; (std::ostream &amp;, const blop::array &amp;);
+<a name="__line110"></a>
+<a name="__line111"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

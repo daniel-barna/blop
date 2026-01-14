@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: graph.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="graph.h.html">graph.h</a>"
+<a name="__line1"></a>#include "<a href="axis.h.html">axis.h</a>"
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>#include &lt;fstream&gt;
+<a name="__line6"></a>#include &lt;algorithm&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    graph::graph(const graph &amp;o) : plottable(o), data_(o.data_)
+<a name="__line11"></a>    {
+<a name="__line12"></a>    }
+<a name="__line13"></a>
+<a name="__line14"></a>    const graph &amp;graph::operator=(const graph &amp;o)
+<a name="__line15"></a>    {
+<a name="__line16"></a>	plottable::operator=(o);
+<a name="__line17"></a>	data_ = o.data_;
+<a name="__line18"></a>	return o;
+<a name="__line19"></a>    }
+<a name="__line20"></a>
+<a name="__line21"></a>    void graph::prepare_for_draw(axis *,axis *, frame *f, int count)
+<a name="__line22"></a>    {
+<a name="__line23"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [graph] prepare_for_draw begins..."&lt;&lt;endl;
+<a name="__line24"></a>	if(graph_drawer_) graph_drawer_-&gt;prepare_for_draw(this, f, count);
+<a name="__line25"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [graph] prepare_for_draw finished."&lt;&lt;endl;
+<a name="__line26"></a>    }	
+<a name="__line27"></a>
+<a name="__line28"></a>    graph::~graph()
+<a name="__line29"></a>    {
+<a name="__line30"></a>    }
+<a name="__line31"></a>
+<a name="__line32"></a>    graph::graph()
+<a name="__line33"></a>    {
+<a name="__line34"></a>    }
+<a name="__line35"></a>
+<a name="__line36"></a>    var graph::min(const function &amp;fmin, function fret) const
+<a name="__line37"></a>    {
+<a name="__line38"></a>	if(empty())
+<a name="__line39"></a>	{
+<a name="__line40"></a>	    warning::print("Empty graph","dgraph::min(function)");
+<a name="__line41"></a>	    return "";
+<a name="__line42"></a>	}
+<a name="__line43"></a>        if(!fret.initialized()) fret=fmin;
+<a name="__line44"></a>        double min_val=0;
+<a name="__line45"></a>        var    min_pos="";
+<a name="__line46"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line47"></a>	{
+<a name="__line48"></a>	    var val = fmin.eval(data_[i]);
+<a name="__line49"></a>	    if(val.dbl() &lt; min_val || i==0)
+<a name="__line50"></a>            {
+<a name="__line51"></a>                min_val = val;
+<a name="__line52"></a>                min_pos = fret.eval(data_[i]);
+<a name="__line53"></a>            }
+<a name="__line54"></a>	}
+<a name="__line55"></a>	return min_pos;
+<a name="__line56"></a>    }
+<a name="__line57"></a>    var graph::max(const function &amp;fmin, function fret) const
+<a name="__line58"></a>    {
+<a name="__line59"></a>	if(empty())
+<a name="__line60"></a>	{
+<a name="__line61"></a>	    warning::print("Empty graph","dgraph::max(function)");
+<a name="__line62"></a>	    return "";
+<a name="__line63"></a>	}
+<a name="__line64"></a>        if(!fret.initialized()) fret=fmin;
+<a name="__line65"></a>        double min_val=0;
+<a name="__line66"></a>        var    min_pos="";
+<a name="__line67"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line68"></a>	{
+<a name="__line69"></a>	    var val = fmin.eval(data_[i]);
+<a name="__line70"></a>	    if(val.dbl() &gt; min_val || i==0)
+<a name="__line71"></a>            {
+<a name="__line72"></a>                min_val = val;
+<a name="__line73"></a>                min_pos = fret.eval(data_[i]);
+<a name="__line74"></a>            }
+<a name="__line75"></a>	}
+<a name="__line76"></a>	return min_pos;
+<a name="__line77"></a>    }
+<a name="__line78"></a>
+<a name="__line79"></a>    var graph::min_if(const function &amp;f, const function &amp;condition) const
+<a name="__line80"></a>    {
+<a name="__line81"></a>	if(empty())
+<a name="__line82"></a>	{
+<a name="__line83"></a>	    warning::print("Empty graph","dgraph::min_if(function,function)");
+<a name="__line84"></a>	    return "";
+<a name="__line85"></a>	}
+<a name="__line86"></a>
+<a name="__line87"></a>	var result = "";
+<a name="__line88"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line89"></a>	{
+<a name="__line90"></a>	    var v = f.eval(data_[i]);
+<a name="__line91"></a>	    var cond = condition.eval(data_[i]);
+<a name="__line92"></a>	    if(cond.dbl() != 0.0 &amp;&amp; (v.dbl() &lt; result.dbl() || result.str() == "")) result = v;
+<a name="__line93"></a>	}
+<a name="__line94"></a>	return result;
+<a name="__line95"></a>    }
+<a name="__line96"></a>    
+<a name="__line97"></a>    var graph::max_if(const function &amp;f, const function &amp;condition) const
+<a name="__line98"></a>    {
+<a name="__line99"></a>	if(empty())
+<a name="__line100"></a>	{
+<a name="__line101"></a>	    warning::print("Empty graph","dgraph::max_if(function,function)");
+<a name="__line102"></a>	    return "";
+<a name="__line103"></a>	}
+<a name="__line104"></a>
+<a name="__line105"></a>	var result = "";
+<a name="__line106"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line107"></a>	{
+<a name="__line108"></a>	    var v = f.eval(data_[i]);
+<a name="__line109"></a>	    var cond = condition.eval(data_[i]);
+<a name="__line110"></a>	    if(cond.dbl() != 0.0 &amp;&amp; (v.dbl() &gt; result.dbl() || result.str() == "")) result = v;
+<a name="__line111"></a>	}
+<a name="__line112"></a>	return result;
+<a name="__line113"></a>    }
+<a name="__line114"></a>
+<a name="__line115"></a>
+<a name="__line116"></a>
+<a name="__line117"></a>    <span class=comment>// convert the string 'fn' to a latex-compatible string</span>
+<a name="__line118"></a>    void graph::make_latex_legend(string fn)
+<a name="__line119"></a>    {
+<a name="__line120"></a>	string leg;
+<a name="__line121"></a>	if(fn.find("&lt;&lt;") == 0) leg = "STDIN";
+<a name="__line122"></a>	else
+<a name="__line123"></a>	{
+<a name="__line124"></a>	    for(unsigned int i=0; i&lt;fn.size(); ++i)
+<a name="__line125"></a>	    {
+<a name="__line126"></a>		switch(fn[i])
+<a name="__line127"></a>		{
+<a name="__line128"></a>		case '&lt;': leg += "$&lt;$"; break;
+<a name="__line129"></a>		case '&gt;': leg += "$&gt;$"; break;
+<a name="__line130"></a>		case '_': leg += "\\_"; break;
+<a name="__line131"></a>		case '%': leg += "\\%"; break;
+<a name="__line132"></a>		case '@': leg += "\\@"; break;
+<a name="__line133"></a>		case '{': leg += "$\\{$"; break;
+<a name="__line134"></a>		case '}': leg += "$\\}$"; break;
+<a name="__line135"></a>		case '$': leg += "\\$"; break;
+<a name="__line136"></a>		case '&amp;': leg += "\\&amp;"; break;
+<a name="__line137"></a>		default: leg += fn[i];
+<a name="__line138"></a>		}
+<a name="__line139"></a>	    }
+<a name="__line140"></a>	}
+<a name="__line141"></a>	legend(leg);
+<a name="__line142"></a>    }
+<a name="__line143"></a>
+<a name="__line144"></a>    graph &amp;graph::sort(int col)
+<a name="__line145"></a>    {
+<a name="__line146"></a>        std::sort(data_.begin(), data_.end(), [col](const blop::datapoint &amp;p1, const blop::datapoint &amp;p2) -&gt; bool { return p1[col-1] &lt; p2[col-1]; });
+<a name="__line147"></a>        return *this;
+<a name="__line148"></a>    }
+<a name="__line149"></a>
+<a name="__line150"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

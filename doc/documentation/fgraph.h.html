@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: fgraph.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_FGRAPH_H__
+<a name="__line1"></a>#define __BLOP_FGRAPH_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line6"></a>#include "<a href="graph.h.html">graph.h</a>"
+<a name="__line7"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line8"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>    class fgraph : public graph
+<a name="__line13"></a>	{
+<a name="__line14"></a><span class=private>	private:
+<a name="__line15"></a>	    function function_;
+<a name="__line16"></a>	    function filter_;
+<a name="__line17"></a>            double esample_; <span class=comment>// equidistant sample distance</span>
+<a name="__line18"></a>
+<a name="__line19"></a>	    static var    default_legend_;
+<a name="__line20"></a>
+<a name="__line21"></a>	    static length default_linewidth_;
+<a name="__line22"></a>	    static color  default_linecolor_;
+<a name="__line23"></a>	    static sym::linestyle    default_linestyle_;
+<a name="__line24"></a>
+<a name="__line25"></a>	    static length default_pointsize_;
+<a name="__line26"></a>	    static point_drawer *default_point_drawer_;
+<a name="__line27"></a>	    static color  default_pointcolor_;
+<a name="__line28"></a>
+<a name="__line29"></a>	    static color default_fillcolor_;
+<a name="__line30"></a>	    static bool  default_fill_;
+<a name="__line31"></a>
+<a name="__line32"></a>	    static color default_legendcolor_;
+<a name="__line33"></a>
+<a name="__line34"></a>	    static graph_drawer *default_graph_drawer_;
+<a name="__line35"></a>
+<a name="__line36"></a>	    bool   p1log_, p2log_;
+<a name="__line37"></a>	    static bool default_p1log_, default_p2log_;
+<a name="__line38"></a>	    double p1min_, p1max_, p2min_, p2max_;
+<a name="__line39"></a>	    static double default_p1min_, default_p1max_, default_p2min_, default_p2max_;
+<a name="__line40"></a>
+<a name="__line41"></a>	    int nsamples_p1_, nsamples_p2_;
+<a name="__line42"></a>	    static int default_nsamples1_, default_nsamples2_;
+<a name="__line43"></a>
+<a name="__line44"></a>            <span class=comment>// A complementary method to specifying the number of samples is to define</span>
+<a name="__line45"></a>            <span class=comment>// the sampling distance. If nsamples_p1_ is set to &lt;= 0, then dsamples_p1_ will be used,</span>
+<a name="__line46"></a>            <span class=comment>// similarly for p2.</span>
+<a name="__line47"></a>            double dsamples_p1_, dsamples_p2_;
+<a name="__line48"></a>
+<a name="__line49"></a>	    void init_();
+<a name="__line50"></a>
+<a name="__line51"></a>	    function dx_hint_, dy_hint_;
+<a name="__line52"></a></span><span class=public>	public:
+<a name="__line53"></a>	    int nargs();
+<a name="__line54"></a>
+<a name="__line55"></a>
+<a name="__line56"></a>	    <span class=comment>// ---------- Constructor, destructor, assignment ---------------------------------</span>
+<a name="__line57"></a>
+<a name="__line58"></a>	    const fgraph &amp;operator= (const fgraph &amp;);
+<a name="__line59"></a>	    fgraph();
+<a name="__line60"></a>	    fgraph(const fgraph &amp;);
+<a name="__line61"></a>	    fgraph(const function &amp;f);
+<a name="__line62"></a>
+<a name="__line63"></a>	    const function &amp;operator=(const function &amp;);
+<a name="__line64"></a>	    fgraph &amp;set(function f1, function f2=unset, function f3=unset, function f4=unset);
+<a name="__line65"></a>	    fgraph &amp;param(int n, const var &amp;value);
+<a name="__line66"></a>	    const function &amp;func() const;    <span class=comment>// access the function generating this fgraph</span>
+<a name="__line67"></a>	    
+<a name="__line68"></a>	    <span class=comment>// ---------- Components ----------------------------------------------------------</span>
+<a name="__line69"></a>
+<a name="__line70"></a>	    <span class=comment>//fgraph &amp;component(int i,const function &amp;);                    // specify the 'ith' component function</span>
+<a name="__line71"></a>	    int columns() const {return function_.components();}     <span class=comment>// return number of components</span>
+<a name="__line72"></a>
+<a name="__line73"></a>	    <span class=comment>// ---------- Filter --------------------------------------------------------------</span>
+<a name="__line74"></a>
+<a name="__line75"></a>	    fgraph &amp;filter(const function &amp;f);
+<a name="__line76"></a>
+<a name="__line77"></a>	    <span class=comment>// ---------- Default values ------------------------------------------------------</span>
+<a name="__line78"></a>	    static void default_legend(const var &amp;);
+<a name="__line79"></a>	    static void default_linewidth(const length &amp;);
+<a name="__line80"></a>	    static void default_linecolor(const color &amp;);
+<a name="__line81"></a>	    static void default_linestyle(sym::linestyle);
+<a name="__line82"></a>	    static void default_pointsize(const length &amp;);
+<a name="__line83"></a>	    static void default_pointtype(const point_drawer &amp;);
+<a name="__line84"></a>	    static void default_pointcolor(const color &amp;);
+<a name="__line85"></a>	    static void default_fillcolor(const color &amp;);
+<a name="__line86"></a>	    static void default_fill(bool);
+<a name="__line87"></a>	    static void default_legendcolor(const color &amp;);
+<a name="__line88"></a>	    static void default_drawstyle(const graph_drawer &amp;);
+<a name="nsamples">
+<a name="__line90"></a>	    static void default_nsamples(int);
+<a name="__line91"></a>	    static void default_nsamples1(int);
+<a name="__line92"></a>	    static void default_nsamples2(int);
+</a>
+<a name="__line94"></a>
+<a name="__line95"></a>	    static void default_p1min(double);
+<a name="__line96"></a>	    static void default_p1max(double);
+<a name="__line97"></a>	    static void default_p1range(double,double);
+<a name="__line98"></a>	    static void default_p2min(double);
+<a name="__line99"></a>	    static void default_p2max(double);
+<a name="__line100"></a>	    static void default_p2range(double,double);
+<a name="__line101"></a>
+<a name="__line102"></a>	    <span class=comment>// ---------- set logarithmic scanning in the parameters --------------------------</span>
+<a name="__line103"></a>	    <span class=comment>// If this flag is set to true, the corresponding parameter will be</span>
+<a name="__line104"></a>	    <span class=comment>// scanned (for the plotting) in a logarithmic way, i.e. it will be</span>
+<a name="__line105"></a>	    <span class=comment>// incremented in each scanning step by the same *multiplicative factor* </span>
+<a name="__line106"></a>	    <span class=comment>// and not by the same step</span>
+<a name="__line107"></a>
+<a name="__line108"></a>	    fgraph &amp;p1log(bool f) { p1log_ = f; return *this; }
+<a name="__line109"></a>	    fgraph &amp;p2log(bool f) { p2log_ = f; return *this; }
+<a name="__line110"></a>
+<a name="__line111"></a>	    <span class=comment>// set default values </span>
+<a name="__line112"></a>	    static void default_p1log(bool f);
+<a name="__line113"></a>	    static void default_p2log(bool f);
+<a name="__line114"></a>
+<a name="__line115"></a>	    <span class=comment>// ---------- Set/get the parameter ranges  ---------------------------------------</span>
+<a name="__line116"></a>
+<a name="__line117"></a>	    fgraph &amp;p1min(double v) { p1min_ = v; return *this; }
+<a name="__line118"></a>	    fgraph &amp;p1max(double v) { p1max_ = v; return *this; }
+<a name="__line119"></a>	    fgraph &amp;p1range(double min, double max, int n=0)
+<a name="__line120"></a>		{ p1min_=min; p1max_=max; if(n!=0) nsamples_p1_=n; return *this; }
+<a name="__line121"></a>	    fgraph &amp;p2min(double v) { p2min_ = v; return *this; }
+<a name="__line122"></a>	    fgraph &amp;p2max(double v) { p2max_ = v; return *this; }
+<a name="__line123"></a>	    fgraph &amp;p2range(double min, double max, int n=0)
+<a name="__line124"></a>		{ p2min_=min; p2max_=max; if(n!=0) nsamples_p2_=n; return *this; }
+<a name="__line125"></a>
+<a name="__line126"></a>	    double p1min() const { return p1min_; }
+<a name="__line127"></a>	    double p1max() const { return p1max_; }
+<a name="__line128"></a>	    double p2min() const { return p2min_; }
+<a name="__line129"></a>	    double p2max() const { return p2max_; }
+<a name="__line130"></a>
+<a name="__line131"></a>
+<a name="__line132"></a>
+<a name="__line133"></a>	    <span class=comment>// ---------- Set number of samples -----------------------------------------------</span>
+<a name="__line134"></a>
+<a name="__line135"></a>	    fgraph &amp;nsamples1(int n) { nsamples_p1_ = n; return *this; }
+<a name="__line136"></a>	    fgraph &amp;nsamples2(int n) { nsamples_p2_ = n; return *this; }
+<a name="__line137"></a>	    fgraph &amp;nsamples (int n) { nsamples_p1_ = nsamples_p2_ = n; return *this; }
+<a name="__line138"></a>
+<a name="__line139"></a>            <span class=comment>// ---------- Equidistant sampling of a curve in 2D  ------------------------------</span>
+<a name="__line140"></a>
+<a name="__line141"></a>            fgraph &amp;esample(double d) { esample_ = d; return *this; }
+<a name="__line142"></a>            fgraph &amp;esample(bool t) { if(t) esample_ = std::abs(esample_); else esample_ = -std::abs(esample_); return *this; }
+<a name="__line143"></a>
+<a name="__line144"></a>            <span class=comment>// ---------- set the sampling distance -------------------------------------------</span>
+<a name="__line145"></a>            fgraph &amp;dsamples1(double d) { dsamples_p1_ = d; nsamples_p1_=0; return *this; }
+<a name="__line146"></a>            fgraph &amp;dsamples2(double d) { dsamples_p2_ = d; nsamples_p2_=0; return *this; }
+<a name="__line147"></a>            fgraph &amp;dsamples(double d)
+<a name="__line148"></a>            {
+<a name="__line149"></a>                dsamples1(d);
+<a name="__line150"></a>                dsamples2(d);
+<a name="__line151"></a>                return *this;
+<a name="__line152"></a>            }
+<a name="__line153"></a>
+<a name="__line154"></a>
+<a name="__line155"></a>	    <span class=comment>// ---------- Get max/min values of column 'i' ------------------------------------</span>
+<a name="__line156"></a>
+<a name="__line157"></a>	    double max(int i);
+<a name="__line158"></a>	    double min(int i);
+<a name="__line159"></a>	    
+<a name="__line160"></a>
+<a name="__line161"></a>	    function dx_hint() const { return dx_hint_; }
+<a name="__line162"></a>	    function dy_hint() const { return dy_hint_; }
+<a name="__line163"></a>
+<a name="__line164"></a>	    <span class=comment>// ---------- duplicate -----------------------------------------------------------</span>
+<a name="__line165"></a>
+<a name="__line166"></a>	    fgraph &amp;dup();
+<a name="__line167"></a>
+<a name="__line168"></a>	    <span class=comment>// ---------- These are not relevant for the user  --------------------------------</span>
+<a name="__line169"></a>
+<a name="__line170"></a>	    void prepare_for_draw(axis *,axis *, frame *, int count);
+<a name="__line171"></a>	    bool operator== (const fgraph &amp;) {return true;}
+<a name="__line172"></a>	    void set_default_legend();
+<a name="__line173"></a>
+<a name="__line174"></a>	    fgraph &amp;layer(const var &amp; l) { plottable::layer(l); return *this; }
+<a name="__line175"></a>	};
+<a name="__line176"></a>
+<a name="__line177"></a>}
+<a name="__line178"></a>
+<a name="__line179"></a>#ifdef __MAKECINT__
+<a name="__line180"></a>#pragma link off function operator==(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line181"></a>#pragma link off function operator!=(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line182"></a>#pragma link off function operator&lt;(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line183"></a>#pragma link off function operator&gt;(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line184"></a>#pragma link off function operator&lt;=(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line185"></a>#pragma link off function operator&gt;=(vector&lt;blop::function&gt;&amp;,vector&lt;blop::function&gt;&amp;);
+<a name="__line186"></a>#endif
+<a name="__line187"></a>
+<a name="__line188"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

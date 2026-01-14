@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Compiling and linking with blop</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="histograming.html">
+   <link rel="Next" href="cint.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: histograming.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="cint.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: cint.html">
+    </a> <br>
+
+<center class=title><b>
+Compiling and linking with blop
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+// to set the warning messages' format:
+warning::prompt("BLOP:");
+warning::format("%p  %m   \n[warning originates from function: %f]\n");
+
+   // %p is replaced with the prompt
+   // %m is replaced with the message itself
+   // %f is replaced with the function name, where the warning
+   //    originates from
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<p>Currently, the format of the  warning messages is controlled by the
+above mechanism  only at a  few places, but  slowly the format  of all
+warning messages will be controlled by it.
+
+<p>The above example is self-explanatory, I believe. 
+
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+    <a href="warning.h.html">warning.h</a>
+    <a href="warning.cc.html">warning.cc</a>
+</pre><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: histograming.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="cint.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: cint.html">
+    </a> 
+
+</body>
+</html>

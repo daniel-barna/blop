@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <filesystem>
 
 //#define _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
 

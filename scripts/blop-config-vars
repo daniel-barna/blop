@@ -1,0 +1,17 @@
+export BLOP_ENABLE_CINT=no
+export BLOP_VERSION=1.1.60
+export CINT_VERSION=
+export BLOP_ARCH=linux
+export BLOP_DATADIR=/usr/local/share/blop-plot
+export BLOP_DOCDIR=/usr/local/share/blop-plot/doc
+export BLOP_LIBDIR=/usr/local/lib
+export BLOP_BINDIR=/usr/local/bin
+export BLOP_INCDIR=/usr/local/include
+export BLOP_STYDIR=/usr/share/texlive/texmf-dist/tex/latex/blop-plot
+export BLOP_CXX=g++
+export BLOP_CXXSTD=-std=c++20
+export BLOP_CXXFLAGS="-std=c++20 `gsl-config --cflags` `gts-config --cflags`   -Wall -Wno-long-long -O3"
+export ECHO=/bin/echo
+export HAVE_GTS_H=1
+export HAVE_GSL=1
+export BLOP_CONFIG_OPTIONS="'--disable-cint' '--prefix=/usr/local'"

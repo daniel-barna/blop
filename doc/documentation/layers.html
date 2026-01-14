@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Using layers</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="annotating-plots.html">
+   <link rel="Next" href="axis-tics.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="annotating-plots.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: annotating-plots.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-tics.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-tics.html">
+    </a> <br>
+
+<center class=title><b>
+Using layers
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+plot(_1,_1);                 // plot by default on layer 'default', which is
+                             // switched on by default
+mplot(_1,sin(_1)).layer(2);  // put to layer2 (which is OFF by default)
+eps::print("test.eps","-L 2");  // print to EPS, switching on layer '2' so that 
+                                // the sin is visible (see beps2eps --help)
+
+
+plot("datafile.dat");        // plot x,y data from file
+
+mplot("datafile.dat",_1,_2,_2).ds(labels).layer("data");
+                             // put another graph showing the data values
+			     // with labels. By default, it is not visible
+			     // only if you switch on layer 'data'
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+All graphical objects, and all plottables (graphs, histos, etc) 
+have an associated layer name ("they are on layer X"). By default,
+frames are on layer 'frame', grid is on layer 'grid', legend is on
+layer 'grid', and everything else is on layer 'default'. 
+By default all these layers are switched on, but nothing else.
+
+<p>
+Grobs' (graphical objects) and plottables (dgraph, fgraph, etc) have a
+member function <tt>layer(const var &)</tt> to set their layer. These
+functions return a reference to the object itself, so you can chain
+them:
+
+<pre>plot(_1,_1).layer("mylayer").linecolor(red)</pre>
+
+<p>
+This is how you can switch on/off layers other than the default ones
+<dl>
+<dt>In a LaTeX document:</dt>
+<dd>call the <tt>\blopeps</tt> macro with the <tt>lon=layername</tt>
+or <tt>loff=layername</tt> options (<tt>lon</tt> stands for
+layer-on) optional argument. Apply these arguments several times to
+switch on/off several layers:
+<pre>\blopeps[lon=2,lon=3,loff=grid,loff=legend]{figure.beps}</pre>
+</dd> 
+
+<dt>Using beps2eps:</dt>
+<dd>Use the <tt>-lon 2,3 -loff grid,legend</tt> option to switch on
+layers 2 and 3, switch off layers 'grid' and 'legend' </dd>
+
+<dt>From a C++ script/program:</dt>
+<dd>All output formats are created by first producing a beps file, and
+then transforming it via <tt>beps2eps</tt> + other conversions. The different
+terminals' <tt>print(filename)</tt> functions have a second argument, which holds
+the command line arguments to <tt>beps2eps</tt>, for example:
+<pre>jpg::print("file.jpg","-lon 2,3 -loff grid,legend");
+</dd>
+</dl>
+
+<p>
+The example section above shows another useful application of layers:
+graphical representation of some data is often useful, but not
+sufficient. One would like to know the (x,y) values of the data
+points. We have now the possibility to store these in the same output file,
+without disturbing the plot: the data values are plotted with the
+<tt>labels</tt> drawstyle, and they are put to another layer, which is
+invisible by default. You can print it to a .beps file. If you want to
+quickly visualize the data values, switch the "data" layer on (see the
+example, blablabla)
+
+</div>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="annotating-plots.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: annotating-plots.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-tics.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-tics.html">
+    </a> 
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: svg.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="svg.h.html">svg.h</a>"
+<a name="__line1"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line2"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line3"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    void svg::print(const var &amp;filename,const var &amp;opts)
+<a name="__line9"></a>    {
+<a name="__line10"></a>	svg t(filename,opts);
+<a name="__line11"></a>	canvas::current().print(&amp;t);
+<a name="__line12"></a>    }
+<a name="__line13"></a>
+<a name="__line14"></a>    svg::svg(const var &amp;filename,const var &amp;opts) :
+<a name="__line15"></a>	pdf(blop_bookkeeper::tmpfile("SVG_XXXXXX.pdf"),opts), filename_(filename)
+<a name="__line16"></a>    {
+<a name="__line17"></a>    }
+<a name="__line18"></a>
+<a name="__line19"></a>    svg::~svg()
+<a name="__line20"></a>    {
+<a name="__line21"></a>    }
+<a name="__line22"></a>
+<a name="__line23"></a>    void svg::picture_end()
+<a name="__line24"></a>    {
+<a name="__line25"></a>	base::picture_end();
+<a name="__line26"></a>        string cmd;
+<a name="__line27"></a>        if(system("which scour &gt;/dev/null 2&gt;&amp;1") == 0)
+<a name="__line28"></a>        {
+<a name="__line29"></a>            string unoptimized_svg = blop_bookkeeper::tmpfile("SVG_XXXXXX.svg");
+<a name="__line30"></a>            cmd = "(inkscape --pdf-poppler --export-plain-svg '" + base::filename_ + "' -o '" + unoptimized_svg + "' &amp;&amp; scour -i '" + unoptimized_svg + "' -o '" + filename_ + "' --remove-descriptive-elements --enable-comment-stripping --enable-id-stripping --shorten-ids) 2&gt;&amp;1"; 
+<a name="__line31"></a>        }
+<a name="__line32"></a>        else
+<a name="__line33"></a>        {
+<a name="__line34"></a>            cmd = "inkscape --pdf-poppler --export-plain-svg '" + base::filename_ + "' -o '" + filename_ + "' 2&gt;&amp;1"; 
+<a name="__line35"></a>            cerr&lt;&lt;"scour is not installed on your system, the svg will not be optimized (resulting in a larger filesize)."&lt;&lt;endl;
+<a name="__line36"></a>        }
+<a name="__line37"></a>        
+<a name="__line38"></a>	int rc;
+<a name="__line39"></a>	var message = readcmd(cmd, &amp;rc);
+<a name="__line40"></a>	if(rc != 0)
+<a name="__line41"></a>	{
+<a name="__line42"></a>	    cerr&lt;&lt;"The following command failed:"&lt;&lt;endl;
+<a name="__line43"></a>	    cerr&lt;&lt;cmd&lt;&lt;endl&lt;&lt;endl;
+<a name="__line44"></a>	    cerr&lt;&lt;"Its output is the following:"&lt;&lt;endl;
+<a name="__line45"></a>	    cerr&lt;&lt;message.str()&lt;&lt;endl;
+<a name="__line46"></a>	}
+<a name="__line47"></a>    }
+<a name="__line48"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: get.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_GET_H__
+<a name="__line1"></a>#define __BLOP_GET_H__
+<a name="__line2"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line3"></a>
+<a name="__line4"></a><span class=comment>/*
+<a name="__line5"></a>Very similar file/class to set.h
+<a name="__line6"></a>Look there fore more details
+<a name="__line7"></a>
+<a name="__line8"></a>
+<a name="__line9"></a>
+<a name="__line10"></a>*/</span>
+<a name="__line11"></a>
+<a name="__line12"></a>namespace blop
+<a name="__line13"></a>{
+<a name="__line14"></a>    class get
+<a name="__line15"></a>    {
+<a name="__line16"></a><span class=public>    public:
+<a name="__line17"></a>
+<a name="__line18"></a>	<span class=comment>// ---------- get the most recently created plottable -----------------------------</span>
+<a name="__line19"></a>	<span class=comment>// (plottable ==&gt; function [fgraph], data [dgraph], histogram [hist]</span>
+<a name="__line20"></a>	<span class=comment>// Useful if one wants to update an already (recently) plotted</span>
+<a name="__line21"></a>	<span class=comment>// something </span>
+<a name="__line22"></a>	<span class=comment>// </span>
+<a name="__line23"></a>	<span class=comment>// plot(_1, sin(_1));   // plot a sine function</span>
+<a name="__line24"></a>	<span class=comment>//  // now, after seeing the result, realize that I want to have it in red:</span>
+<a name="__line25"></a>	<span class=comment>// get::last()-&gt;ac(red);</span>
+<a name="__line26"></a>	
+<a name="__line27"></a>	static plottable *last() { return frame::current().last(); }
+<a name="__line28"></a>
+<a name="__line29"></a>	<span class=comment>// ---------- get the last plotted function ---------------------------------------</span>
+<a name="__line30"></a>	<span class=comment>// this function may return 0, if no functions have been plotted yet</span>
+<a name="__line31"></a>	<span class=comment>// plot(_1, sin(_1));</span>
+<a name="__line32"></a>	<span class=comment>//   now, after seeing the result, realize that I wanted to plot</span>
+<a name="__line33"></a>	<span class=comment>//   cosine instead:</span>
+<a name="__line34"></a>	<span class=comment>// get::lastf()-&gt;set(_1,cos(_1));</span>
+<a name="__line35"></a>
+<a name="__line36"></a>	static fgraph *lastf() { return frame::current().lastf(); }
+<a name="__line37"></a>
+<a name="__line38"></a>	<span class=comment>// ---------- get the last plotted dataset (graph) --------------------------------</span>
+<a name="__line39"></a>	<span class=comment>// this funciton may return 0 if no graphs have been plotted yet</span>
+<a name="__line40"></a>
+<a name="__line41"></a>	static dgraph *lastd   () { return frame::current().lastd(); }
+<a name="__line42"></a>
+<a name="__line43"></a>
+<a name="__line44"></a>    };
+<a name="__line45"></a>}
+<a name="__line46"></a>
+<a name="__line47"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

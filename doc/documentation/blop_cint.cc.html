@@ -1,0 +1,890 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blop_cint.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#define __MAKECINT__
+<a name="__line1"></a>#include &lt;cstring&gt;
+<a name="__line2"></a>#include &lt;sstream&gt;
+<a name="__line3"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line4"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line5"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line6"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line7"></a>#include "<a href="function_core.hh.html">function_core.hh</a>"
+<a name="__line8"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line9"></a>#include "<a href="cfunc_wrapper.hh.html">cfunc_wrapper.hh</a>"
+<a name="__line10"></a>#include "<a href="cfunc_wrapper.h.html">cfunc_wrapper.h</a>"
+<a name="__line11"></a>#ifdef CINT_INCLUDE_PREFIX
+<a name="__line12"></a>#include "cint/Api.h"
+<a name="__line13"></a>#else
+<a name="__line14"></a>#include "Api.h"
+<a name="__line15"></a>#endif
+<a name="__line16"></a>#include "<a href="fit.h.html">fit.h</a>"
+<a name="__line17"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line18"></a>#include "<a href="plot.h.html">plot.h</a>"
+<a name="__line19"></a>
+<a name="__line20"></a>using namespace std;
+<a name="__line21"></a>
+<a name="__line22"></a>namespace blop
+<a name="__line23"></a>{
+<a name="__line24"></a>
+<a name="__line25"></a>
+<a name="__line26"></a>    fgraph &amp;plot(void *f1, void *f2, void *f3, void *f4, void *f5)
+<a name="__line27"></a>    {
+<a name="__line28"></a>	function f1_ = cfunc(f1);
+<a name="__line29"></a>	function f2_ = (f2?cfunc(f2):function(unset));
+<a name="__line30"></a>	function f3_ = (f3?cfunc(f3):function(unset));
+<a name="__line31"></a>	function f4_ = (f4?cfunc(f4):function(unset));
+<a name="__line32"></a>	function f5_ = (f5?cfunc(f5):function(unset));
+<a name="__line33"></a>	return plot(f1_,f2_,f3_,f4_,f5_);
+<a name="__line34"></a>    }
+<a name="__line35"></a>    fgraph &amp;plot(void *f1, const function &amp;f2, void *f3, void *f4,void *f5)
+<a name="__line36"></a>    {
+<a name="__line37"></a>	function f1_ = cfunc(f1);
+<a name="__line38"></a>	function f3_ = (f3?cfunc(f3):function(unset));
+<a name="__line39"></a>	function f4_ = (f4?cfunc(f4):function(unset));
+<a name="__line40"></a>	function f5_ = (f5?cfunc(f5):function(unset));
+<a name="__line41"></a>	return plot(f1_,f2,f3_,f4_,f5_);
+<a name="__line42"></a>    }
+<a name="__line43"></a>    fgraph &amp;plot(const function &amp;f1, void *f2, void *f3, void *f4, void *f5)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	function f2_ = cfunc(f2);
+<a name="__line46"></a>	function f3_ = (f3?cfunc(f3):function(unset));
+<a name="__line47"></a>	function f4_ = (f4?cfunc(f4):function(unset));
+<a name="__line48"></a>	function f5_ = (f5?cfunc(f5):function(unset));
+<a name="__line49"></a>	return plot(f1,f2_,f3_,f4_,f5_);
+<a name="__line50"></a>    }
+<a name="__line51"></a>
+<a name="__line52"></a>    fgraph &amp;mplot(void *f1, void *f2, void *f3, void *f4, void *f5)
+<a name="__line53"></a>    {
+<a name="__line54"></a>	function f1_ = cfunc(f1);
+<a name="__line55"></a>	function f2_ = (f2?cfunc(f2):function(unset));
+<a name="__line56"></a>	function f3_ = (f3?cfunc(f3):function(unset));
+<a name="__line57"></a>	function f4_ = (f4?cfunc(f4):function(unset));
+<a name="__line58"></a>	function f5_ = (f5?cfunc(f5):function(unset));
+<a name="__line59"></a>	return mplot(f1_,f2_,f3_,f4_,f5_);
+<a name="__line60"></a>    }
+<a name="__line61"></a>
+<a name="__line62"></a>
+<a name="__line63"></a>    void blop_initializer::call_INIT()
+<a name="__line64"></a>    {
+<a name="__line65"></a>	G__ClassInfo globalscope;
+<a name="__line66"></a>	G__MethodInfo method;
+<a name="__line67"></a>	long dummy;
+<a name="__line68"></a>
+<a name="__line69"></a>	method = globalscope.GetMethod("BLOP_USER_INIT","",&amp;dummy);
+<a name="__line70"></a>
+<a name="__line71"></a>	if(method.IsValid())
+<a name="__line72"></a>	{
+<a name="__line73"></a>	    void *p2f = method.PointerToFunc();
+<a name="__line74"></a>	    int type = G__isinterpretedp2f(p2f);
+<a name="__line75"></a>	    if(type == G__BYTECODEFUNC || type == G__INTERPRETEDFUNC)
+<a name="__line76"></a>	    {
+<a name="__line77"></a>		G__calc("BLOP_USER_INIT()");
+<a name="__line78"></a>	    }
+<a name="__line79"></a>	}
+<a name="__line80"></a>    }
+<a name="__line81"></a>
+<a name="__line82"></a>
+<a name="__line83"></a>    <span class=comment>//SEP</span>
+<a name="__line84"></a>    <span class=comment>// color mapping</span>
+<a name="__line85"></a>
+<a name="__line86"></a>    color color_mapping_function::the_color_;
+<a name="__line87"></a>
+<a name="__line88"></a>    color color_mapping_function::map_interpreted(double val,double mini,double maxi,bool logscale) const
+<a name="__line89"></a>    {
+<a name="__line90"></a>	var cmd = "color_mapping::the_color_ = ";
+<a name="__line91"></a>        if(logscale)
+<a name="__line92"></a>        {
+<a name="__line93"></a>            val = std::log10(val);
+<a name="__line94"></a>            mini = std::log10(mini);
+<a name="__line95"></a>            maxi = std::log10(maxi);
+<a name="__line96"></a>        }
+<a name="__line97"></a>	cmd &amp;= fname_;
+<a name="__line98"></a>	cmd &amp;= "(";
+<a name="__line99"></a>	cmd &amp;= val;
+<a name="__line100"></a>	cmd &amp;= ",";
+<a name="__line101"></a>	cmd &amp;= mini;
+<a name="__line102"></a>	cmd &amp;= ",";
+<a name="__line103"></a>	cmd &amp;= maxi;
+<a name="__line104"></a>	cmd &amp;= ");";
+<a name="__line105"></a>	G__calc(cmd.c_str());
+<a name="__line106"></a>	return color_mapping::the_color_;
+<a name="__line107"></a>    }
+<a name="__line108"></a>
+<a name="__line109"></a>    void color_mapping_function::color_mapping_function(void *pointer)
+<a name="__line110"></a>    {
+<a name="__line111"></a>	if(pointer == 0)
+<a name="__line112"></a>	{
+<a name="__line113"></a>	    p2f_ = 0;
+<a name="__line114"></a>	    p2f_cint_ = 0;
+<a name="__line115"></a>	    fname_ = "this_should_not_happen";
+<a name="__line116"></a>	    return;
+<a name="__line117"></a>	}
+<a name="__line118"></a>
+<a name="__line119"></a>	<span class=comment>// if it is the pointer of the compiled default mapping function, simply store</span>
+<a name="__line120"></a>	<span class=comment>// this pointer</span>
+<a name="__line121"></a>
+<a name="__line122"></a>	if(pointer == (void*)color_mapping::def)
+<a name="__line123"></a>	{
+<a name="__line124"></a>	    p2f_ = color_mapping::def;
+<a name="__line125"></a>	    p2f_cint_ = 0;
+<a name="__line126"></a>	    fname_ = "this_should_not_happen";
+<a name="__line127"></a>	    return;
+<a name="__line128"></a>	}
+<a name="__line129"></a>
+<a name="__line130"></a>	<span class=comment>// otherwise, it can be an interpreted, or whatever function, so try to</span>
+<a name="__line131"></a>	<span class=comment>// figure out, what kind of function it is.</span>
+<a name="__line132"></a>
+<a name="__line133"></a>	char *fname;
+<a name="__line134"></a>
+<a name="__line135"></a>	if((fname = G__p2f2funcname(pointer)) == 0)
+<a name="__line136"></a>	{
+<a name="__line137"></a>	    warning::print("Unknown pointer to function in","color_mapping::set(void*)");
+<a name="__line138"></a>	    p2f_ = 0;
+<a name="__line139"></a>	    p2f_cint_ = 0;
+<a name="__line140"></a>	    fname_ = "this_should_not_happen";
+<a name="__line141"></a>	    return;
+<a name="__line142"></a>	}
+<a name="__line143"></a>
+<a name="__line144"></a>	fname_ = fname;
+<a name="__line145"></a>
+<a name="__line146"></a>	G__ClassInfo globalscope;
+<a name="__line147"></a>	G__MethodInfo method;
+<a name="__line148"></a>	long dummy;
+<a name="__line149"></a>	method = globalscope.GetMethod(fname,"double,double,double",&amp;dummy);
+<a name="__line150"></a>
+<a name="__line151"></a>	if(!method.IsValid())
+<a name="__line152"></a>	{
+<a name="__line153"></a>	    warning::print(var("Function '") &amp; var(fname) &amp;
+<a name="__line154"></a>			   var("(double,double,double)' is not found"));
+<a name="__line155"></a>	    p2f_ = 0;
+<a name="__line156"></a>	    p2f_cint_ = 0;
+<a name="__line157"></a>	    fname_ = "this_should_not_happen";
+<a name="__line158"></a>	    return;
+<a name="__line159"></a>	}
+<a name="__line160"></a>
+<a name="__line161"></a>	pointer = method.PointerToFunc();
+<a name="__line162"></a>
+<a name="__line163"></a>	switch(G__isinterpretedp2f(pointer))
+<a name="__line164"></a>	{
+<a name="__line165"></a>	case G__BYTECODEFUNC:        <span class=comment>// reconstruct function call as string</span>
+<a name="__line166"></a>	case G__INTERPRETEDFUNC: 
+<a name="__line167"></a>	case G__COMPILEDINTERFACEMETHOD:
+<a name="__line168"></a>	{
+<a name="__line169"></a>	    p2f_cint_ = pointer;
+<a name="__line170"></a>	    p2f_ = 0;
+<a name="__line171"></a>	    break;
+<a name="__line172"></a>	}
+<a name="__line173"></a>	case G__COMPILEDTRUEFUNC: <span class=comment>// using true pointer to function</span>
+<a name="__line174"></a>	case G__UNKNOWNFUNC:
+<a name="__line175"></a>	{
+<a name="__line176"></a>	    typedef color (*ppp)(double,double,double);
+<a name="__line177"></a>	    p2f_cint_ = 0;
+<a name="__line178"></a>	    p2f_ = (ppp)pointer;
+<a name="__line179"></a>	    break;
+<a name="__line180"></a>	}
+<a name="__line181"></a>
+<a name="__line182"></a>	default:
+<a name="__line183"></a>	    err("This should never happen");
+<a name="__line184"></a>
+<a name="__line185"></a>	}
+<a name="__line186"></a>    }
+<a name="__line187"></a>
+<a name="__line188"></a>    <span class=comment>// ---------- function::formula ---------------------------------------------------</span>
+<a name="__line189"></a>
+<a name="__line190"></a>    void function::formula(const var &amp;f)
+<a name="__line191"></a>    {
+<a name="__line192"></a>	char ptr[30];
+<a name="__line193"></a>	sprintf(ptr,"(*(function*)%p) = ",this);
+<a name="__line194"></a>	var cmd = ptr;
+<a name="__line195"></a>	cmd &amp;= f;
+<a name="__line196"></a>	G__exec_text(cmd.c_str());
+<a name="__line197"></a>    }
+<a name="__line198"></a>
+<a name="__line199"></a>    <span class=comment>// ---------- function_core::cfunc ------------------------------------------------</span>
+<a name="__line200"></a>
+<a name="__line201"></a>    void function_core::cfunc::init_(void *p)
+<a name="__line202"></a>    {
+<a name="__line203"></a>	wrapper_ = cfunc_wrapper_base::find(p);
+<a name="__line204"></a>
+<a name="__line205"></a>	if(wrapper_ == 0)
+<a name="__line206"></a>	{
+<a name="__line207"></a>	    warning::print("No function found","function_core::cfunc::init_(void*)");
+<a name="__line208"></a>	    return;
+<a name="__line209"></a>	}
+<a name="__line210"></a>
+<a name="__line211"></a>	if(wrapper_-&gt;n_args() &lt;= 0 ||wrapper_-&gt;n_out() &lt;= 0)
+<a name="__line212"></a>	{
+<a name="__line213"></a>	    warning::print("This cfunc_wrapper is not prepared to work with function",
+<a name="__line214"></a>			   "function_core::cfunc::init(void *)");
+<a name="__line215"></a>	    delete wrapper_;
+<a name="__line216"></a>	    wrapper_ = 0;
+<a name="__line217"></a>	    return;
+<a name="__line218"></a>	}
+<a name="__line219"></a>    }
+<a name="__line220"></a>
+<a name="__line221"></a>
+<a name="__line222"></a>    <span class=comment>// ---------- cfunc_wrappers ------------------------------------------------------</span>
+<a name="__line223"></a>
+<a name="__line224"></a>    double double_func_aref_aref_aref_aref_aref
+<a name="__line225"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line226"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line227"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line228"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line229"></a>		  const std::vector&lt;blop::var&gt; &amp;a5)
+<a name="__line230"></a>    {
+<a name="__line231"></a>	if(ptr_ == 0)
+<a name="__line232"></a>	{
+<a name="__line233"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line234"></a>	    return (result_=0);
+<a name="__line235"></a>	}
+<a name="__line236"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5));
+<a name="__line237"></a>	std::string cmd = fname_ + "(";
+<a name="__line238"></a>	char buf[1000];
+<a name="__line239"></a>	const char *t = "*(std::vector&lt;blop::var&gt;*)";
+<a name="__line240"></a>	sprintf(buf,"%s%p,%s%p,%s%p,%s%p,%s%p", t,&amp;a1, t,&amp;a2, t,&amp;a3, t,&amp;a4, t,&amp;a5);
+<a name="__line241"></a>	cmd += buf;
+<a name="__line242"></a>	cmd += ");";
+<a name="__line243"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line244"></a>	return result_;
+<a name="__line245"></a>    }
+<a name="__line246"></a>
+<a name="__line247"></a>    double double_func_aref_aref_aref_aref_aref_aref
+<a name="__line248"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line249"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line250"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line251"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line252"></a>		  const std::vector&lt;blop::var&gt; &amp;a5,
+<a name="__line253"></a>		  const std::vector&lt;blop::var&gt; &amp;a6)
+<a name="__line254"></a>    {
+<a name="__line255"></a>	if(ptr_ == 0)
+<a name="__line256"></a>	{
+<a name="__line257"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line258"></a>	    return (result_=0);
+<a name="__line259"></a>	}
+<a name="__line260"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5,a6));
+<a name="__line261"></a>	std::string cmd = fname_ + "(";
+<a name="__line262"></a>	char buf[1000];
+<a name="__line263"></a>	const char *t = "*(std::vector&lt;blop::var&gt;*)";
+<a name="__line264"></a>	sprintf(buf,"%s%p,%s%p,%s%p,%s%p,%s%p,%s%p", t,&amp;a1, t,&amp;a2, t,&amp;a3, t,&amp;a4, t,&amp;a5, t,&amp;a6);
+<a name="__line265"></a>	cmd += buf;
+<a name="__line266"></a>	cmd += ");";
+<a name="__line267"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line268"></a>	return result_;
+<a name="__line269"></a>    }
+<a name="__line270"></a>
+<a name="__line271"></a>    double double_func_aref_aref_aref_aref_aref_aref_aref
+<a name="__line272"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line273"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line274"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line275"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line276"></a>		  const std::vector&lt;blop::var&gt; &amp;a5,
+<a name="__line277"></a>		  const std::vector&lt;blop::var&gt; &amp;a6,
+<a name="__line278"></a>		  const std::vector&lt;blop::var&gt; &amp;a7)
+<a name="__line279"></a>    {
+<a name="__line280"></a>	if(ptr_ == 0)
+<a name="__line281"></a>	{
+<a name="__line282"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line283"></a>	    return (result_=0);
+<a name="__line284"></a>	}
+<a name="__line285"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5,a6,a7));
+<a name="__line286"></a>	std::string cmd = fname_ + "(";
+<a name="__line287"></a>	char buf[1000];
+<a name="__line288"></a>	const char *t = "*(std::vector&lt;blop::var&gt;*)";
+<a name="__line289"></a>	sprintf(buf,"%s%p,%s%p,%s%p,%s%p,%s%p,%s%p,%s%p", t,&amp;a1, t,&amp;a2, t,&amp;a3, t,&amp;a4, t,&amp;a5, t,&amp;a6, t,&amp;a7);
+<a name="__line290"></a>	cmd += buf;
+<a name="__line291"></a>	cmd += ");";
+<a name="__line292"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line293"></a>	return result_;
+<a name="__line294"></a>    }
+<a name="__line295"></a>
+<a name="__line296"></a>    int int_func_double_double_aref_aref_int
+<a name="__line297"></a>    ::operator() (double a1, double a2,
+<a name="__line298"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line299"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line300"></a>		  int a5) const
+<a name="__line301"></a>    {
+<a name="__line302"></a>	if(ptr_ == 0)
+<a name="__line303"></a>	{
+<a name="__line304"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line305"></a>	    return (result_=0);
+<a name="__line306"></a>	}
+<a name="__line307"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5));
+<a name="__line308"></a>	std::string cmd = fname_ + "(";
+<a name="__line309"></a>	char buf[1000];
+<a name="__line310"></a>	const char *t = "*(std::vector&lt;blop::var&gt;*)";
+<a name="__line311"></a>	sprintf(buf,"*(double*)%p,*(double*)%p,%s%p,%s%p,*(int*)%p", &amp;a1, &amp;a2, t,&amp;a3, t,&amp;a4, &amp;a5);
+<a name="__line312"></a>	cmd += buf;
+<a name="__line313"></a>	cmd += ");";
+<a name="__line314"></a>	result_ = G__int(G__calc(cmd.c_str()));
+<a name="__line315"></a>	return result_;
+<a name="__line316"></a>    }
+<a name="__line317"></a>
+<a name="__line318"></a>    <span class=comment>/*
+<a name="__line319"></a>    // --
+<a name="__line320"></a>    double double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep
+<a name="__line321"></a>    ::operator() (int nx, double *x, double *sigma_x, int ny, double *y, double *sigma_y, double *f, double *g1)
+<a name="__line322"></a>    {
+<a name="__line323"></a>	if(ptr_ == 0) { cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl; return (result_=0);}
+<a name="__line324"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(nx,x,sigma_x,ny,y,sigma_y,f, g1));
+<a name="__line325"></a>	std::string cmd = fname_ + "(";
+<a name="__line326"></a>	char buf[1000];
+<a name="__line327"></a>	sprintf(buf,"%i,(double*)%p,(double*)%p,%i,(double*)%p,(double*)%p,(double*)%p,(double*)%p",
+<a name="__line328"></a>		nx,x,sigma_x,ny,y,sigma_y,f,g1);
+<a name="__line329"></a>	cmd += buf;
+<a name="__line330"></a>	cmd += ");";
+<a name="__line331"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line332"></a>	return result_;
+<a name="__line333"></a>    }
+<a name="__line334"></a>
+<a name="__line335"></a>
+<a name="__line336"></a>    // --
+<a name="__line337"></a>    double double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep_doublep::operator()
+<a name="__line338"></a>	(int nx, double *x, double *sigma_x, int ny, double *y, double *sigma_y, double *f, double *g1, double *g2)
+<a name="__line339"></a>    {
+<a name="__line340"></a>	if(ptr_ == 0) { cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl; return (result_=0);}
+<a name="__line341"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(nx,x,sigma_x,ny,y,sigma_y,f, g1, g2));
+<a name="__line342"></a>	std::string cmd = fname_ + "(";
+<a name="__line343"></a>	char buf[1000];
+<a name="__line344"></a>	sprintf(buf,"%i,(double*)%p,(double*)%p,%i,(double*)%p,(double*)%p,(double*)%p,(double*)%p,(double*)%p",
+<a name="__line345"></a>		nx,x,sigma_x,ny,y,sigma_y,f,g1, g2);
+<a name="__line346"></a>	cmd += buf;
+<a name="__line347"></a>	cmd += ");";
+<a name="__line348"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line349"></a>	return result_;
+<a name="__line350"></a>    }
+<a name="__line351"></a>
+<a name="__line352"></a>    // --
+<a name="__line353"></a>    int int_func_double_double_doublep_doublep_int_int::operator()
+<a name="__line354"></a>	(double d1, double d2, double *p1, double *p2, int i1, int i2) const
+<a name="__line355"></a>    {
+<a name="__line356"></a>	if(ptr_ == 0) { cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl; return (result_=0);}
+<a name="__line357"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(d1, d2, p1, p2, i1, i2));
+<a name="__line358"></a>	std::string cmd = fname_ + "(";
+<a name="__line359"></a>	char buf[1000];
+<a name="__line360"></a>	sprintf(buf,"%f,%f,(double*)%p,(double*)%p,%i,%i",d1, d2, p1, p2, i1, i2);
+<a name="__line361"></a>	cmd += buf;
+<a name="__line362"></a>	cmd += ");";
+<a name="__line363"></a>	result_ = G__int(G__calc(cmd.c_str()));
+<a name="__line364"></a>	return result_;
+<a name="__line365"></a>    }
+<a name="__line366"></a>    */</span>
+<a name="__line367"></a>
+<a name="__line368"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line369"></a>
+<a name="__line370"></a>    complex&lt;double&gt; complex_func_double::operator()(double v) const
+<a name="__line371"></a>    {
+<a name="__line372"></a>	if(ptr_ == 0)
+<a name="__line373"></a>	{
+<a name="__line374"></a>	    warning::print("Uninitialized cfunc_wrapper called",
+<a name="__line375"></a>			   "complex_func_double::operator()(double)");
+<a name="__line376"></a>	    return (result_=0);
+<a name="__line377"></a>	}
+<a name="__line378"></a>	if(functype_ == compiled)
+<a name="__line379"></a>	{
+<a name="__line380"></a>	    return (result_=((function_type)ptr_)(v));
+<a name="__line381"></a>	}
+<a name="__line382"></a>	char cmd[1000];
+<a name="__line383"></a>	sprintf(cmd,"temporary_result_complex = %s(%f);",fname_.c_str(),v);
+<a name="__line384"></a>	G__calc(cmd);
+<a name="__line385"></a>	return (result_=temporary_result_complex);
+<a name="__line386"></a>    }
+<a name="__line387"></a>    complex&lt;double&gt; complex_func_double_double::operator()(double v1,double v2) const
+<a name="__line388"></a>    {
+<a name="__line389"></a>	if(ptr_ == 0)
+<a name="__line390"></a>	{
+<a name="__line391"></a>	    warning::print("Uninitialized cfunc_wrapper called",
+<a name="__line392"></a>			   "complex_func_double_double::operator()(double,double)");
+<a name="__line393"></a>	    return (result_=0);
+<a name="__line394"></a>	}
+<a name="__line395"></a>	if(functype_ == compiled)
+<a name="__line396"></a>	{
+<a name="__line397"></a>	    return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line398"></a>	}
+<a name="__line399"></a>	char cmd[1000];
+<a name="__line400"></a>	sprintf(cmd,"temporary_result_complex = %s(%f,%f);",fname_.c_str(),v1,v2);
+<a name="__line401"></a>	G__calc(cmd);
+<a name="__line402"></a>	return (result_=temporary_result_complex);
+<a name="__line403"></a>    }
+<a name="__line404"></a>
+<a name="__line405"></a>
+<a name="__line406"></a>    double double_func_double::operator()(double v) const
+<a name="__line407"></a>    {
+<a name="__line408"></a>	if(ptr_ == 0)
+<a name="__line409"></a>	{
+<a name="__line410"></a>	    warning::print("Uninitialized cfunc_wrapper called",
+<a name="__line411"></a>			   "double_func_double::operator()(double)");
+<a name="__line412"></a>	    return (result_=0);
+<a name="__line413"></a>	}
+<a name="__line414"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v));
+<a name="__line415"></a>	var cmd = var(fname_) &amp; "(" &amp; v &amp; ")";
+<a name="__line416"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line417"></a>	return result_;
+<a name="__line418"></a>    }
+<a name="__line419"></a>
+<a name="__line420"></a>    double double_func_double_double::operator()(double v1,double v2) const
+<a name="__line421"></a>    {
+<a name="__line422"></a>	if(ptr_ == 0)
+<a name="__line423"></a>	{
+<a name="__line424"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line425"></a>	    return (result_=0);
+<a name="__line426"></a>	}
+<a name="__line427"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line428"></a>	var cmd = var(fname_) &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; ")";
+<a name="__line429"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line430"></a>	return result_;
+<a name="__line431"></a>    }
+<a name="__line432"></a>
+<a name="__line433"></a>    double double_func_double_double_double::operator()(double v1,double v2,double v3) const
+<a name="__line434"></a>    {
+<a name="__line435"></a>	if(ptr_ == 0)
+<a name="__line436"></a>	{
+<a name="__line437"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line438"></a>	    return (result_=0);
+<a name="__line439"></a>	}
+<a name="__line440"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2,v3));
+<a name="__line441"></a>	var cmd = var(fname_) &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; "," &amp; v3 &amp; ")";
+<a name="__line442"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line443"></a>	return result_;
+<a name="__line444"></a>    }
+<a name="__line445"></a>
+<a name="__line446"></a>    double double_func_double_double_double_double::operator()(double v1,double v2,double v3,double v4) const
+<a name="__line447"></a>    {
+<a name="__line448"></a>	if(ptr_ == 0)
+<a name="__line449"></a>	{
+<a name="__line450"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line451"></a>	    return (result_=0);
+<a name="__line452"></a>	}
+<a name="__line453"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2,v3,v4));
+<a name="__line454"></a>	var cmd = var(fname_) &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; "," &amp; v3 &amp; "," &amp; v4 &amp; ")";
+<a name="__line455"></a>	result_ = G__double(G__calc(cmd.c_str()));
+<a name="__line456"></a>	return result_;
+<a name="__line457"></a>    }
+<a name="__line458"></a>
+<a name="__line459"></a>    var var_func_varvector_varvector::operator()(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line460"></a>						 const std::vector&lt;blop::var&gt; &amp;pars) const
+<a name="__line461"></a>    {
+<a name="__line462"></a>	if(ptr_ == 0)
+<a name="__line463"></a>	{
+<a name="__line464"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line465"></a>	    return (result_=0);
+<a name="__line466"></a>	}
+<a name="__line467"></a>	if(functype_ == compiled)
+<a name="__line468"></a>	{
+<a name="__line469"></a>	    return (result_=((function_type)ptr_)(args,pars));
+<a name="__line470"></a>	}
+<a name="__line471"></a>	ostringstream ptr1, ptr2;
+<a name="__line472"></a>	ptr1&lt;&lt;&amp;args;
+<a name="__line473"></a>	ptr2&lt;&lt;&amp;pars;
+<a name="__line474"></a>	var cmd = var("temporary_result_var = ") &amp; fname_ &amp; "(" &amp;
+<a name="__line475"></a>	    var("*((const std::vector&lt;blop::var&gt; *)") &amp; ptr1.str() &amp; ")," &amp;
+<a name="__line476"></a>	    var("*((const std::vector&lt;blop::var&gt; *)") &amp; ptr2.str() &amp; "))";
+<a name="__line477"></a>	G__calc(cmd.c_str());
+<a name="__line478"></a>	return (result_=temporary_result_var);
+<a name="__line479"></a>    }
+<a name="__line480"></a>
+<a name="__line481"></a>    var var_func_var::operator()(var v) const
+<a name="__line482"></a>    {
+<a name="__line483"></a>	if(ptr_ == 0)
+<a name="__line484"></a>	{
+<a name="__line485"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line486"></a>	    return (result_=0);
+<a name="__line487"></a>	}
+<a name="__line488"></a>	if(functype_ == compiled)
+<a name="__line489"></a>	{
+<a name="__line490"></a>	    return (result_=((function_type)ptr_)(v));
+<a name="__line491"></a>	}
+<a name="__line492"></a>	var cmd = var("temporary_result_var = ") &amp; fname_ &amp; "(" &amp; v &amp; ")";
+<a name="__line493"></a>	G__calc(cmd.c_str());
+<a name="__line494"></a>	return (result_=temporary_result_var);
+<a name="__line495"></a>    }
+<a name="__line496"></a>
+<a name="__line497"></a>    var var_func_var_var::operator()(var v1,var v2) const
+<a name="__line498"></a>    {
+<a name="__line499"></a>	if(ptr_ == 0)
+<a name="__line500"></a>	{
+<a name="__line501"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line502"></a>	    return (result_=0);
+<a name="__line503"></a>	}
+<a name="__line504"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line505"></a>	var cmd = var("temporary_result_var = ") &amp; fname_ &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; ")";
+<a name="__line506"></a>	G__calc(cmd.c_str());
+<a name="__line507"></a>	return (result_=temporary_result_var);
+<a name="__line508"></a>    }
+<a name="__line509"></a>
+<a name="__line510"></a>    var var_func_var_var_var::operator()(var v1,var v2,var v3) const
+<a name="__line511"></a>    {
+<a name="__line512"></a>	if(ptr_ == 0)
+<a name="__line513"></a>	{
+<a name="__line514"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line515"></a>	    return (result_=0);
+<a name="__line516"></a>	}
+<a name="__line517"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2,v3));
+<a name="__line518"></a>	var cmd = var("temporary_result_var = ") &amp; fname_ &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; "," &amp; v3 &amp; ")";
+<a name="__line519"></a>	G__calc(cmd.c_str());
+<a name="__line520"></a>	return (result_=temporary_result_var);
+<a name="__line521"></a>    }
+<a name="__line522"></a>
+<a name="__line523"></a>    var var_func_var_var_var_var::operator()(var v1,var v2,var v3,var v4) const
+<a name="__line524"></a>    {
+<a name="__line525"></a>	if(ptr_ == 0)
+<a name="__line526"></a>	{
+<a name="__line527"></a>	    warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line528"></a>	    return (result_=0);
+<a name="__line529"></a>	}
+<a name="__line530"></a>	if(functype_ == compiled) return (result_=((function_type)ptr_)(v1,v2,v3,v4));
+<a name="__line531"></a>	var cmd = var("temporary_result_var = ") &amp; fname_ &amp; "(" &amp; v1 &amp; "," &amp; v2 &amp; "," &amp; v3 &amp; "," &amp; v4 &amp; ")";
+<a name="__line532"></a>	G__calc(cmd.c_str());
+<a name="__line533"></a>	return (result_=temporary_result_var);
+<a name="__line534"></a>    }
+<a name="__line535"></a>
+<a name="__line536"></a>    void void_func_doublep_doublep::operator()(double *in, double *out) const
+<a name="__line537"></a>    {
+<a name="__line538"></a>	if(ptr_ == 0)
+<a name="__line539"></a>	{
+<a name="__line540"></a>	    warning::print("Uninitialized cfunc_wrapper called","void_func_doublep_doublep::operator()");
+<a name="__line541"></a>	    result_ = 0;
+<a name="__line542"></a>	    return;
+<a name="__line543"></a>	}
+<a name="__line544"></a>
+<a name="__line545"></a>	result_ = 1;
+<a name="__line546"></a>	if(functype_ == compiled) { ((function_type)ptr_)(in,out); return; }
+<a name="__line547"></a>	char cmd[1000];
+<a name="__line548"></a>	sprintf(cmd,"%s((double*)%p,(double*)%p)",fname_.c_str(),in,out);
+<a name="__line549"></a>	G__calc(cmd);
+<a name="__line550"></a>    }
+<a name="__line551"></a>
+<a name="__line552"></a>    std::string create_arglist(G__MethodInfo &amp;func)
+<a name="__line553"></a>    {
+<a name="__line554"></a>	string alist;
+<a name="__line555"></a>	G__MethodArgInfo arg(func);
+<a name="__line556"></a>	int count=0;
+<a name="__line557"></a>	while(arg.Next())
+<a name="__line558"></a>	{
+<a name="__line559"></a>	    if(count &gt; 0) alist += ",";
+<a name="__line560"></a>	    long int property = arg.Property();
+<a name="__line561"></a>	    if((property&amp;G__BIT_ISCONSTANT) &amp;&amp;
+<a name="__line562"></a>	       strstr(arg.Type()-&gt;Name(),"const ") != arg.Type()-&gt;Name())
+<a name="__line563"></a>	    {
+<a name="__line564"></a>		alist += "const ";
+<a name="__line565"></a>	    }
+<a name="__line566"></a>	    alist += arg.Type()-&gt;Name();
+<a name="__line567"></a>	    ++count;
+<a name="__line568"></a>	}
+<a name="__line569"></a>	return alist;
+<a name="__line570"></a>    }
+<a name="__line571"></a>
+<a name="__line572"></a>    bool arglist_matches(var a1, var a2)
+<a name="__line573"></a>    {
+<a name="__line574"></a>	if(a1.str() == a2.str()) return true;
+<a name="__line575"></a>	a1.replace("std::","");
+<a name="__line576"></a>	a2.replace("std::","");
+<a name="__line577"></a>	if(a1.str() == a2.str()) return true;
+<a name="__line578"></a>	return false;
+<a name="__line579"></a>    }
+<a name="__line580"></a>
+<a name="__line581"></a>
+<a name="__line582"></a>    void cfunc_wrapper_base::find(void *pointer,
+<a name="__line583"></a>				  std::vector&lt;G__MethodInfo&gt; &amp;results,
+<a name="__line584"></a>				  std::string &amp;function_name_global,
+<a name="__line585"></a>				  const std::string &amp;arglist_spec)
+<a name="__line586"></a>    {
+<a name="__line587"></a>	results.clear();
+<a name="__line588"></a>	function_name_global = "UNKNOWN FUNCTION";
+<a name="__line589"></a>
+<a name="__line590"></a>	if(pointer == 0)
+<a name="__line591"></a>	{
+<a name="__line592"></a>	    warning::print("0 pointer","cfunc_wrapper_base::find(...)");
+<a name="__line593"></a>	    return;
+<a name="__line594"></a>	}
+<a name="__line595"></a>
+<a name="__line596"></a>	function_name_global = G__p2f2funcname(pointer);
+<a name="__line597"></a>	if(function_name_global == "")
+<a name="__line598"></a>	{
+<a name="__line599"></a>	    warning::print("Unknown pointer to function",
+<a name="__line600"></a>			   "cfunc_wrapper_base::find"
+<a name="__line601"></a>			   "(void *,const string &amp;,int&amp;,void*&amp;,string&amp;,string&amp;)");
+<a name="__line602"></a>	    function_name_global == "UNKNOWN FUNCTION";
+<a name="__line603"></a>	    return;
+<a name="__line604"></a>	}
+<a name="__line605"></a>
+<a name="__line606"></a>	std::string fname = function_name_global;
+<a name="__line607"></a>
+<a name="__line608"></a>	G__MethodInfo *method = 0;
+<a name="__line609"></a>	G__ClassInfo *scope = 0;
+<a name="__line610"></a>	string::size_type pos;
+<a name="__line611"></a>	if( (pos = function_name_global.find("::")) != string::npos )
+<a name="__line612"></a>	{
+<a name="__line613"></a>	    string classname = function_name_global.substr(0,pos);
+<a name="__line614"></a>	    scope = new G__ClassInfo(classname.c_str());
+<a name="__line615"></a>	    method =  new G__MethodInfo(*scope);
+<a name="__line616"></a>	    fname = function_name_global.substr(pos+2);
+<a name="__line617"></a>	}
+<a name="__line618"></a>	else
+<a name="__line619"></a>	{
+<a name="__line620"></a>	    method = new G__MethodInfo;
+<a name="__line621"></a>	    fname = function_name_global;
+<a name="__line622"></a>	}
+<a name="__line623"></a>
+<a name="__line624"></a>	array arglists = split(arglist_spec,"|");
+<a name="__line625"></a>
+<a name="__line626"></a>	while(method-&gt;Next())
+<a name="__line627"></a>	{
+<a name="__line628"></a>	    <span class=comment>// accept only methods with the same name</span>
+<a name="__line629"></a>	    if(fname != method-&gt;Name()) continue;
+<a name="__line630"></a>
+<a name="__line631"></a>	    <span class=comment>// if no arglist specifications were given, then store this into</span>
+<a name="__line632"></a>	    <span class=comment>// the output list</span>
+<a name="__line633"></a>	    if(arglists.empty())
+<a name="__line634"></a>	    {
+<a name="__line635"></a>		results.push_back(*method);
+<a name="__line636"></a>		continue;
+<a name="__line637"></a>	    }
+<a name="__line638"></a>
+<a name="__line639"></a>	    <span class=comment>// otherwise check if the arglist of this method matches any of the</span>
+<a name="__line640"></a>	    <span class=comment>// arglist specifications</span>
+<a name="__line641"></a>
+<a name="__line642"></a>	    std::string alist = create_arglist(*method);
+<a name="__line643"></a>
+<a name="__line644"></a>	    for(unsigned int i=0; i&lt;arglists.size(); ++i)
+<a name="__line645"></a>	    {
+<a name="__line646"></a>		<span class=comment>//if(arglists[i].str() == alist)</span>
+<a name="__line647"></a>		if(arglist_matches(arglists[i], alist))
+<a name="__line648"></a>		{
+<a name="__line649"></a>		    results.push_back(*method);
+<a name="__line650"></a>		    break;
+<a name="__line651"></a>		}
+<a name="__line652"></a>	    }
+<a name="__line653"></a>	}
+<a name="__line654"></a>
+<a name="__line655"></a>	delete method;
+<a name="__line656"></a>	delete scope;
+<a name="__line657"></a>
+<a name="__line658"></a>    }
+<a name="__line659"></a>    
+<a name="__line660"></a>
+<a name="__line661"></a>    cfunc_wrapper_base *cfunc_wrapper_base::find(void *pointer, const std::string &amp;arglist_spec)
+<a name="__line662"></a>    {
+<a name="__line663"></a>	string function_name_global;
+<a name="__line664"></a>	std::vector&lt;G__MethodInfo&gt; methods;
+<a name="__line665"></a>
+<a name="__line666"></a>	<span class=comment>// find all functions with mathing name</span>
+<a name="__line667"></a>	find(pointer,
+<a name="__line668"></a>	     methods,
+<a name="__line669"></a>	     function_name_global,
+<a name="__line670"></a>	     arglist_spec);
+<a name="__line671"></a>
+<a name="__line672"></a>
+<a name="__line673"></a>	if(debug::on())
+<a name="__line674"></a>	{
+<a name="__line675"></a>	    debug::print(var((long int)methods.size()) &amp; var(" function candidates found!"),
+<a name="__line676"></a>			     var("cfunc_wrapper_base::find(void*,\"") &amp;
+<a name="__line677"></a>						  arglist_spec &amp;
+<a name="__line678"></a>						  var("\")"));
+<a name="__line679"></a>	}
+<a name="__line680"></a>
+<a name="__line681"></a>
+<a name="__line682"></a>	cfunc_wrapper_base *f = 0;
+<a name="__line683"></a>	for(unsigned int i=0; i&lt;methods.size(); ++i)
+<a name="__line684"></a>	{
+<a name="__line685"></a>	    const string returntype = methods[i].Type()-&gt;Name();
+<a name="__line686"></a>	    int functype = G__isinterpretedp2f(methods[i].PointerToFunc());
+<a name="__line687"></a>
+<a name="__line688"></a>	    <span class=comment>// An interpreted static member function of a class was taken as G__UNKNOWNFUNC</span>
+<a name="__line689"></a>	    <span class=comment>// Therefore it needed to be taken out from the 'compiled' category, and</span>
+<a name="__line690"></a>	    <span class=comment>// only G__COMPILEDTRUEFUNC is treated as a compiled function</span>
+<a name="__line691"></a>
+<a name="__line692"></a>
+<a name="__line693"></a>	    const std::string arglist = create_arglist(methods[i]);
+<a name="__line694"></a>
+<a name="__line695"></a>	    string ftmessage = string("Function: ") + returntype + " " + function_name_global +
+<a name="__line696"></a>		"(" + arglist + ") [";
+<a name="__line697"></a>
+<a name="__line698"></a>	    if(functype == G__COMPILEDTRUEFUNC
+<a name="__line699"></a>	       <span class=comment>//|| functype == G__UNKNOWNFUNC</span>
+<a name="__line700"></a>		)
+<a name="__line701"></a>	    {
+<a name="__line702"></a>		ftmessage += "compiled";
+<a name="__line703"></a>		functype = compiled;
+<a name="__line704"></a>	    }
+<a name="__line705"></a>	    else
+<a name="__line706"></a>	    {
+<a name="__line707"></a>		functype = interpreted;
+<a name="__line708"></a>		ftmessage += "interpreted";
+<a name="__line709"></a>	    }
+<a name="__line710"></a>	    ftmessage += "]";
+<a name="__line711"></a>
+<a name="__line712"></a>	    debug::print(ftmessage,"cfunc_wrapper_base::find(void*,string arglist)");
+<a name="__line713"></a>
+<a name="__line714"></a>	    if(returntype == "double" &amp;&amp; arglist == "double")
+<a name="__line715"></a>	    {
+<a name="__line716"></a>		f = new double_func_double;
+<a name="__line717"></a>	    }
+<a name="__line718"></a>	    else if(returntype == "double" &amp;&amp; arglist == "double,double")
+<a name="__line719"></a>	    {
+<a name="__line720"></a>		f = new double_func_double_double;
+<a name="__line721"></a>	    }
+<a name="__line722"></a>	    else if(returntype == "double" &amp;&amp; arglist == "double,double,double")
+<a name="__line723"></a>	    {
+<a name="__line724"></a>		f = new double_func_double_double_double;
+<a name="__line725"></a>	    }
+<a name="__line726"></a>	    else if(returntype == "double" &amp;&amp; arglist == "double,double,double,double")
+<a name="__line727"></a>	    {
+<a name="__line728"></a>		f = new double_func_double_double_double_double;
+<a name="__line729"></a>	    }
+<a name="__line730"></a>	    else if((returntype == "var" || returntype == "blop::var") &amp;&amp;
+<a name="__line731"></a>		    (arglist == "var" || arglist == "blop::var"))
+<a name="__line732"></a>	    {
+<a name="__line733"></a>		f = new var_func_var;
+<a name="__line734"></a>	    }
+<a name="__line735"></a>	    else if((returntype == "var" || returntype == "blop::var") &amp;&amp;
+<a name="__line736"></a>		    (arglist == "var,var" || arglist == "blop::var,blop::var"))
+<a name="__line737"></a>	    {
+<a name="__line738"></a>		f = new var_func_var_var;
+<a name="__line739"></a>	    }
+<a name="__line740"></a>	    else if((returntype == "var" || returntype == "blop::var") &amp;&amp;
+<a name="__line741"></a>		    (arglist == "var,var,var" || arglist == "blop::var,blop::var,blop::var"))
+<a name="__line742"></a>	    {
+<a name="__line743"></a>		f = new var_func_var_var_var;
+<a name="__line744"></a>	    }
+<a name="__line745"></a>	    else if((returntype == "var" || returntype == "blop::var") &amp;&amp;
+<a name="__line746"></a>		    (arglist == "var,var,var,var" || arglist == "blop::var,blop::var,blop::var,blop::var"))
+<a name="__line747"></a>	    {
+<a name="__line748"></a>		f = new var_func_var_var_var_var;
+<a name="__line749"></a>	    }
+<a name="__line750"></a>
+<a name="__line751"></a>	    else if( (returntype == "double") &amp;&amp;
+<a name="__line752"></a>		     (
+<a name="__line753"></a>			 arglist == "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line754"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line755"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line756"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line757"></a>                                    "const std::vector&lt;blop::var&gt;&amp;" ||
+<a name="__line758"></a>			 arglist == "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line759"></a>		                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line760"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line761"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line762"></a>                                    "const vector&lt;blop::var&gt;&amp;"
+<a name="__line763"></a>		      )
+<a name="__line764"></a>		)
+<a name="__line765"></a>	    {
+<a name="__line766"></a>		f = new double_func_aref_aref_aref_aref_aref;
+<a name="__line767"></a>	    }
+<a name="__line768"></a>
+<a name="__line769"></a>	    else if( (returntype == "double") &amp;&amp;
+<a name="__line770"></a>		     (
+<a name="__line771"></a>			 arglist == "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line772"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line773"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line774"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line775"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line776"></a>                                    "const std::vector&lt;blop::var&gt;&amp;" ||
+<a name="__line777"></a>			 arglist == "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line778"></a>		                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line779"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line780"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line781"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line782"></a>                                    "const vector&lt;blop::var&gt;&amp;"
+<a name="__line783"></a>		      )
+<a name="__line784"></a>		)
+<a name="__line785"></a>	    {
+<a name="__line786"></a>		f = new double_func_aref_aref_aref_aref_aref_aref;
+<a name="__line787"></a>	    }
+<a name="__line788"></a>
+<a name="__line789"></a>	    else if( (returntype == "double") &amp;&amp;
+<a name="__line790"></a>		     (
+<a name="__line791"></a>			 arglist == "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line792"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line793"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line794"></a>		                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line795"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line796"></a>                                    "const std::vector&lt;blop::var&gt;&amp;,"
+<a name="__line797"></a>                                    "const std::vector&lt;blop::var&gt;&amp;" ||
+<a name="__line798"></a>			 arglist == "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line799"></a>		                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line800"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line801"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line802"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line803"></a>                                    "const vector&lt;blop::var&gt;&amp;,"
+<a name="__line804"></a>                                    "const vector&lt;blop::var&gt;&amp;"
+<a name="__line805"></a>		      )
+<a name="__line806"></a>		)
+<a name="__line807"></a>	    {
+<a name="__line808"></a>		f = new double_func_aref_aref_aref_aref_aref_aref_aref;
+<a name="__line809"></a>	    }
+<a name="__line810"></a>
+<a name="__line811"></a>
+<a name="__line812"></a>
+<a name="__line813"></a><span class=comment>/*
+<a name="__line814"></a>	    else if(returntype == "double" &amp;&amp; arglist == "int,double*,double*,int,double*,double*,double*")
+<a name="__line815"></a>	    {
+<a name="__line816"></a>		f = new double_func_int_doublep_doublep_int_doublep_doublep_doublep;
+<a name="__line817"></a>	    }
+<a name="__line818"></a>	    else if(returntype == "double" &amp;&amp; arglist == "int,double*,double*,int,double*,double*,double*,double*")
+<a name="__line819"></a>	    {
+<a name="__line820"></a>		f = new double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep;
+<a name="__line821"></a>	    }
+<a name="__line822"></a>	    else if(returntype == "double" &amp;&amp;
+<a name="__line823"></a>		    arglist == "int,double*,double*,int,double*,double*,double*,double*,double*")
+<a name="__line824"></a>	    {
+<a name="__line825"></a>		f = new double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep_doublep;
+<a name="__line826"></a>	    }
+<a name="__line827"></a>	    else if(returntype == "int" &amp;&amp; arglist == "double,double,double*,double*,int,int")
+<a name="__line828"></a>	    {
+<a name="__line829"></a>		f = new int_func_double_double_doublep_doublep_int_int;
+<a name="__line830"></a>	    }
+<a name="__line831"></a>*/</span>
+<a name="__line832"></a>
+<a name="__line833"></a>
+<a name="__line834"></a>	    else if((returntype == "complex" ||
+<a name="__line835"></a>		     returntype == "complex&lt;double&gt;" ||
+<a name="__line836"></a>		     returntype == "std::complex&lt;double&gt;")
+<a name="__line837"></a>		    &amp;&amp; arglist == "double")
+<a name="__line838"></a>	    {
+<a name="__line839"></a>		f = new complex_func_double;
+<a name="__line840"></a>	    }
+<a name="__line841"></a>	    else if(returntype == "void"      &amp;&amp; arglist == "double*,double*")
+<a name="__line842"></a>	    {
+<a name="__line843"></a>		f = new void_func_doublep_doublep;
+<a name="__line844"></a>	    }
+<a name="__line845"></a>
+<a name="__line846"></a>
+<a name="__line847"></a>	    if(f != 0)
+<a name="__line848"></a>	    {
+<a name="__line849"></a>		f-&gt;functype_ = functype;
+<a name="__line850"></a>		f-&gt;ptr_ = methods[i].PointerToFunc();
+<a name="__line851"></a>		f-&gt;fname_ = function_name_global;
+<a name="__line852"></a>		f-&gt;arglist_ = arglist;
+<a name="__line853"></a>		break;
+<a name="__line854"></a>	    }
+<a name="__line855"></a>	}
+<a name="__line856"></a>	return f;
+<a name="__line857"></a>    }
+<a name="__line858"></a>
+<a name="__line859"></a>
+<a name="__line860"></a>    
+<a name="__line861"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

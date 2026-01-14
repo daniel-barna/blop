@@ -1,0 +1,1866 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: frame.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line1"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line2"></a>#include "<a href="graph.h.html">graph.h</a>"
+<a name="__line3"></a>#include "<a href="fgraph.h.html">fgraph.h</a>"
+<a name="__line4"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line5"></a>#include "<a href="epad.h.html">epad.h</a>"
+<a name="__line6"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line7"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line8"></a>
+<a name="__line9"></a>#include &lt;cstdio&gt;
+<a name="__line10"></a>#include &lt;algorithm&gt;
+<a name="__line11"></a>#include &lt;vector&gt;
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    length frame::default_linewidth_ = LW;
+<a name="__line16"></a>    length frame::default_gridwidth_ = LW;
+<a name="__line17"></a>    length frame::default_minor_gridwidth_ = 0.7*LW;
+<a name="__line18"></a>    length frame::default_gridcut_ = EX;
+<a name="__line19"></a>
+<a name="__line20"></a>    bool frame::default_show_legend_ = true;
+<a name="__line21"></a>
+<a name="__line22"></a>    color frame::default_gridcolor_ = color(0.7,0.7,0.7);
+<a name="__line23"></a>    color frame::default_minor_gridcolor_ = color(0.85,0.85,0.85);
+<a name="__line24"></a>
+<a name="__line25"></a>    sym::linestyle frame::default_gridstyle_ = sym::solid;
+<a name="__line26"></a>    sym::linestyle frame::default_minor_gridstyle_ = sym::solid;
+<a name="__line27"></a>
+<a name="__line28"></a>    frame::frame()
+<a name="__line29"></a>    TRY
+<a name="__line30"></a>    {
+<a name="__line31"></a>	name("frame");
+<a name="__line32"></a>	layer("frame");
+<a name="__line33"></a>
+<a name="__line34"></a>	title_ = 0;
+<a name="__line35"></a>
+<a name="__line36"></a>	nodistort_ = false;
+<a name="__line37"></a>
+<a name="__line38"></a>        show_legend_ = default_show_legend_;
+<a name="__line39"></a>
+<a name="__line40"></a>	frame::all().push_back(this);
+<a name="__line41"></a>
+<a name="__line42"></a>	marginobjectsep_ = default_marginobjectsep_;
+<a name="__line43"></a>	for(int i=0; i&lt;4; ++i)
+<a name="__line44"></a>	{
+<a name="__line45"></a>	    marginboxes_[i] = 0;
+<a name="__line46"></a>	    owns_marginboxes_[i] = true;
+<a name="__line47"></a>	}
+<a name="__line48"></a>
+<a name="__line49"></a>	legendbox_ = new legendbox;
+<a name="__line50"></a>        legendbox_-&gt;fix_width(true).fix_height(true);
+<a name="__line51"></a>	add(legendbox_);
+<a name="__line52"></a>	owns_legendbox_ = true;
+<a name="__line53"></a>
+<a name="__line54"></a>	draw_frame_ = default_draw_frame_;
+<a name="__line55"></a>	draw_axes_ = default_draw_axes_;
+<a name="__line56"></a>	foreground_ = default_foreground_;
+<a name="__line57"></a>	grid_foreground_ = default_grid_foreground_;
+<a name="__line58"></a>
+<a name="__line59"></a>	framecolor_ = default_framecolor_;
+<a name="__line60"></a>
+<a name="__line61"></a>	mirror_x1_ = true;
+<a name="__line62"></a>	mirror_x2_ = true;
+<a name="__line63"></a>	mirror_y1_ = true;
+<a name="__line64"></a>	mirror_y2_ = true;
+<a name="__line65"></a>
+<a name="__line66"></a>	grid_ = default_grid_;
+<a name="__line67"></a>        grid_at_minor_tics_ = default_grid_at_minor_tics_;
+<a name="__line68"></a>	gridcolor_ = default_gridcolor_;
+<a name="__line69"></a>        minor_gridcolor_ = default_minor_gridcolor_;
+<a name="__line70"></a>	gridstyle_ = default_gridstyle_;
+<a name="__line71"></a>        minor_gridstyle_ = default_minor_gridstyle_;
+<a name="__line72"></a>	gridwidth_ = default_gridwidth_;
+<a name="__line73"></a>        minor_gridwidth_ = default_minor_gridwidth_;
+<a name="__line74"></a>	gridcut_ = default_gridcut_;
+<a name="__line75"></a>	linewidth_ = default_linewidth_;
+<a name="__line76"></a>
+<a name="__line77"></a>	x1axis_ = new axis(axis::x1); owns_x1axis_ = true;
+<a name="__line78"></a>	y1axis_ = new axis(axis::y1); owns_y1axis_ = true;
+<a name="__line79"></a>	x2axis_ = new axis(axis::x2); owns_x2axis_ = true;
+<a name="__line80"></a>	y2axis_ = new axis(axis::y2); owns_y2axis_ = true;
+<a name="__line81"></a>
+<a name="__line82"></a>	<span class=comment>/*
+<a name="__line83"></a>	  x1axis_-&gt;pos(!container::cbottom(),!container::cleft(),!container::cright());
+<a name="__line84"></a>	  x2axis_-&gt;pos(!container::ctop(),!container::cleft(),!container::cright());
+<a name="__line85"></a>	  y1axis_-&gt;pos(!container::cleft(),!container::cbottom(),!container::ctop());
+<a name="__line86"></a>	  y2axis_-&gt;pos(!container::cright(),!container::cbottom(),!container::ctop());
+<a name="__line87"></a>	*/</span>
+<a name="__line88"></a>	x1axis_-&gt;pos(0.,0.,!cwidth());
+<a name="__line89"></a>	x2axis_-&gt;pos(!cheight(),0.,!cwidth());
+<a name="__line90"></a>	y1axis_-&gt;pos(0.,0.,!cheight());
+<a name="__line91"></a>	y2axis_-&gt;pos(!cwidth(),0.,!cheight());
+<a name="__line92"></a>
+<a name="__line93"></a>	x1axis_-&gt;axiscolor(framecolor_);
+<a name="__line94"></a>	x2axis_-&gt;axiscolor(framecolor_);
+<a name="__line95"></a>	y1axis_-&gt;axiscolor(framecolor_);
+<a name="__line96"></a>	y2axis_-&gt;axiscolor(framecolor_);
+<a name="__line97"></a>
+<a name="__line98"></a>	left(0.5*EX);
+<a name="__line99"></a>	right(!parent_width_ - 0.5*EX);
+<a name="__line100"></a>	bottom(0.5*blop::height("X"));
+<a name="__line101"></a>	top(!parent_height_ - 0.5*blop::height("X"));
+<a name="__line102"></a>
+<a name="__line103"></a>	bmargin(!x1axis_-&gt;scriptsize());
+<a name="__line104"></a>	tmargin(!x2axis_-&gt;scriptsize());
+<a name="__line105"></a>	lmargin(!y1axis_-&gt;scriptsize());
+<a name="__line106"></a>	rmargin(!y2axis_-&gt;scriptsize());
+<a name="__line107"></a>
+<a name="__line108"></a>	legend_xalign_ = default_legend_xalign_;
+<a name="__line109"></a>	legend_yalign_ = default_legend_yalign_;
+<a name="__line110"></a>	legendpos(legend_xalign_, legend_yalign_);
+<a name="__line111"></a>    }
+<a name="__line112"></a>    CATCH("frame::frame()")
+<a name="__line113"></a>
+<a name="__line114"></a>    frame::~frame()
+<a name="__line115"></a>    {
+<a name="__line116"></a>	<span class=comment>// remove this frame from the all() vector</span>
+<a name="__line117"></a>	{
+<a name="__line118"></a>	    std::vector&lt;frame*&gt;::iterator i=std::find(frame::all().begin(),
+<a name="__line119"></a>						      frame::all().end(),
+<a name="__line120"></a>						      this);
+<a name="__line121"></a>	    if(i==frame::all().end())
+<a name="__line122"></a>		err("Unregistered frame (programming error, please report)");
+<a name="__line123"></a>	    frame::all().erase(i);
+<a name="__line124"></a>	}
+<a name="__line125"></a>
+<a name="__line126"></a>	if(owns_legendbox_) delete legendbox_;
+<a name="__line127"></a>
+<a name="__line128"></a>	if(owns_x1axis_) delete x1axis_;
+<a name="__line129"></a>	if(owns_x2axis_) delete x2axis_;
+<a name="__line130"></a>	if(owns_y1axis_) delete y1axis_;
+<a name="__line131"></a>	if(owns_y2axis_) delete y2axis_;
+<a name="__line132"></a>
+<a name="__line133"></a>	if(current_ == this) current_ = 0;
+<a name="__line134"></a>
+<a name="__line135"></a>        delete title_;
+<a name="__line136"></a>
+<a name="__line137"></a>	for(int i=0; i&lt;4; ++i)
+<a name="__line138"></a>	{
+<a name="__line139"></a>	    if(owns_marginboxes_[i] &amp;&amp; marginboxes_[i] != 0)
+<a name="__line140"></a>		delete marginboxes_[i];
+<a name="__line141"></a>	}
+<a name="__line142"></a>
+<a name="__line143"></a>        <span class=comment>// Delete those plottables which have their autodel flag set</span>
+<a name="__line144"></a>        for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line145"></a>        {
+<a name="__line146"></a>            if(graphs_[i]-&gt;autodel()) delete graphs_[i];
+<a name="__line147"></a>        }
+<a name="__line148"></a>    }
+<a name="__line149"></a>
+<a name="__line150"></a>    frame::frame(const frame &amp;)
+<a name="__line151"></a>    {
+<a name="__line152"></a>	err("frame::frame(const frame &amp;) should not be called");
+<a name="__line153"></a>    }
+<a name="__line154"></a>
+<a name="__line155"></a>    void frame::operator=(const frame &amp;)
+<a name="__line156"></a>    {
+<a name="__line157"></a>	err("frame::operator=(const frame &amp;) should not be called");
+<a name="__line158"></a>    }
+<a name="__line159"></a>
+<a name="__line160"></a>    void frame::remove_from_all(plottable *p)
+<a name="__line161"></a>    {
+<a name="__line162"></a>        if(p==0) return;
+<a name="__line163"></a>	for(unsigned int i=0; i&lt;all().size(); ++i)
+<a name="__line164"></a>	{
+<a name="__line165"></a>	    all()[i]-&gt;remove(p);
+<a name="__line166"></a>	}
+<a name="__line167"></a>    }
+<a name="__line168"></a>
+<a name="__line169"></a>    std::vector&lt;frame*&gt; &amp;frame::all()
+<a name="__line170"></a>    {
+<a name="__line171"></a>	static std::vector&lt;frame*&gt; *f = new std::vector&lt;frame*&gt;;
+<a name="__line172"></a>	return *f;
+<a name="__line173"></a>    }
+<a name="__line174"></a>
+<a name="__line175"></a>    frame *frame::current_ = 0;
+<a name="__line176"></a>
+<a name="__line177"></a>    <span class=comment>// default values</span>
+<a name="__line178"></a>    sym::position frame::default_legend_xalign_ = sym::right;
+<a name="__line179"></a>    sym::position frame::default_legend_yalign_ = sym::top;
+<a name="__line180"></a>    void frame::default_legendpos(sym::position x, sym::position y) { default_legend_xalign_ = x; default_legend_yalign_ = y; }
+<a name="__line181"></a>
+<a name="__line182"></a>    int frame::default_draw_frame_ = sym::left | sym::top | sym::right | sym::bottom;
+<a name="__line183"></a>    int frame::default_draw_axes_ = axis::x1|axis::x2|axis::y1|axis::y2;
+<a name="__line184"></a>
+<a name="__line185"></a>    bool frame::default_foreground_ = false;
+<a name="__line186"></a>    void frame::default_foreground(bool b) { default_foreground_ = b; }
+<a name="__line187"></a>    bool frame::default_grid_foreground_ = false;
+<a name="__line188"></a>
+<a name="__line189"></a>    int  frame::default_grid_ = 0;
+<a name="__line190"></a>    int  frame::default_grid_at_minor_tics_ = 0;
+<a name="__line191"></a>    void frame::default_grid(int i) { default_grid_ = i; }
+<a name="__line192"></a>    void frame::default_grid(bool i) { if(i) default_grid_ = axis::x1|axis::y1; else default_grid_ = 0; }
+<a name="__line193"></a>    void frame::default_grid_at_minor_tics(int i) { default_grid_at_minor_tics_ = i; }
+<a name="__line194"></a>    void frame::default_grid_at_minor_tics(bool i) { if(i) default_grid_at_minor_tics_ = axis::x1|axis::y1; else default_grid_at_minor_tics_ = 0; }
+<a name="__line195"></a>
+<a name="__line196"></a>    color frame::default_framecolor_ = black;
+<a name="__line197"></a>    void frame::default_framecolor(const color &amp;c) { default_framecolor_ = c; }
+<a name="__line198"></a>
+<a name="__line199"></a>    length frame::default_marginobjectsep_(new length::base_id_t(terminal::EX));
+<a name="__line200"></a>
+<a name="__line201"></a>    frame &amp;frame::nodistort(bool f)
+<a name="__line202"></a>    {
+<a name="__line203"></a>	nodistort_ = f;
+<a name="__line204"></a>
+<a name="__line205"></a>	<span class=comment>// if no distortion is requested, release the caspect</span>
+<a name="__line206"></a>	<span class=comment>// because we don't know yet in advance the caspect,</span>
+<a name="__line207"></a>	<span class=comment>// only during prepare_for_draw(...), when the axis ranges</span>
+<a name="__line208"></a>	<span class=comment>// are set</span>
+<a name="__line209"></a>	if(nodistort_) container::caspect(-1);
+<a name="__line210"></a>
+<a name="__line211"></a>	return *this;
+<a name="__line212"></a>    }
+<a name="__line213"></a>
+<a name="__line214"></a>    frame &amp;frame::caspect(double s)
+<a name="__line215"></a>    {
+<a name="__line216"></a>	if(s&gt;0) nodistort_ = false;
+<a name="__line217"></a>	bmargin(!x1axis_-&gt;scriptsize());
+<a name="__line218"></a>	tmargin(!x2axis_-&gt;scriptsize());
+<a name="__line219"></a>	container::caspect(s);
+<a name="__line220"></a>	return *this;
+<a name="__line221"></a>    }
+<a name="__line222"></a>    frame  &amp;frame::cxlock(sym::position a)
+<a name="__line223"></a>    {
+<a name="__line224"></a>	container::cxlock(a);
+<a name="__line225"></a>	return *this;
+<a name="__line226"></a>    }
+<a name="__line227"></a>    frame &amp;frame::cylock(sym::position a)
+<a name="__line228"></a>    {
+<a name="__line229"></a>	container::cylock(a);
+<a name="__line230"></a>	return *this;
+<a name="__line231"></a>    }
+<a name="__line232"></a>
+<a name="__line233"></a>    frame &amp;frame::lmarginbox(epad *p)
+<a name="__line234"></a>    {
+<a name="__line235"></a>	<span class=comment>// If there was a previous marginbox, and it is owned by this frame,</span>
+<a name="__line236"></a>	<span class=comment>// first delete it</span>
+<a name="__line237"></a>	if(marginboxes_[Left] != 0 &amp;&amp; owns_marginboxes_[Left])
+<a name="__line238"></a>	    delete marginboxes_[Left];
+<a name="__line239"></a>
+<a name="__line240"></a>	<span class=comment>// This is an external marginbox, so we do not own it!</span>
+<a name="__line241"></a>	owns_marginboxes_[Left] = false;
+<a name="__line242"></a>
+<a name="__line243"></a>	marginboxes_[Left] = p;
+<a name="__line244"></a>
+<a name="__line245"></a>	<span class=comment>// the corresponding margin is set</span>
+<a name="__line246"></a>	lmargin(!y1axis_-&gt;scriptsize()+!marginobjectsep_+!p-&gt;width());
+<a name="__line247"></a>
+<a name="__line248"></a>	modified_ = true;
+<a name="__line249"></a>	return *this;
+<a name="__line250"></a>    }
+<a name="__line251"></a>    epad *frame::lmarginbox() const { return marginboxes_[Left]; }
+<a name="__line252"></a>
+<a name="__line253"></a>    frame &amp;frame::rmarginbox(epad *p)
+<a name="__line254"></a>    {
+<a name="__line255"></a>	if(marginboxes_[Right] != 0 &amp;&amp; owns_marginboxes_[Right])
+<a name="__line256"></a>	    delete marginboxes_[Right];
+<a name="__line257"></a>	owns_marginboxes_[Right] = false;
+<a name="__line258"></a>	marginboxes_[Right] = p;
+<a name="__line259"></a>	lmargin(!y2axis_-&gt;scriptsize()+!marginobjectsep_+!p-&gt;width());
+<a name="__line260"></a>	modified_ = true;
+<a name="__line261"></a>	return *this;
+<a name="__line262"></a>    }
+<a name="__line263"></a>    epad *frame::rmarginbox() const { return marginboxes_[Right]; }
+<a name="__line264"></a>
+<a name="__line265"></a>    frame &amp;frame::bmarginbox(epad *p)
+<a name="__line266"></a>    {
+<a name="__line267"></a>	if(marginboxes_[Bottom] != 0 &amp;&amp; owns_marginboxes_[Bottom])
+<a name="__line268"></a>	    delete marginboxes_[Bottom];
+<a name="__line269"></a>	owns_marginboxes_[Bottom] = false;
+<a name="__line270"></a>	marginboxes_[Bottom] = p;
+<a name="__line271"></a>	lmargin(!x1axis_-&gt;scriptsize()+!marginobjectsep_+!p-&gt;height());
+<a name="__line272"></a>	modified_ = true;
+<a name="__line273"></a>	return *this;
+<a name="__line274"></a>    }
+<a name="__line275"></a>    epad *frame::bmarginbox() const { return marginboxes_[Bottom]; }
+<a name="__line276"></a>
+<a name="__line277"></a>    frame &amp;frame::tmarginbox(epad *p)
+<a name="__line278"></a>    {
+<a name="__line279"></a>	if(marginboxes_[Top] != 0 &amp;&amp; owns_marginboxes_[Top])
+<a name="__line280"></a>	    delete marginboxes_[Top];
+<a name="__line281"></a>	owns_marginboxes_[Top] = false;
+<a name="__line282"></a>	marginboxes_[Top] = p;
+<a name="__line283"></a>	lmargin(!x2axis_-&gt;scriptsize()+!marginobjectsep_+!p-&gt;height());
+<a name="__line284"></a>	modified_ = true;
+<a name="__line285"></a>	return *this;
+<a name="__line286"></a>    }
+<a name="__line287"></a>    epad *frame::tmarginbox() const { return marginboxes_[Top]; }
+<a name="__line288"></a>
+<a name="__line289"></a>    frame &amp;frame::lmarginobject(box *b)
+<a name="__line290"></a>    {
+<a name="__line291"></a>	if(marginboxes_[Left] == 0)
+<a name="__line292"></a>	{
+<a name="__line293"></a>	    owns_marginboxes_[Left] = true;
+<a name="__line294"></a>	    marginboxes_[Left] = new epad;
+<a name="__line295"></a>	    marginboxes_[Left]-&gt;autodel(false);
+<a name="__line296"></a>	    marginboxes_[Left]-&gt;right(-!y1axis_-&gt;scriptsize()-!marginobjectsep_);
+<a name="__line297"></a>	    marginboxes_[Left]-&gt;width(!b-&gt;width());
+<a name="__line298"></a>	    marginboxes_[Left]-&gt;bottom(0.0);
+<a name="__line299"></a>	    marginboxes_[Left]-&gt;top(1.0);
+<a name="__line300"></a>	    marginboxes_[Left]-&gt;fix_height(true);
+<a name="__line301"></a>	    marginboxes_[Left]-&gt;borderwidth(0.0);
+<a name="__line302"></a>	    add(marginboxes_[Left]);
+<a name="__line303"></a>	    lmargin(!y1axis_-&gt;scriptsize()+!marginobjectsep_+!marginboxes_[Left]-&gt;width());
+<a name="__line304"></a>	}
+<a name="__line305"></a>	marginboxes_[Left]-&gt;add(b);
+<a name="__line306"></a>	modified_ = true;
+<a name="__line307"></a>	return *this;
+<a name="__line308"></a>    }
+<a name="__line309"></a>    frame &amp;frame::rmarginobject(box *b)
+<a name="__line310"></a>    {
+<a name="__line311"></a>	if(marginboxes_[Right] == 0)
+<a name="__line312"></a>	{
+<a name="__line313"></a>	    owns_marginboxes_[Right] = true;
+<a name="__line314"></a>	    marginboxes_[Right] = new epad;
+<a name="__line315"></a>	    marginboxes_[Right]-&gt;autodel(false);
+<a name="__line316"></a>	    marginboxes_[Right]-&gt;left(1.0+!y2axis_-&gt;scriptsize()+!marginobjectsep_);
+<a name="__line317"></a>	    marginboxes_[Right]-&gt;width(!b-&gt;width());
+<a name="__line318"></a>	    marginboxes_[Right]-&gt;bottom(0.0);
+<a name="__line319"></a>	    marginboxes_[Right]-&gt;top(1.0);
+<a name="__line320"></a>	    marginboxes_[Right]-&gt;fix_height(true);
+<a name="__line321"></a>	    marginboxes_[Right]-&gt;borderwidth(0.0);
+<a name="__line322"></a>
+<a name="__line323"></a>	    add(marginboxes_[Right]);
+<a name="__line324"></a>	    rmargin(!y2axis_-&gt;scriptsize()+!marginobjectsep_+!marginboxes_[Right]-&gt;width());
+<a name="__line325"></a>	}
+<a name="__line326"></a>
+<a name="__line327"></a>	marginboxes_[Right]-&gt;add(b);
+<a name="__line328"></a>	modified_ = true;
+<a name="__line329"></a>	return *this;
+<a name="__line330"></a>    }
+<a name="__line331"></a>    frame &amp;frame::bmarginobject(box *b)
+<a name="__line332"></a>    {
+<a name="__line333"></a>	if(marginboxes_[Bottom] == 0)
+<a name="__line334"></a>	{
+<a name="__line335"></a>	    owns_marginboxes_[Bottom] = true;
+<a name="__line336"></a>	    marginboxes_[Bottom] = new epad;
+<a name="__line337"></a>	    marginboxes_[Bottom]-&gt;autodel(false);
+<a name="__line338"></a>	    marginboxes_[Bottom]-&gt;left(0.0);
+<a name="__line339"></a>	    marginboxes_[Bottom]-&gt;right(1.0);
+<a name="__line340"></a>	    marginboxes_[Bottom]-&gt;fix_width(true);
+<a name="__line341"></a>	    marginboxes_[Bottom]-&gt;top(-!x1axis_-&gt;scriptsize()-!marginobjectsep_);
+<a name="__line342"></a>	    marginboxes_[Bottom]-&gt;height(!b-&gt;height());
+<a name="__line343"></a>	    marginboxes_[Bottom]-&gt;borderwidth(0.0);
+<a name="__line344"></a>	    add(marginboxes_[Bottom]);
+<a name="__line345"></a>	    bmargin(!x1axis_-&gt;scriptsize()+!marginobjectsep_+!marginboxes_[Bottom]-&gt;height());
+<a name="__line346"></a>	}
+<a name="__line347"></a>	marginboxes_[Bottom]-&gt;add(b);
+<a name="__line348"></a>	modified_ = true;
+<a name="__line349"></a>	return *this;
+<a name="__line350"></a>    }
+<a name="__line351"></a>    frame &amp;frame::tmarginobject(box *b)
+<a name="__line352"></a>    {
+<a name="__line353"></a>	if(marginboxes_[Top] == 0)
+<a name="__line354"></a>	{
+<a name="__line355"></a>	    owns_marginboxes_[Top] = true;
+<a name="__line356"></a>	    marginboxes_[Top] = new epad;
+<a name="__line357"></a>	    marginboxes_[Top]-&gt;autodel(false);
+<a name="__line358"></a>	    marginboxes_[Top]-&gt;left(0.0);
+<a name="__line359"></a>	    marginboxes_[Top]-&gt;right(1.0);
+<a name="__line360"></a>	    marginboxes_[Top]-&gt;fix_width(true);
+<a name="__line361"></a>	    marginboxes_[Top]-&gt;bottom(1.0+!x2axis_-&gt;scriptsize()+!marginobjectsep_);
+<a name="__line362"></a>	    marginboxes_[Top]-&gt;height(!b-&gt;height());
+<a name="__line363"></a>	    marginboxes_[Top]-&gt;borderwidth(0.0);
+<a name="__line364"></a>	    add(marginboxes_[Top]);
+<a name="__line365"></a>	    tmargin(!x2axis_-&gt;scriptsize()+!marginobjectsep_+!marginboxes_[Top]-&gt;height());
+<a name="__line366"></a>	}
+<a name="__line367"></a>	marginboxes_[Top]-&gt;add(b);
+<a name="__line368"></a>	modified_ = true;
+<a name="__line369"></a>	return *this;
+<a name="__line370"></a>    }
+<a name="__line371"></a>
+<a name="__line372"></a>
+<a name="__line373"></a>    void frame::cd_specific()
+<a name="__line374"></a>    {
+<a name="__line375"></a>	current_ = this;
+<a name="__line376"></a>    }
+<a name="__line377"></a>
+<a name="__line378"></a>
+<a name="__line379"></a>    frame &amp;frame::legend(legendbox *l)
+<a name="__line380"></a>    {
+<a name="__line381"></a>        if(!l)
+<a name="__line382"></a>        {
+<a name="__line383"></a>            warning::print("Empty pointer","frame::legend(legendbox*)");
+<a name="__line384"></a>            return *this;
+<a name="__line385"></a>        }
+<a name="__line386"></a>        return legend(*l);
+<a name="__line387"></a>    }
+<a name="__line388"></a>
+<a name="__line389"></a>    frame &amp;frame::legend(legendbox &amp;l)
+<a name="__line390"></a>    {
+<a name="__line391"></a>	owns_legendbox_ = false;
+<a name="__line392"></a>	remove(legendbox_);
+<a name="__line393"></a>	delete legendbox_;
+<a name="__line394"></a>	legendbox_ = &amp;l;
+<a name="__line395"></a>	for(std::vector&lt;plottable*&gt;::iterator i = graphs_.begin();
+<a name="__line396"></a>	    i != graphs_.end(); ++i)
+<a name="__line397"></a>	{
+<a name="__line398"></a>	    l.add(*i);
+<a name="__line399"></a>	}
+<a name="__line400"></a>	return *this;
+<a name="__line401"></a>    }
+<a name="__line402"></a>
+<a name="__line403"></a>    frame &amp;frame::own_legend()
+<a name="__line404"></a>    {
+<a name="__line405"></a>	if(owns_legendbox_) return *this;
+<a name="__line406"></a>	legendbox *new_legendbox = new legendbox;
+<a name="__line407"></a>        new_legendbox-&gt;fix_width(true).fix_height(true);
+<a name="__line408"></a>
+<a name="__line409"></a>	for(std::vector&lt;plottable*&gt;::iterator i = graphs_.begin();
+<a name="__line410"></a>	    i != graphs_.end(); ++i)
+<a name="__line411"></a>	{
+<a name="__line412"></a>	    if(legendbox_) legendbox_-&gt;remove(*i);
+<a name="__line413"></a>	    new_legendbox-&gt;add(*i);
+<a name="__line414"></a>	}
+<a name="__line415"></a>	add(legendbox_ = new_legendbox);
+<a name="__line416"></a>	owns_legendbox_ = true;
+<a name="__line417"></a>	return *this;
+<a name="__line418"></a>    }
+<a name="__line419"></a>
+<a name="__line420"></a>    frame &amp;frame::legendpos(sym::position xalign,sym::position yalign)
+<a name="__line421"></a>    TRY
+<a name="__line422"></a>    {
+<a name="__line423"></a>
+<a name="__line424"></a>	modified_ = true;
+<a name="__line425"></a>	legend_xalign_ = xalign;
+<a name="__line426"></a>	legend_yalign_ = yalign;
+<a name="__line427"></a>
+<a name="__line428"></a>	<span class=comment>//legendbox_-&gt;width(legendbox_-&gt;width());</span>
+<a name="__line429"></a>	<span class=comment>//legendbox_-&gt;height(legendbox_-&gt;height());</span>
+<a name="__line430"></a>
+<a name="__line431"></a>	if(xalign == sym::right)
+<a name="__line432"></a>	{
+<a name="__line433"></a>	    if(mirror_y1_) legendbox_-&gt;right(!cwidth() - 1.3*!y1axis_-&gt;ticlength());
+<a name="__line434"></a>	    else           legendbox_-&gt;right(!cwidth() - 1.3*!y2axis_-&gt;ticlength());
+<a name="__line435"></a>	}
+<a name="__line436"></a>	else if(xalign == sym::left) legendbox_-&gt;left(1.3*!y1axis_-&gt;ticlength());
+<a name="__line437"></a>	else legendbox_-&gt;xcenter(0.5*!cwidth());
+<a name="__line438"></a>
+<a name="__line439"></a>	if(yalign == sym::top)
+<a name="__line440"></a>	{
+<a name="__line441"></a>	    if(mirror_x1_) legendbox_-&gt;top(!cheight()- 1.3*!x1axis_-&gt;ticlength());
+<a name="__line442"></a>	    else           legendbox_-&gt;top(!cheight()- 1.3*!x2axis_-&gt;ticlength());
+<a name="__line443"></a>	}
+<a name="__line444"></a>	else if(yalign == sym::bottom) legendbox_-&gt;bottom(1.3*!x1axis_-&gt;ticlength());
+<a name="__line445"></a>	else legendbox_-&gt;ycenter(0.5*!cheight());
+<a name="__line446"></a>
+<a name="__line447"></a>
+<a name="__line448"></a>	return *this;
+<a name="__line449"></a>    }
+<a name="__line450"></a>    CATCH("frame::legend(int,int)")
+<a name="__line451"></a>
+<a name="__line452"></a>    frame &amp;frame::title(const var &amp;t)
+<a name="__line453"></a>    {
+<a name="__line454"></a>	<span class=comment>// if an empty string, clear the title</span>
+<a name="__line455"></a>	if(t.str() == "")
+<a name="__line456"></a>	{
+<a name="__line457"></a>	    if(title_) delete title_;
+<a name="__line458"></a>            title_ = 0;
+<a name="__line459"></a>	    return *this; 
+<a name="__line460"></a>	}
+<a name="__line461"></a>
+<a name="__line462"></a>	if(!title_)
+<a name="__line463"></a>	{
+<a name="__line464"></a>	    title_ = new label(t);
+<a name="__line465"></a>	    tmarginobject(title_);
+<a name="__line466"></a>	}
+<a name="__line467"></a>	else title_-&gt;text(t);
+<a name="__line468"></a>	title_-&gt;x(0.5,sym::center).y(0.5,sym::center);
+<a name="__line469"></a>	return *this; 
+<a name="__line470"></a>    }
+<a name="__line471"></a>
+<a name="__line472"></a>
+<a name="__line473"></a>    frame &amp;frame::loffset(const length &amp;l)
+<a name="__line474"></a>    {
+<a name="__line475"></a>	modified_ = true;
+<a name="__line476"></a>	left(l);
+<a name="__line477"></a>	<span class=comment>//cleft_ = !left() + !lmargin_;</span>
+<a name="__line478"></a>	return *this;
+<a name="__line479"></a>    }
+<a name="__line480"></a>    frame &amp;frame::roffset(const length &amp;l)
+<a name="__line481"></a>    {
+<a name="__line482"></a>	modified_ = true;
+<a name="__line483"></a>	right(!parent_width_ - l);
+<a name="__line484"></a>	<span class=comment>//cright_ = !right() - !rmargin_;</span>
+<a name="__line485"></a>	return *this;
+<a name="__line486"></a>    }
+<a name="__line487"></a>    frame &amp;frame::boffset(const length &amp;l)
+<a name="__line488"></a>    {
+<a name="__line489"></a>	modified_ = true;
+<a name="__line490"></a>	bottom(l);
+<a name="__line491"></a>	<span class=comment>//cbottom_ = !bottom() + !bmargin_;</span>
+<a name="__line492"></a>	return *this;
+<a name="__line493"></a>    }
+<a name="__line494"></a>    frame &amp;frame::toffset(const length &amp;l)
+<a name="__line495"></a>    {
+<a name="__line496"></a>	modified_ = true;
+<a name="__line497"></a>	top(!parent_height_ - l);
+<a name="__line498"></a>	<span class=comment>//ctop_ = !top() - !tmargin_;</span>
+<a name="__line499"></a>	return *this;
+<a name="__line500"></a>    }
+<a name="__line501"></a>
+<a name="__line502"></a>    frame &amp;frame::offsets(const length &amp;l)
+<a name="__line503"></a>    {
+<a name="__line504"></a>	modified_ = true;
+<a name="__line505"></a>	toffset(l);
+<a name="__line506"></a>	boffset(l);
+<a name="__line507"></a>	loffset(l);
+<a name="__line508"></a>	roffset(l);
+<a name="__line509"></a>	return *this;
+<a name="__line510"></a>    }
+<a name="__line511"></a>
+<a name="__line512"></a>    frame &amp;frame::mknew(container &amp;parent)
+<a name="__line513"></a>    {
+<a name="__line514"></a>	frame *f = new frame;
+<a name="__line515"></a>	f-&gt;autodel(true);
+<a name="__line516"></a>	parent.add(f);
+<a name="__line517"></a>	f-&gt;cd();
+<a name="__line518"></a>	return *f;
+<a name="__line519"></a>    }
+<a name="__line520"></a>
+<a name="__line521"></a>    frame &amp;frame::current()
+<a name="__line522"></a>    TRY
+<a name="__line523"></a>    {
+<a name="__line524"></a>	if(!current_)
+<a name="__line525"></a>	{
+<a name="__line526"></a>	    return mknew();
+<a name="__line527"></a>	}
+<a name="__line528"></a>	return *current_;
+<a name="__line529"></a>    }
+<a name="__line530"></a>    CATCH("frame::current()")
+<a name="__line531"></a>
+<a name="__line532"></a>
+<a name="__line533"></a>    bool frame::parent(container *p)
+<a name="__line534"></a>    {
+<a name="__line535"></a>	grob::parent(p);
+<a name="__line536"></a>	parent_width_ = !p-&gt;cwidth();
+<a name="__line537"></a>	parent_height_ = !p-&gt;cheight();
+<a name="__line538"></a>	return true;
+<a name="__line539"></a>    }
+<a name="__line540"></a>
+<a name="__line541"></a>    frame &amp;frame::remove(plottable *g)
+<a name="__line542"></a>    {
+<a name="__line543"></a>        if(g==0) return *this;
+<a name="__line544"></a>	for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line545"></a>	{
+<a name="__line546"></a>	    if(graphs_[i] == g)
+<a name="__line547"></a>	    {
+<a name="__line548"></a>		graphs_[i]-&gt;parent(0);
+<a name="__line549"></a>		graphs_.erase(graphs_.begin()+i);
+<a name="__line550"></a>		modified_ = true;
+<a name="__line551"></a>		--i;
+<a name="__line552"></a>	    }
+<a name="__line553"></a>	}
+<a name="__line554"></a>	for(unsigned int i=0; i&lt;ordering_.size(); ++i)
+<a name="__line555"></a>	{
+<a name="__line556"></a>	    if(ordering_[i].plottable_ == g)
+<a name="__line557"></a>	    {
+<a name="__line558"></a>		ordering_.erase(ordering_.begin()+i);
+<a name="__line559"></a>		--i;
+<a name="__line560"></a>	    }
+<a name="__line561"></a>	}
+<a name="__line562"></a>	if(legendbox_) legendbox_-&gt;remove(g);
+<a name="__line563"></a>	return *this;
+<a name="__line564"></a>    }
+<a name="__line565"></a>
+<a name="__line566"></a>    void frame::add(grob *g)
+<a name="__line567"></a>    {
+<a name="__line568"></a>	ordering_.push_back(grob_plottable(g,0));
+<a name="__line569"></a>	container::add(g);
+<a name="__line570"></a>    }
+<a name="__line571"></a>    bool frame::remove(grob *g)
+<a name="__line572"></a>    {
+<a name="__line573"></a>        if(g==0) return false;
+<a name="__line574"></a>	for(unsigned int i=0; i&lt;ordering_.size(); ++i)
+<a name="__line575"></a>	{
+<a name="__line576"></a>	    if(ordering_[i].grob_ == g)
+<a name="__line577"></a>	    {
+<a name="__line578"></a>		ordering_.erase(ordering_.begin()+i);
+<a name="__line579"></a>		--i;
+<a name="__line580"></a>	    }
+<a name="__line581"></a>	}
+<a name="__line582"></a>	return container::remove(g);
+<a name="__line583"></a>    }
+<a name="__line584"></a>
+<a name="__line585"></a>    frame &amp;frame::add(plottable *p)
+<a name="__line586"></a>    {
+<a name="__line587"></a>	if(p == 0) return *this; 
+<a name="__line588"></a>	graphs_.push_back(p);
+<a name="__line589"></a>	legendbox_-&gt;add(p);
+<a name="__line590"></a>	p-&gt;parent(this);
+<a name="__line591"></a>	modified_ = true;
+<a name="__line592"></a>	ordering_.push_back(grob_plottable(0,p));
+<a name="__line593"></a>	return *this;
+<a name="__line594"></a>    }
+<a name="__line595"></a>    
+<a name="__line596"></a>    frame &amp;frame::clear_graphs(bool all)
+<a name="__line597"></a>    {
+<a name="__line598"></a>	modified_ = true;
+<a name="__line599"></a>	if(owns_x1axis_) x1axis_-&gt;clear_autosettings();
+<a name="__line600"></a>	if(owns_x2axis_) x2axis_-&gt;clear_autosettings();
+<a name="__line601"></a>	if(owns_y1axis_) y1axis_-&gt;clear_autosettings();
+<a name="__line602"></a>	if(owns_y2axis_) y2axis_-&gt;clear_autosettings();
+<a name="__line603"></a>
+<a name="__line604"></a>	for(int i=0; i&lt;(int)graphs_.size(); ++i)
+<a name="__line605"></a>	{
+<a name="__line606"></a>	    if(!graphs_[i]-&gt;permanent() || all==true)
+<a name="__line607"></a>	    {
+<a name="__line608"></a>		plottable *p = graphs_[i];
+<a name="__line609"></a>		p-&gt;parent(0);
+<a name="__line610"></a>		legendbox_-&gt;remove(p);
+<a name="__line611"></a>		graphs_.erase(graphs_.begin()+i);
+<a name="__line612"></a>		if(p-&gt;autodel()) delete p;
+<a name="__line613"></a>		--i;
+<a name="__line614"></a>		for(unsigned int j=0; j&lt;ordering_.size(); ++j)
+<a name="__line615"></a>		{
+<a name="__line616"></a>		    if(ordering_[j].plottable_ == p)
+<a name="__line617"></a>		    {
+<a name="__line618"></a>			ordering_.erase(ordering_.begin()+j);
+<a name="__line619"></a>			--j;
+<a name="__line620"></a>		    }
+<a name="__line621"></a>		}
+<a name="__line622"></a>	    }
+<a name="__line623"></a>	}
+<a name="__line624"></a>	return *this;
+<a name="__line625"></a>    }
+<a name="__line626"></a>
+<a name="__line627"></a>    frame &amp;frame::clear_graphs_and_autosettings(bool all)
+<a name="__line628"></a>    {
+<a name="__line629"></a>	clear_graphs(all);
+<a name="__line630"></a>	x1axis()-&gt;clear_autosettings();
+<a name="__line631"></a>	x2axis()-&gt;clear_autosettings();
+<a name="__line632"></a>	y1axis()-&gt;clear_autosettings();
+<a name="__line633"></a>	y2axis()-&gt;clear_autosettings();
+<a name="__line634"></a>	return *this;
+<a name="__line635"></a>    }
+<a name="__line636"></a>
+<a name="__line637"></a>    void frame::clear()
+<a name="__line638"></a>    {
+<a name="__line639"></a>	container::clear();
+<a name="__line640"></a>
+<a name="__line641"></a>	<span class=comment>// re-add the marginboxes </span>
+<a name="__line642"></a>	for(int i=0; i&lt;4; ++i)
+<a name="__line643"></a>	{
+<a name="__line644"></a>	    if(owns_marginboxes_[i]) add(marginboxes_[i]);
+<a name="__line645"></a>	}
+<a name="__line646"></a>
+<a name="__line647"></a>	if(owns_x1axis_) x1axis_-&gt;clear();
+<a name="__line648"></a>	if(owns_x2axis_) x2axis_-&gt;clear();
+<a name="__line649"></a>	if(owns_y1axis_) y1axis_-&gt;clear();
+<a name="__line650"></a>	if(owns_y2axis_) y2axis_-&gt;clear();
+<a name="__line651"></a>
+<a name="__line652"></a>	if(owns_legendbox_) legendbox_-&gt;clear();
+<a name="__line653"></a>	else
+<a name="__line654"></a>	{
+<a name="__line655"></a>	    for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line656"></a>	    {
+<a name="__line657"></a>		legendbox_-&gt;remove(graphs_[i]);
+<a name="__line658"></a>	    }
+<a name="__line659"></a>	}
+<a name="__line660"></a>	modified_ = true;
+<a name="__line661"></a>
+<a name="__line662"></a>	<span class=comment>// first copy all the plottable pointers (because when deleting them,</span>
+<a name="__line663"></a>	<span class=comment>// their destructor will try to remove them again from the graphs_</span>
+<a name="__line664"></a>	<span class=comment>// vector, making a problem)</span>
+<a name="__line665"></a>	vector&lt;plottable*&gt; graphs = graphs_;
+<a name="__line666"></a>
+<a name="__line667"></a>	<span class=comment>// then clear the graphs_ vector, so the destructor of the plottables</span>
+<a name="__line668"></a>	<span class=comment>// will not do anything</span>
+<a name="__line669"></a>	graphs_.clear();
+<a name="__line670"></a>
+<a name="__line671"></a>	<span class=comment>// then delete all the graphs with the autodel flag set to true.</span>
+<a name="__line672"></a>	<span class=comment>// They will try to remove themselves, but they are already removed,</span>
+<a name="__line673"></a>	<span class=comment>// so no problem</span>
+<a name="__line674"></a>	for(unsigned int i=0; i&lt;graphs.size(); ++i)
+<a name="__line675"></a>	{
+<a name="__line676"></a>	    if(graphs[i]-&gt;autodel()) delete graphs[i];
+<a name="__line677"></a>	}
+<a name="__line678"></a>
+<a name="__line679"></a>	<span class=comment>// Finally, remove all graphs from the ordering_ array</span>
+<a name="__line680"></a>	for(unsigned int i=0; i&lt;ordering_.size(); ++i)
+<a name="__line681"></a>	{
+<a name="__line682"></a>	    if(ordering_[i].plottable_)
+<a name="__line683"></a>	    {
+<a name="__line684"></a>		ordering_.erase(ordering_.begin()+i);
+<a name="__line685"></a>		--i;
+<a name="__line686"></a>	    }
+<a name="__line687"></a>	}
+<a name="__line688"></a>	
+<a name="__line689"></a>    }
+<a name="__line690"></a>
+<a name="__line691"></a>
+<a name="__line692"></a>    static bool length_depends_on_any(const length &amp;l, const length* d[], int n)
+<a name="__line693"></a>    {
+<a name="__line694"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line695"></a>	{
+<a name="__line696"></a>	    if(l.depends_on(*(d[i]))) return true;
+<a name="__line697"></a>	}
+<a name="__line698"></a>	return false;
+<a name="__line699"></a>    }
+<a name="__line700"></a>
+<a name="__line701"></a>    void frame::prepare_for_draw()
+<a name="__line702"></a>    {
+<a name="__line703"></a>	if(global::debug &gt; 0) cout&lt;&lt;"[blop] [frame] prepare_for_draw starts..."&lt;&lt;endl;
+<a name="__line704"></a>
+<a name="__line705"></a>	<span class=comment>// switch off those marginboxes, which are empty, to avoid</span>
+<a name="__line706"></a>	<span class=comment>// unnecessary output code in the output file</span>
+<a name="__line707"></a>	for(int i=0; i&lt;4; ++i)
+<a name="__line708"></a>	{
+<a name="__line709"></a>	    if(marginboxes_[i] &amp;&amp; marginboxes_[i]-&gt;empty()) marginboxes_[i]-&gt;off();
+<a name="__line710"></a>	}
+<a name="__line711"></a>
+<a name="__line712"></a>	<span class=comment>// Set the autopoints</span>
+<a name="__line713"></a>	{
+<a name="__line714"></a>	    std::vector&lt;int&gt; n(14,0);
+<a name="__line715"></a>	    for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line716"></a>	    {
+<a name="__line717"></a>		<span class=comment>// now only check those which do not have autopoint, and which are drawn</span>
+<a name="__line718"></a>		<span class=comment>// with points</span>
+<a name="__line719"></a>		if(!graphs_[i]-&gt;drawstyle() || !graphs_[i]-&gt;drawstyle()-&gt;draws_points()) continue;
+<a name="__line720"></a>		point_drawer *pt = graphs_[i]-&gt;pointtype();
+<a name="__line721"></a>		if(dynamic_cast&lt;autopoint*&gt;(pt)) continue;
+<a name="__line722"></a>
+<a name="__line723"></a>		if(dynamic_cast&lt;fsquare*&gt;(pt)) ++n[0];
+<a name="__line724"></a>		if(dynamic_cast&lt;square*&gt;(pt)) ++n[1];
+<a name="__line725"></a>		if(dynamic_cast&lt;fdiamond*&gt;(pt)) ++n[2];
+<a name="__line726"></a>		if(dynamic_cast&lt;diamond*&gt;(pt)) ++n[3];
+<a name="__line727"></a>		if(dynamic_cast&lt;ftriangledown*&gt;(pt)) ++n[4];
+<a name="__line728"></a>		if(dynamic_cast&lt;triangledown*&gt;(pt)) ++n[5];
+<a name="__line729"></a>		if(dynamic_cast&lt;ftriangle*&gt;(pt)) ++n[6];
+<a name="__line730"></a>		if(dynamic_cast&lt;triangle*&gt;(pt)) ++n[7];
+<a name="__line731"></a>		if(dynamic_cast&lt;fcircle*&gt;(pt)) ++n[8];
+<a name="__line732"></a>		if(dynamic_cast&lt;circle*&gt;(pt)) ++n[9];
+<a name="__line733"></a>		if(dynamic_cast&lt;plus*&gt;(pt)) ++n[10];
+<a name="__line734"></a>		if(dynamic_cast&lt;cross*&gt;(pt)) ++n[11];
+<a name="__line735"></a>		if(dynamic_cast&lt;fstar4*&gt;(pt)) ++n[12];
+<a name="__line736"></a>		if(dynamic_cast&lt;star4*&gt;(pt)) ++n[13];
+<a name="__line737"></a>	    }
+<a name="__line738"></a>
+<a name="__line739"></a>	    for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line740"></a>	    {
+<a name="__line741"></a>		autopoint *pt = dynamic_cast&lt;autopoint*&gt;(graphs_[i]-&gt;pointtype());
+<a name="__line742"></a>
+<a name="__line743"></a>		<span class=comment>// now only check those which have autopoint</span>
+<a name="__line744"></a>		if(!pt) continue;
+<a name="__line745"></a>
+<a name="__line746"></a>		vector&lt;int&gt;::size_type min = 0;
+<a name="__line747"></a>		for(vector&lt;int&gt;::size_type p=0; p&lt;n.size(); ++p) if(n[p]&lt;n[min]) min=p;
+<a name="__line748"></a>
+<a name="__line749"></a>		if(graphs_[i]-&gt;drawstyle() &amp;&amp; graphs_[i]-&gt;drawstyle()-&gt;draws_points()) ++n[min];
+<a name="__line750"></a>		switch(min) {
+<a name="__line751"></a>		case 0: pt-&gt;drawer(new fsquare()); break;
+<a name="__line752"></a>		case 1: pt-&gt;drawer(new square()); break;
+<a name="__line753"></a>		case 2: pt-&gt;drawer(new fdiamond()); break; 
+<a name="__line754"></a>		case 3: pt-&gt;drawer(new diamond()); break; 
+<a name="__line755"></a>		case 4: pt-&gt;drawer(new ftriangledown()); break; 
+<a name="__line756"></a>		case 5: pt-&gt;drawer(new triangledown()); break;
+<a name="__line757"></a>		case 6: pt-&gt;drawer(new ftriangle()); break;
+<a name="__line758"></a>		case 7: pt-&gt;drawer(new triangle()); break;
+<a name="__line759"></a>		case 8: pt-&gt;drawer(new fcircle()); break;
+<a name="__line760"></a>		case 9: pt-&gt;drawer(new circle()); break;
+<a name="__line761"></a>		case 10: pt-&gt;drawer(new plus()); break;
+<a name="__line762"></a>		case 11: pt-&gt;drawer(new cross()); break;
+<a name="__line763"></a>		case 12: pt-&gt;drawer(new fstar4()); break; 
+<a name="__line764"></a>		case 13: pt-&gt;drawer(new star4()); break;
+<a name="__line765"></a>		default: pt-&gt;drawer(new fsquare()); 
+<a name="__line766"></a>		}
+<a name="__line767"></a>	    }
+<a name="__line768"></a>	}
+<a name="__line769"></a>
+<a name="__line770"></a>	<span class=comment>// set the autocolors</span>
+<a name="__line771"></a>	{
+<a name="__line772"></a>	    std::map&lt;int,int&gt; linecolor, pointcolor;
+<a name="__line773"></a>	    for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line774"></a>	    {
+<a name="__line775"></a>		<span class=comment>// no need to check for non-autocolor, they will anyway show up as</span>
+<a name="__line776"></a>		<span class=comment>// -1 returned by sequence_index, which we will anyway skip</span>
+<a name="__line777"></a>		if(graphs_[i]-&gt;drawstyle())
+<a name="__line778"></a>		{
+<a name="__line779"></a>		    if(graphs_[i]-&gt;drawstyle()-&gt;uses_linecolor()) ++linecolor [color::sequence_index(graphs_[i]-&gt;linecolor ())];
+<a name="__line780"></a>		    if(graphs_[i]-&gt;drawstyle()-&gt;draws_points()  ) ++pointcolor[color::sequence_index(graphs_[i]-&gt;pointcolor())];
+<a name="__line781"></a>		}
+<a name="__line782"></a>	    }
+<a name="__line783"></a>	    
+<a name="__line784"></a>	    for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line785"></a>	    {
+<a name="__line786"></a>		if(!graphs_[i]-&gt;drawstyle()) continue;
+<a name="__line787"></a>		if(graphs_[i]-&gt;drawstyle()-&gt;uses_linecolor() &amp;&amp; graphs_[i]-&gt;linecolor() == autocolor)
+<a name="__line788"></a>		{
+<a name="__line789"></a>		    int min = 0;
+<a name="__line790"></a>		    for(int c=0; c&lt;(int)color::default_sequence().size(); ++c)
+<a name="__line791"></a>		    {
+<a name="__line792"></a>			if(linecolor[c]&lt;linecolor[min]) min=c;
+<a name="__line793"></a>		    }
+<a name="__line794"></a>		    graphs_[i]-&gt;linecolor(color::default_sequence()[min]);
+<a name="__line795"></a>		    ++linecolor[min];
+<a name="__line796"></a>		}
+<a name="__line797"></a>		if(graphs_[i]-&gt;drawstyle()-&gt;draws_points() &amp;&amp; graphs_[i]-&gt;pointcolor() == autocolor)
+<a name="__line798"></a>		{
+<a name="__line799"></a>		    int min = 0;
+<a name="__line800"></a>		    for(int c=1; c&lt;(int)color::default_sequence().size(); ++c)
+<a name="__line801"></a>		    {
+<a name="__line802"></a>			if(pointcolor[c]&lt;pointcolor[min]) min=c;
+<a name="__line803"></a>		    }
+<a name="__line804"></a>		    graphs_[i]-&gt;pointcolor(color::default_sequence()[min]);
+<a name="__line805"></a>		    ++pointcolor[min];
+<a name="__line806"></a>		}
+<a name="__line807"></a>	    }
+<a name="__line808"></a>	}
+<a name="__line809"></a>
+<a name="__line810"></a>	for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line811"></a>	{
+<a name="__line812"></a>	    <span class=comment>// process now the data graphs in the first round, to</span>
+<a name="__line813"></a>	    <span class=comment>// estimate the axis ranges.</span>
+<a name="__line814"></a>	    <span class=comment>// skip fgraphs now, they will be processed in a second round,</span>
+<a name="__line815"></a>	    <span class=comment>// when the requested axis ranges are set up, so that</span>
+<a name="__line816"></a>	    <span class=comment>// fgraphs can estimate their parameter ranges (if undefined)</span>
+<a name="__line817"></a>	    <span class=comment>// from the axis ranges</span>
+<a name="__line818"></a>	    if(dynamic_cast&lt;fgraph*&gt;(graphs_[i]) != 0) continue;
+<a name="__line819"></a>
+<a name="__line820"></a>	    if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] processing data graph["&lt;&lt;i&lt;&lt;"]"&lt;&lt;endl;
+<a name="__line821"></a>
+<a name="__line822"></a>	    axis *xaxis =
+<a name="__line823"></a>		(graphs_[i]-&gt;xaxis() == axis::x1 ? x1axis_ : x2axis_);
+<a name="__line824"></a>	    axis *yaxis =
+<a name="__line825"></a>		(graphs_[i]-&gt;yaxis() == axis::y1 ? y1axis_ : y2axis_);
+<a name="__line826"></a>
+<a name="__line827"></a>	    graphs_[i]-&gt;prepare_for_draw(xaxis,yaxis,this,1);
+<a name="__line828"></a>
+<a name="__line829"></a>	    graph_drawer *drawer = graphs_[i]-&gt;drawstyle();
+<a name="__line830"></a>	    if(drawer == 0) err("No drawer specified");
+<a name="__line831"></a>	    <span class=comment>// stupid, this should be called from within plottable::prepare_for_draw...!</span>
+<a name="__line832"></a>	    drawer-&gt;set_ranges(graphs_[i],xaxis,yaxis);
+<a name="__line833"></a>	}
+<a name="__line834"></a>
+<a name="__line835"></a>	<span class=comment>// In a second loop process only the functions (fgraphs)</span>
+<a name="__line836"></a>	for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line837"></a>	{
+<a name="__line838"></a>	    if(dynamic_cast&lt;fgraph*&gt;(graphs_[i]) == 0) continue;
+<a name="__line839"></a>	    if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] processing function graphs["&lt;&lt;i&lt;&lt;"]"&lt;&lt;endl;
+<a name="__line840"></a>	    axis *xaxis =
+<a name="__line841"></a>		(graphs_[i]-&gt;xaxis() == axis::x1 ? x1axis_ : x2axis_);
+<a name="__line842"></a>	    axis *yaxis =
+<a name="__line843"></a>		(graphs_[i]-&gt;yaxis() == axis::y1 ? y1axis_ : y2axis_);
+<a name="__line844"></a>	    graphs_[i]-&gt;prepare_for_draw(xaxis,yaxis,this,1);
+<a name="__line845"></a>	    graph_drawer *drawer = graphs_[i]-&gt;drawstyle();
+<a name="__line846"></a>	    if(drawer == 0) err("No drawer specified");
+<a name="__line847"></a>	    drawer-&gt;set_ranges(graphs_[i],xaxis,yaxis);
+<a name="__line848"></a>	}
+<a name="__line849"></a>
+<a name="__line850"></a>	<span class=comment>// Now another loop again over all graphs, make second level preparation</span>
+<a name="__line851"></a>	for(vector&lt;plottable*&gt;::size_type i=0; i&lt;graphs_.size(); ++i)
+<a name="__line852"></a>	{
+<a name="__line853"></a>	    if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] reprocessing graph["&lt;&lt;i&lt;&lt;"]"&lt;&lt;endl;
+<a name="__line854"></a>	    axis *xaxis =
+<a name="__line855"></a>		(graphs_[i]-&gt;xaxis() == axis::x1 ? x1axis_ : x2axis_);
+<a name="__line856"></a>	    axis *yaxis =
+<a name="__line857"></a>		(graphs_[i]-&gt;yaxis() == axis::y1 ? y1axis_ : y2axis_);
+<a name="__line858"></a>	    graphs_[i]-&gt;prepare_for_draw(xaxis,yaxis,this,2);
+<a name="__line859"></a>	}
+<a name="__line860"></a>
+<a name="__line861"></a>	if(owns_x1axis_) x1axis_-&gt;calculate_tics();
+<a name="__line862"></a>	if(owns_x2axis_) x2axis_-&gt;calculate_tics();
+<a name="__line863"></a>	if(owns_y1axis_) y1axis_-&gt;calculate_tics();
+<a name="__line864"></a>	if(owns_y2axis_) y2axis_-&gt;calculate_tics();
+<a name="__line865"></a>
+<a name="__line866"></a>	bool nodistort_used = true;
+<a name="__line867"></a>	if(!nodistort_) nodistort_used = false;
+<a name="__line868"></a>	else
+<a name="__line869"></a>	{
+<a name="__line870"></a>	    if(x1axis_-&gt;logscale() || y1axis_-&gt;logscale())
+<a name="__line871"></a>	    {
+<a name="__line872"></a>		warning::print("Can not use nodistort with logscales");
+<a name="__line873"></a>		nodistort_used = false;
+<a name="__line874"></a>	    }
+<a name="__line875"></a>
+<a name="__line876"></a>	    <span class=comment>// The algorithm is quite complicated, difficult to understand</span>
+<a name="__line877"></a>	    <span class=comment>// even for me :-)</span>
+<a name="__line878"></a>	    <span class=comment>// so therefore make sure the conditions are quite simple,</span>
+<a name="__line879"></a>	    <span class=comment>// and the user has not messed up with complicated dependencies</span>
+<a name="__line880"></a>	    <span class=comment>// between margins, widths, etc</span>
+<a name="__line881"></a>	    const length *donotdependonthis[] =
+<a name="__line882"></a>		{&amp;lmargin(), &amp;rmargin(), &amp;cwidth(), &amp;cleft(), &amp;cright(), &amp;cxcenter(),
+<a name="__line883"></a>		 &amp;bmargin(), &amp;tmargin(), &amp;cheight(), &amp;cbottom(), &amp;ctop(), &amp;cycenter()};
+<a name="__line884"></a>	    if(length_depends_on_any(lmargin(),donotdependonthis,12) ||
+<a name="__line885"></a>	       length_depends_on_any(rmargin(),donotdependonthis,12) ||
+<a name="__line886"></a>	       length_depends_on_any(bmargin(),donotdependonthis,12) ||
+<a name="__line887"></a>	       length_depends_on_any(tmargin(),donotdependonthis,12))
+<a name="__line888"></a>	    {
+<a name="__line889"></a>		warning::print("Some nontrivial length-dependencies detected "
+<a name="__line890"></a>			       "for the margins of this frame, nodistort will not be used");
+<a name="__line891"></a>		nodistort_used = false;
+<a name="__line892"></a>	    }
+<a name="__line893"></a>	}
+<a name="__line894"></a>
+<a name="__line895"></a>	if(nodistort_used)
+<a name="__line896"></a>	{
+<a name="__line897"></a>	    container::caspect((y1axis_-&gt;max()-y1axis_-&gt;min())/(x1axis_-&gt;max()-x1axis_-&gt;min()));
+<a name="__line898"></a>	}
+<a name="__line899"></a>
+<a name="__line900"></a>	container::prepare_for_draw();
+<a name="__line901"></a>
+<a name="__line902"></a>	if(owns_x1axis_) x1axis_-&gt;prepare_for_draw();
+<a name="__line903"></a>	if(owns_x2axis_) x2axis_-&gt;prepare_for_draw();
+<a name="__line904"></a>	if(owns_y1axis_) y1axis_-&gt;prepare_for_draw();
+<a name="__line905"></a>	if(owns_y2axis_) y2axis_-&gt;prepare_for_draw();
+<a name="__line906"></a>
+<a name="__line907"></a>        if(show_legend_)
+<a name="__line908"></a>        {
+<a name="__line909"></a>            legendbox_-&gt;update();
+<a name="__line910"></a>            legendbox_-&gt;prepare_for_draw();
+<a name="__line911"></a>        }
+<a name="__line912"></a>
+<a name="__line913"></a>	if(mirror_x1_) cheight().register_me();
+<a name="__line914"></a>	if(mirror_y1_) cwidth().register_me();
+<a name="__line915"></a>
+<a name="__line916"></a>	if(grid_)
+<a name="__line917"></a>	{
+<a name="__line918"></a>	    if(grid_)               gridwidth_.register_me();
+<a name="__line919"></a>            if(grid_at_minor_tics_) minor_gridwidth_.register_me();
+<a name="__line920"></a>	    if(!x1axis_-&gt;cuts_.empty() ||
+<a name="__line921"></a>	       !x2axis_-&gt;cuts_.empty() ||
+<a name="__line922"></a>	       !y1axis_-&gt;cuts_.empty() ||
+<a name="__line923"></a>	       !y2axis_-&gt;cuts_.empty()) gridcut_.register_me();
+<a name="__line924"></a>	}
+<a name="__line925"></a>
+<a name="__line926"></a>
+<a name="__line927"></a>	linewidth_.register_me();
+<a name="__line928"></a>
+<a name="__line929"></a>	if(nodistort_used)
+<a name="__line930"></a>	{
+<a name="__line931"></a>	    container::caspect(-1);
+<a name="__line932"></a>	}
+<a name="__line933"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] prepare_for_draw finished"&lt;&lt;endl;
+<a name="__line934"></a>    }
+<a name="__line935"></a>
+<a name="__line936"></a>    void frame::draw_frame(terminal *term)
+<a name="__line937"></a>    {
+<a name="__line938"></a>        if((draw_frame_&amp;sym::left)==0 &amp;&amp; (draw_frame_&amp;sym::top)==0 &amp;&amp; (draw_frame_&amp;sym::right)==0 &amp;&amp; (draw_frame_&amp;sym::bottom)==0) return;
+<a name="__line939"></a>
+<a name="__line940"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::right) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line941"></a>        {
+<a name="__line942"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line943"></a>            term-&gt;set_color(framecolor_);
+<a name="__line944"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line945"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line946"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line947"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line948"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line949"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line950"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line951"></a>            term-&gt;draw_lines(c);
+<a name="__line952"></a>            return;
+<a name="__line953"></a>        }
+<a name="__line954"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::right))
+<a name="__line955"></a>        {
+<a name="__line956"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line957"></a>            term-&gt;set_color(framecolor_);
+<a name="__line958"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line959"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line960"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line961"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line962"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line963"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line964"></a>            term-&gt;draw_lines(c);
+<a name="__line965"></a>            return;
+<a name="__line966"></a>        }
+<a name="__line967"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line968"></a>        {
+<a name="__line969"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line970"></a>            term-&gt;set_color(framecolor_);
+<a name="__line971"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line972"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line973"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line974"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line975"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line976"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line977"></a>            term-&gt;draw_lines(c);
+<a name="__line978"></a>            return;
+<a name="__line979"></a>        }
+<a name="__line980"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::right) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line981"></a>        {
+<a name="__line982"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line983"></a>            term-&gt;set_color(framecolor_);
+<a name="__line984"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line985"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line986"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line987"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line988"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line989"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line990"></a>            term-&gt;draw_lines(c);
+<a name="__line991"></a>            return;
+<a name="__line992"></a>        }
+<a name="__line993"></a>        if((draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::right) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line994"></a>        {
+<a name="__line995"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line996"></a>            term-&gt;set_color(framecolor_);
+<a name="__line997"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line998"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line999"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1000"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1001"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1002"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1003"></a>            term-&gt;draw_lines(c);
+<a name="__line1004"></a>            return;
+<a name="__line1005"></a>        }
+<a name="__line1006"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::top))
+<a name="__line1007"></a>        {
+<a name="__line1008"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1009"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1010"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1011"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1012"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1013"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1014"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1015"></a>            term-&gt;draw_lines(c);
+<a name="__line1016"></a>            return;
+<a name="__line1017"></a>        }
+<a name="__line1018"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::right))
+<a name="__line1019"></a>        {
+<a name="__line1020"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1021"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1022"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1023"></a>            {
+<a name="__line1024"></a>                vector&lt;terminal::coord&gt; c;
+<a name="__line1025"></a>                c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1026"></a>                c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1027"></a>                term-&gt;draw_lines(c);
+<a name="__line1028"></a>            }
+<a name="__line1029"></a>            {
+<a name="__line1030"></a>                vector&lt;terminal::coord&gt; c;
+<a name="__line1031"></a>                c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1032"></a>                c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1033"></a>                term-&gt;draw_lines(c);
+<a name="__line1034"></a>            }
+<a name="__line1035"></a>            return;
+<a name="__line1036"></a>        }
+<a name="__line1037"></a>        if((draw_frame_&amp;sym::left) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line1038"></a>        {
+<a name="__line1039"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1040"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1041"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1042"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1043"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1044"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1045"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1046"></a>            term-&gt;draw_lines(c);
+<a name="__line1047"></a>            return;
+<a name="__line1048"></a>        }
+<a name="__line1049"></a>        if((draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::right))
+<a name="__line1050"></a>        {
+<a name="__line1051"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1052"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1053"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1054"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1055"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1056"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1057"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1058"></a>            term-&gt;draw_lines(c);
+<a name="__line1059"></a>            return;
+<a name="__line1060"></a>        }
+<a name="__line1061"></a>        if((draw_frame_&amp;sym::top) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line1062"></a>        {
+<a name="__line1063"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1064"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1065"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1066"></a>            {
+<a name="__line1067"></a>                vector&lt;terminal::coord&gt; c;
+<a name="__line1068"></a>                c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1069"></a>                c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1070"></a>                term-&gt;draw_lines(c);
+<a name="__line1071"></a>            }
+<a name="__line1072"></a>            {
+<a name="__line1073"></a>                vector&lt;terminal::coord&gt; c;
+<a name="__line1074"></a>                c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1075"></a>                c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1076"></a>                term-&gt;draw_lines(c);
+<a name="__line1077"></a>            }
+<a name="__line1078"></a>            return;
+<a name="__line1079"></a>        }
+<a name="__line1080"></a>        if((draw_frame_&amp;sym::right) &amp;&amp; (draw_frame_&amp;sym::bottom))
+<a name="__line1081"></a>        {
+<a name="__line1082"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1083"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1084"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1085"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1086"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1087"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1088"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1089"></a>            term-&gt;draw_lines(c);
+<a name="__line1090"></a>            return;
+<a name="__line1091"></a>        }
+<a name="__line1092"></a>        if(draw_frame_&amp;sym::left)
+<a name="__line1093"></a>        {
+<a name="__line1094"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1095"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1096"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1097"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1098"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1099"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1100"></a>            term-&gt;draw_lines(c);
+<a name="__line1101"></a>        }
+<a name="__line1102"></a>        if(draw_frame_&amp;sym::top)
+<a name="__line1103"></a>        {
+<a name="__line1104"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1105"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1106"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1107"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1108"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(1,2)));
+<a name="__line1109"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1110"></a>            term-&gt;draw_lines(c);
+<a name="__line1111"></a>        }
+<a name="__line1112"></a>        if(draw_frame_&amp;sym::right)
+<a name="__line1113"></a>        {
+<a name="__line1114"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1115"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1116"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1117"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1118"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1119"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(1,2)));
+<a name="__line1120"></a>            term-&gt;draw_lines(c);
+<a name="__line1121"></a>        }
+<a name="__line1122"></a>        if(draw_frame_&amp;sym::bottom)
+<a name="__line1123"></a>        {
+<a name="__line1124"></a>            term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1125"></a>            term-&gt;set_color(framecolor_);
+<a name="__line1126"></a>            term-&gt;set_linestyle(sym::solid);
+<a name="__line1127"></a>            vector&lt;terminal::coord&gt; c;
+<a name="__line1128"></a>            c.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+<a name="__line1129"></a>            c.push_back(terminal::coord(terminal::id(1,1),terminal::id(0,2)));
+<a name="__line1130"></a>            term-&gt;draw_lines(c);
+<a name="__line1131"></a>        }
+<a name="__line1132"></a>    }
+<a name="__line1133"></a>
+<a name="__line1134"></a>    void frame::draw_axes(terminal *term)
+<a name="__line1135"></a>    {
+<a name="__line1136"></a>	term-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line1137"></a>	term-&gt;set_color(framecolor_);
+<a name="__line1138"></a>	term-&gt;set_linestyle(sym::solid);
+<a name="__line1139"></a>
+<a name="__line1140"></a>	if(draw_axes_ &amp; axis::x1)
+<a name="__line1141"></a>	{
+<a name="__line1142"></a>	    if(owns_x1axis_)
+<a name="__line1143"></a>	    {
+<a name="__line1144"></a>		x1axis_-&gt;print(term,
+<a name="__line1145"></a>			       (x1axis_-&gt;pos_changed()||!draw_frame_)&amp;&amp;!x1axis_-&gt;tics_.empty());
+<a name="__line1146"></a>		if(mirror_x1_ &amp;&amp; !x1axis_-&gt;pos_changed() &amp;&amp; draw_frame_)
+<a name="__line1147"></a>		    x1axis_-&gt;print_tics(term,0.,!cwidth(),!cheight(),true);
+<a name="__line1148"></a>	    }
+<a name="__line1149"></a>	    else
+<a name="__line1150"></a>	    {
+<a name="__line1151"></a>		x1axis_-&gt;print_tics(term,0.,!cwidth(),0.);
+<a name="__line1152"></a>		if(mirror_x1_) x1axis_-&gt;print_tics(term,0.,!cwidth(),!cheight(),true);
+<a name="__line1153"></a>	    }	    
+<a name="__line1154"></a>	}
+<a name="__line1155"></a>
+<a name="__line1156"></a>	if(draw_axes_ &amp; axis::y1)
+<a name="__line1157"></a>	{
+<a name="__line1158"></a>	    if(owns_y1axis_)
+<a name="__line1159"></a>	    {
+<a name="__line1160"></a>		y1axis_-&gt;print(term,
+<a name="__line1161"></a>			       (y1axis_-&gt;pos_changed()||!draw_frame_)&amp;&amp;!y1axis_-&gt;tics_.empty());
+<a name="__line1162"></a>		if(mirror_y1_ &amp;&amp; !y1axis_-&gt;pos_changed() &amp;&amp; draw_frame_)
+<a name="__line1163"></a>		    y1axis_-&gt;print_tics(term,0.,!cheight(),!cwidth(),true);
+<a name="__line1164"></a>	    }
+<a name="__line1165"></a>	    else
+<a name="__line1166"></a>	    {
+<a name="__line1167"></a>		y1axis_-&gt;print_tics(term,0.,!cheight(),0.);
+<a name="__line1168"></a>		if(mirror_y1_) y1axis_-&gt;print_tics(term,0.,!cheight(),!cwidth(),true);
+<a name="__line1169"></a>	    }
+<a name="__line1170"></a>	}
+<a name="__line1171"></a>
+<a name="__line1172"></a>	if(draw_axes_ &amp; axis::x2)
+<a name="__line1173"></a>	{
+<a name="__line1174"></a>	    if(owns_x2axis_)
+<a name="__line1175"></a>	    {
+<a name="__line1176"></a>		x2axis_-&gt;print(term,
+<a name="__line1177"></a>			       (x2axis_-&gt;pos_changed()||!draw_frame_)&amp;&amp;!x2axis_-&gt;tics_.empty());
+<a name="__line1178"></a>		if(mirror_x2_ &amp;&amp; !x2axis_-&gt;pos_changed() &amp;&amp; draw_frame_)
+<a name="__line1179"></a>		    x2axis_-&gt;print_tics(term,0.,!cwidth(),0.,true);
+<a name="__line1180"></a>	    }
+<a name="__line1181"></a>	    else
+<a name="__line1182"></a>	    {
+<a name="__line1183"></a>		x2axis_-&gt;print_tics(term,0.,!cwidth(),!cheight());
+<a name="__line1184"></a>		if(mirror_x2_) x2axis_-&gt;print_tics(term,0.,!cwidth(),0.,true);
+<a name="__line1185"></a>	    }
+<a name="__line1186"></a>	}
+<a name="__line1187"></a>
+<a name="__line1188"></a>	if(draw_axes_ &amp; axis::y2)
+<a name="__line1189"></a>	{
+<a name="__line1190"></a>	    if(owns_y2axis_)
+<a name="__line1191"></a>	    {
+<a name="__line1192"></a>		y2axis_-&gt;print(term,
+<a name="__line1193"></a>			       (y2axis_-&gt;pos_changed()||!draw_frame_)&amp;&amp;!y2axis_-&gt;tics_.empty());
+<a name="__line1194"></a>		if(mirror_y2_ &amp;&amp; !y2axis_-&gt;pos_changed() &amp;&amp; draw_frame_)
+<a name="__line1195"></a>		    y2axis_-&gt;print_tics(term,0.,!cheight(),0.,true);
+<a name="__line1196"></a>	    }
+<a name="__line1197"></a>	    else
+<a name="__line1198"></a>	    {
+<a name="__line1199"></a>		y2axis_-&gt;print_tics(term,0.,!cheight(),!cwidth());
+<a name="__line1200"></a>		if(mirror_y2_) y2axis_-&gt;print_tics(term,0.,!cheight(),0.,true);
+<a name="__line1201"></a>	    }
+<a name="__line1202"></a>	}
+<a name="__line1203"></a>    }
+<a name="__line1204"></a>
+<a name="__line1205"></a>    void frame::draw_grid(terminal *term)
+<a name="__line1206"></a>    {
+<a name="__line1207"></a>	term-&gt;open_layer("grid");
+<a name="__line1208"></a>
+<a name="__line1209"></a>        <span class=comment>/*
+<a name="__line1210"></a>        if(pgrid_func_.initialized())
+<a name="__line1211"></a>        {
+<a name="__line1212"></a>            const double dp1 = (pgrid_1_to_-pgrid_1_from_)/pgrid_1_n_;
+<a name="__line1213"></a>            const double dp2 = (pgrid_2_to_-pgrid_2_from_)/pgrid_2_n_;
+<a name="__line1214"></a>
+<a name="__line1215"></a>            term-&gt;set_linewidth(gridwidth_.termspecific_id());
+<a name="__line1216"></a>            term-&gt;set_linestyle(gridstyle_);
+<a name="__line1217"></a>            term-&gt;set_color(gridcolor_);
+<a name="__line1218"></a>
+<a name="__line1219"></a>            std::vector&lt;blop::terminal::coord&gt; c;
+<a name="__line1220"></a>
+<a name="__line1221"></a>            std::vector&lt;blop::var&gt; args(2), result;
+<a name="__line1222"></a>
+<a name="__line1223"></a>            for(double p1=pgrid_1_from_; p1&lt;pgrid_1_to_+0.1*dp1; p1+=dp1)
+<a name="__line1224"></a>            {
+<a name="__line1225"></a>                c.clear();
+<a name="__line1226"></a>                args[0] = p1;
+<a name="__line1227"></a>                
+<a name="__line1228"></a>                double p2 = pgrid_2_from_;
+<a name="__line1229"></a>                args[1] = p2;
+<a name="__line1230"></a>                pgrid_func_.meval(args, result);
+<a name="__line1231"></a>                double ax_prev = x1axis_-&gt;map_point(result[0].dbl());
+<a name="__line1232"></a>                double ay_prev = y1axis_-&gt;map_point(result[1].dbl());
+<a name="__line1233"></a>                c.push_back(terminal::coord(terminal::id(ax_prev,1), terminal::id(ay_prev,2)));
+<a name="__line1234"></a>                
+<a name="__line1235"></a>                double p2step = dp2;
+<a name="__line1236"></a>                while(true)
+<a name="__line1237"></a>                {
+<a name="__line1238"></a>                    double ax=0, ay=0;
+<a name="__line1239"></a>                    if(p2+dp2&gt;=pgrid_2_to_)
+<a name="__line1240"></a>                    {
+<a name="__line1241"></a>                        p2 = pgrid_2_to_;
+<a name="__line1242"></a>                    }
+<a name="__line1243"></a>                    else
+<a name="__line1244"></a>                    {
+<a name="__line1245"></a>                        args[1] = p2+dp2;
+<a name="__line1246"></a>                    }
+<a name="__line1247"></a>                    args[1] = p2;
+<a name="__line1248"></a>                    pgrid_func_.meval(args, result);
+<a name="__line1249"></a>                    if(result.size()&lt;2) warning::print("Grid mapping function has too few components");
+<a name="__line1250"></a>                    const double ax = x1axis_-&gt;map_point(result[0].dbl());
+<a name="__line1251"></a>                    const double ay = y1axis_-&gt;map_point(result[1].dbl());
+<a name="__line1252"></a>                    c.push_back(terminal::coord(terminal::id(ax,1), terminal::id(ay,2)));
+<a name="__line1253"></a>
+<a name="__line1254"></a>                    
+<a name="__line1255"></a>                    while(true)
+<a name="__line1256"></a>                    {
+<a name="__line1257"></a>                        args[1] = p2+p2step;
+<a name="__line1258"></a>                        pgrid_func_.meval(args, result);
+<a name="__line1259"></a>                        const double ax_next = x1axis_-&gt;map_point(result[0].dbl());
+<a name="__line1260"></a>                        const double ay_next = y1axis_-&gt;map_point(result[1].dbl());
+<a name="__line1261"></a>                        
+<a name="__line1262"></a>                    }
+<a name="__line1263"></a>
+<a name="__line1264"></a>                }
+<a name="__line1265"></a>                term-&gt;draw_lines(c);
+<a name="__line1266"></a>            }
+<a name="__line1267"></a>            for(double p2=pgrid_2_from_; p2&lt;pgrid_2_to_+0.1*dp2; p2+=dp2)
+<a name="__line1268"></a>            {
+<a name="__line1269"></a>                c.clear();
+<a name="__line1270"></a>                args[1] = p2;
+<a name="__line1271"></a>                for(double p1=pgrid_1_from_; p1&lt;pgrid_1_to_+0.1*dp1; p1+=dp1)
+<a name="__line1272"></a>                {
+<a name="__line1273"></a>                    args[0] = p1;
+<a name="__line1274"></a>                    pgrid_func_.meval(args, result);
+<a name="__line1275"></a>                    if(result.size()&lt;2) warning::print("Grid mapping function has too few components");
+<a name="__line1276"></a>                    c.push_back(terminal::coord(terminal::id(x1axis_-&gt;map_point(result[0].dbl()),1),
+<a name="__line1277"></a>                                                terminal::id(y1axis_-&gt;map_point(result[1].dbl()),2)));
+<a name="__line1278"></a>                }
+<a name="__line1279"></a>                term-&gt;draw_lines(c);
+<a name="__line1280"></a>            }
+<a name="__line1281"></a>
+<a name="__line1282"></a>
+<a name="__line1283"></a>
+<a name="__line1284"></a>        }
+<a name="__line1285"></a>        else
+<a name="__line1286"></a>        */</span>
+<a name="__line1287"></a>        {
+<a name="__line1288"></a>            if(grid_ &amp; axis::x1)
+<a name="__line1289"></a>            {
+<a name="__line1290"></a>                term-&gt;set_linewidth(gridwidth_.termspecific_id());
+<a name="__line1291"></a>                term-&gt;set_linestyle(gridstyle_);
+<a name="__line1292"></a>                term-&gt;set_color(gridcolor_);
+<a name="__line1293"></a>                for(unsigned int i=0; i&lt;x1axis_-&gt;tics_.size(); ++i)
+<a name="__line1294"></a>                {
+<a name="__line1295"></a>                    double v = x1axis_-&gt;map_point(x1axis_-&gt;tics_[i].value());
+<a name="__line1296"></a>                    if(v == unset) continue;
+<a name="__line1297"></a>                    if(y1axis_-&gt;cuts_.empty())
+<a name="__line1298"></a>                    {
+<a name="__line1299"></a>                        term-&gt;draw_line(terminal::coord(terminal::id(v,1),terminal::id(0.0,2)),
+<a name="__line1300"></a>                                        terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1301"></a>                    }
+<a name="__line1302"></a>                    else
+<a name="__line1303"></a>                    {
+<a name="__line1304"></a>                        double start = 0.0;
+<a name="__line1305"></a>                        for(unsigned int c=0; c&lt;y1axis_-&gt;cuts_.size(); ++c)
+<a name="__line1306"></a>                        {
+<a name="__line1307"></a>                            int start_id = terminal::ZERO;
+<a name="__line1308"></a>                            if(start != 0.0)
+<a name="__line1309"></a>                            {
+<a name="__line1310"></a>                                start_id = term-&gt;lincombi(1,terminal::id(start,2),
+<a name="__line1311"></a>                                                          0.5,gridcut_.termspecific_id());
+<a name="__line1312"></a>                            }
+<a name="__line1313"></a>                            double end = y1axis_-&gt;map_point(y1axis_-&gt;cuts_[c].first);
+<a name="__line1314"></a>                            int end_id = term-&gt;lincombi(1,terminal::id(end,2),
+<a name="__line1315"></a>                                                        -0.5,gridcut_.termspecific_id());
+<a name="__line1316"></a>                            term-&gt;draw_line(terminal::coord(terminal::id(v,1),start_id),
+<a name="__line1317"></a>                                            terminal::coord(terminal::id(v,1), end_id));
+<a name="__line1318"></a>                            start = y1axis_-&gt;map_point(y1axis_-&gt;cuts_[c].second);
+<a name="__line1319"></a>                        }
+<a name="__line1320"></a>                        int start_id = term-&gt;lincombi(1,terminal::id(start,2),
+<a name="__line1321"></a>                                                      0.5,gridcut_.termspecific_id());
+<a name="__line1322"></a>                        term-&gt;draw_line(terminal::coord(terminal::id(v,1),start_id),
+<a name="__line1323"></a>                                        terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1324"></a>		    
+<a name="__line1325"></a>                    }
+<a name="__line1326"></a>                }
+<a name="__line1327"></a>                if(grid_at_minor_tics_&amp;axis::x1)
+<a name="__line1328"></a>                {
+<a name="__line1329"></a>                    term-&gt;set_linewidth(minor_gridwidth_.termspecific_id());
+<a name="__line1330"></a>                    term-&gt;set_linestyle(minor_gridstyle_);
+<a name="__line1331"></a>                    term-&gt;set_color(minor_gridcolor_);
+<a name="__line1332"></a>                    for(unsigned int i=0; i&lt;x1axis_-&gt;minor_tics_.size(); ++i)
+<a name="__line1333"></a>                    {
+<a name="__line1334"></a>                        double v = x1axis_-&gt;map_point(x1axis_-&gt;minor_tics_[i].value());
+<a name="__line1335"></a>                        if(v == unset) continue;
+<a name="__line1336"></a>                        if(y1axis_-&gt;cuts_.empty())
+<a name="__line1337"></a>                        {
+<a name="__line1338"></a>                            term-&gt;draw_line(terminal::coord(terminal::id(v,1),terminal::id(0.0,2)),
+<a name="__line1339"></a>                                            terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1340"></a>                        }
+<a name="__line1341"></a>                        else
+<a name="__line1342"></a>                        {
+<a name="__line1343"></a>                            double start = 0.0;
+<a name="__line1344"></a>                            for(unsigned int c=0; c&lt;y1axis_-&gt;cuts_.size(); ++c)
+<a name="__line1345"></a>                            {
+<a name="__line1346"></a>                                int start_id = terminal::ZERO;
+<a name="__line1347"></a>                                if(start != 0.0)
+<a name="__line1348"></a>                                {
+<a name="__line1349"></a>                                    start_id = term-&gt;lincombi(1,terminal::id(start,2),
+<a name="__line1350"></a>                                                              0.5,gridcut_.termspecific_id());
+<a name="__line1351"></a>                                }
+<a name="__line1352"></a>                                double end = y1axis_-&gt;map_point(y1axis_-&gt;cuts_[c].first);
+<a name="__line1353"></a>                                int end_id = term-&gt;lincombi(1,terminal::id(end,2),
+<a name="__line1354"></a>                                                            -0.5,gridcut_.termspecific_id());
+<a name="__line1355"></a>                                term-&gt;draw_line(terminal::coord(terminal::id(v,1),start_id),
+<a name="__line1356"></a>                                                terminal::coord(terminal::id(v,1), end_id));
+<a name="__line1357"></a>                                start = y1axis_-&gt;map_point(y1axis_-&gt;cuts_[c].second);
+<a name="__line1358"></a>                            }
+<a name="__line1359"></a>                            int start_id = term-&gt;lincombi(1,terminal::id(start,2),
+<a name="__line1360"></a>                                                          0.5,gridcut_.termspecific_id());
+<a name="__line1361"></a>                            term-&gt;draw_line(terminal::coord(terminal::id(v,1),start_id),
+<a name="__line1362"></a>                                            terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1363"></a>		    
+<a name="__line1364"></a>                        }
+<a name="__line1365"></a>                    }
+<a name="__line1366"></a>                }
+<a name="__line1367"></a>            }
+<a name="__line1368"></a>            if(grid_ &amp; axis::y1)
+<a name="__line1369"></a>            {
+<a name="__line1370"></a>                term-&gt;set_linewidth(gridwidth_.termspecific_id());
+<a name="__line1371"></a>                term-&gt;set_linestyle(gridstyle_);
+<a name="__line1372"></a>                term-&gt;set_color(gridcolor_);
+<a name="__line1373"></a>                for(unsigned int i=0; i&lt;y1axis_-&gt;tics_.size(); ++i)
+<a name="__line1374"></a>                {
+<a name="__line1375"></a>                    double v = y1axis_-&gt;map_point(y1axis_-&gt;tics_[i].value());
+<a name="__line1376"></a>                    if(v == unset) continue;
+<a name="__line1377"></a>                    if(x1axis_-&gt;cuts_.empty())
+<a name="__line1378"></a>                    {
+<a name="__line1379"></a>                        term-&gt;draw_line(terminal::coord(terminal::id(0.0,1),terminal::id(v,2)),
+<a name="__line1380"></a>                                        terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1381"></a>                    }
+<a name="__line1382"></a>                    else
+<a name="__line1383"></a>                    {
+<a name="__line1384"></a>                        double start = 0.0;
+<a name="__line1385"></a>                        for(unsigned int c=0; c&lt;x1axis_-&gt;cuts_.size(); ++c)
+<a name="__line1386"></a>                        {
+<a name="__line1387"></a>                            int start_id = terminal::ZERO;
+<a name="__line1388"></a>                            if(start != 0.0)
+<a name="__line1389"></a>                            {
+<a name="__line1390"></a>                                start_id = term-&gt;lincombi(1,terminal::id(start,1),
+<a name="__line1391"></a>                                                          0.5,gridcut_.termspecific_id());
+<a name="__line1392"></a>                            }
+<a name="__line1393"></a>                            double end = x1axis_-&gt;map_point(x1axis_-&gt;cuts_[c].first);
+<a name="__line1394"></a>                            int end_id = term-&gt;lincombi(1,terminal::id(end,1),
+<a name="__line1395"></a>                                                        -0.5,gridcut_.termspecific_id());
+<a name="__line1396"></a>                            term-&gt;draw_line(terminal::coord(start_id,terminal::id(v,2)),
+<a name="__line1397"></a>                                            terminal::coord(end_id,  terminal::id(v,2)));
+<a name="__line1398"></a>                            start = x1axis_-&gt;map_point(x1axis_-&gt;cuts_[c].second);
+<a name="__line1399"></a>                        }
+<a name="__line1400"></a>                        int start_id = term-&gt;lincombi(1,terminal::id(start,1),
+<a name="__line1401"></a>                                                      0.5,gridcut_.termspecific_id());
+<a name="__line1402"></a>                        term-&gt;draw_line(terminal::coord(start_id,terminal::id(v,2)),
+<a name="__line1403"></a>                                        terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1404"></a>		    
+<a name="__line1405"></a>                    }
+<a name="__line1406"></a>                }
+<a name="__line1407"></a>                if(grid_at_minor_tics_&amp;axis::y1)
+<a name="__line1408"></a>                {
+<a name="__line1409"></a>                    term-&gt;set_linewidth(minor_gridwidth_.termspecific_id());
+<a name="__line1410"></a>                    term-&gt;set_linestyle(minor_gridstyle_);
+<a name="__line1411"></a>                    term-&gt;set_color(minor_gridcolor_);
+<a name="__line1412"></a>                    for(unsigned int i=0; i&lt;y1axis_-&gt;minor_tics_.size(); ++i)
+<a name="__line1413"></a>                    {
+<a name="__line1414"></a>                        double v = y1axis_-&gt;map_point(y1axis_-&gt;minor_tics_[i].value());
+<a name="__line1415"></a>                        if(v == unset) continue;
+<a name="__line1416"></a>                        if(x1axis_-&gt;cuts_.empty())
+<a name="__line1417"></a>                        {
+<a name="__line1418"></a>                            term-&gt;draw_line(terminal::coord(terminal::id(0.0,1),terminal::id(v,2)),
+<a name="__line1419"></a>                                            terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1420"></a>                        }
+<a name="__line1421"></a>                        else
+<a name="__line1422"></a>                        {
+<a name="__line1423"></a>                            double start = 0.0;
+<a name="__line1424"></a>                            for(unsigned int c=0; c&lt;x1axis_-&gt;cuts_.size(); ++c)
+<a name="__line1425"></a>                            {
+<a name="__line1426"></a>                                int start_id = terminal::ZERO;
+<a name="__line1427"></a>                                if(start != 0.0)
+<a name="__line1428"></a>                                {
+<a name="__line1429"></a>                                    start_id = term-&gt;lincombi(1,terminal::id(start,1),
+<a name="__line1430"></a>                                                              0.5,gridcut_.termspecific_id());
+<a name="__line1431"></a>                                }
+<a name="__line1432"></a>                                double end = x1axis_-&gt;map_point(x1axis_-&gt;cuts_[c].first);
+<a name="__line1433"></a>                                int end_id = term-&gt;lincombi(1,terminal::id(end,1),
+<a name="__line1434"></a>                                                            -0.5,gridcut_.termspecific_id());
+<a name="__line1435"></a>                                term-&gt;draw_line(terminal::coord(start_id,terminal::id(v,2)),
+<a name="__line1436"></a>                                                terminal::coord(end_id,  terminal::id(v,2)));
+<a name="__line1437"></a>                                start = x1axis_-&gt;map_point(x1axis_-&gt;cuts_[c].second);
+<a name="__line1438"></a>                            }
+<a name="__line1439"></a>                            int start_id = term-&gt;lincombi(1,terminal::id(start,1),
+<a name="__line1440"></a>                                                          0.5,gridcut_.termspecific_id());
+<a name="__line1441"></a>                            term-&gt;draw_line(terminal::coord(start_id,terminal::id(v,2)),
+<a name="__line1442"></a>                                            terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1443"></a>		    
+<a name="__line1444"></a>                        }
+<a name="__line1445"></a>                    }
+<a name="__line1446"></a>                }
+<a name="__line1447"></a>            }
+<a name="__line1448"></a>            if(grid_ &amp; axis::x2)
+<a name="__line1449"></a>            {
+<a name="__line1450"></a>                term-&gt;set_linewidth(gridwidth_.termspecific_id());
+<a name="__line1451"></a>                term-&gt;set_linestyle(gridstyle_);
+<a name="__line1452"></a>                term-&gt;set_color(gridcolor_);
+<a name="__line1453"></a>                for(unsigned int i=0; i&lt;x2axis_-&gt;tics_.size(); ++i)
+<a name="__line1454"></a>                {
+<a name="__line1455"></a>                    double v = x2axis_-&gt;map_point(x2axis_-&gt;tics_[i].value());
+<a name="__line1456"></a>                    if(v == unset) continue;
+<a name="__line1457"></a>                    term-&gt;draw_line(terminal::coord(terminal::id(v,1),terminal::id(0.0,2)),
+<a name="__line1458"></a>                                    terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1459"></a>                }
+<a name="__line1460"></a>                if(grid_at_minor_tics_&amp;axis::x2)
+<a name="__line1461"></a>                {
+<a name="__line1462"></a>                    term-&gt;set_linewidth(minor_gridwidth_.termspecific_id());
+<a name="__line1463"></a>                    term-&gt;set_linestyle(minor_gridstyle_);
+<a name="__line1464"></a>                    term-&gt;set_color(minor_gridcolor_);
+<a name="__line1465"></a>                    for(unsigned int i=0; i&lt;x2axis_-&gt;minor_tics_.size(); ++i)
+<a name="__line1466"></a>                    {
+<a name="__line1467"></a>                        double v = x2axis_-&gt;map_point(x2axis_-&gt;minor_tics_[i].value());
+<a name="__line1468"></a>                        if(v == unset) continue;
+<a name="__line1469"></a>                        term-&gt;draw_line(terminal::coord(terminal::id(v,1),terminal::id(0.0,2)),
+<a name="__line1470"></a>                                        terminal::coord(terminal::id(v,1),terminal::id(1.0,2)));
+<a name="__line1471"></a>                    }
+<a name="__line1472"></a>                }
+<a name="__line1473"></a>            }
+<a name="__line1474"></a>            if(grid_ &amp; axis::y2)
+<a name="__line1475"></a>            {
+<a name="__line1476"></a>                term-&gt;set_linewidth(gridwidth_.termspecific_id());
+<a name="__line1477"></a>                term-&gt;set_linestyle(gridstyle_);
+<a name="__line1478"></a>                term-&gt;set_color(gridcolor_);
+<a name="__line1479"></a>                for(unsigned int i=0; i&lt;y2axis_-&gt;tics_.size(); ++i)
+<a name="__line1480"></a>                {
+<a name="__line1481"></a>                    double v = y2axis_-&gt;map_point(y2axis_-&gt;tics_[i].value());
+<a name="__line1482"></a>                    if(v == unset) continue;
+<a name="__line1483"></a>                    term-&gt;draw_line(terminal::coord(terminal::id(0.0,1),terminal::id(v,2)),
+<a name="__line1484"></a>                                    terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1485"></a>                }
+<a name="__line1486"></a>                if(grid_at_minor_tics_&amp;axis::y2)
+<a name="__line1487"></a>                {
+<a name="__line1488"></a>                    term-&gt;set_linewidth(minor_gridwidth_.termspecific_id());
+<a name="__line1489"></a>                    term-&gt;set_linestyle(minor_gridstyle_);
+<a name="__line1490"></a>                    term-&gt;set_color(minor_gridcolor_);
+<a name="__line1491"></a>                    for(unsigned int i=0; i&lt;y2axis_-&gt;minor_tics_.size(); ++i)
+<a name="__line1492"></a>                    {
+<a name="__line1493"></a>                        double v = y2axis_-&gt;map_point(y2axis_-&gt;minor_tics_[i].value());
+<a name="__line1494"></a>                        if(v == unset) continue;
+<a name="__line1495"></a>                        term-&gt;draw_line(terminal::coord(terminal::id(0.0,1),terminal::id(v,2)),
+<a name="__line1496"></a>                                        terminal::coord(terminal::id(1.0,1),terminal::id(v,2)));
+<a name="__line1497"></a>                    }
+<a name="__line1498"></a>                }
+<a name="__line1499"></a>            }
+<a name="__line1500"></a>        }
+<a name="__line1501"></a>        term-&gt;set_linestyle(sym::solid);
+<a name="__line1502"></a>        term-&gt;close_layer("grid");
+<a name="__line1503"></a>    }
+<a name="__line1504"></a>
+<a name="__line1505"></a>    class compare_graphs_by_level
+<a name="__line1506"></a>    {
+<a name="__line1507"></a><span class=public>    public:
+<a name="__line1508"></a>        bool operator()(plottable *g1, plottable *g2) { return g1-&gt;level()&lt;g2-&gt;level(); }
+<a name="__line1509"></a>    };
+<a name="__line1510"></a>
+<a name="__line1511"></a>    void frame::print_graph_(plottable *p, terminal *term)
+<a name="__line1512"></a>    {
+<a name="__line1513"></a>        if(global::debug) cerr&lt;&lt;"[blop] [frame] print_graph_ starts"&lt;&lt;endl;
+<a name="__line1514"></a>
+<a name="__line1515"></a>        graph_drawer *d = p-&gt;drawstyle();
+<a name="__line1516"></a>        if(d == 0)
+<a name="__line1517"></a>        {
+<a name="__line1518"></a>            warning::print("No drawer specified for graph","frame::print_graph_(plottable *,terminal *)");
+<a name="__line1519"></a>        }
+<a name="__line1520"></a>        else
+<a name="__line1521"></a>        {
+<a name="__line1522"></a>            if(p-&gt;columns() &lt; d-&gt;req_components())
+<a name="__line1523"></a>            {
+<a name="__line1524"></a>                warning::print(var("Graph has too few columns (") &amp; p-&gt;columns() &amp; ")",
+<a name="__line1525"></a>                               "frame::print_graph_(plottable *,terminal *)");
+<a name="__line1526"></a>            }
+<a name="__line1527"></a>            else
+<a name="__line1528"></a>            {
+<a name="__line1529"></a>                term-&gt;open_layer(p-&gt;layer());
+<a name="__line1530"></a>                d-&gt;draw(p,this,term);
+<a name="__line1531"></a>                term-&gt;close_layer(p-&gt;layer());
+<a name="__line1532"></a>            }
+<a name="__line1533"></a>        }
+<a name="__line1534"></a>        if(global::debug) cerr&lt;&lt;"[blop] [frame] print_graph_ starts"&lt;&lt;endl;
+<a name="__line1535"></a>    }
+<a name="__line1536"></a>
+<a name="__line1537"></a>    void frame::print(terminal *term)
+<a name="__line1538"></a>        TRY
+<a name="__line1539"></a>    {
+<a name="__line1540"></a>        if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] print starts..."&lt;&lt;endl;
+<a name="__line1541"></a>
+<a name="__line1542"></a>        if(print_me_ &lt; 2)
+<a name="__line1543"></a>        {
+<a name="__line1544"></a>            if(global::debug&gt;0)
+<a name="__line1545"></a>            {
+<a name="__line1546"></a>                cout&lt;&lt;"[blop] [frame]   this frame is switched off."&lt;&lt;endl;
+<a name="__line1547"></a>                cout&lt;&lt;"[blop] [frame] print finished."&lt;&lt;endl;
+<a name="__line1548"></a>            }
+<a name="__line1549"></a>	    
+<a name="__line1550"></a>            return;
+<a name="__line1551"></a>        }
+<a name="__line1552"></a>
+<a name="__line1553"></a>        term-&gt;open_layer(layer_);
+<a name="__line1554"></a>
+<a name="__line1555"></a>        term-&gt;subpicture_begin(terminal::coord(cleft().termspecific_id(),
+<a name="__line1556"></a>                                               cbottom().termspecific_id()),
+<a name="__line1557"></a>                               terminal::coord(cright().termspecific_id(),
+<a name="__line1558"></a>                                               ctop().termspecific_id()));
+<a name="__line1559"></a>
+<a name="__line1560"></a>        if(!grid_foreground_) draw_grid(term);
+<a name="__line1561"></a>        term-&gt;set_color(black);
+<a name="__line1562"></a>        if(!foreground_)
+<a name="__line1563"></a>        {
+<a name="__line1564"></a>            if(draw_frame_) draw_frame(term);
+<a name="__line1565"></a>            if(draw_axes_ ) draw_axes(term);
+<a name="__line1566"></a>        }
+<a name="__line1567"></a>
+<a name="__line1568"></a>        term-&gt;set_color(black);
+<a name="__line1569"></a>
+<a name="__line1570"></a>        std::vector&lt;blop::plottable *&gt; graphs(graphs_);
+<a name="__line1571"></a>        std::sort(graphs.begin(), graphs.end(), compare_graphs_by_level());
+<a name="__line1572"></a>
+<a name="__line1573"></a>        <span class=comment>// first print the graphs with level&lt;0</span>
+<a name="__line1574"></a>        unsigned int graph_index = 0;
+<a name="__line1575"></a>        for(; graph_index&lt;graphs.size() &amp;&amp; graphs[graph_index]-&gt;level()&lt;0; ++graph_index)
+<a name="__line1576"></a>        {
+<a name="__line1577"></a>            print_graph_(graphs[graph_index], term);
+<a name="__line1578"></a>        }
+<a name="__line1579"></a>
+<a name="__line1580"></a>        <span class=comment>// then print all the contents and graphs with level==0, in the order</span>
+<a name="__line1581"></a>        <span class=comment>// of adding them to the frame (but print the legendbox at the end!)</span>
+<a name="__line1582"></a>        for(unsigned int i=0; i&lt;ordering_.size(); ++i)
+<a name="__line1583"></a>        {
+<a name="__line1584"></a>            if(ordering_[i].plottable_ &amp;&amp; ordering_[i].plottable_-&gt;level()==0)
+<a name="__line1585"></a>            {
+<a name="__line1586"></a>                print_graph_(ordering_[i].plottable_, term);
+<a name="__line1587"></a>            }
+<a name="__line1588"></a>            if(ordering_[i].grob_ &amp;&amp; ordering_[i].grob_ != legendbox_)
+<a name="__line1589"></a>            {
+<a name="__line1590"></a>                <span class=comment>// Those which should be printed above the grid are postponed, if the grid is in the foreground, i.e. printed later</span>
+<a name="__line1591"></a>                if(grid_foreground_ &amp;&amp; ordering_[i].grob_-&gt;above_grid()) continue;
+<a name="__line1592"></a>                <span class=comment>// print</span>
+<a name="__line1593"></a>                ordering_[i].grob_-&gt;print(term);
+<a name="__line1594"></a>            }
+<a name="__line1595"></a>        }
+<a name="__line1596"></a>
+<a name="__line1597"></a>        <span class=comment>// and finally print all the graphs with level&gt;0</span>
+<a name="__line1598"></a>        for(; graph_index&lt;graphs.size(); ++graph_index)
+<a name="__line1599"></a>        {
+<a name="__line1600"></a>            if(graphs[graph_index]-&gt;level()&gt;0) print_graph_(graphs[graph_index],term);
+<a name="__line1601"></a>        }
+<a name="__line1602"></a>
+<a name="__line1603"></a>        if(grid_foreground_)
+<a name="__line1604"></a>        {
+<a name="__line1605"></a>            draw_grid(term);
+<a name="__line1606"></a>            for(unsigned int i=0; i&lt;ordering_.size(); ++i)
+<a name="__line1607"></a>            {
+<a name="__line1608"></a>                if(ordering_[i].grob_ &amp;&amp; ordering_[i].grob_ != legendbox_ &amp;&amp; ordering_[i].grob_-&gt;above_grid()) ordering_[i].grob_-&gt;print(term);
+<a name="__line1609"></a>            }
+<a name="__line1610"></a>        }
+<a name="__line1611"></a>        if(foreground_)
+<a name="__line1612"></a>        {
+<a name="__line1613"></a>            if(draw_frame_) draw_frame(term);
+<a name="__line1614"></a>            if(draw_axes_ ) draw_axes(term);
+<a name="__line1615"></a>        }
+<a name="__line1616"></a>
+<a name="__line1617"></a>        <span class=comment>// at the very end, print the legendbox</span>
+<a name="__line1618"></a>        if(show_legend_ &amp;&amp; owns_legendbox_) legendbox_-&gt;print(term);
+<a name="__line1619"></a>
+<a name="__line1620"></a>
+<a name="__line1621"></a>        term-&gt;subpicture_end();
+<a name="__line1622"></a>
+<a name="__line1623"></a>        term-&gt;close_layer(layer_);
+<a name="__line1624"></a>
+<a name="__line1625"></a>        if(global::debug&gt;0) cout&lt;&lt;"[blop] [frame] print finished."&lt;&lt;endl;
+<a name="__line1626"></a>    }
+<a name="__line1627"></a>    CATCH("frame::print(terminal *)")
+<a name="__line1628"></a>
+<a name="__line1629"></a>    frame &amp;frame::grid(const function &amp;f, double p1from, double p1to, int n1, double p2from, double p2to, int n2)
+<a name="__line1630"></a>    {
+<a name="__line1631"></a>        pgrid_func_ = f;
+<a name="__line1632"></a>        pgrid_1_from_ = p1from;
+<a name="__line1633"></a>        pgrid_1_to_   = p1to;
+<a name="__line1634"></a>        pgrid_1_n_    = n1;
+<a name="__line1635"></a>        pgrid_2_from_ = p2from;
+<a name="__line1636"></a>        pgrid_2_to_   = p2to;
+<a name="__line1637"></a>        pgrid_2_n_    = n2;
+<a name="__line1638"></a>        return *this;
+<a name="__line1639"></a>    }
+<a name="__line1640"></a>
+<a name="__line1641"></a>    frame&amp; frame::grid(int g)
+<a name="__line1642"></a>    {
+<a name="__line1643"></a>        pgrid_func_ = unset;
+<a name="__line1644"></a>        if(g != grid_) modified_ = true;
+<a name="__line1645"></a>        grid_ = g;
+<a name="__line1646"></a>        return *this;
+<a name="__line1647"></a>    }
+<a name="__line1648"></a>    frame &amp;frame::grid(bool i)
+<a name="__line1649"></a>    {
+<a name="__line1650"></a>        pgrid_func_ = unset;
+<a name="__line1651"></a>        if(i)
+<a name="__line1652"></a>        {
+<a name="__line1653"></a>            int new_grid = grid_ | (axis::x1|axis::y1);
+<a name="__line1654"></a>            if(new_grid != grid_) modified_ = true;
+<a name="__line1655"></a>            grid_ = new_grid;
+<a name="__line1656"></a>        }
+<a name="__line1657"></a>        else
+<a name="__line1658"></a>        {
+<a name="__line1659"></a>            if(grid_ != 0) modified_ = true;
+<a name="__line1660"></a>            grid_ = 0;
+<a name="__line1661"></a>        }
+<a name="__line1662"></a>        return *this;
+<a name="__line1663"></a>    }
+<a name="__line1664"></a>
+<a name="__line1665"></a>    frame &amp;frame::grid_at_minor_tics(int g)
+<a name="__line1666"></a>    {
+<a name="__line1667"></a>        if(g != grid_at_minor_tics_) modified_ = true;
+<a name="__line1668"></a>        grid_at_minor_tics_ = g;
+<a name="__line1669"></a>        return *this;
+<a name="__line1670"></a>    }
+<a name="__line1671"></a>
+<a name="__line1672"></a>    frame&amp; frame::gridcolor(const color &amp;c)
+<a name="__line1673"></a>    {
+<a name="__line1674"></a>        modified_ = true;
+<a name="__line1675"></a>        gridcolor_ = c;
+<a name="__line1676"></a>        return *this;
+<a name="__line1677"></a>    }
+<a name="__line1678"></a>    frame &amp;frame::minor_gridcolor(const color &amp;c)
+<a name="__line1679"></a>    {
+<a name="__line1680"></a>        modified_ = true;
+<a name="__line1681"></a>        minor_gridcolor_ = c;
+<a name="__line1682"></a>        return *this;
+<a name="__line1683"></a>    }
+<a name="__line1684"></a>
+<a name="__line1685"></a>
+<a name="__line1686"></a>    frame&amp; frame::framecolor(const color &amp;c)
+<a name="__line1687"></a>    {
+<a name="__line1688"></a>        modified_ = true;
+<a name="__line1689"></a>        framecolor_ = c;
+<a name="__line1690"></a>        return *this;
+<a name="__line1691"></a>    }
+<a name="__line1692"></a>    const color &amp;frame::framecolor() const {return framecolor_; }
+<a name="__line1693"></a>
+<a name="__line1694"></a>    frame&amp; frame::gridstyle(sym::linestyle s)
+<a name="__line1695"></a>    {
+<a name="__line1696"></a>        modified_ = true;
+<a name="__line1697"></a>        gridstyle_ = s;
+<a name="__line1698"></a>        return *this;
+<a name="__line1699"></a>    }
+<a name="__line1700"></a>    frame&amp; frame::minor_gridstyle(sym::linestyle s)
+<a name="__line1701"></a>    {
+<a name="__line1702"></a>        modified_ = true;
+<a name="__line1703"></a>        minor_gridstyle_ = s;
+<a name="__line1704"></a>        return *this;
+<a name="__line1705"></a>    }
+<a name="__line1706"></a>
+<a name="__line1707"></a>
+<a name="__line1708"></a>    frame &amp;frame::linewidth(const length &amp;l)
+<a name="__line1709"></a>    {
+<a name="__line1710"></a>        modified_ = true;
+<a name="__line1711"></a>        linewidth_ = l;
+<a name="__line1712"></a>        return *this;
+<a name="__line1713"></a>    }
+<a name="__line1714"></a>    const length &amp;frame::linewidth() const { return linewidth_; }
+<a name="__line1715"></a>
+<a name="__line1716"></a>    frame &amp;frame::ticlength(const length &amp;l)
+<a name="__line1717"></a>    {
+<a name="__line1718"></a>        if(x1axis_) x1axis_-&gt;ticlength(l);
+<a name="__line1719"></a>        if(y1axis_) y1axis_-&gt;ticlength(l);
+<a name="__line1720"></a>        if(x2axis_) x2axis_-&gt;ticlength(l);
+<a name="__line1721"></a>        if(y2axis_) y2axis_-&gt;ticlength(l);
+<a name="__line1722"></a>        return *this;
+<a name="__line1723"></a>    }
+<a name="__line1724"></a>    frame &amp;frame::minor_ticlength(const length &amp;l)
+<a name="__line1725"></a>    {
+<a name="__line1726"></a>        if(x1axis_) x1axis_-&gt;minor_ticlength(l);
+<a name="__line1727"></a>        if(y1axis_) y1axis_-&gt;minor_ticlength(l);
+<a name="__line1728"></a>        if(x2axis_) x2axis_-&gt;minor_ticlength(l);
+<a name="__line1729"></a>        if(y2axis_) y2axis_-&gt;minor_ticlength(l);
+<a name="__line1730"></a>        return *this;
+<a name="__line1731"></a>    }
+<a name="__line1732"></a>
+<a name="__line1733"></a>    frame &amp;frame::draw_tics(bool f)
+<a name="__line1734"></a>    {
+<a name="__line1735"></a>        if(x1axis_) x1axis_-&gt;draw_tics(f);
+<a name="__line1736"></a>        if(y1axis_) y1axis_-&gt;draw_tics(f);
+<a name="__line1737"></a>        if(x2axis_) x2axis_-&gt;draw_tics(f);
+<a name="__line1738"></a>        if(y2axis_) y2axis_-&gt;draw_tics(f);
+<a name="__line1739"></a>        return *this;
+<a name="__line1740"></a>    }
+<a name="__line1741"></a>
+<a name="__line1742"></a>    
+<a name="__line1743"></a>
+<a name="__line1744"></a>    frame&amp; frame::gridwidth(const length &amp;l)
+<a name="__line1745"></a>    {
+<a name="__line1746"></a>        modified_ = true;
+<a name="__line1747"></a>        gridwidth_ = l;
+<a name="__line1748"></a>        return *this;
+<a name="__line1749"></a>    }
+<a name="__line1750"></a>
+<a name="__line1751"></a>    frame &amp;frame::minor_gridwidth(const length  &amp;l)
+<a name="__line1752"></a>    {
+<a name="__line1753"></a>        modified_ = true;
+<a name="__line1754"></a>        minor_gridwidth_ = l;
+<a name="__line1755"></a>        return *this;
+<a name="__line1756"></a>    }
+<a name="__line1757"></a>
+<a name="__line1758"></a>    frame&amp; frame::gridcut(const length &amp;l)
+<a name="__line1759"></a>    {
+<a name="__line1760"></a>        modified_ = true;
+<a name="__line1761"></a>        gridcut_ = l;
+<a name="__line1762"></a>        return *this;
+<a name="__line1763"></a>    }
+<a name="__line1764"></a>    const length &amp;frame::gridcut() const {return gridcut_;}
+<a name="__line1765"></a>
+<a name="__line1766"></a>    frame &amp;frame::foreground(bool b)
+<a name="__line1767"></a>    {
+<a name="__line1768"></a>        modified_ = true;
+<a name="__line1769"></a>        foreground_ = b;
+<a name="__line1770"></a>        return *this;
+<a name="__line1771"></a>    }
+<a name="__line1772"></a>
+<a name="__line1773"></a>    bool frame::foreground() const { return foreground_; }
+<a name="__line1774"></a>
+<a name="__line1775"></a>    dgraph *frame::lastd()
+<a name="__line1776"></a>    {
+<a name="__line1777"></a>        for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line1778"></a>        {
+<a name="__line1779"></a>            if(dgraph *p = dynamic_cast&lt;dgraph *&gt;(graphs_[i])) return p;
+<a name="__line1780"></a>        }
+<a name="__line1781"></a>        return 0;
+<a name="__line1782"></a>    }
+<a name="__line1783"></a>    fgraph *frame::lastf()
+<a name="__line1784"></a>    {
+<a name="__line1785"></a>        for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line1786"></a>        {
+<a name="__line1787"></a>            if(fgraph *p = dynamic_cast&lt;fgraph *&gt;(graphs_[i])) return p;
+<a name="__line1788"></a>        }
+<a name="__line1789"></a>        return 0;
+<a name="__line1790"></a>    }
+<a name="__line1791"></a>
+<a name="__line1792"></a>    plottable *frame::last()
+<a name="__line1793"></a>    {
+<a name="__line1794"></a>        if(graphs_.empty()) return 0;
+<a name="__line1795"></a>        return graphs_.back();
+<a name="__line1796"></a>    }
+<a name="__line1797"></a>
+<a name="__line1798"></a>    plottable *frame::get_graph(int n)
+<a name="__line1799"></a>    {
+<a name="__line1800"></a>        if(n&lt;0 || (int)graphs_.size() &lt;= n)
+<a name="__line1801"></a>        {
+<a name="__line1802"></a>            warning::print(var("graph index [") &amp; n &amp; "] is out of range",
+<a name="__line1803"></a>                           "frame::get_graph(int)");
+<a name="__line1804"></a>            return 0;
+<a name="__line1805"></a>        }
+<a name="__line1806"></a>        return graphs_[n];
+<a name="__line1807"></a>    }
+<a name="__line1808"></a>
+<a name="__line1809"></a>    bool frame::modified() const
+<a name="__line1810"></a>    {
+<a name="__line1811"></a>        if(container::modified()) return true;
+<a name="__line1812"></a>        for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line1813"></a>        {
+<a name="__line1814"></a>            if(graphs_[i]-&gt;modified()) return true;
+<a name="__line1815"></a>        }
+<a name="__line1816"></a>        if(x1axis_-&gt;modified()) return true;
+<a name="__line1817"></a>        if(y1axis_-&gt;modified()) return true;
+<a name="__line1818"></a>        if(x2axis_-&gt;modified()) return true;
+<a name="__line1819"></a>        if(y2axis_-&gt;modified()) return true;
+<a name="__line1820"></a>        return false;
+<a name="__line1821"></a>    }
+<a name="__line1822"></a>
+<a name="__line1823"></a>    void frame::modified(bool f)
+<a name="__line1824"></a>    {
+<a name="__line1825"></a>        container::modified(f);
+<a name="__line1826"></a>        for(unsigned int i=0; i&lt;graphs_.size(); ++i)
+<a name="__line1827"></a>        {
+<a name="__line1828"></a>            graphs_[i]-&gt;modified(f);
+<a name="__line1829"></a>        }
+<a name="__line1830"></a>        x1axis_-&gt;modified(f);
+<a name="__line1831"></a>        y1axis_-&gt;modified(f);
+<a name="__line1832"></a>        x2axis_-&gt;modified(f);
+<a name="__line1833"></a>        y2axis_-&gt;modified(f);
+<a name="__line1834"></a>    }
+<a name="__line1835"></a>
+<a name="__line1836"></a>}
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

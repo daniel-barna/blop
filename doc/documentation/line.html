@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Line</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="legendbox.html">
+   <link rel="Next" href="plotting-data.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="legendbox.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: legendbox.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="plotting-data.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: plotting-data.html">
+    </a> <br>
+
+<center class=title><b>
+Line
+</b></center>
+<hr>
+
+<div class="prguide"><u>Practical Guide:</u>
+<pre>line::pdraw(2*CM,3*MM)(2*CM,3*CM)(4*CM,4*CM);  // draw a line between the given coordinates, 
+                                               // into the current pad ( &lt;== the initial 'p')
+
+line::fdraw(x1len(3),y1len(5))(x1len(10),y1len(15)).arrow(true).linewidth(2*MM);
+                                               // draw an arrow from the axis-coordinates (3,5)
+                                               // to (10,15)
+</pre>
+</div>
+<hr>
+
+<div class="description">
+
+<p> A <tt>line</tt>  is a polygon between points,  which are specifyed
+using length-pairs.  A line can  be plotted into the current pad using
+the   <tt>pdraw</tt>   function.    This   function   takes   two   <a href="length.html"><tt>length</tt></a>  arguments,  this  will be  the
+starting point of  the line. Specifying only one  point, however, does
+not  have too  much meaning  (such  a 'line'  will not  appear on  the
+terminal). The possibility  to add an arbitrary number  of points in a
+consequent  and easy  way  is provided  via  the parenthesis  operator
+(<tt>operator()</tt>),   which   takes   again   two   <tt>length</tt>
+parameters  (the coordinates  of  the  new point  to  be added).  This
+operator  returns a reference  to the  line itself,  so that  the same
+operator can be called again:
+
+</p><pre>    line::pdraw(MM,CM)(MM,5*CM)(3*CM,5*CM);
+</pre>
+
+(However, with the  current version of CINT, 1.5.99,  it does not work
+yet, I hope it will soon be corrected.). 
+
+
+<p>  To   draw  a  line  into   the  current  frame   or  canvas,  the
+<tt>fdraw</tt>  and <tt>cdraw</tt>  functions are  provided,  with the
+same characteristics. 
+
+</p><p> To  set other properties of  the line, you can  call the following
+member functions on the returned reference:
+
+</p><pre>    line &amp;linewidth(const length &amp;);    // set the linewidth
+    line &amp;lw(const length &amp;)            // shorthand version of the previous
+    const length &amp;linewidth() const;    // get the linewidth
+
+    ... etc (see the source file :-)
+</pre>
+
+<p> In  addition you  can specify if  arrows at  the ends of  the line
+should be drawn. The arrow at the starting point of the line is called
+a 'back-arrow',  the arrow  at the  last point of  the line  is called
+'forward-arrow', or simply  arrow. By default they are  not drawn, and
+they can be switched on/off by the
+</p><pre>    arrow(bool);         // switch the forward arrow
+    arrow_back(bool);    // switch the backward arrow
+</pre>
+member functions. You can set  other properties of the arrows as well,
+like       the       angle       (<tt>arrowangle(double)</tt>       or
+<tt>arrowangle_back(double)</tt>,     in    degrees),     or    length
+(<tt>arrowlength(const   length  &amp;)</tt>   or  <tt>arrowlength_back(const
+length &amp;)</tt> ), see the picture below.  
+
+<center>
+<img src="figs/line.png">
+</center>
+
+<p> If you often draw arrow in your figures, you can put the following
+into your <a href="program-invocation.html#initfiles"><tt>~/.blop/bloprc.C</tt></a> file
+in your home directory:  
+
+</p><pre>    // draw an arrow in the current frame
+    line &amp;farrow(const length &amp;x1, const length &amp;y1,
+                 const length &amp;x2, const length &amp;y2)
+    {
+       return line::fdraw(x1,y1)(x2,y2).arrow(true);
+    }
+</pre>
+
+</div>
+<hr>
+
+<pre class="implementation">Source files:
+   <a href="line.h.html">line.h</a>
+   <a href="line.cc.html">line.cc</a>
+</pre>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="legendbox.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: legendbox.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="plotting-data.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: plotting-data.html">
+    </a> 
+
+</body>
+</html>

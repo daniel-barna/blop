@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: config.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="config.h.html">config.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>#include &lt;cstdlib&gt;
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>    const char *BLOP_INSDIR;
+<a name="__line7"></a>    const char *BLOP_VERSION;
+<a name="__line8"></a>    const char *BLOP_DOCDIR;
+<a name="__line9"></a>    const char *BLOP_LIBDIR;
+<a name="__line10"></a>    const char *BLOP_BINDIR;
+<a name="__line11"></a>    const char *BLOP_INCDIR;
+<a name="__line12"></a>    const char *BLOP_STYDIR;
+<a name="__line13"></a>#ifdef USE_CINTSYSDIR
+<a name="__line14"></a>    const char *BLOP_CINTSYSDIR;
+<a name="__line15"></a>#endif
+<a name="__line16"></a>    const char *BLOP_CPPOPTS;
+<a name="__line17"></a>    const char *BLOP_COMPILER;
+<a name="__line18"></a>    const char *BLOP_ARCH;
+<a name="__line19"></a>
+<a name="__line20"></a>    void get_config_vars()
+<a name="__line21"></a>    {
+<a name="__line22"></a>	BLOP_VERSION= getenv("BLOP_VERSION");
+<a name="__line23"></a>	BLOP_INSDIR = getenv("BLOP_INSDIR");
+<a name="__line24"></a>	BLOP_DOCDIR = getenv("BLOP_DOCDIR");
+<a name="__line25"></a>	BLOP_LIBDIR = getenv("BLOP_LIBDIR");
+<a name="__line26"></a>	BLOP_BINDIR = getenv("BLOP_BINDIR");
+<a name="__line27"></a>	BLOP_INCDIR = getenv("BLOP_INCDIR");
+<a name="__line28"></a>	BLOP_STYDIR = getenv("BLOP_STYDIR");
+<a name="__line29"></a>#ifdef USE_CINTSYSDIR
+<a name="__line30"></a>	BLOP_CINTSYSDIR = getenv("BLOP_CINTSYSDIR");
+<a name="__line31"></a>#endif
+<a name="__line32"></a>	BLOP_CPPOPTS = getenv("BLOP_CPPOPTS");
+<a name="__line33"></a>	BLOP_COMPILER = getenv("BLOP_COMPILER");
+<a name="__line34"></a>	BLOP_ARCH     = getenv("BLOP_ARCH");
+<a name="__line35"></a>    }
+<a name="__line36"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

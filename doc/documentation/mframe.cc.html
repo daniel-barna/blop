@@ -1,0 +1,786 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mframe.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="mframe.h.html">mframe.h</a>"
+<a name="__line1"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line2"></a>#include "<a href="epad.h.html">epad.h</a>"
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    frame *mframe::operator()(int i, int j) { return frames_[ind(i,j)]; }
+<a name="__line8"></a>    const frame *mframe::operator()(int i, int j) const { return frames_[ind(i,j)]; }
+<a name="__line9"></a>    bool mframe::default_remove_conflicting_tic_ = true;
+<a name="__line10"></a>
+<a name="__line11"></a>    int mframe::row(const frame *f) const
+<a name="__line12"></a>    {
+<a name="__line13"></a>        for(int nx=1; nx&lt;=nx_; ++nx)
+<a name="__line14"></a>        {
+<a name="__line15"></a>            for(int ny=1; ny&lt;=ny_; ++ny)
+<a name="__line16"></a>            {
+<a name="__line17"></a>                if((*this)(nx,ny) == f) return ny;
+<a name="__line18"></a>            }
+<a name="__line19"></a>        }
+<a name="__line20"></a>        return 0;
+<a name="__line21"></a>    }
+<a name="__line22"></a>    int mframe::col(const frame *f) const
+<a name="__line23"></a>    {
+<a name="__line24"></a>        for(int nx=1; nx&lt;=nx_; ++nx)
+<a name="__line25"></a>        {
+<a name="__line26"></a>            for(int ny=1; ny&lt;=ny_; ++ny)
+<a name="__line27"></a>            {
+<a name="__line28"></a>                if((*this)(nx,ny) == f) return nx;
+<a name="__line29"></a>            }
+<a name="__line30"></a>        }
+<a name="__line31"></a>        return 0;
+<a name="__line32"></a>    }
+<a name="__line33"></a>
+<a name="__line34"></a>    bool mframe::modified() const
+<a name="__line35"></a>    {
+<a name="__line36"></a>	if(container::modified()) return true;
+<a name="__line37"></a>	for(int i=1; i&lt;=nx_; ++i)
+<a name="__line38"></a>	{
+<a name="__line39"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line40"></a>	    {
+<a name="__line41"></a>		if(frames_[ind(i,j)]-&gt;modified()) return true;
+<a name="__line42"></a>	    }
+<a name="__line43"></a>	}
+<a name="__line44"></a>	return false;
+<a name="__line45"></a>    }
+<a name="__line46"></a>    void mframe::modified(bool f)
+<a name="__line47"></a>    {
+<a name="__line48"></a>	container::modified(f);
+<a name="__line49"></a>	for(int i=1; i&lt;=nx_; ++i)
+<a name="__line50"></a>	{
+<a name="__line51"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line52"></a>	    {
+<a name="__line53"></a>		frames_[ind(i,j)]-&gt;modified(f);
+<a name="__line54"></a>	    }
+<a name="__line55"></a>	}
+<a name="__line56"></a>    }
+<a name="__line57"></a>
+<a name="__line58"></a>    int mframe::default_direction_ = mframe::right_down | mframe::jump;
+<a name="__line59"></a>
+<a name="__line60"></a>    void mframe::default_direction(int i) { default_direction_ = i; }
+<a name="__line61"></a>
+<a name="__line62"></a>
+<a name="__line63"></a>    mframe::~mframe()
+<a name="__line64"></a>    {
+<a name="__line65"></a>	for(int i=0; i&lt;nx_*ny_; ++i) delete frames_[i];
+<a name="__line66"></a>	delete [] frames_;
+<a name="__line67"></a>
+<a name="__line68"></a>        delete [] show_subframe_;
+<a name="__line69"></a>
+<a name="__line70"></a>	delete [] widths_;
+<a name="__line71"></a>	delete [] heights_;
+<a name="__line72"></a>	delete [] rwidths_;
+<a name="__line73"></a>	delete [] rheights_;
+<a name="__line74"></a>
+<a name="__line75"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line76"></a>	{
+<a name="__line77"></a>	    delete x1axes_[i];
+<a name="__line78"></a>	    delete x2axes_[i];
+<a name="__line79"></a>	    delete bmarginboxes_[i];
+<a name="__line80"></a>	    delete tmarginboxes_[i];
+<a name="__line81"></a>	}
+<a name="__line82"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line83"></a>	{
+<a name="__line84"></a>	    delete y1axes_[i];
+<a name="__line85"></a>	    delete y2axes_[i];
+<a name="__line86"></a>	    delete lmarginboxes_[i];
+<a name="__line87"></a>	    delete rmarginboxes_[i];
+<a name="__line88"></a>	}
+<a name="__line89"></a>	delete [] x1axes_;
+<a name="__line90"></a>	delete [] x2axes_;
+<a name="__line91"></a>	delete [] y1axes_;
+<a name="__line92"></a>	delete [] y2axes_;
+<a name="__line93"></a>	delete [] lmarginboxes_;
+<a name="__line94"></a>	delete [] rmarginboxes_;
+<a name="__line95"></a>	delete [] bmarginboxes_;
+<a name="__line96"></a>	delete [] tmarginboxes_;
+<a name="__line97"></a>        delete title_;
+<a name="__line98"></a>    }
+<a name="__line99"></a>
+<a name="__line100"></a>
+<a name="__line101"></a>    bool mframe::parent(container *c)
+<a name="__line102"></a>    {
+<a name="__line103"></a>	if(c == 0) return false;
+<a name="__line104"></a>	base::parent(c);
+<a name="__line105"></a>	box::right(!(c-&gt;cwidth()));
+<a name="__line106"></a>	box::top  (!(c-&gt;cheight()));
+<a name="__line107"></a>	return true;
+<a name="__line108"></a>    }
+<a name="__line109"></a>
+<a name="__line110"></a>    mframe::mframe(int xdim, int ydim) : mcontainer(xdim,ydim,default_direction_), equal_ranges_(0)
+<a name="__line111"></a>    {
+<a name="__line112"></a>	name("mframe");
+<a name="__line113"></a>        title_ = 0;
+<a name="__line114"></a>	frames_ = new frame*[nx_ * ny_];
+<a name="__line115"></a>
+<a name="__line116"></a>        show_subframe_ = new bool[nx_*ny_];
+<a name="__line117"></a>        for(int i=0; i&lt;nx_*ny_; ++i) show_subframe_[i] = true;
+<a name="__line118"></a>        
+<a name="__line119"></a>	x1axes_ = new axis*[nx_];
+<a name="__line120"></a>	x2axes_ = new axis*[nx_];
+<a name="__line121"></a>	y1axes_ = new axis*[ny_];
+<a name="__line122"></a>	y2axes_ = new axis*[ny_];
+<a name="__line123"></a>
+<a name="__line124"></a>	lmarginboxes_ = new epad*[ny_];
+<a name="__line125"></a>	rmarginboxes_ = new epad*[ny_];
+<a name="__line126"></a>	bmarginboxes_ = new epad*[nx_];
+<a name="__line127"></a>	tmarginboxes_ = new epad*[nx_];
+<a name="__line128"></a>
+<a name="__line129"></a>	widths_ = new length[nx_];
+<a name="__line130"></a>	heights_ = new length[ny_];
+<a name="__line131"></a>	rwidths_ = new double[nx_];
+<a name="__line132"></a>	rheights_ = new double[ny_];
+<a name="__line133"></a>	for(int i=0; i&lt;nx_; ++i) rwidths_[i] = 1;
+<a name="__line134"></a>	for(int i=0; i&lt;ny_; ++i) rheights_[i] = 1;
+<a name="__line135"></a>	x_avail_ = !cwidth();
+<a name="__line136"></a>	y_avail_ = !cheight();
+<a name="__line137"></a>	xgap_ = ZERO;
+<a name="__line138"></a>        ygap_ = ZERO;
+<a name="__line139"></a>
+<a name="__line140"></a>	vector&lt;length&gt; x1m,x2m,y1m,y2m, lmb, rmb, bmb, tmb;
+<a name="__line141"></a>	<span class=comment>//x1m.push_back(blop::height("X"));</span>
+<a name="__line142"></a>	<span class=comment>//x2m.push_back(blop::height("X"));</span>
+<a name="__line143"></a>	<span class=comment>//y1m.push_back(0.5*EX);</span>
+<a name="__line144"></a>	<span class=comment>//y2m.push_back(0.5*EX);</span>
+<a name="__line145"></a>
+<a name="__line146"></a>	<span class=comment>// create the subframes</span>
+<a name="__line147"></a>	for(int a=1; a&lt;=nx_; ++a)
+<a name="__line148"></a>	{
+<a name="__line149"></a>	    for(int b=1; b&lt;=ny_; ++b)
+<a name="__line150"></a>	    {
+<a name="__line151"></a>		frames_[ind(a,b)] = new frame;
+<a name="__line152"></a>		var name=var("frame(") &amp; a &amp; var(",") &amp; b &amp; var(")");
+<a name="__line153"></a>		frames_[ind(a,b)]-&gt;name(name);
+<a name="__line154"></a>	    }
+<a name="__line155"></a>	}
+<a name="__line156"></a>
+<a name="__line157"></a>	for(int a=0; a&lt;nx_; ++a)
+<a name="__line158"></a>	{
+<a name="__line159"></a>	    x1axes_[a] = new axis(axis::x1);
+<a name="__line160"></a>	    x1m.push_back(!x1axes_[a]-&gt;scriptsize());
+<a name="__line161"></a>	    x2axes_[a] = new axis(axis::x2);
+<a name="__line162"></a>	    x2m.push_back(!x2axes_[a]-&gt;scriptsize());
+<a name="__line163"></a>
+<a name="__line164"></a>	    bmarginboxes_[a] = new epad;
+<a name="__line165"></a>	    bmarginboxes_[a]-&gt;name(var("bmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line166"></a>	    bmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line167"></a>	    add(bmarginboxes_[a]);
+<a name="__line168"></a>	    tmarginboxes_[a] = new epad;
+<a name="__line169"></a>	    tmarginboxes_[a]-&gt;name(var("tmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line170"></a>	    tmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line171"></a>	    add(tmarginboxes_[a]);
+<a name="__line172"></a>
+<a name="__line173"></a>	    bmb.push_back(!bmarginboxes_[a]-&gt;height());
+<a name="__line174"></a>	    tmb.push_back(!tmarginboxes_[a]-&gt;height());
+<a name="__line175"></a>	}
+<a name="__line176"></a>	for(int a=0; a&lt;ny_; ++a)
+<a name="__line177"></a>	{
+<a name="__line178"></a>	    y1axes_[a] = new axis(axis::y1);
+<a name="__line179"></a>	    y1m.push_back(!y1axes_[a]-&gt;scriptsize());
+<a name="__line180"></a>	    y2axes_[a] = new axis(axis::y2);
+<a name="__line181"></a>	    y2m.push_back(!y2axes_[a]-&gt;scriptsize());
+<a name="__line182"></a>	    lmarginboxes_[a] = new epad;
+<a name="__line183"></a>	    lmarginboxes_[a]-&gt;name(var("lmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line184"></a>	    lmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line185"></a>	    add(lmarginboxes_[a]);
+<a name="__line186"></a>	    rmarginboxes_[a] = new epad;
+<a name="__line187"></a>	    rmarginboxes_[a]-&gt;name(var("rmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line188"></a>	    rmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line189"></a>	    add(rmarginboxes_[a]);
+<a name="__line190"></a>	    lmb.push_back(!lmarginboxes_[a]-&gt;width());
+<a name="__line191"></a>	    rmb.push_back(!rmarginboxes_[a]-&gt;width());
+<a name="__line192"></a>	}
+<a name="__line193"></a>
+<a name="__line194"></a>	left(0.0);
+<a name="__line195"></a>	right(10*CM);
+<a name="__line196"></a>	bottom(0.0);
+<a name="__line197"></a>	top(10*CM);
+<a name="__line198"></a>
+<a name="__line199"></a>	bmargin(length::max(x1m) + blop::height("X") + length::max(bmb));
+<a name="__line200"></a>	tmargin(length::max(x2m) + blop::height("X") + length::max(tmb));
+<a name="__line201"></a>	lmargin(length::max(y1m) + 0.5*EX + length::max(lmb));
+<a name="__line202"></a>	rmargin(length::max(y2m) + 0.5*EX + length::max(rmb));
+<a name="__line203"></a>
+<a name="__line204"></a>	for(int a=1; a&lt;=nx_; ++a)
+<a name="__line205"></a>	{
+<a name="__line206"></a>	    for(int b=1; b&lt;=ny_; ++b)
+<a name="__line207"></a>	    {
+<a name="__line208"></a>		frames_[ind(a,b)]-&gt;x1axis(x1axes_[a-1]);
+<a name="__line209"></a>		frames_[ind(a,b)]-&gt;x2axis(x2axes_[a-1]);
+<a name="__line210"></a>		frames_[ind(a,b)]-&gt;y1axis(y1axes_[b-1]);
+<a name="__line211"></a>		frames_[ind(a,b)]-&gt;y2axis(y2axes_[b-1]);
+<a name="__line212"></a>
+<a name="__line213"></a>		frames_[ind(a,b)]-&gt;lmargin((a-1.0)/nx_ * !cwidth());
+<a name="__line214"></a>		frames_[ind(a,b)]-&gt;rmargin((nx_-(double)a)/nx_ * !cwidth());
+<a name="__line215"></a>		frames_[ind(a,b)]-&gt;bmargin((b-1.0)/ny_ * !cheight());
+<a name="__line216"></a>		frames_[ind(a,b)]-&gt;tmargin((ny_-(double)b)/ny_ * !cheight());
+<a name="__line217"></a>
+<a name="__line218"></a>		frames_[ind(a,b)]-&gt;lmarginbox(lmarginboxes_[b-1]);
+<a name="__line219"></a>		frames_[ind(a,b)]-&gt;rmarginbox(rmarginboxes_[b-1]);
+<a name="__line220"></a>		frames_[ind(a,b)]-&gt;bmarginbox(bmarginboxes_[a-1]);
+<a name="__line221"></a>		frames_[ind(a,b)]-&gt;tmarginbox(tmarginboxes_[a-1]);
+<a name="__line222"></a>		
+<a name="__line223"></a>		frames_[ind(a,b)]-&gt;parent(this);
+<a name="__line224"></a>	    }
+<a name="__line225"></a>	}
+<a name="__line226"></a>	set_widths();
+<a name="__line227"></a>	set_heights();
+<a name="__line228"></a>        remove_conflicting_tic_ = default_remove_conflicting_tic_;
+<a name="__line229"></a>    }
+<a name="__line230"></a>
+<a name="__line231"></a>    mframe::mframe(int n) : equal_ranges_(0)
+<a name="__line232"></a>    {
+<a name="__line233"></a>	int xdim=0, ydim=0;
+<a name="__line234"></a>	mcontainer::get_gridsize_(n,xdim,ydim);
+<a name="__line235"></a>	mcontainer::init_(xdim,ydim,default_direction_);
+<a name="__line236"></a>
+<a name="__line237"></a>	name("mframe");
+<a name="__line238"></a>        title_ = 0;
+<a name="__line239"></a>	frames_ = new frame*[nx_ * ny_];
+<a name="__line240"></a>
+<a name="__line241"></a>        show_subframe_ = new bool[nx_*ny_];
+<a name="__line242"></a>        for(int i=0; i&lt;nx_*ny_; ++i) show_subframe_[i] = true;
+<a name="__line243"></a>
+<a name="__line244"></a>	x1axes_ = new axis*[nx_];
+<a name="__line245"></a>	x2axes_ = new axis*[nx_];
+<a name="__line246"></a>	y1axes_ = new axis*[ny_];
+<a name="__line247"></a>	y2axes_ = new axis*[ny_];
+<a name="__line248"></a>
+<a name="__line249"></a>	lmarginboxes_ = new epad*[ny_];
+<a name="__line250"></a>	rmarginboxes_ = new epad*[ny_];
+<a name="__line251"></a>	bmarginboxes_ = new epad*[nx_];
+<a name="__line252"></a>	tmarginboxes_ = new epad*[nx_];
+<a name="__line253"></a>
+<a name="__line254"></a>	widths_ = new length[nx_];
+<a name="__line255"></a>	heights_ = new length[ny_];
+<a name="__line256"></a>	rwidths_ = new double[nx_];
+<a name="__line257"></a>	rheights_ = new double[ny_];
+<a name="__line258"></a>	for(int i=0; i&lt;nx_; ++i) rwidths_[i] = 1;
+<a name="__line259"></a>	for(int i=0; i&lt;ny_; ++i) rheights_[i] = 1;
+<a name="__line260"></a>	x_avail_ = !cwidth();
+<a name="__line261"></a>	y_avail_ = !cheight();
+<a name="__line262"></a>	xgap_ = ZERO;
+<a name="__line263"></a>	ygap_ = ZERO;
+<a name="__line264"></a>
+<a name="__line265"></a>	vector&lt;length&gt; x1m,x2m,y1m,y2m, lmb, rmb, bmb, tmb;
+<a name="__line266"></a>	<span class=comment>//x1m.push_back(blop::height("X"));</span>
+<a name="__line267"></a>	<span class=comment>//x2m.push_back(blop::height("X"));</span>
+<a name="__line268"></a>	<span class=comment>//y1m.push_back(0.5*EX);</span>
+<a name="__line269"></a>	<span class=comment>//y2m.push_back(0.5*EX);</span>
+<a name="__line270"></a>
+<a name="__line271"></a>	<span class=comment>// create the subframes</span>
+<a name="__line272"></a>	for(int a=1; a&lt;=nx_; ++a)
+<a name="__line273"></a>	{
+<a name="__line274"></a>	    for(int b=1; b&lt;=ny_; ++b)
+<a name="__line275"></a>	    {
+<a name="__line276"></a>		frames_[ind(a,b)] = new frame;
+<a name="__line277"></a>		var name=var("frame(") &amp; a &amp; var(",") &amp; b &amp; var(")");
+<a name="__line278"></a>		frames_[ind(a,b)]-&gt;name(name);
+<a name="__line279"></a>	    }
+<a name="__line280"></a>	}
+<a name="__line281"></a>
+<a name="__line282"></a>	for(int a=0; a&lt;nx_; ++a)
+<a name="__line283"></a>	{
+<a name="__line284"></a>	    x1axes_[a] = new axis(axis::x1);
+<a name="__line285"></a>	    x1m.push_back(!x1axes_[a]-&gt;scriptsize());
+<a name="__line286"></a>	    x2axes_[a] = new axis(axis::x2);
+<a name="__line287"></a>	    x2m.push_back(!x2axes_[a]-&gt;scriptsize());
+<a name="__line288"></a>
+<a name="__line289"></a>	    bmarginboxes_[a] = new epad;
+<a name="__line290"></a>	    bmarginboxes_[a]-&gt;name(var("bmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line291"></a>	    bmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line292"></a>	    add(bmarginboxes_[a]);
+<a name="__line293"></a>	    tmarginboxes_[a] = new epad;
+<a name="__line294"></a>	    tmarginboxes_[a]-&gt;name(var("tmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line295"></a>	    tmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line296"></a>	    add(tmarginboxes_[a]);
+<a name="__line297"></a>
+<a name="__line298"></a>	    bmb.push_back(!bmarginboxes_[a]-&gt;height());
+<a name="__line299"></a>	    tmb.push_back(!tmarginboxes_[a]-&gt;height());
+<a name="__line300"></a>	}
+<a name="__line301"></a>	for(int a=0; a&lt;ny_; ++a)
+<a name="__line302"></a>	{
+<a name="__line303"></a>	    y1axes_[a] = new axis(axis::y1);
+<a name="__line304"></a>	    y1m.push_back(!y1axes_[a]-&gt;scriptsize());
+<a name="__line305"></a>	    y2axes_[a] = new axis(axis::y2);
+<a name="__line306"></a>	    y2m.push_back(!y2axes_[a]-&gt;scriptsize());
+<a name="__line307"></a>	    lmarginboxes_[a] = new epad;
+<a name="__line308"></a>	    lmarginboxes_[a]-&gt;name(var("lmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line309"></a>	    lmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line310"></a>	    add(lmarginboxes_[a]);
+<a name="__line311"></a>	    rmarginboxes_[a] = new epad;
+<a name="__line312"></a>	    rmarginboxes_[a]-&gt;name(var("rmarginbox(") &amp; (a+1) &amp; var(")"));
+<a name="__line313"></a>	    rmarginboxes_[a]-&gt;borderwidth(0.0);
+<a name="__line314"></a>	    add(rmarginboxes_[a]);
+<a name="__line315"></a>	    lmb.push_back(!lmarginboxes_[a]-&gt;width());
+<a name="__line316"></a>	    rmb.push_back(!rmarginboxes_[a]-&gt;width());
+<a name="__line317"></a>	}
+<a name="__line318"></a>
+<a name="__line319"></a>	left(0.0);
+<a name="__line320"></a>	right(10*CM);
+<a name="__line321"></a>	bottom(0.0);
+<a name="__line322"></a>	top(10*CM);
+<a name="__line323"></a>
+<a name="__line324"></a>	bmargin(length::max(x1m) + blop::height("X") + length::max(bmb));
+<a name="__line325"></a>	tmargin(length::max(x2m) + blop::height("X") + length::max(tmb));
+<a name="__line326"></a>	lmargin(length::max(y1m) + 0.5*EX + length::max(lmb));
+<a name="__line327"></a>	rmargin(length::max(y2m) + 0.5*EX + length::max(rmb));
+<a name="__line328"></a>
+<a name="__line329"></a>	for(int a=1; a&lt;=nx_; ++a)
+<a name="__line330"></a>	{
+<a name="__line331"></a>	    for(int b=1; b&lt;=ny_; ++b)
+<a name="__line332"></a>	    {
+<a name="__line333"></a>		frames_[ind(a,b)]-&gt;x1axis(x1axes_[a-1]);
+<a name="__line334"></a>		frames_[ind(a,b)]-&gt;x2axis(x2axes_[a-1]);
+<a name="__line335"></a>		frames_[ind(a,b)]-&gt;y1axis(y1axes_[b-1]);
+<a name="__line336"></a>		frames_[ind(a,b)]-&gt;y2axis(y2axes_[b-1]);
+<a name="__line337"></a>
+<a name="__line338"></a>		frames_[ind(a,b)]-&gt;lmargin((a-1.0)/nx_ * !cwidth());
+<a name="__line339"></a>		frames_[ind(a,b)]-&gt;rmargin((nx_-(double)a)/nx_ * !cwidth());
+<a name="__line340"></a>		frames_[ind(a,b)]-&gt;bmargin((b-1.0)/ny_ * !cheight());
+<a name="__line341"></a>		frames_[ind(a,b)]-&gt;tmargin((ny_-(double)b)/ny_ * !cheight());
+<a name="__line342"></a>
+<a name="__line343"></a>		frames_[ind(a,b)]-&gt;lmarginbox(lmarginboxes_[b-1]);
+<a name="__line344"></a>		frames_[ind(a,b)]-&gt;rmarginbox(rmarginboxes_[b-1]);
+<a name="__line345"></a>		frames_[ind(a,b)]-&gt;bmarginbox(bmarginboxes_[a-1]);
+<a name="__line346"></a>		frames_[ind(a,b)]-&gt;tmarginbox(tmarginboxes_[a-1]);
+<a name="__line347"></a>		
+<a name="__line348"></a>		frames_[ind(a,b)]-&gt;parent(this);
+<a name="__line349"></a>	    }
+<a name="__line350"></a>	}
+<a name="__line351"></a>	set_widths();
+<a name="__line352"></a>	set_heights();
+<a name="__line353"></a>    }
+<a name="__line354"></a>
+<a name="__line355"></a>    mframe &amp;mframe::title(const var &amp;t)
+<a name="__line356"></a>    {
+<a name="__line357"></a>        <span class=comment>// if an empty string, clear the title</span>
+<a name="__line358"></a>        if(t.str() == "")
+<a name="__line359"></a>        {
+<a name="__line360"></a>            if(title_) delete title_;
+<a name="__line361"></a>            title_ = 0;
+<a name="__line362"></a>            return *this;
+<a name="__line363"></a>        }
+<a name="__line364"></a>
+<a name="__line365"></a>        if(!title_)
+<a name="__line366"></a>        {
+<a name="__line367"></a>            title_ = new label(t);
+<a name="__line368"></a>            add(title_);
+<a name="__line369"></a>        }
+<a name="__line370"></a>        else
+<a name="__line371"></a>        {
+<a name="__line372"></a>            title_-&gt;text(t);
+<a name="__line373"></a>        }
+<a name="__line374"></a>        title_-&gt;x(0.5,sym::center).y(1.0+0.5*EM,sym::bottom);
+<a name="__line375"></a>        tmargin(!title_-&gt;height()+EM);
+<a name="__line376"></a>
+<a name="__line377"></a>        return *this;
+<a name="__line378"></a>    }
+<a name="__line379"></a>    
+<a name="__line380"></a>
+<a name="__line381"></a>    mframe &amp;mframe::show_subframe(int i, int j, bool f)
+<a name="__line382"></a>    {
+<a name="__line383"></a>        show_subframe_[ind(i,j)] = f;
+<a name="__line384"></a>        return *this;
+<a name="__line385"></a>    }
+<a name="__line386"></a>    bool mframe::show_subframe(int i, int j) const
+<a name="__line387"></a>    {
+<a name="__line388"></a>        return show_subframe_[ind(i,j)];
+<a name="__line389"></a>    }
+<a name="__line390"></a>
+<a name="__line391"></a>    mframe &amp;mframe::mknew(int i, int j)
+<a name="__line392"></a>    {
+<a name="__line393"></a>	mframe *f = new mframe(i,j);
+<a name="__line394"></a>	f-&gt;autodel(true);
+<a name="__line395"></a>	pad::current().add(f);
+<a name="__line396"></a>
+<a name="__line397"></a>	int ix, iy;
+<a name="__line398"></a>
+<a name="__line399"></a>	if( (f-&gt;direction_&amp;right_up) || (f-&gt;direction_&amp;right_down) || (f-&gt;direction_&amp;down_right) || (f-&gt;direction_&amp;up_right) ) ix = 1;
+<a name="__line400"></a>	else ix = f-&gt;nx_;
+<a name="__line401"></a>
+<a name="__line402"></a>	if( (f-&gt;direction_&amp;right_up) || (f-&gt;direction_&amp;left_up) || (f-&gt;direction_&amp;up_right) || (f-&gt;direction_&amp;up_left) ) iy = 1;
+<a name="__line403"></a>	else iy = f-&gt;ny_;
+<a name="__line404"></a>
+<a name="__line405"></a>	f-&gt;cd(ix,iy);
+<a name="__line406"></a>	<span class=comment>//f-&gt;frames_[0]-&gt;cd();</span>
+<a name="__line407"></a>	return *f;
+<a name="__line408"></a>    }
+<a name="__line409"></a>
+<a name="__line410"></a>    mframe &amp;mframe::mknew(int n)
+<a name="__line411"></a>    {
+<a name="__line412"></a>	int i=0,j=0;
+<a name="__line413"></a>	mcontainer::get_gridsize_(n,i,j);
+<a name="__line414"></a>	mframe *f = new mframe(i,j);
+<a name="__line415"></a>	f-&gt;autodel(true);
+<a name="__line416"></a>	pad::current().add(f);
+<a name="__line417"></a>
+<a name="__line418"></a>	int ix, iy;
+<a name="__line419"></a>
+<a name="__line420"></a>	if( (f-&gt;direction_&amp;right_up) || (f-&gt;direction_&amp;right_down) || (f-&gt;direction_&amp;down_right) || (f-&gt;direction_&amp;up_right) ) ix = 1;
+<a name="__line421"></a>	else ix = f-&gt;nx_;
+<a name="__line422"></a>
+<a name="__line423"></a>	if( (f-&gt;direction_&amp;right_up) || (f-&gt;direction_&amp;left_up) || (f-&gt;direction_&amp;up_right) || (f-&gt;direction_&amp;up_left) ) iy = 1;
+<a name="__line424"></a>	else iy = f-&gt;ny_;
+<a name="__line425"></a>
+<a name="__line426"></a>	f-&gt;cd(ix,iy);
+<a name="__line427"></a>	<span class=comment>//f-&gt;frames_[0]-&gt;cd();</span>
+<a name="__line428"></a>	return *f;
+<a name="__line429"></a>    }
+<a name="__line430"></a>
+<a name="__line431"></a>
+<a name="__line432"></a>    void mframe::prepare_for_draw()
+<a name="__line433"></a>    {
+<a name="__line434"></a>	container::prepare_for_draw();
+<a name="__line435"></a>
+<a name="__line436"></a>        double x1min=unset, x1max=unset, y1min=unset, y1max=unset, x2min=unset, x2max=unset, y2min=unset, y2max=unset;
+<a name="__line437"></a>	for(int i=0; i&lt;nx_*ny_; ++i)
+<a name="__line438"></a>        {
+<a name="__line439"></a>            frames_[i]-&gt;prepare_for_draw();
+<a name="__line440"></a>            if(frames_[i]-&gt;x1axis() &amp;&amp; frames_[i]-&gt;x1axis()-&gt;min()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;x1axis()-&gt;min()&lt;x1min)) x1min = frames_[i]-&gt;x1axis()-&gt;min();
+<a name="__line441"></a>            if(frames_[i]-&gt;x1axis() &amp;&amp; frames_[i]-&gt;x1axis()-&gt;max()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;x1axis()-&gt;max()&gt;x1max)) x1max = frames_[i]-&gt;x1axis()-&gt;max();
+<a name="__line442"></a>            if(frames_[i]-&gt;y1axis() &amp;&amp; frames_[i]-&gt;y1axis()-&gt;min()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;y1axis()-&gt;min()&lt;y1min)) y1min = frames_[i]-&gt;y1axis()-&gt;min();
+<a name="__line443"></a>            if(frames_[i]-&gt;y1axis() &amp;&amp; frames_[i]-&gt;y1axis()-&gt;max()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;y1axis()-&gt;max()&gt;y1max)) y1max = frames_[i]-&gt;y1axis()-&gt;max();
+<a name="__line444"></a>            if(frames_[i]-&gt;x2axis() &amp;&amp; frames_[i]-&gt;x2axis()-&gt;min()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;x2axis()-&gt;min()&lt;x2min)) x2min = frames_[i]-&gt;x2axis()-&gt;min();
+<a name="__line445"></a>            if(frames_[i]-&gt;x2axis() &amp;&amp; frames_[i]-&gt;x2axis()-&gt;max()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;x2axis()-&gt;max()&gt;x2max)) x2max = frames_[i]-&gt;x2axis()-&gt;max();
+<a name="__line446"></a>            if(frames_[i]-&gt;y2axis() &amp;&amp; frames_[i]-&gt;y2axis()-&gt;min()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;y2axis()-&gt;min()&lt;y2min)) y2min = frames_[i]-&gt;y2axis()-&gt;min();
+<a name="__line447"></a>            if(frames_[i]-&gt;y2axis() &amp;&amp; frames_[i]-&gt;y2axis()-&gt;max()!=unset &amp;&amp; (i==0 || frames_[i]-&gt;y2axis()-&gt;max()&gt;y2max)) y2max = frames_[i]-&gt;y2axis()-&gt;max();
+<a name="__line448"></a>        }
+<a name="__line449"></a>
+<a name="__line450"></a>        if(equal_ranges_)
+<a name="__line451"></a>        {
+<a name="__line452"></a>            for(int i=0; i&lt;nx_*ny_; ++i)
+<a name="__line453"></a>            {
+<a name="__line454"></a>                if(equal_ranges_&amp;axis::x1 &amp;&amp; frames_[i]-&gt;x1axis())
+<a name="__line455"></a>                {
+<a name="__line456"></a>                    if(x1min!=unset) frames_[i]-&gt;x1axis()-&gt;extend_range(x1min);
+<a name="__line457"></a>                    if(x1max!=unset) frames_[i]-&gt;x1axis()-&gt;extend_range(x1max);
+<a name="__line458"></a>                }
+<a name="__line459"></a>                if(equal_ranges_&amp;axis::y1 &amp;&amp; frames_[i]-&gt;y1axis())
+<a name="__line460"></a>                {
+<a name="__line461"></a>                    if(y1min!=unset) frames_[i]-&gt;y1axis()-&gt;extend_range(y1min);
+<a name="__line462"></a>                    if(y1max!=unset) frames_[i]-&gt;y1axis()-&gt;extend_range(y1max);
+<a name="__line463"></a>                }
+<a name="__line464"></a>                if(equal_ranges_&amp;axis::x2 &amp;&amp; frames_[i]-&gt;x2axis())
+<a name="__line465"></a>                {
+<a name="__line466"></a>                    if(x2min!=unset) frames_[i]-&gt;x2axis()-&gt;extend_range(x2min);
+<a name="__line467"></a>                    if(x2max!=unset) frames_[i]-&gt;x2axis()-&gt;extend_range(x2max);
+<a name="__line468"></a>                }
+<a name="__line469"></a>                if(equal_ranges_&amp;axis::y2 &amp;&amp; frames_[i]-&gt;y2axis())
+<a name="__line470"></a>                {
+<a name="__line471"></a>                    if(y2min!=unset) frames_[i]-&gt;y2axis()-&gt;extend_range(y2min);
+<a name="__line472"></a>                    if(y2max!=unset) frames_[i]-&gt;y2axis()-&gt;extend_range(y2max);
+<a name="__line473"></a>                }
+<a name="__line474"></a>            }
+<a name="__line475"></a>        }
+<a name="__line476"></a>        
+<a name="__line477"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line478"></a>	{
+<a name="__line479"></a>	    x1axes_[i]-&gt;calculate_tics();
+<a name="__line480"></a>	    x1axes_[i]-&gt;prepare_for_draw();
+<a name="__line481"></a>            if(remove_conflicting_tic_)
+<a name="__line482"></a>            {
+<a name="__line483"></a>                for(unsigned int t=0; t&lt;x1axes_[i]-&gt;tics_.size(); ++t)
+<a name="__line484"></a>                {
+<a name="__line485"></a>                    const double m = x1axes_[i]-&gt;map_point(x1axes_[i]-&gt;tics_[t].value());
+<a name="__line486"></a>                    if(i&lt;nx_-1 &amp;&amp; ::fabs(m-1) &lt; 0.01)
+<a name="__line487"></a>                    {
+<a name="__line488"></a>                        x1axes_[i]-&gt;tics_.erase(x1axes_[i]-&gt;tics_.begin()+t);
+<a name="__line489"></a>                        --t;
+<a name="__line490"></a>                    }
+<a name="__line491"></a>                }
+<a name="__line492"></a>            }
+<a name="__line493"></a>	    x2axes_[i]-&gt;calculate_tics();
+<a name="__line494"></a>	    x2axes_[i]-&gt;prepare_for_draw();
+<a name="__line495"></a>            if(remove_conflicting_tic_)
+<a name="__line496"></a>            {
+<a name="__line497"></a>                for(unsigned int t=0; t&lt;x2axes_[i]-&gt;tics_.size(); ++t)
+<a name="__line498"></a>                {
+<a name="__line499"></a>                    const double m = x2axes_[i]-&gt;map_point(x2axes_[i]-&gt;tics_[t].value());
+<a name="__line500"></a>                    if(i&lt;nx_-1 &amp;&amp; ::fabs(m-1) &lt; 0.01)
+<a name="__line501"></a>                    {
+<a name="__line502"></a>                        x2axes_[i]-&gt;tics_.erase(x2axes_[i]-&gt;tics_.begin()+t);
+<a name="__line503"></a>                        --t;
+<a name="__line504"></a>                    }
+<a name="__line505"></a>                }
+<a name="__line506"></a>            }
+<a name="__line507"></a>	}
+<a name="__line508"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line509"></a>	{
+<a name="__line510"></a>	    y1axes_[i]-&gt;calculate_tics();
+<a name="__line511"></a>	    y1axes_[i]-&gt;prepare_for_draw();
+<a name="__line512"></a>            if(remove_conflicting_tic_)
+<a name="__line513"></a>            {
+<a name="__line514"></a>                for(unsigned int t=0; t&lt;y1axes_[i]-&gt;tics_.size(); ++t)
+<a name="__line515"></a>                {
+<a name="__line516"></a>                    const double m = y1axes_[i]-&gt;map_point(y1axes_[i]-&gt;tics_[t].value());
+<a name="__line517"></a>                    if(i&lt;ny_-1 &amp;&amp; ::fabs(m-1) &lt; 0.01)
+<a name="__line518"></a>                    {
+<a name="__line519"></a>                        y1axes_[i]-&gt;tics_.erase(y1axes_[i]-&gt;tics_.begin()+t);
+<a name="__line520"></a>                        --t;
+<a name="__line521"></a>                    }
+<a name="__line522"></a>                }
+<a name="__line523"></a>	    }
+<a name="__line524"></a>	    y2axes_[i]-&gt;calculate_tics();
+<a name="__line525"></a>	    y2axes_[i]-&gt;prepare_for_draw();
+<a name="__line526"></a>            if(remove_conflicting_tic_)
+<a name="__line527"></a>            {
+<a name="__line528"></a>                for(unsigned int t=0; t&lt;y2axes_[i]-&gt;tics_.size(); ++t)
+<a name="__line529"></a>                {
+<a name="__line530"></a>                    const double m = y2axes_[i]-&gt;map_point(y2axes_[i]-&gt;tics_[t].value());
+<a name="__line531"></a>                    if(i&lt;ny_-1 &amp;&amp; ::fabs(m-1) &lt; 0.01)
+<a name="__line532"></a>                    {
+<a name="__line533"></a>                        y2axes_[i]-&gt;tics_.erase(y2axes_[i]-&gt;tics_.begin()+t);
+<a name="__line534"></a>                        --t;
+<a name="__line535"></a>                    }
+<a name="__line536"></a>                }
+<a name="__line537"></a>	    }
+<a name="__line538"></a>	}
+<a name="__line539"></a>    }
+<a name="__line540"></a>
+<a name="__line541"></a>    void mframe::print(terminal *term)
+<a name="__line542"></a>    {
+<a name="__line543"></a>	if(print_me_ &lt; 2) return;
+<a name="__line544"></a>	term-&gt;set_linewidth(LW.termspecific_id());
+<a name="__line545"></a>	term-&gt;set_color(black);
+<a name="__line546"></a>	term-&gt;set_linestyle(sym::solid);
+<a name="__line547"></a>
+<a name="__line548"></a>	term-&gt;subpicture_begin(terminal::coord(cleft().termspecific_id(),
+<a name="__line549"></a>					       cbottom().termspecific_id()),
+<a name="__line550"></a>			       terminal::coord(cright().termspecific_id(),
+<a name="__line551"></a>					       ctop().termspecific_id()));
+<a name="__line552"></a>
+<a name="__line553"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line554"></a>	{
+<a name="__line555"></a>	    x1axes_[i]-&gt;print(term,false);
+<a name="__line556"></a>	    x2axes_[i]-&gt;print(term,false);
+<a name="__line557"></a>	}
+<a name="__line558"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line559"></a>	{
+<a name="__line560"></a>	    y1axes_[i]-&gt;print(term,false);
+<a name="__line561"></a>	    y2axes_[i]-&gt;print(term,false);
+<a name="__line562"></a>	}
+<a name="__line563"></a>
+<a name="__line564"></a>	for(int i=0; i&lt;nx_*ny_; ++i) if(show_subframe_[i]) frames_[i]-&gt;print(term);
+<a name="__line565"></a>	for(unsigned int i=0; i&lt;content_.size(); ++i)
+<a name="__line566"></a>	{
+<a name="__line567"></a>	    content_[i]-&gt;print(term);
+<a name="__line568"></a>	}
+<a name="__line569"></a>
+<a name="__line570"></a>	term-&gt;subpicture_end();
+<a name="__line571"></a>    }
+<a name="__line572"></a>
+<a name="__line573"></a>    mframe &amp;mframe::width(int i, const length &amp;l)
+<a name="__line574"></a>    {
+<a name="__line575"></a>	if(i &lt;= 0 || nx_ &lt; i)
+<a name="__line576"></a>	{
+<a name="__line577"></a>	    warning::print(var("Index [") &amp; i &amp; "] is out of range","mframe::width(int, const length &amp;)");
+<a name="__line578"></a>	    return *this;
+<a name="__line579"></a>	}
+<a name="__line580"></a>	--i;
+<a name="__line581"></a>	rwidths_[i] = -1;
+<a name="__line582"></a>	widths_[i] = l;
+<a name="__line583"></a>	set_widths();
+<a name="__line584"></a>	return *this;
+<a name="__line585"></a>    }
+<a name="__line586"></a>    mframe &amp;mframe::rwidth(int i, double d)
+<a name="__line587"></a>    {
+<a name="__line588"></a>	if(i &lt;= 0 || nx_ &lt; i)
+<a name="__line589"></a>	{
+<a name="__line590"></a>	    warning::print(var("Index [") &amp; i &amp; "] is out of range", "mframe::rwidth(int,double)");
+<a name="__line591"></a>	    return *this;
+<a name="__line592"></a>	}
+<a name="__line593"></a>	--i;
+<a name="__line594"></a>	rwidths_[i] = d;
+<a name="__line595"></a>	widths_[i] = ZERO;
+<a name="__line596"></a>	set_widths();
+<a name="__line597"></a>	return *this;
+<a name="__line598"></a>    }
+<a name="__line599"></a>    mframe &amp;mframe::height(int i, const length &amp;l)
+<a name="__line600"></a>    {
+<a name="__line601"></a>	if(i &lt;= 0 || ny_ &lt; i)
+<a name="__line602"></a>	{
+<a name="__line603"></a>	    warning::print(var("Index [") &amp; i &amp; "] is out of range","mframe::height(int,const length &amp;)");
+<a name="__line604"></a>	    return *this;
+<a name="__line605"></a>	}
+<a name="__line606"></a>	--i;
+<a name="__line607"></a>	rheights_[i] = -1;
+<a name="__line608"></a>	heights_[i] = l;
+<a name="__line609"></a>	set_heights();
+<a name="__line610"></a>	return *this;
+<a name="__line611"></a>    }
+<a name="__line612"></a>    mframe &amp;mframe::rheight(int i, double d)
+<a name="__line613"></a>    {
+<a name="__line614"></a>	if(i &lt;= 0 || ny_ &lt; i)
+<a name="__line615"></a>	{
+<a name="__line616"></a>	    warning::print(var("Index [") &amp; i &amp; "] is out of range","mframe::rheight(int,double)");
+<a name="__line617"></a>	    return *this;
+<a name="__line618"></a>	}
+<a name="__line619"></a>	--i;
+<a name="__line620"></a>	rheights_[i] = d;
+<a name="__line621"></a>	heights_[i] = ZERO;
+<a name="__line622"></a>	set_heights();
+<a name="__line623"></a>	return *this;
+<a name="__line624"></a>    }
+<a name="__line625"></a>
+<a name="__line626"></a>
+<a name="__line627"></a>
+<a name="__line628"></a>    mframe &amp;mframe::gap(const length &amp;l)
+<a name="__line629"></a>    {
+<a name="__line630"></a>	xgap_ = l;
+<a name="__line631"></a>        ygap_ = l;
+<a name="__line632"></a>	set_widths();
+<a name="__line633"></a>	set_heights();
+<a name="__line634"></a>	return *this;
+<a name="__line635"></a>    }
+<a name="__line636"></a>    mframe &amp;mframe::gap(const length &amp;xgap, const length &amp;ygap)
+<a name="__line637"></a>    {
+<a name="__line638"></a>	xgap_ = xgap;
+<a name="__line639"></a>        ygap_ = ygap;
+<a name="__line640"></a>	set_widths();
+<a name="__line641"></a>	set_heights();
+<a name="__line642"></a>	return *this;
+<a name="__line643"></a>    }
+<a name="__line644"></a>    mframe &amp;mframe::xgap(const length &amp;xgap)
+<a name="__line645"></a>    {
+<a name="__line646"></a>	xgap_ = xgap;
+<a name="__line647"></a>	set_widths();
+<a name="__line648"></a>	return *this;
+<a name="__line649"></a>    }
+<a name="__line650"></a>    mframe &amp;mframe::ygap(const length &amp;ygap)
+<a name="__line651"></a>    {
+<a name="__line652"></a>        ygap_ = ygap;
+<a name="__line653"></a>	set_heights();
+<a name="__line654"></a>	return *this;
+<a name="__line655"></a>    }
+<a name="__line656"></a>
+<a name="__line657"></a>    void mframe::set_widths()
+<a name="__line658"></a>    {
+<a name="__line659"></a>	x_avail_ = !cwidth() - (nx_-1)*!xgap_;
+<a name="__line660"></a>	double sum = 0;
+<a name="__line661"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line662"></a>	{
+<a name="__line663"></a>	    if(rwidths_[i] &gt; 0)
+<a name="__line664"></a>	    {
+<a name="__line665"></a>		sum += rwidths_[i];
+<a name="__line666"></a>	    }
+<a name="__line667"></a>	    else <span class=comment>// width[i] is fixed</span>
+<a name="__line668"></a>	    {
+<a name="__line669"></a>		x_avail_ -= !widths_[i];
+<a name="__line670"></a>	    }
+<a name="__line671"></a>	}
+<a name="__line672"></a>
+<a name="__line673"></a>	length l = ZERO;
+<a name="__line674"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line675"></a>	{
+<a name="__line676"></a>	    if(rwidths_[i] &gt; 0) widths_[i] = rwidths_[i]/sum * !x_avail_;
+<a name="__line677"></a>	    bmarginboxes_[i]-&gt;left(l);
+<a name="__line678"></a>	    bmarginboxes_[i]-&gt;right(l+!widths_[i]);
+<a name="__line679"></a>	    bmarginboxes_[i]-&gt;fix_width(true);
+<a name="__line680"></a>	    bmarginboxes_[i]-&gt;top(-!x1axes_[i]-&gt;scriptsize() - blop::height("X"));
+<a name="__line681"></a>	    tmarginboxes_[i]-&gt;left(l);
+<a name="__line682"></a>	    tmarginboxes_[i]-&gt;right(l+!widths_[i]);
+<a name="__line683"></a>	    tmarginboxes_[i]-&gt;fix_width(true);
+<a name="__line684"></a>	    tmarginboxes_[i]-&gt;bottom(1.0+!x2axes_[i]-&gt;scriptsize() + blop::height("X"));
+<a name="__line685"></a>	    for(int j=0; j&lt;ny_; ++j)
+<a name="__line686"></a>	    {
+<a name="__line687"></a>		int ii = ind(i+1,j+1);
+<a name="__line688"></a>		frames_[ii]-&gt;cleft(l);
+<a name="__line689"></a>		frames_[ii]-&gt;cright(l+!widths_[i]);
+<a name="__line690"></a>	    }
+<a name="__line691"></a>	    x1axes_[i]-&gt;pos(ZERO      , l, l+!widths_[i]);
+<a name="__line692"></a>	    x2axes_[i]-&gt;pos(!cheight() , l, l+!widths_[i]);
+<a name="__line693"></a>	    l += !widths_[i] + !xgap_;
+<a name="__line694"></a>	}
+<a name="__line695"></a>    }
+<a name="__line696"></a>
+<a name="__line697"></a>    void mframe::set_heights()
+<a name="__line698"></a>    {
+<a name="__line699"></a>	y_avail_ = !cheight() - (ny_-1)*!ygap_;
+<a name="__line700"></a>	double sum = 0;
+<a name="__line701"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line702"></a>	{
+<a name="__line703"></a>	    if(rheights_[i] &gt; 0)
+<a name="__line704"></a>	    {
+<a name="__line705"></a>		sum += rheights_[i];
+<a name="__line706"></a>	    }
+<a name="__line707"></a>	    else <span class=comment>// height[i] is fixed</span>
+<a name="__line708"></a>	    {
+<a name="__line709"></a>		y_avail_ -= !heights_[i];
+<a name="__line710"></a>	    }
+<a name="__line711"></a>	}
+<a name="__line712"></a>
+<a name="__line713"></a>	length l = ZERO;
+<a name="__line714"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line715"></a>	{
+<a name="__line716"></a>	    if(rheights_[i] &gt; 0) heights_[i] = rheights_[i]/sum * !y_avail_;
+<a name="__line717"></a>
+<a name="__line718"></a>	    lmarginboxes_[i]-&gt;bottom(l);
+<a name="__line719"></a>	    lmarginboxes_[i]-&gt;top(l+!heights_[i]);
+<a name="__line720"></a>	    lmarginboxes_[i]-&gt;fix_height(true);
+<a name="__line721"></a>	    lmarginboxes_[i]-&gt;right(-!y1axes_[i]-&gt;scriptsize() - 0.5*EX);
+<a name="__line722"></a>
+<a name="__line723"></a>	    rmarginboxes_[i]-&gt;bottom(l);
+<a name="__line724"></a>	    rmarginboxes_[i]-&gt;top(l+!heights_[i]);
+<a name="__line725"></a>	    rmarginboxes_[i]-&gt;fix_height(true);
+<a name="__line726"></a>	    rmarginboxes_[i]-&gt;left(1.0+!y2axes_[i]-&gt;scriptsize() + 0.5*EX);
+<a name="__line727"></a>
+<a name="__line728"></a>	    for(int j=0; j&lt;nx_; ++j)
+<a name="__line729"></a>	    {
+<a name="__line730"></a>		int ii = ind(j+1,i+1);
+<a name="__line731"></a>		frames_[ii]-&gt;cbottom(l);
+<a name="__line732"></a>		frames_[ii]-&gt;ctop(l+!heights_[i]);
+<a name="__line733"></a>		y1axes_[i]-&gt;pos(ZERO    , l, l+!heights_[i]);
+<a name="__line734"></a>		y2axes_[i]-&gt;pos(!cwidth(), l, l+!heights_[i]);
+<a name="__line735"></a>	    }
+<a name="__line736"></a>	    l += !heights_[i] + !ygap_;
+<a name="__line737"></a>	}
+<a name="__line738"></a>    }
+<a name="__line739"></a>
+<a name="__line740"></a>    void mframe::print_hierarchy(int level)
+<a name="__line741"></a>    {
+<a name="__line742"></a>	for(int i=0; i&lt;level*4; ++i) cout&lt;&lt;" ";
+<a name="__line743"></a>	cout&lt;&lt;name()&lt;&lt;endl;
+<a name="__line744"></a>	for(unsigned int i=0; i&lt;content_.size(); ++i)
+<a name="__line745"></a>	{
+<a name="__line746"></a>	    content_[i]-&gt;print_hierarchy(level+1);
+<a name="__line747"></a>	}
+<a name="__line748"></a>	for(int a=1; a&lt;=nx_; ++a)
+<a name="__line749"></a>	{
+<a name="__line750"></a>	    for(int b=1; b&lt;=ny_; ++b)
+<a name="__line751"></a>	    {
+<a name="__line752"></a>		frames_[ind(a,b)]-&gt;print_hierarchy(level+1);
+<a name="__line753"></a>	    }
+<a name="__line754"></a>	}
+<a name="__line755"></a>    }
+<a name="__line756"></a>
+<a name="__line757"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

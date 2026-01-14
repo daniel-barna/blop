@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: warning.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line1"></a>#include &lt;fstream&gt;
+<a name="__line2"></a>
+<a name="__line3"></a>using namespace std;
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    var warning::format_ = "%p %m\n%F";
+<a name="__line8"></a>    var warning::prompt_ = "[blop]";
+<a name="__line9"></a>    var warning::fnformat_ = "%p      [in %f]\n";
+<a name="__line10"></a>    std::ostream *warning::destination_ = &amp;std::cerr;
+<a name="__line11"></a>    bool warning::delete_destination_ = false;
+<a name="__line12"></a>    vector&lt;string&gt; warning::exclude_;
+<a name="__line13"></a>
+<a name="__line14"></a>    void warning::exclude(const var &amp;pat)
+<a name="__line15"></a>    {
+<a name="__line16"></a>	exclude_.push_back(pat.str());
+<a name="__line17"></a>    }
+<a name="__line18"></a>
+<a name="__line19"></a>    void warning::print(const var &amp;message, const var &amp;funcname)
+<a name="__line20"></a>    {
+<a name="__line21"></a>	for(unsigned int i=0; i&lt;exclude_.size(); ++i)
+<a name="__line22"></a>	{
+<a name="__line23"></a>	    if(funcname.str().find(exclude_[i]) != string::npos) return;
+<a name="__line24"></a>	}
+<a name="__line25"></a>
+<a name="__line26"></a>	var m = format_;
+<a name="__line27"></a>
+<a name="__line28"></a>	if(funcname.str() == "") m.replace("%F","");
+<a name="__line29"></a>	else m.replace("%F",fnformat_);
+<a name="__line30"></a>
+<a name="__line31"></a>	m.replace("%f",funcname);
+<a name="__line32"></a>	m.replace("%p",prompt_);
+<a name="__line33"></a>	m.replace("%m",message);
+<a name="__line34"></a>
+<a name="__line35"></a>	(*destination_)&lt;&lt;m;
+<a name="__line36"></a>    }
+<a name="__line37"></a>
+<a name="__line38"></a>    void warning::destination(ostream &amp;dest)
+<a name="__line39"></a>    {
+<a name="__line40"></a>	if(delete_destination_) delete destination_;
+<a name="__line41"></a>	destination_ = &amp;dest;
+<a name="__line42"></a>	delete_destination_ = false;
+<a name="__line43"></a>    }
+<a name="__line44"></a>
+<a name="__line45"></a>    void warning::destination(const var &amp;filename)
+<a name="__line46"></a>    {
+<a name="__line47"></a>	if(delete_destination_) delete destination_;
+<a name="__line48"></a>	destination_ = new ofstream(filename.c_str());
+<a name="__line49"></a>	delete_destination_ = true;
+<a name="__line50"></a>    }
+<a name="__line51"></a>
+<a name="__line52"></a>    <span class=comment>// ------------- debug</span>
+<a name="__line53"></a>    var debug::format_ = "%p %m\n%F";
+<a name="__line54"></a>    var debug::prompt_ = "[blop-debug]";
+<a name="__line55"></a>    var debug::fnformat_ = "%p      [in %f]\n";
+<a name="__line56"></a>    std::ostream *debug::destination_ = &amp;std::cerr;
+<a name="__line57"></a>    bool debug::delete_destination_ = false;
+<a name="__line58"></a>    vector&lt;string&gt; debug::exclude_;
+<a name="__line59"></a>    bool debug::on_ = false;
+<a name="__line60"></a>
+<a name="__line61"></a>    void debug::exclude(const var &amp;pat)
+<a name="__line62"></a>    {
+<a name="__line63"></a>	exclude_.push_back(pat.str());
+<a name="__line64"></a>    }
+<a name="__line65"></a>
+<a name="__line66"></a>    void debug::print(const var &amp;message, const var &amp;funcname)
+<a name="__line67"></a>    {
+<a name="__line68"></a>	if(!on_) return;
+<a name="__line69"></a>	for(unsigned int i=0; i&lt;exclude_.size(); ++i)
+<a name="__line70"></a>	{
+<a name="__line71"></a>	    if(funcname.str().find(exclude_[i]) != string::npos) return;
+<a name="__line72"></a>	}
+<a name="__line73"></a>
+<a name="__line74"></a>	var m = format_;
+<a name="__line75"></a>
+<a name="__line76"></a>	if(funcname.str() == "") m.replace("%F","");
+<a name="__line77"></a>	else m.replace("%F",fnformat_);
+<a name="__line78"></a>
+<a name="__line79"></a>	m.replace("%f",funcname);
+<a name="__line80"></a>	m.replace("%p",prompt_);
+<a name="__line81"></a>	m.replace("%m",message);
+<a name="__line82"></a>
+<a name="__line83"></a>	(*destination_)&lt;&lt;m;
+<a name="__line84"></a>    }
+<a name="__line85"></a>
+<a name="__line86"></a>    void debug::destination(ostream &amp;dest)
+<a name="__line87"></a>    {
+<a name="__line88"></a>	if(delete_destination_) delete destination_;
+<a name="__line89"></a>	destination_ = &amp;dest;
+<a name="__line90"></a>	delete_destination_ = false;
+<a name="__line91"></a>    }
+<a name="__line92"></a>
+<a name="__line93"></a>    void debug::destination(const var &amp;filename)
+<a name="__line94"></a>    {
+<a name="__line95"></a>	if(delete_destination_) delete destination_;
+<a name="__line96"></a>	destination_ = new ofstream(filename.c_str());
+<a name="__line97"></a>	delete_destination_ = true;
+<a name="__line98"></a>    }
+<a name="__line99"></a>
+<a name="__line100"></a>
+<a name="__line101"></a>}
+<a name="__line102"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

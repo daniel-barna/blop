@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Compiling and linking with blop</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="cint.html">
+   <link rel="Next" href="tools.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="cint.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: cint.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="tools.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: tools.html">
+    </a> <br>
+
+<center class=title><b>
+Compiling and linking with blop
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+# compile test.C
+g++ `blop-config --cflags` -c -o test.o test.C
+
+# link test.o
+g++ -o test test.o `blop-config --libs`
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<p> One way of using blop is to  write a C++ script and run blop as an
+interpreter on  this file. This is  the recommended way  to make small
+tasks, process  and plot  datafiles, etc. However,  you might  want to
+make some heavy data analysis  with a compiled C++ program, and create
+plots within this program. No  problem, you can use blop's classes and
+functions in your compiled software easily: 
+
+<ul> 
+<li>#include "blop.h" in your source files 
+<li>Remember that all of blop's classes and
+functions are declared within the namespace 'blop', so either refer to
+them  as  <tt>blop::plot(...)</tt>,  for  example, or  say  '<tt>using
+namespace blop;</tt>'  in your code,  whereever you want to  use blop.
+<li>Compile your program 
+</ul>
+
+<p> There is a script called <tt>blop-config</tt> which can be used to
+obtain the flags  to be given to the C++  compiler (such as libraries,
+location  of  include  files,  etc).   Using this  script  instead  of
+hard-coding these  locations in your  Makefile can make  your software
+independent  from  the  actual  installation  location  of  blop,  and
+therefore it  will be easy  to port it  to other machines,  where blop
+might be installed at some other directories.
+
+
+<p> It accepts the following command line arguments:
+
+<dl>
+
+<dt>--cflags</dt>
+<dd>Prints the flags to be given to the c++ compiler</dd>
+
+<dt>--libs</dt>
+<dd>Prints the flags specifying the blop libraries (to be given to the
+linker). </dd>
+
+<dt>--cint</dt> 
+<dd>If  this argument is  also given,  then the  cflags and  libs will
+include also those flags,  which are necessary for interpreter support
+(that  is, you  can use  CINT's features,  and you  can  interpret C++
+statements in  your program).  Your  program will be linked  with CINT
+libraries. Refer to the CINT manual in this question.  </dd>
+
+
+<dt>-n | --namespace</dt>
+
+<dd>The flags printed for the compiler will include such a flag, which
+will cause a statement<br>
+<tt>using namespace blop;</tt><br>
+in the <tt>blop.h</tt> header file, putting all functions/classes of
+blop into the global namespace</dd>
+
+</dl>
+
+<p> If you want to make the --cint and -n options the default for
+blop-config, create a file <tt>$HOME/.blop/blop-configrc</tt>, and
+include these lines (they must follow bash syntax):<br>
+<pre>CINT=true
+NAMESPACE=true</pre><br>
+
+<p>
+If you encounter  problems, such as some classes  of blop are reported
+as unknown by your compiler, the  reason is most probably that not all
+the necessary files are included  in 'blop.h'. This is not your fault,
+but mine. Please drop  me a mail, and if you have  no time to wait for
+the  correction,  search  the   blop  header  files  (in  the  default
+installation scheme  located in  /usr/local/blop/) to find,  which one
+contains the classes you are missing, and add these files to blop.h
+(by     default     located     at    /usr/local/blop/blop.h,     with
+/usr/local/include/blop.h being a symlink to this file).
+
+</div>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="cint.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: cint.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="tools.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: tools.html">
+    </a> 
+
+</body>
+</html>

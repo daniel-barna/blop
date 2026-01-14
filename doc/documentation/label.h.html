@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: label.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_LABEL_H__
+<a name="__line1"></a>#define __BLOP_LABEL_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="box.h.html">box.h</a>"
+<a name="__line4"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    class container;
+<a name="__line9"></a>
+<a name="__line10"></a>    class label : public box
+<a name="__line11"></a>    {
+<a name="__line12"></a><span class=public>	public:
+<a name="__line13"></a>	    enum anchorsys { original, rotated };
+<a name="__line14"></a></span><span class=private>	private:
+<a name="__line15"></a>            static length &amp;default_gap_();
+<a name="__line16"></a>	    static color default_textcolor_;
+<a name="__line17"></a>	    static sym::position   default_xalign_, default_yalign_;
+<a name="__line18"></a>	    static anchorsys    default_anchorsystem_;
+<a name="__line19"></a>	    static double default_angle_;
+<a name="__line20"></a>
+<a name="__line21"></a>	    var    text_;
+<a name="__line22"></a>	    double angle_;
+<a name="__line23"></a>            length angle_dx_, angle_dy_;
+<a name="__line24"></a>	    color  color_;
+<a name="__line25"></a>	    length x_,y_;
+<a name="__line26"></a>	    sym::position    xalign_,yalign_;
+<a name="__line27"></a>	    anchorsys        anchorsystem_;
+<a name="__line28"></a>
+<a name="__line29"></a>	    static label *last_;
+<a name="__line30"></a>	    static sym::position default_direction_;
+<a name="__line31"></a>
+<a name="__line32"></a></span><span class=public>	public:
+<a name="__line33"></a>            label &amp;above_grid(bool f) { box::above_grid(f); return *this; }
+<a name="__line34"></a>
+<a name="__line35"></a>
+<a name="__line36"></a>	    static void default_textcolor(const color &amp;c) {default_textcolor_ = c;}
+<a name="__line37"></a>	    static void default_xalign(sym::position i) { default_xalign_ = i; }
+<a name="__line38"></a>	    static void default_yalign(sym::position i) { default_yalign_ = i; }
+<a name="__line39"></a>	    static void default_anchorsystem(anchorsys f) { default_anchorsystem_ = f; }
+<a name="__line40"></a>	    static void default_align(sym::position i,sym::position j) { default_xalign_ = i; default_yalign_ = j;}
+<a name="__line41"></a>	    static void default_angle(double a) { default_angle_ = a; }
+<a name="__line42"></a>            static void default_gap(const length &amp;l); 
+<a name="__line43"></a>
+<a name="__line44"></a>	    <span class=comment>// return a pointer to the last label drawn with any of the xdraw functions (x=f,p,c)</span>
+<a name="__line45"></a>	    static label *last() { return last_; }
+<a name="__line46"></a>	    static void           default_direction(sym::position d) { default_direction() = d; }
+<a name="__line47"></a>            static sym::position &amp;default_direction();
+<a name="__line48"></a>
+<a name="__line49"></a>	    label(const var &amp;s="");
+<a name="__line50"></a>	    label(const label &amp;);
+<a name="__line51"></a>	    const label &amp;operator=(const label &amp;); 
+<a name="__line52"></a>
+<a name="__line53"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line54"></a>	    <span class=comment>// Static functions, creating a new label, and adding it </span>
+<a name="__line55"></a>	    <span class=comment>// to the current frame, pad or canvas, respectively, from (x1,y1) to (x2,y2)</span>
+<a name="__line56"></a>	    <span class=comment>// the 4th function, 'draw' accepts one more parameter (the first), which specifies</span>
+<a name="__line57"></a>	    <span class=comment>// the container, into which the label should be added (the 'fdraw', 'pdraw' and 'cdraw'</span>
+<a name="__line58"></a>	    <span class=comment>// functions call this function with frame::current(), pad::current()</span>
+<a name="__line59"></a>	    <span class=comment>// and canvas::current() as the first argument) (see design-concepts.html#mknew )</span>
+<a name="__line60"></a>
+<a name="__line61"></a>	    static label &amp;fdraw(const var &amp;, length x, length y);
+<a name="__line62"></a>	    static label &amp;pdraw(const var &amp;, length x, length y);
+<a name="__line63"></a>	    static label &amp;cdraw(const var &amp;, length x, length y);
+<a name="__line64"></a>	    static label &amp;fdraw(const var &amp;, sym::position dir = label::default_direction());
+<a name="__line65"></a>	    static label &amp;pdraw(const var &amp;, sym::position dir = label::default_direction());
+<a name="__line66"></a>	    static label &amp;cdraw(const var &amp;, sym::position dir = label::default_direction());
+<a name="__line67"></a>	    static label &amp;draw (container *parent,
+<a name="__line68"></a>				const var &amp;, length x, const length y);
+<a name="__line69"></a>            static label &amp;draw (container *parent,
+<a name="__line70"></a>                                const var &amp;, sym::position dir = label::default_direction());
+<a name="__line71"></a>
+<a name="__line72"></a>            static label &amp;fdraw(const var &amp;, const plottable &amp;p, double x, const length &amp;dy = 0.0);
+<a name="__line73"></a>            <span class=comment>//static label &amp;fdraw(const var &amp;, const plottable *p, double x, const length &amp;dy = 0.0);</span>
+<a name="__line74"></a>
+<a name="__line75"></a>	    const var    &amp;text()   const;
+<a name="__line76"></a>	    label        &amp;text     (const var &amp;s);
+<a name="__line77"></a>
+<a name="__line78"></a>            <span class=comment>// Set the angle of the label (in rads!) If you want to give it in degrees,</span>
+<a name="__line79"></a>            <span class=comment>// specify .angle(90*unit::deg);</span>
+<a name="__line80"></a>	    double        angle()  const;
+<a name="__line81"></a>	    label        &amp;angle    (double a);
+<a name="__line82"></a>
+<a name="__line83"></a>	    const color  &amp;textcolor()  const;
+<a name="__line84"></a>	    label        &amp;textcolor(const color &amp;c);
+<a name="__line85"></a>	    label        &amp;tc(const color &amp;c) { return textcolor(c); }
+<a name="__line86"></a>
+<a name="__line87"></a>	    void print(terminal *);
+<a name="__line88"></a>
+<a name="__line89"></a>	    label &amp;x(const length &amp;l);
+<a name="__line90"></a>	    label &amp;y(const length &amp;l);
+<a name="__line91"></a>	    label &amp;x(const length &amp;l,sym::position xal);
+<a name="__line92"></a>	    label &amp;y(const length &amp;l,sym::position yal);
+<a name="__line93"></a>
+<a name="__line94"></a>	    label &amp;xalign(sym::position);
+<a name="__line95"></a>	    label &amp;xalign(sym::position, anchorsys asys);
+<a name="__line96"></a>	    label &amp;yalign(sym::position);
+<a name="__line97"></a>	    label &amp;yalign(sym::position, anchorsys asys);
+<a name="__line98"></a>	    label &amp;align(sym::position,sym::position);
+<a name="__line99"></a>	    label &amp;align(sym::position,sym::position, anchorsys asys);
+<a name="__line100"></a>
+<a name="__line101"></a>	    label &amp;anchorsystem(anchorsys asys) { anchorsystem_ = asys; return *this;}
+<a name="__line102"></a>
+<a name="__line103"></a>	    sym::position xalign() const { return xalign_; }
+<a name="__line104"></a>	    sym::position yalign() const { return yalign_; }
+<a name="__line105"></a>	    anchorsys anchorsystem() const { return anchorsystem_; } 
+<a name="__line106"></a>
+<a name="__line107"></a>	    label &amp;left   (const length &amp;);
+<a name="__line108"></a>	    label &amp;right  (const length &amp;);
+<a name="__line109"></a>	    label &amp;xcenter(const length &amp;);
+<a name="__line110"></a>	    label &amp;width  (const length &amp;);
+<a name="__line111"></a>
+<a name="__line112"></a>	    label &amp;bottom (const length &amp;);
+<a name="__line113"></a>	    label &amp;top    (const length &amp;);
+<a name="__line114"></a>	    label &amp;ycenter(const length &amp;);
+<a name="__line115"></a>	    label &amp;height (const length &amp;);
+<a name="__line116"></a>
+<a name="__line117"></a>	    const length &amp;left() const { return box::left(); }
+<a name="__line118"></a>	    const length &amp;right() const { return box::right(); }
+<a name="__line119"></a>	    const length &amp;xcenter() const { return box::xcenter(); }
+<a name="__line120"></a>	    const length &amp;width() const { return box::width(); }
+<a name="__line121"></a>	    const length &amp;bottom() const { return box::bottom(); }
+<a name="__line122"></a>	    const length &amp;top() const { return box::top(); }
+<a name="__line123"></a>	    const length &amp;ycenter() const { return box::ycenter(); }
+<a name="__line124"></a>	    const length &amp;height() const { return box::height(); }
+<a name="__line125"></a>
+<a name="__line126"></a>	    void prepare_for_draw();
+<a name="__line127"></a>
+<a name="__line128"></a>	    <span class=comment>// needed only for CINT, dummy functions</span>
+<a name="__line129"></a>	    bool operator== (const label &amp;) const;
+<a name="__line130"></a>	    bool operator&lt;  (const label &amp;) const {return false;}
+<a name="__line131"></a>	    bool operator&gt;  (const label &amp;) const {return false;}
+<a name="__line132"></a>
+<a name="__line133"></a>	    label &amp;layer(const var &amp;l) { grob::layer(l); return *this; }
+<a name="__line134"></a>    };
+<a name="__line135"></a>}
+<a name="__line136"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

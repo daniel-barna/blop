@@ -1,0 +1,252 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blop_nocint.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line1"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line2"></a>#include "<a href="function_core.hh.html">function_core.hh</a>"
+<a name="__line3"></a>#include "<a href="cfunc_wrapper.hh.html">cfunc_wrapper.hh</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include &lt;iostream&gt;
+<a name="__line6"></a>
+<a name="__line7"></a>using namespace std;
+<a name="__line8"></a>
+<a name="__line9"></a>namespace blop
+<a name="__line10"></a>{
+<a name="__line11"></a>    void blop_initializer::call_INIT() {}
+<a name="__line12"></a>
+<a name="__line13"></a>    color_mapping_function::color_mapping_function(void *)
+<a name="__line14"></a>    {
+<a name="__line15"></a>	cerr&lt;&lt;"color_mapping::set(void *) should not be called"&lt;&lt;endl;
+<a name="__line16"></a>	cerr&lt;&lt;"in a compiled program ! It is only intended for CINT !"&lt;&lt;endl;
+<a name="__line17"></a>    }
+<a name="__line18"></a>
+<a name="__line19"></a>    color color_mapping_function::map_interpreted(double val,double mini,double maxi) const
+<a name="__line20"></a>    {
+<a name="__line21"></a>	cerr&lt;&lt;"graphd_cbox_base::map_color_interpreted(double,double,double)"&lt;&lt;endl;
+<a name="__line22"></a>	cerr&lt;&lt;"should not be called in a compiled program!"&lt;&lt;endl;
+<a name="__line23"></a>	return color(0,0,0);
+<a name="__line24"></a>    }
+<a name="__line25"></a>
+<a name="__line26"></a>    <span class=comment>// ---------- function::formula ---------------------------------------------------</span>
+<a name="__line27"></a>
+<a name="__line28"></a>    void function::formula(const var &amp;)
+<a name="__line29"></a>    {
+<a name="__line30"></a>	cerr&lt;&lt;"function::formula(const var &amp;) should be called in a compiled "&lt;&lt;endl;
+<a name="__line31"></a>	cerr&lt;&lt;"code only if CINT support is enabled (blop-config --cint --cflags --libs)"&lt;&lt;endl;
+<a name="__line32"></a>	*this = 0.0;
+<a name="__line33"></a>    }
+<a name="__line34"></a>
+<a name="__line35"></a>    <span class=comment>// ---------- function_core::cfunc ------------------------------------------------</span>
+<a name="__line36"></a>
+<a name="__line37"></a>    void function_core::cfunc::init_(void *)
+<a name="__line38"></a>    {
+<a name="__line39"></a>	cerr&lt;&lt;"function::cfunc::init_(void *) should not be called from a compiled code"&lt;&lt;endl;
+<a name="__line40"></a>	cerr&lt;&lt;"with no CINT interpreter support"&lt;&lt;endl;
+<a name="__line41"></a>    }
+<a name="__line42"></a>
+<a name="__line43"></a>    <span class=comment>// ---------- cfunc_wrappers  -----------------------------------------------------</span>
+<a name="__line44"></a>
+<a name="__line45"></a>    double double_func_aref_aref_aref_aref_aref
+<a name="__line46"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line47"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line48"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line49"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line50"></a>		  const std::vector&lt;blop::var&gt; &amp;a5)
+<a name="__line51"></a>    {
+<a name="__line52"></a>	if(ptr_) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5));
+<a name="__line53"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line54"></a>	return (result_=0);
+<a name="__line55"></a>    }
+<a name="__line56"></a>    
+<a name="__line57"></a>    double double_func_aref_aref_aref_aref_aref_aref
+<a name="__line58"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line59"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line60"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line61"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line62"></a>		  const std::vector&lt;blop::var&gt; &amp;a5,
+<a name="__line63"></a>		  const std::vector&lt;blop::var&gt; &amp;a6)
+<a name="__line64"></a>    {
+<a name="__line65"></a>	if(ptr_) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5,a6));
+<a name="__line66"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line67"></a>	return (result_=0);
+<a name="__line68"></a>    }
+<a name="__line69"></a>    
+<a name="__line70"></a>    double double_func_aref_aref_aref_aref_aref_aref_aref
+<a name="__line71"></a>    ::operator() (const std::vector&lt;blop::var&gt; &amp;a1,
+<a name="__line72"></a>		  const std::vector&lt;blop::var&gt; &amp;a2,
+<a name="__line73"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line74"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line75"></a>		  const std::vector&lt;blop::var&gt; &amp;a5,
+<a name="__line76"></a>		  const std::vector&lt;blop::var&gt; &amp;a6,
+<a name="__line77"></a>		  const std::vector&lt;blop::var&gt; &amp;a7)
+<a name="__line78"></a>    {
+<a name="__line79"></a>	if(ptr_) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5,a6,a7));
+<a name="__line80"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line81"></a>	return (result_=0);
+<a name="__line82"></a>    }
+<a name="__line83"></a>    
+<a name="__line84"></a>    int int_func_double_double_aref_aref_int
+<a name="__line85"></a>    ::operator() (double a1, double a2,
+<a name="__line86"></a>		  const std::vector&lt;blop::var&gt; &amp;a3,
+<a name="__line87"></a>		  const std::vector&lt;blop::var&gt; &amp;a4,
+<a name="__line88"></a>		  int a5) const
+<a name="__line89"></a>    {
+<a name="__line90"></a>	if(ptr_) return (result_=((function_type)ptr_)(a1,a2,a3,a4,a5));
+<a name="__line91"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line92"></a>	return (result_=0);
+<a name="__line93"></a>    }
+<a name="__line94"></a>
+<a name="__line95"></a>
+<a name="__line96"></a><span class=comment>/*
+<a name="__line97"></a>    double double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep
+<a name="__line98"></a>    ::operator() (int nx, double *x, double *sigma_x, int ny, double *y, double *sigma_y, double *f, double *g1)
+<a name="__line99"></a>    {
+<a name="__line100"></a>	if(ptr_) return (result_=((function_type)ptr_)(nx,x,sigma_x,ny,y,sigma_y,f,g1));
+<a name="__line101"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line102"></a>	return (result_=0);
+<a name="__line103"></a>    }
+<a name="__line104"></a>
+<a name="__line105"></a>    double double_func_int_doublep_doublep_int_doublep_doublep_doublep_doublep_doublep
+<a name="__line106"></a>    ::operator() (int nx, double *x, double *sigma_x, int ny, double *y, double *sigma_y, double *f, double *g1, double *g2)
+<a name="__line107"></a>    {
+<a name="__line108"></a>	if(ptr_) return (result_=((function_type)ptr_)(nx,x,sigma_x,ny,y,sigma_y,f,g1,g2));
+<a name="__line109"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line110"></a>	return (result_=0);
+<a name="__line111"></a>    }
+<a name="__line112"></a>
+<a name="__line113"></a>    int int_func_double_double_doublep_doublep_int_int::operator()
+<a name="__line114"></a>	(double d1, double d2, double *p1, double *p2, int i1, int i2) const
+<a name="__line115"></a>    {
+<a name="__line116"></a>	if(ptr_) return (result_=((function_type)ptr_)(d1, d2, p1, p2, i1, i2));
+<a name="__line117"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line118"></a>	return (result_=0);
+<a name="__line119"></a>    }
+<a name="__line120"></a>*/</span>
+<a name="__line121"></a>
+<a name="__line122"></a>    complex&lt;double&gt; complex_func_double::operator()(double v) const
+<a name="__line123"></a>    {
+<a name="__line124"></a>	if(ptr_) return (result_=((function_type)ptr_)(v));
+<a name="__line125"></a>	warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line126"></a>	return (result_=complex&lt;double&gt;(0,0));
+<a name="__line127"></a>    }
+<a name="__line128"></a>    complex&lt;double&gt; complex_func_double_double::operator()(double v1,double v2) const
+<a name="__line129"></a>    {
+<a name="__line130"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line131"></a>	warning::print("Uninitialized cfunc_wrapper called");
+<a name="__line132"></a>	return (result_=complex&lt;double&gt;(0,0));
+<a name="__line133"></a>    }
+<a name="__line134"></a>    double double_func_double::operator()(double v) const
+<a name="__line135"></a>    {
+<a name="__line136"></a>	if(ptr_) return (result_=((function_type)ptr_)(v));
+<a name="__line137"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line138"></a>	return (result_=0);
+<a name="__line139"></a>    }
+<a name="__line140"></a>    double double_func_double_double::operator()(double v1,double v2) const
+<a name="__line141"></a>    {
+<a name="__line142"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line143"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line144"></a>	return (result_=0);
+<a name="__line145"></a>    }
+<a name="__line146"></a>    double double_func_double_double_double::operator()(double v1,double v2,double v3) const
+<a name="__line147"></a>    {
+<a name="__line148"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2,v3));
+<a name="__line149"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line150"></a>	return (result_=0);
+<a name="__line151"></a>    }
+<a name="__line152"></a>    double double_func_double_double_double_double::operator()(double v1,double v2,double v3,double v4) const
+<a name="__line153"></a>    {
+<a name="__line154"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2,v3,v4));
+<a name="__line155"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line156"></a>	return (result_=0);
+<a name="__line157"></a>    }
+<a name="__line158"></a>
+<a name="__line159"></a>    var var_func_varvector_varvector::operator()(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line160"></a>						 const std::vector&lt;blop::var&gt; &amp;pars) const
+<a name="__line161"></a>    {
+<a name="__line162"></a>	if(ptr_) return (result_=((function_type)ptr_)(args,pars));
+<a name="__line163"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line164"></a>	return (result_=0);
+<a name="__line165"></a>    }
+<a name="__line166"></a>
+<a name="__line167"></a>    var var_func_var::operator()(var v) const
+<a name="__line168"></a>    {
+<a name="__line169"></a>	if(ptr_) return (result_=((function_type)ptr_)(v));
+<a name="__line170"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line171"></a>	return (result_=0);
+<a name="__line172"></a>    }
+<a name="__line173"></a>    var var_func_var_var::operator()(var v1,var v2) const
+<a name="__line174"></a>    {
+<a name="__line175"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2));
+<a name="__line176"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line177"></a>	return (result_=0);
+<a name="__line178"></a>    }
+<a name="__line179"></a>    var var_func_var_var_var::operator()(var v1,var v2,var v3) const
+<a name="__line180"></a>    {
+<a name="__line181"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2,v3));
+<a name="__line182"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line183"></a>	return (result_=0);
+<a name="__line184"></a>    }
+<a name="__line185"></a>    var var_func_var_var_var_var::operator()(var v1,var v2,var v3,var v4) const
+<a name="__line186"></a>    {
+<a name="__line187"></a>	if(ptr_) return (result_=((function_type)ptr_)(v1,v2,v3,v4));
+<a name="__line188"></a>	cerr&lt;&lt;"Uninitialized cfunc_wrapper called"&lt;&lt;endl;
+<a name="__line189"></a>	return (result_=0);
+<a name="__line190"></a>    }
+<a name="__line191"></a>
+<a name="__line192"></a>    void void_func_doublep_doublep::operator()(double *in, double *out) const
+<a name="__line193"></a>    {
+<a name="__line194"></a>	if(ptr_) { ((function_type)ptr_)(in,out); return; }
+<a name="__line195"></a>	warning::print("Uninitialized cfunc_wrapper called","void_func_doublep_doublep::operator()(double*,double*)");
+<a name="__line196"></a>    }
+<a name="__line197"></a>
+<a name="__line198"></a>    void void_func_doublep_doublep_doublep::operator()(double *in, double *pars, double *out) const
+<a name="__line199"></a>    {
+<a name="__line200"></a>	if(ptr_) { ((function_type)ptr_)(in,pars,out); return; }
+<a name="__line201"></a>	warning::print("Uninitialized cfunc_wrapper called","void_func_doublep_doublep::operator()(double*,double*)");
+<a name="__line202"></a>    }
+<a name="__line203"></a>
+<a name="__line204"></a>
+<a name="__line205"></a>#ifdef BLOP_ENABLE_CINT
+<a name="__line206"></a>    void cfunc_wrapper_base::find(void *pointer,
+<a name="__line207"></a>				  std::vector&lt;G__MethodInfo&gt; &amp;results,
+<a name="__line208"></a>				  std::string &amp;function_name_global,
+<a name="__line209"></a>				  const std::string &amp;arglist_spec)
+<a name="__line210"></a>    {
+<a name="__line211"></a>	warning::print("cfunc_wrapper_base::find(void*, ...) should not be called in a code without CINT interpreter support");
+<a name="__line212"></a>    }
+<a name="__line213"></a>#endif
+<a name="__line214"></a>    
+<a name="__line215"></a>    cfunc_wrapper_base *cfunc_wrapper_base::find(void *pointer, const std::string &amp;arglist)
+<a name="__line216"></a>    {
+<a name="__line217"></a>	warning::print("cfunc_wrapper_base::find(void*, ...) should not be called in a code without CINT interpreter support");
+<a name="__line218"></a>	return 0;
+<a name="__line219"></a>    }
+<a name="__line220"></a>
+<a name="__line221"></a>
+<a name="__line222"></a>
+<a name="__line223"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

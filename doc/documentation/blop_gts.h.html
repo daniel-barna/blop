@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blop_gts.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_BLOP_GTS_H__
+<a name="__line1"></a>#define __BLOP_BLOP_GTS_H__
+<a name="__line2"></a>#include &lt;vector&gt;
+<a name="__line3"></a>#include "<a href="config.h.html">config.h</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include "<a href="array.h.html">array.h</a>"
+<a name="__line6"></a>#include "<a href="dgraph.h.html">dgraph.h</a>"
+<a name="__line7"></a>#ifdef HAVE_GTS_H
+<a name="__line8"></a>
+<a name="__line9"></a>#ifndef __MAKECINT__
+<a name="__line10"></a>#  include &lt;gts.h&gt;
+<a name="__line11"></a>#else
+<a name="__line12"></a>class GtsFace;
+<a name="__line13"></a>class GtsVertex;
+<a name="__line14"></a>class GtsSurface;
+<a name="__line15"></a>class GtsEdge;
+<a name="__line16"></a>class GtsTriangle;
+<a name="__line17"></a>class GNode;
+<a name="__line18"></a>#endif
+<a name="__line19"></a>
+<a name="__line20"></a><span class=comment>/*
+<a name="__line21"></a>  This file provides an interface to GTS functionality
+<a name="__line22"></a> */</span>
+<a name="__line23"></a>
+<a name="__line24"></a>
+<a name="__line25"></a>namespace blop
+<a name="__line26"></a>{
+<a name="__line27"></a>    
+<a name="__line28"></a>    double xmax(const GtsTriangle *);
+<a name="__line29"></a>    double xmin(const GtsTriangle *);
+<a name="__line30"></a>    double ymax(const GtsTriangle *);
+<a name="__line31"></a>    double ymin(const GtsTriangle *);
+<a name="__line32"></a>    void   bbox(const GtsTriangle *, double *xmin, double *xmax, double *ymin, double *ymax, double *zmin=0, double *zmax=0);
+<a name="__line33"></a>    void   vertices(const GtsTriangle *, GtsVertex **v1, GtsVertex **v2, GtsVertex **v3);
+<a name="__line34"></a>
+<a name="__line35"></a>    class gts_surface
+<a name="__line36"></a>    {
+<a name="__line37"></a><span class=protected>    protected:
+<a name="__line38"></a>
+<a name="__line39"></a>	<span class=comment>// helper arrays. upon initialization of a surface, these should be initialized</span>
+<a name="__line40"></a>	<span class=comment>// using the initialize_faces_(), initialize_vertices_(), initialize_edges_()</span>
+<a name="__line41"></a>	<span class=comment>// member functions (which </span>
+<a name="__line42"></a>	mutable std::vector&lt;GtsFace*&gt;   faces_;
+<a name="__line43"></a>	mutable std::vector&lt;GtsVertex*&gt; vertices_;
+<a name="__line44"></a>	mutable std::vector&lt;GtsEdge*&gt;   edges_;
+<a name="__line45"></a>	mutable double enclosing_triangle_x_[3], enclosing_triangle_y_[3];
+<a name="__line46"></a>	mutable GNode *bounding_boxes_;
+<a name="__line47"></a>
+<a name="__line48"></a>	void clear_vertices_() const;
+<a name="__line49"></a>	void clear_edges_   () const;
+<a name="__line50"></a>	void clear_faces_   () const;
+<a name="__line51"></a>	void clear_enclosing_triangle_() const;
+<a name="__line52"></a>	void clear_bounding_boxes_() const;
+<a name="__line53"></a>
+<a name="__line54"></a>	<span class=comment>// Any derived class, when modified, should set this flag to false (i.e. when adding</span>
+<a name="__line55"></a>	<span class=comment>// for example a vertex). Any derived class should also clear/reset the faces_, vertices_,</span>
+<a name="__line56"></a>	<span class=comment>// edges_ etc helper arrays and the enclosing_triangle_x/y_ arrays</span>
+<a name="__line57"></a>	mutable bool initialized_;
+<a name="__line58"></a>
+<a name="__line59"></a>	mutable GtsSurface *surface_;
+<a name="__line60"></a>
+<a name="__line61"></a>
+<a name="__line62"></a></span><span class=public>    public:
+<a name="__line63"></a>        gts_surface();
+<a name="__line64"></a>	virtual ~gts_surface();
+<a name="__line65"></a>
+<a name="__line66"></a>	virtual gts_surface &amp;clear();
+<a name="__line67"></a>
+<a name="__line68"></a>	virtual void initialize() const = 0;
+<a name="__line69"></a>
+<a name="__line70"></a>	virtual GtsSurface *surface() const;
+<a name="__line71"></a>
+<a name="__line72"></a>	virtual int         nvertices() const;
+<a name="__line73"></a>	virtual const GtsVertex  *vertex(unsigned int i) const;
+<a name="__line74"></a>
+<a name="__line75"></a>	virtual int         nfaces() const;
+<a name="__line76"></a>	virtual const GtsFace    *face(unsigned int i) const;
+<a name="__line77"></a>
+<a name="__line78"></a>	virtual int         nedges() const;
+<a name="__line79"></a>	virtual const GtsEdge    *edge(unsigned int i) const;
+<a name="__line80"></a>
+<a name="__line81"></a>	virtual void   enclosing_triangle(double x[3], double y[3], double scaling=1) const;
+<a name="__line82"></a>	virtual GNode *bounding_boxes() const;
+<a name="__line83"></a>    };
+<a name="__line84"></a>
+<a name="delaunay">
+<a name="__line86"></a>    <span class=comment>// A Delaunay-triangulated surface. z-values at discrete (x,y) values must be provided</span>
+<a name="__line87"></a>    <span class=comment>// via the add_vertex(x,y,z) function. The obtained delaunay-triangulation in the (x,y)</span>
+<a name="__line88"></a>    <span class=comment>// plane can be plotted via the plot_triangles function</span>
+</a>
+<a name="__line90"></a>    class delaunay_surface : public gts_surface
+<a name="__line91"></a>    {
+<a name="__line92"></a></span><span class=protected>    protected:
+<a name="__line93"></a>	void initialize() const;
+<a name="__line94"></a>
+<a name="__line95"></a></span><span class=public>    public:
+<a name="__line96"></a>	delaunay_surface();
+<a name="__line97"></a>	delaunay_surface(const delaunay_surface &amp;rhs);
+<a name="__line98"></a>	~delaunay_surface();
+<a name="__line99"></a>
+<a name="__line100"></a>	<span class=comment>// add a vertex</span>
+<a name="__line101"></a>	virtual delaunay_surface &amp;add_vertex(double x, double y, double z);
+<a name="__line102"></a>
+<a name="__line103"></a>	<span class=comment>// plot the triangles in the (x,y) plane</span>
+<a name="__line104"></a>	dgraph &amp;plot_triangles();
+<a name="__line105"></a>	dgraph &amp;mplot_triangles();
+<a name="__line106"></a>
+<a name="__line107"></a>	void    get_triangle_grid(std::vector&lt;double&gt; &amp;x, std::vector&lt;double&gt; &amp;y);
+<a name="__line108"></a>
+<a name="__line109"></a>        double z_at(double x, double y) const;
+<a name="__line110"></a>    };
+<a name="__line111"></a>
+<a name='intersection_z'>
+<a name="__line113"></a>    void intersection_z(gts_surface &amp;s, double z, std::vector&lt;double&gt; &amp;xx, std::vector&lt;double&gt; &amp;yy);
+<a name="__line114"></a>    void intersection_z(gts_surface &amp;s, double z, array &amp;xx, array &amp;yy);
+</a>
+<a name="__line116"></a>
+<a name="isoline">
+<a name="__line118"></a>    void isoline(const function &amp;f, double zcut, 
+<a name="__line119"></a>		 std::vector&lt;double&gt; &amp;xx,
+<a name="__line120"></a>		 std::vector&lt;double&gt; &amp;yy,
+<a name="__line121"></a>		 double p1min, double p1max,
+<a name="__line122"></a>		 double p2min, double p2max,
+<a name="__line123"></a>		 int np1=100, int np2=100);
+<a name="__line124"></a>    void isoline(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y, const std::vector&lt;double&gt; &amp;z,
+<a name="__line125"></a>		 double zcut,
+<a name="__line126"></a>		 std::vector&lt;double&gt; &amp;iso_x, std::vector&lt;double&gt; &amp;iso_y);
+<a name="__line127"></a>    void isoline(const array &amp;x, const array &amp;y, const array &amp;z,
+<a name="__line128"></a>		 double zcut,
+<a name="__line129"></a>		 array &amp;iso_x, array &amp;iso_y);
+<a name="__line130"></a>    void isoline(const var &amp;filename, double zcut, std::vector&lt;double&gt; &amp;iso_x, std::vector&lt;double&gt; &amp;iso_y,
+<a name="__line131"></a>		 const function &amp;f1=unset, const function &amp;f2=unset, const function &amp;f3=unset);
+<a name="__line132"></a>
+<a name="__line133"></a>    void isoline(const dgraph &amp;g, double zcut, std::vector&lt;double&gt; &amp;iso_x, std::vector&lt;double&gt; &amp;iso_y);
+<a name="__line134"></a>
+<a name="__line135"></a>    void isoline_at_coords(const var &amp;filename, double zcut, std::vector&lt;double&gt; &amp;iso_x, std::vector&lt;double&gt; &amp;iso_y,
+<a name="__line136"></a>                           const function &amp;f1=unset, const function &amp;f2=unset, const function &amp;f3=unset);
+<a name="__line137"></a>
+</a>
+<a name="__line139"></a>
+<a name="__line140"></a>} 
+<a name="__line141"></a>
+<a name="__line142"></a>#ifdef __MAKECINT__
+<a name="__line143"></a>#pragma link off blop::gts_surface::vertices_;
+<a name="__line144"></a>#pragma link off blop::gts_surface::edges_;
+<a name="__line145"></a>#pragma link off blop::gts_surface::faces_;
+<a name="__line146"></a>#pragma link off blop::gts_surface::surface_;
+<a name="__line147"></a>#pragma link off blop::gts_surface::surface();
+<a name="__line148"></a>#endif
+<a name="__line149"></a>
+<a name="__line150"></a>
+<a name="__line151"></a>
+<a name="__line152"></a>#endif
+<a name="__line153"></a>#endif
+<a name="__line154"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

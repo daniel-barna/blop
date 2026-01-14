@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mframe.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MFRAME_H__
+<a name="__line1"></a>#define __BLOP_MFRAME_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line4"></a>#include "<a href="mcontainer.h.html">mcontainer.h</a>"
+<a name="__line5"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>
+<a name="__line10"></a>class epad;
+<a name="__line11"></a>
+<a name="__line12"></a>class mframe : public container, public mcontainer
+<a name="__line13"></a>{
+<a name="__line14"></a><span class=private> private:
+<a name="__line15"></a>    typedef container base;
+<a name="__line16"></a>
+<a name="__line17"></a>    static int default_direction_;
+<a name="__line18"></a>
+<a name="__line19"></a>    frame **frames_;
+<a name="__line20"></a>    bool   *show_subframe_;
+<a name="__line21"></a>    axis  **x1axes_, **y1axes_, **x2axes_, **y2axes_;
+<a name="__line22"></a>    epad   **lmarginboxes_, **rmarginboxes_, **bmarginboxes_, **tmarginboxes_;
+<a name="__line23"></a>
+<a name="__line24"></a>    length xgap_, ygap_;
+<a name="__line25"></a>    length *widths_,*heights_;
+<a name="__line26"></a>    double *rwidths_,*rheights_;
+<a name="__line27"></a>    length x_avail_, y_avail_;
+<a name="__line28"></a>    void set_widths();
+<a name="__line29"></a>    void set_heights();
+<a name="__line30"></a>
+<a name="__line31"></a>    void cd_to_sub_(int i) { frames_[i]-&gt;cd(); }
+<a name="__line32"></a>    
+<a name="__line33"></a>    label *title_;
+<a name="__line34"></a>
+<a name="__line35"></a>    <span class=comment>// in a 2x2 frame, for example, the highest y-tic of the lower row,</span>
+<a name="__line36"></a>    <span class=comment>// and the highest x-tic of the left column can collide with the first tic</span>
+<a name="__line37"></a>    <span class=comment>// of the top row or the first tic of the right column. This flag (true by default)</span>
+<a name="__line38"></a>    <span class=comment>// removes therefore these highest tics</span>
+<a name="__line39"></a>    bool remove_conflicting_tic_;
+<a name="__line40"></a>    static bool default_remove_conflicting_tic_;
+<a name="__line41"></a>
+<a name="__line42"></a>    unsigned int equal_ranges_;
+<a name="__line43"></a>
+<a name="__line44"></a></span><span class=public> public:
+<a name="__line45"></a>    mframe(int i, int j);
+<a name="__line46"></a>    mframe(int n);
+<a name="__line47"></a>    ~mframe();
+<a name="__line48"></a>
+<a name="__line49"></a>    static mframe &amp;mknew(int i, int j);
+<a name="__line50"></a>    static mframe &amp;mknew(int n);
+<a name="__line51"></a>
+<a name="__line52"></a>    mframe &amp;cd(int i, int j) { mcontainer::cd(i,j); return *this; }
+<a name="__line53"></a>    mframe &amp;cd(int i)        { mcontainer::cd(i); return *this; }
+<a name="__line54"></a>    mframe &amp;cd_first()       { mcontainer::cd_first(); return *this; }
+<a name="__line55"></a>
+<a name="__line56"></a>    <span class=comment>// ---------- Direction for cycling -----------------------------------------------</span>
+<a name="__line57"></a>    <span class=comment>// specify the direction for looping. if jump is also given</span>
+<a name="__line58"></a>    <span class=comment>// (like direction(mcontainer::right_down | mcontainer::jump) ), then it will</span>
+<a name="__line59"></a>    <span class=comment>// automatically jump to the beginning (and begin looping), if the</span>
+<a name="__line60"></a>    <span class=comment>// last subpad is reached</span>
+<a name="__line61"></a>
+<a name="__line62"></a>    mframe &amp;direction(int dir) { mcontainer::direction(dir); return *this; }
+<a name="__line63"></a>    static void default_direction(int);  <span class=comment>// default value for all new mframe</span>
+<a name="__line64"></a>
+<a name="__line65"></a>
+<a name="__line66"></a>    <span class=comment>// ---------- override container:: and box:: dimension functions ------------------</span>
+<a name="__line67"></a>    <span class=comment>// so that they return a mframe&amp; instead of container&amp; or box&amp;</span>
+<a name="__line68"></a>    
+<a name="__line69"></a>    mframe &amp;cleft(const length &amp;l) { container::cleft(l); return *this; }
+<a name="__line70"></a>    mframe &amp;cright(const length &amp;l) { container::cright(l); return *this; }
+<a name="__line71"></a>    mframe &amp;cbottom(const length &amp;l) { container::cbottom(l); return *this; }
+<a name="__line72"></a>    mframe &amp;ctop(const length &amp;l) { container::ctop(l); return *this; }
+<a name="__line73"></a>    
+<a name="__line74"></a>    const length &amp;cleft() const { return container::cleft(); }
+<a name="__line75"></a>    const length &amp;cright() const { return container::cright(); }
+<a name="__line76"></a>    const length &amp;cbottom() const { return container::cbottom(); }
+<a name="__line77"></a>    const length &amp;ctop() const { return container::ctop(); }
+<a name="__line78"></a>    
+<a name="__line79"></a>    mframe &amp;lmargin(const length &amp;l) { container::lmargin(l); return *this; }
+<a name="__line80"></a>    mframe &amp;rmargin(const length &amp;l) { container::rmargin(l); return *this; }
+<a name="__line81"></a>    mframe &amp;bmargin(const length &amp;l) { container::bmargin(l); return *this; }
+<a name="__line82"></a>    mframe &amp;tmargin(const length &amp;l) { container::tmargin(l); return *this; }
+<a name="__line83"></a>    const length &amp;lmargin() const { return container::lmargin(); }
+<a name="__line84"></a>    const length &amp;rmargin() const { return container::rmargin(); }
+<a name="__line85"></a>    const length &amp;bmargin() const { return container::bmargin(); }
+<a name="__line86"></a>    const length &amp;tmargin() const { return container::tmargin(); }
+<a name="__line87"></a>    
+<a name="__line88"></a>    mframe &amp;left(const length &amp;l) { box::left(l); return *this; }
+<a name="__line89"></a>    mframe &amp;right(const length &amp;l) { box::right(l); return *this; }
+<a name="__line90"></a>    mframe &amp;width(const length &amp;l) { box::width(l); return *this; }
+<a name="__line91"></a>    mframe &amp;bottom(const length &amp;l) { box::bottom(l); return *this; }
+<a name="__line92"></a>    mframe &amp;top(const length &amp;l) { box::top(l); return *this; }
+<a name="__line93"></a>    mframe &amp;height(const length &amp;l) { box::height(l); return *this; }
+<a name="__line94"></a>    const length &amp;left() const { return box::left(); }
+<a name="__line95"></a>    const length &amp;right() const { return box::right(); }
+<a name="__line96"></a>    const length &amp;width() const { return box::width(); }
+<a name="__line97"></a>    const length &amp;bottom() const { return box::bottom(); }
+<a name="__line98"></a>    const length &amp;top() const { return box::top(); }
+<a name="__line99"></a>    const length &amp;height() const { return box::height(); }
+<a name="__line100"></a>
+<a name="__line101"></a>    <span class=comment>// ---------- Return the row/column number of a subframe --------------------------</span>
+<a name="__line102"></a>    <span class=comment>// return 0 if this frame is not a subframe of me</span>
+<a name="__line103"></a>
+<a name="__line104"></a>    int row(const frame *f) const;
+<a name="__line105"></a>    int col(const frame *f) const;
+<a name="__line106"></a>
+<a name="__line107"></a>    <span class=comment>// ---------- Return the given subframe -------------------------------------------</span>
+<a name="__line108"></a>
+<a name="__line109"></a>    frame       *operator()(int i, int j);
+<a name="__line110"></a>    const frame *operator()(int i, int j) const;
+<a name="__line111"></a>
+<a name="__line112"></a>    <span class=comment>// ---------- show/hide a given subframe  -----------------------------------------</span>
+<a name="__line113"></a>
+<a name="__line114"></a>    mframe &amp;show_subframe(int i, int j, bool );
+<a name="__line115"></a>    bool    show_subframe(int i, int j) const; 
+<a name="__line116"></a>
+<a name="__line117"></a>    <span class=comment>// ---------- Specify some geometrical parameters ---------------------------------</span>
+<a name="__line118"></a>
+<a name="__line119"></a>    mframe &amp;gap(const length &amp;l);                        <span class=comment>// Specify gap between subframes (both x and y direction)</span>
+<a name="__line120"></a>    mframe &amp;gap(const length &amp;xgap, const length &amp;ygap); <span class=comment>// Specify gaps separately in the two directions</span>
+<a name="__line121"></a>    mframe &amp;xgap(const length &amp;g);
+<a name="__line122"></a>    mframe &amp;ygap(const length &amp;g);
+<a name="__line123"></a>    mframe &amp;width(int i, const length &amp;l); <span class=comment>// specify width of the ith column</span>
+<a name="__line124"></a>    mframe &amp;rwidth(int i, double d);       <span class=comment>// specify relative width of the ith col</span>
+<a name="__line125"></a>    mframe &amp;height(int i, const length &amp;l);<span class=comment>// specify height of the ith row</span>
+<a name="__line126"></a>    mframe &amp;rheight(int i, double d);      <span class=comment>// specify relative height of the ith row</span>
+<a name="__line127"></a>
+<a name="__line128"></a>    <span class=comment>// ---------- enforce equal ranges on the axes  -----------------------------------</span>
+<a name="__line129"></a>
+<a name="__line130"></a>    mframe &amp;equal_ranges(unsigned int axes) { equal_ranges_ = axes; return *this; }
+<a name="__line131"></a>    mframe &amp;equal_ranges(bool f) { if(f) equal_ranges_ = axis::x1|axis::y1; else equal_ranges_ = 0; return *this; }
+<a name="__line132"></a>
+<a name="__line133"></a>
+<a name="__line134"></a>    <span class=comment>// ---------- Set title  ----------------------------------------------------------</span>
+<a name="__line135"></a>
+<a name="__line136"></a>    mframe &amp;title(const var &amp;t);
+<a name="__line137"></a>
+<a name="__line138"></a>    void print_hierarchy(int level);
+<a name="__line139"></a>    
+<a name="__line140"></a>    <span class=comment>// ---------- remove conflicting tics ---------------------------------------------</span>
+<a name="__line141"></a>
+<a name="__line142"></a>    mframe &amp;remove_conflicting_tics(bool f) { remove_conflicting_tic_ = f; return *this; }
+<a name="__line143"></a>
+<a name="__line144"></a>    <span class=comment>// ---------- not to be called by user --------------------------------------------</span>
+<a name="__line145"></a>
+<a name="__line146"></a>    bool parent(container *c);  <span class=comment>// specify the parent of this mframe</span>
+<a name="__line147"></a>
+<a name="__line148"></a>    bool modified() const;
+<a name="__line149"></a>    void modified(bool f);
+<a name="__line150"></a>    void cd_specific() {}
+<a name="__line151"></a>    void prepare_for_draw();
+<a name="__line152"></a>    void print(terminal *);
+<a name="__line153"></a>
+<a name="__line154"></a>    
+<a name="__line155"></a>
+<a name="__line156"></a>};
+<a name="__line157"></a>
+<a name="__line158"></a>}
+<a name="__line159"></a>
+<a name="__line160"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

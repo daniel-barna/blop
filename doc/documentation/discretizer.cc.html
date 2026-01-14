@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: discretizer.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="discretizer.h.html">discretizer.h</a>"
+<a name="__line1"></a>#include &lt;algorithm&gt;
+<a name="__line2"></a>#include &lt;iostream&gt;
+<a name="__line3"></a>
+<a name="__line4"></a>using namespace std;
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    discretizer::discretizer(double diff, const dgraph &amp;g, const blop::function &amp;f) : diff_(diff)
+<a name="__line9"></a>    {
+<a name="__line10"></a>        for(unsigned int i=0; i&lt;g.size(); ++i) proc(f.eval(g[i]).dbl());
+<a name="__line11"></a>    }
+<a name="__line12"></a>    discretizer::discretizer(double diff, const std::vector&lt;double&gt; &amp;vec)
+<a name="__line13"></a>    {
+<a name="__line14"></a>        for(auto v : vec) proc(v);
+<a name="__line15"></a>    }
+<a name="__line16"></a>
+<a name="__line17"></a>
+<a name="__line18"></a>    void discretizer::proc(double val)
+<a name="__line19"></a>    {
+<a name="__line20"></a>        const auto pos = std::lower_bound(maxima_.begin(),maxima_.end(),val-diff_);
+<a name="__line21"></a>        const int  i = pos-maxima_.begin();
+<a name="__line22"></a>        if(pos!=maxima_.end() &amp;&amp; minima_[i]-diff_ &lt;= val)
+<a name="__line23"></a>        {
+<a name="__line24"></a>            sums_[i] += val;
+<a name="__line25"></a>            if(val&lt;minima_[i]) minima_[i] = val;
+<a name="__line26"></a>            if(val&gt;maxima_[i]) maxima_[i] = val;
+<a name="__line27"></a>            ++n_[i];
+<a name="__line28"></a>            values_[i] = sums_[i]/n_[i];
+<a name="__line29"></a>        }
+<a name="__line30"></a>        else
+<a name="__line31"></a>        {
+<a name="__line32"></a>            sums_.insert(sums_.begin()+i,val);
+<a name="__line33"></a>            minima_.insert(minima_.begin()+i,val);
+<a name="__line34"></a>            maxima_.insert(maxima_.begin()+i,val);
+<a name="__line35"></a>            n_.insert(n_.begin()+i,1);
+<a name="__line36"></a>            values_.insert(values_.begin()+i,val);
+<a name="__line37"></a>        }
+<a name="__line38"></a>    }
+<a name="__line39"></a>
+<a name="__line40"></a>    double discretizer::value(double v)
+<a name="__line41"></a>    {
+<a name="__line42"></a>        if(minima_.empty()) return 0;
+<a name="__line43"></a>        if(v&lt;maxima_.front() || values_.size()==1) return values_.front();
+<a name="__line44"></a>        if(v&gt;minima_.back() ) return values_.back();
+<a name="__line45"></a>        for(unsigned int i=1; i&lt;values_.size(); ++i)
+<a name="__line46"></a>        {
+<a name="__line47"></a>            if(v&lt;(maxima_[i-1]+minima_[i])/2) return values_[i-1];
+<a name="__line48"></a>        }
+<a name="__line49"></a>        return values_.back();
+<a name="__line50"></a>    }
+<a name="__line51"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: arrowhead.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="arrowhead.h.html">arrowhead.h</a>"
+<a name="__line1"></a>#include &lt;cmath&gt;
+<a name="__line2"></a>#include &lt;vector&gt;
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>    void arrowhead::simple::set_t_()
+<a name="__line7"></a>    {
+<a name="__line8"></a>	t1_ = !l_*(+1*::atan(angle_*3.1415/180/2));
+<a name="__line9"></a>	t2_ = !l_*(-1*::atan(angle_*3.1415/180/2));
+<a name="__line10"></a>    }
+<a name="__line11"></a>
+<a name="__line12"></a>    arrowhead::simple::simple(const length &amp;l, double a)
+<a name="__line13"></a>    {
+<a name="__line14"></a>	l_ = -1*!length_;
+<a name="__line15"></a>	length_ = l;
+<a name="__line16"></a>	angle_ = a;
+<a name="__line17"></a>	set_t_();
+<a name="__line18"></a>    }
+<a name="__line19"></a>    arrowhead::simple::simple(const arrowhead::simple &amp;o)
+<a name="__line20"></a>    {
+<a name="__line21"></a>	length_ = o.length_;
+<a name="__line22"></a>	angle_ = o.angle_;
+<a name="__line23"></a>	l_ = -1*!length_;
+<a name="__line24"></a>	set_t_();
+<a name="__line25"></a>    }
+<a name="__line26"></a>    arrowhead *arrowhead::simple::clone() const
+<a name="__line27"></a>    {
+<a name="__line28"></a>	return new arrowhead::simple(*this);
+<a name="__line29"></a>    }
+<a name="__line30"></a>    arrowhead::simple &amp;arrowhead::simple::size(const length &amp;l)
+<a name="__line31"></a>    {
+<a name="__line32"></a>	length_ = l;
+<a name="__line33"></a>	set_t_();
+<a name="__line34"></a>	return *this;
+<a name="__line35"></a>    }
+<a name="__line36"></a>    const length &amp;arrowhead::simple::size() const
+<a name="__line37"></a>    {
+<a name="__line38"></a>	return length_;
+<a name="__line39"></a>    }
+<a name="__line40"></a>    arrowhead::simple &amp;arrowhead::simple::angle(double a)
+<a name="__line41"></a>    {
+<a name="__line42"></a>	angle_ = a;
+<a name="__line43"></a>	set_t_();
+<a name="__line44"></a>	return *this;
+<a name="__line45"></a>    }
+<a name="__line46"></a>    double arrowhead::simple::angle() const
+<a name="__line47"></a>    {
+<a name="__line48"></a>	return angle_;
+<a name="__line49"></a>    }
+<a name="__line50"></a>
+<a name="__line51"></a>    void arrowhead::simple::prepare_for_draw()
+<a name="__line52"></a>    {
+<a name="__line53"></a>	l_.register_me();
+<a name="__line54"></a>	t1_.register_me();
+<a name="__line55"></a>	t2_.register_me();
+<a name="__line56"></a>    }
+<a name="__line57"></a>
+<a name="__line58"></a>    void arrowhead::simple::print(terminal *t)
+<a name="__line59"></a>    {
+<a name="__line60"></a>	t-&gt;open_layer(layer_);
+<a name="__line61"></a>	vector&lt;terminal::coord&gt; c;
+<a name="__line62"></a>	c.push_back(terminal::coord(l_.termspecific_id(),t1_.termspecific_id()));
+<a name="__line63"></a>	c.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line64"></a>	c.push_back(terminal::coord(l_.termspecific_id(),t2_.termspecific_id()));
+<a name="__line65"></a>	t-&gt;draw_lines(c);
+<a name="__line66"></a>	t-&gt;close_layer(layer_);
+<a name="__line67"></a>    }
+<a name="__line68"></a>
+<a name="__line69"></a>
+<a name="__line70"></a>    <span class=comment>// ---------- filled arrowhead ----------------------------------------------------</span>
+<a name="__line71"></a>
+<a name="__line72"></a>    void arrowhead::filled::set_t_()
+<a name="__line73"></a>    {
+<a name="__line74"></a>	t1_ = !l_*(+1*::atan(angle_*3.1415/180/2));
+<a name="__line75"></a>	t2_ = !l_*(-1*::atan(angle_*3.1415/180/2));
+<a name="__line76"></a>    }
+<a name="__line77"></a>
+<a name="__line78"></a>    arrowhead::filled::filled(const length &amp;l, double a)
+<a name="__line79"></a>    {
+<a name="__line80"></a>	length_ = l;
+<a name="__line81"></a>	length2_ = !length_;
+<a name="__line82"></a>	l1_eq_l2_ = true;
+<a name="__line83"></a>	angle_ = a;
+<a name="__line84"></a>	l_ = -1*!length_;
+<a name="__line85"></a>	l2_ = -1*!length2_;
+<a name="__line86"></a>	set_t_();
+<a name="__line87"></a>    }
+<a name="__line88"></a>    arrowhead::filled::filled(const length &amp;l, double a, const length &amp;l2)
+<a name="__line89"></a>    {
+<a name="__line90"></a>	length_ = l;
+<a name="__line91"></a>	if(l2.initialized())
+<a name="__line92"></a>	{
+<a name="__line93"></a>	    length2_ = l2;
+<a name="__line94"></a>	    l1_eq_l2_ = false;
+<a name="__line95"></a>	}
+<a name="__line96"></a>	else
+<a name="__line97"></a>	{
+<a name="__line98"></a>	    length2_ = !length_;
+<a name="__line99"></a>	    l1_eq_l2_ = true;
+<a name="__line100"></a>	}
+<a name="__line101"></a>	angle_ = a;
+<a name="__line102"></a>	l_ = -1*!length_;
+<a name="__line103"></a>	l2_ = -1*!length2_;
+<a name="__line104"></a>	set_t_();
+<a name="__line105"></a>    }
+<a name="__line106"></a>    arrowhead::filled::filled(const arrowhead::filled &amp;o)
+<a name="__line107"></a>    {
+<a name="__line108"></a>	length_ = o.length_;
+<a name="__line109"></a>	l1_eq_l2_ = o.l1_eq_l2_;
+<a name="__line110"></a>	if(o.l1_eq_l2_) length2_ = !length_;
+<a name="__line111"></a>	else length2_ = o.length2_;
+<a name="__line112"></a>	angle_ = o.angle_;
+<a name="__line113"></a>	l_ = -1*!length_;
+<a name="__line114"></a>	l2_ = -1*!length2_;
+<a name="__line115"></a>	set_t_();
+<a name="__line116"></a>    }
+<a name="__line117"></a>    arrowhead *arrowhead::filled::clone() const
+<a name="__line118"></a>    {
+<a name="__line119"></a>	return new arrowhead::filled(*this);
+<a name="__line120"></a>    }
+<a name="__line121"></a>
+<a name="__line122"></a>    arrowhead::filled &amp;arrowhead::filled::size(const length &amp;l)
+<a name="__line123"></a>    {
+<a name="__line124"></a>	length_ = l;
+<a name="__line125"></a>	set_t_();
+<a name="__line126"></a>	return *this;
+<a name="__line127"></a>    }
+<a name="__line128"></a>    const length &amp;arrowhead::filled::size() const
+<a name="__line129"></a>    {
+<a name="__line130"></a>	return length_;
+<a name="__line131"></a>    }
+<a name="__line132"></a>
+<a name="__line133"></a>    arrowhead::filled &amp;arrowhead::filled::size2(const length &amp;l)
+<a name="__line134"></a>    {
+<a name="__line135"></a>	length2_ = l;
+<a name="__line136"></a>	l1_eq_l2_ = false;
+<a name="__line137"></a>	return *this;
+<a name="__line138"></a>    }
+<a name="__line139"></a>    const length &amp;arrowhead::filled::size2() const
+<a name="__line140"></a>    {
+<a name="__line141"></a>	return length2_;
+<a name="__line142"></a>    }
+<a name="__line143"></a>
+<a name="__line144"></a>    arrowhead::filled &amp;arrowhead::filled::angle(double a)
+<a name="__line145"></a>    {
+<a name="__line146"></a>	angle_ = a;
+<a name="__line147"></a>	set_t_();
+<a name="__line148"></a>	return *this;
+<a name="__line149"></a>    }
+<a name="__line150"></a>    double arrowhead::filled::angle() const
+<a name="__line151"></a>    {
+<a name="__line152"></a>	return angle_;
+<a name="__line153"></a>    }
+<a name="__line154"></a>
+<a name="__line155"></a>    void arrowhead::filled::prepare_for_draw()
+<a name="__line156"></a>    {
+<a name="__line157"></a>	l_.register_me();
+<a name="__line158"></a>	l2_.register_me();
+<a name="__line159"></a>	t1_.register_me();
+<a name="__line160"></a>	t2_.register_me();
+<a name="__line161"></a>    }
+<a name="__line162"></a>
+<a name="__line163"></a>    void arrowhead::filled::print(terminal *t)
+<a name="__line164"></a>    {
+<a name="__line165"></a>	t-&gt;open_layer(layer_);
+<a name="__line166"></a>	vector&lt;terminal::coord&gt; c;
+<a name="__line167"></a>	c.push_back(terminal::coord(l2_.termspecific_id(),terminal::id(0.0,2)));
+<a name="__line168"></a>	c.push_back(terminal::coord(l_.termspecific_id(),t1_.termspecific_id()));
+<a name="__line169"></a>	c.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line170"></a>	c.push_back(terminal::coord(l_.termspecific_id(),t2_.termspecific_id()));
+<a name="__line171"></a>	c.push_back(terminal::coord(l2_.termspecific_id(),terminal::id(0.0,2)));
+<a name="__line172"></a>	t-&gt;fill_polygon(c);
+<a name="__line173"></a>	t-&gt;close_layer(layer_);
+<a name="__line174"></a>    }
+<a name="__line175"></a>
+<a name="__line176"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

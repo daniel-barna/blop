@@ -1,0 +1,492 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Histograming</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="warning.html">
+   <link rel="Next" href="kinematics.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="warning.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: warning.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="kinematics.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: kinematics.html">
+    </a> <br>
+
+<center class=title><b>
+Histograming
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<pre>
+// Declaring 1-dimensional histograms (last three arguments can be omitted):
+hist h1(-10.0, 10.0, 20, "X axis", "Entries/Bincell", "Histogram title");
+hist h2(-10.0, 10.0, 20, "X axis", "Entries/Bincell", "Histogram title");
+
+// Filling the histograms:
+for ( int i=0 ; i&lt;100000 ; ++i )
+{
+    h1.fill(some_random_number);
+    h2.fill(some_random_number);
+}
+
+// Write the histograms into file/pipe:
+hist::write_many("filename.1.2.dat")&lt;&lt;h1&lt;&lt;h2;
+
+// Plot the histograms:
+plot(h1);
+mplot(h2);
+
+// histogram+plot a data file
+// 1. histogram all data from the file (all columns, all lines, etc)
+hisplot("filename.dat");
+// 2. histogram the 2nd column (create a 1D histogram)
+hisplot("filename.dat",_2);
+// 3. histogram the 1st and 2nd column (create a 2D histogram)
+hisplot("filename.dat",_1,_2);
+// the 'mhisplot' versions of these functions do not erase the frame content before plotting,
+// i.e. they create multiple plots....
+</pre>
+
+</div>
+
+<hr>
+
+
+<div class=description>
+
+<ul>
+<li><a href="#meas">     The class <tt>meas</tt> for error propagation</a>
+<li><a href="#histopt">  Specifying histograming options</a>
+<li><a href="#fill">     Filling histograms</a>
+<li><a href="#hist_op">  Various operations with histograms</a>
+<li><a href="#mergeopt"> Specifying bin merging schemes</a>
+<li><a href="#kill">     Killing certain points</a>
+<li><a href="#plot">     Plotting/fitting histograms</a>
+<li><a href="#write">    Writing histograms into file/pipe</a>
+<li><a href="#read">     Reading histograms from file/pipe</a>
+<li><a href="#qplot">    Quick plot facility</a>
+</ul>
+
+
+<p><div class=sectiontitle><a name="meas">The class <tt>meas</tt> for error propagation</a></div>
+
+<p>The class <tt>meas</tt> was written to store a single measurement value and 
+its error. Various operations are defined on them (e.g. addition, 
+arythmetic operations and functions etc.), which all know the error propagation 
+(see e.g.: G.F. Knoll: Radiation Detection and Measurement, or P.R. Bevington: 
+Data Reduction and Error Analysis for the Physical Sciences). 
+This class also can be used in itself as a useful error propagation calculator, 
+but basically it was written to 
+handle the binwise error propagations during histogram operations. Namely, 
+a histogram is an array of <tt>meas</tt> variables, with some extra structures. 
+One may look at the self-explanatory header file <a href="meas.h.html">meas.h</a> 
+for further reference.
+
+<pre> 
+// One can initialize a meas by its value and error:
+meas m1(2.0, 1.0), m2;
+// One can access the value data field:
+m2.v=3.0;
+// One can access the error data field:
+m2.e=1.5;
+// One can perform arithmetical operations:
+cerr&lt;&lt;m1+m2&lt;&lt;endl;
+// One can apply blop functions:
+cerr&lt;&lt;apply(pow(_1, 2), m1)&lt;&lt;endl;
+</pre>
+
+
+<p><div class=sectiontitle><a name="histopt">Specifying histograming options</a></div>
+
+<p>Histograms can be constructed (or reinitialized by the 
+<tt>reinit</tt> member functions) with various options. The class 
+<tt>histopt</tt> is responsible for this. With various member functions, 
+a default-constructed <tt>histopt()</tt> object can be modified, 
+ which    follows   the   main    guidline   of   <a
+href="design-concepts.html#optclass"> option  classes</a>. There are also 
+special constructors (and <tt>reinit</tt> member functions) for the 
+1, 2 and 3 dimensional case to save typing.
+
+<pre> 
+// Declaring 1-dimensional histograms (last three arguments can be omitted):
+hist h1(-10.0, 10.0, 20, "Random variable", "Entries/Bincell", "Histogram title");
+hist h2(-10.0, 10.0, 20, "Random variable", "Entries/Bincell", "Histogram title");
+
+// Declaring 2-dimensional histograms (last two arguments can be omitted):
+hist h3(-10.0, 10.0, 20, "Random variable 1", -10.0, 10.0, 20, "Random variable 2", 
+		"Entries/Bincell", "Histogram title");
+hist h4(-10.0, 10.0, 20, "Random variable 1", -10.0, 10.0, 20, "Random variable 2", 
+		"Entries/Bincell", "Histogram title");
+
+// Declaring 3-dimensional histograms (last two arguments can be omitted):
+hist h5(-10.0, 10.0, 20, "Random variable 1", -10.0, 10.0, 20, "Random variable 2", 
+		-10.0, 10.0, 20, "Random variable 3", "Entries/Bincell", "Histogram title");
+hist h6(-10.0, 10.0, 20, "Random variable 1", -10.0, 10.0, 20, "Random variable 2", 
+		-10.0, 10.0, 20, "Random variable 3", "Entries/Bincell", "Histogram title");
+
+// Declaring arbitrary-dimensional histograms:
+hist h7(histopt().min(1,-10.0).max(1,10.0).bins(1,20).axistitle(1,"Random variable 1").
+		...
+		.rangetitle("Entries/Bincell").legend("Histogram title"));
+hist h8(histopt().min(1,-10.0).max(1,10.0).binsize(1,0.1).axistitle(1,"Random variable 1").
+		...
+		.rangetitle("Entries/Bincell").legend("Histogram title"));
+hist h9(histopt().min(1,-10.0).binsize(1,0.1).bins(1,20).axistitle(1,"Random variable 1").
+		...
+		.rangetitle("Entries/Bincell").legend("Histogram title"));
+hist h10(histopt().binsize(1,0.1).max(1,10.0).bins(1,20).axistitle(1,"Random variable 1").
+		...
+		.rangetitle("Entries/Bincell").legend("Histogram title"));
+// etc. etc.
+
+// (There are also .reinit(...) functions of the same scheme as above.)
+</pre>
+
+
+<p><div class=sectiontitle><a  name="fill">Filling histograms</a></div>
+
+<p>One can add entries to histograms by the <tt>fill</tt> member functions. 
+These read 1, 2, or 3 double or <a href="var.html">var</a> type variables 
+(as point coordinates), plus (if specified) an extra double (or var), 
+being the weight of the entry (the weight is 1, if unspecified).
+
+<p>The <tt>fill</tt> also can read a <tt>hist::point</tt> type variable (a 
+geometric point), because this is the way how a geometric point is 
+communicated to the histograms in general (this can be useful, when the dimension of 
+the histogram is not 1, 2 or 3, but a general one). One can also use the 
+type <tt>datapoint</tt> for this purpose. Additionally, it also can be passed an extra 
+double (or var) as a weight.
+
+<pre> 
+// Filling histograms:
+for ( int i=0 ; i&lt;100000 ; ++i )
+{
+
+    // Let x, y, z be a double (or var) valued random variable.
+
+    // 1-dimensional histograms:
+    h1.fill(x);
+    // 1-dimensional histograms (with weight 2.0 for each entry):
+    h2.fill(x, 2.0);
+    // 2-dimensional histograms:
+    h3.fill(x, y);
+    // 2-dimensional histograms (with weight 'i' for each entry):
+    h4.fill(x, y, i);
+    // 3-dimensional histograms:
+    h6.fill(x, y, z);
+    // 3-dimensional histograms (with weight 3.0 for each entry):
+    h7.fill(x, y, z, 3.0);
+    // Arbitrary-dimensional histograms 
+    // (filling with hist::point or datapoint):
+    hist::point pos;
+    pos.push_back(x);
+	...
+    pos.push_back(z);
+    h7.fill(pos);
+    // Arbitrary-dimensional histograms (with weight 12.0 for each entry):
+    h8.fill(pos, 12.0);
+}
+</pre>
+
+<p>One can also spare a lot of typing if the data are accessed 
+from a file/pipe or a <tt>dgraph</tt>. Then, there exists a 
+<tt>fill_from</tt> member function, which fills the histogram from either 
+of these sources. E.g.:
+
+<pre> 
+h.fill_from("scatter-data.dat", histopt().x(_1));
+</pre>
+
+The member function <tt>x</tt> of <tt>histopt</tt> class specifies 
+the filtering function, and <tt>y</tt> specifies the weight (constant 1 if 
+unspecified). Point acceptation conditions can also be specified by 
+<tt>x_condition</tt>, <tt>y_condition</tt>, or <tt>condition</tt> 
+functions.
+
+<p>If a histogram declaration and filling from file/pipe or from 
+<tt>dgraph</tt> is required at the same 
+time, the <tt>mkhist</tt> static functions can be used.
+
+<pre> 
+hist &h=mkhist("scatter-data.dat", histopt().min(1,-10.0).max(1,10.0).bins(1,20)
+	.axistitle(1,"Random variable").rangetitle("Entries/Bincell").legend("A histo").x(_1));
+</pre>
+
+<p>The <tt>histplot</tt> (or <tt>mhistplot</tt>) static function is the same, 
+however it also puts the histogram int current frame, i.e. plots it immediately. 
+The histograms are automatically deleted in this case, ater the histogram 
+is cleared from the current frame.
+
+<pre> 
+histplot("scatter-data.dat", histopt().min(1,-10.0).max(1,10.0).bins(1,20)
+	.axistitle(1,"Random variable").rangetitle("Entries/Bincell").legend("A histo").x(_1));
+</pre>
+
+When an entry is added to a histogram, the errors are calculated by the 
+hypothesis that the entries follow Poisson distribution (i.e. the error 
+of the entries is the square root of entries). In the case of the 
+weighted entries, these Poissonian errors are multiplied by the weight.
+
+
+<p><div class=sectiontitle><a name="hist_op">Various operations with histograms</a></div>
+
+<p> Numerous operations can be done with histograms 
+(algebraic operations, like addition etc., arithmetic functions etc., projection, slicing, integration etc.). 
+These all know the error propagation. Please have a look at the <a href="hist.h.html">hist.h</a> header file 
+for further reference. These are too numerous to be documented here, and most 
+of these are rather self-explanatory. E.g.:
+
+<pre> 
+hist h1, h2, h3;
+// initialize them and fill them etc.:
+    ...
+// Add them:
+h3=h1+h2;
+// Assign the cosine of h3 to h1:
+h1=apply(cos(_1), h3);
+// Assign the of projection of h1 to h2:
+h2=h1.project_out(1);    // &lt;- Here the 1-st axis is integrated out.
+// Assign a slice of h1 to h3:
+h3=h1.slice(1, 0.1);    // &lt;- Here a '1-st coordinate==0.1' slice is taken.
+// Assign an other blop function of h1 to h3:
+h3=apply(pow(_1, 2), h1);
+// Transform h3 with a blop function:
+h3.transform(pow(_1, 2));
+// Interpolate the histogram h1 at the bin positions of h2, 
+// and assign it to h3:
+h3=h1.interpolate(h2);
+</pre>
+
+
+<p><div class=sectiontitle><a name="mergeopt">Specifying bin merging schemes</a></div>
+
+<p> Our histogram class is basically an array of <tt>meas</tt> datafields. 
+The class <tt>hist</tt> was designed in such a way, that it can handle 
+histograms of arbitrary dimension. The histogramig domain is a 
+multidimensional rectangle (a Descartes product), which is split up in each 
+direction into equidistant bincells (i.e. uniform binning is used; thus each 
+bincell is a small multidimensional rectangle). However, sometimes, this 
+scheme is not enough: sometimes in practice one faces the problem that the 
+number of entries in a particular histogram bincell (which is of interest, 
+for some reason) contains only low statistics. 
+Therefore, one would need somehow to merge this bincell 
+with some of the neighboring bincells, to increase the number of entries 
+(at the price of incresing the size of the bin). For this purpose, a bin 
+merging scheme is introduced: the bincells can be merged in a specified 
+multidimensional rectangular domain n[i]-fold in each direction 
+(where i=1..dimension, and n[i] denotes 
+here a nonnegative integer number). When n[i]==0 for a given direction i, 
+then the whole specified rectangular domain is merged into a single huge bin 
+in the i-th direction. Otherwise the bins are merged n[i]-fold in the 
+i-th direction. E.g.:
+
+<pre> 
+h.merge(mergeopt().side(min[1], max[1], n[1]).....side(min[dim], max[dim], n[dim]));
+</pre>
+
+In the above example, <tt>min[i], max[i]</tt> controlls the size of the 
+rectangular domain in the i-th direction, and <tt>n[i]</tt> is explained 
+above. Special versions were written of the member function <tt>merge</tt>, 
+to simplify the above syntax for 1, 2 or 3-dimensional histograms. The 
+option class <tt>mergeopt</tt> follows the general design concepts of <a
+href="design-concepts.html#optclass"> option  classes</a>.
+
+<pre> 
+// Merge some bins of a 1-dimensional histogram:
+h1.merge(0.0, 1.0, 2);    // &lt;- Merge every 2 bins between 0.0 and 1.0.
+h2.merge(0.0, 1.0, 2);    // &lt;- Merge every 2 bins between 0.0 and 1.0.
+// Merge some bins of a 2-dimensional histogram:
+h3.merge(0.0, 1.0, 2, -5.0, 5.0 5);    // &lt;- Merge every 2 bins between 0.0 and 1.0 in 1-st variable, 
+                                       //and every 5 between -5.0 and 5.0 in 2-nd variable.
+// Merge some bins of a 3-dimensional histogram:
+h5.merge(0.0, 1.0, 2, -5.0, 5.0, 5, -5.0, 5.0, 5);    // &lt;- Merge every 2 bins between 0.0 and 1.0 in 1-st variable, 
+                                                      // and every 5 between -5.0 and 5.0 in 2-nd variable, 
+                                                      // and the same for the 3-rd variable.
+// Merge some bins of a 3-dimensional histogram 
+// (the same for arbitrary dimensions):
+h7.merge(mergeopt().side(0.0, 1.0, 2).side(-5.0, 5.0, 5).side(-5.0, 5.0, 5));
+</pre>
+
+<p> As one can see, even after merging, the histograming domain is a 
+multidimensional rectangle (Descartes product), which is split up into 
+bins, which are smaller multidimensional rectangles (Descartes products). 
+Here, one has to be careful: if the merging scheme is general enough, 
+then the projection of histogram does not preserve this structure 
+in dimensions higher than 2. In this pathological case, the member function 
+<tt>project_out(int)</tt> detects this, returns a warning, and the corresponding 
+projected histogram is not prepared, as it cannot be administered by our 
+bin merging scheme.
+
+
+<p><div class=sectiontitle><a  name="kill">Killing certain points</a></div>
+
+<p> Sometimes it happens that e.g. certain bins are undesired on a plot, 
+e.g. because of too large errorbars etc. Therefore, a <tt>killpoint</tt> 
+member function was introduced, which sets the bin at the given position 
+to 'unset'. This function can read a <tt>hist::point</tt> variable (or <tt>datapoint</tt>), or 
+1, 2, or 3 double or var values in the case of 1, 2 or 3-dimensional histograms.
+
+<pre> 
+// Kill a particular bin (specified with the bin identifier number):
+h.killbin(11);
+// Kill a particular point of a 1-dimensional histogram (specified with coordinates):
+h1.killpoint(0.0);
+// Kill a particular point of a 2-dimensional histogram (specified with coordinates):
+h3.killpoint(0.0, 1.0);
+// Kill a particular point of a 3-dimensional histogram (specified with coordinates):
+h5.killpoint(0.0, 1.0, 2.0);
+// Kill a particular point of an arbitrary-dimensional histogram (specified with coordinates):
+hist::point pos;
+pos.push_back(1.0);
+...
+h7.killpoint(pos);
+</pre>
+
+
+<p><div class=sectiontitle><a   name="plot">Plotting/fitting histograms</a></div>
+
+<p> As the class <tt>hist</tt> is inherited from the class <a href="plottable.h">plottable</a>, 
+a histogram can be plotted or fitted as any <tt>plottable</tt>, as e.g. a 
+<tt>dgraph</tt>. E.g.:
+
+<pre> 
+// Plot:
+plot(h);
+// Fit:
+function f=PAR(1)*exp(-_1*_1);
+f.param(1, 100.0);
+fitresult r=fit&lt;poisson_chi2&gt;(h, f);
+</pre>
+
+
+<p><div class=sectiontitle><a  name="write">Writing histograms into file/pipe</a></div>
+
+<p> The member function <tt>write</tt> writes your histogram into a file/pipe. E.g.:
+
+<pre> 
+h.write("filename.dat");
+</pre>
+
+<p> To write many histograms in a file/pipe (with the same histograming domain and 
+bin merging scheme), the <tt>write_many</tt> class was implemented:
+
+<pre> 
+hist::write_many("filename.dat")&lt;&lt;h1&lt;&lt;h2;
+// Or:
+hist::write_many("filename.dat").put(h1).put(h2);
+</pre>
+
+
+<p><div class=sectiontitle><a  name="read">Reading histograms from file/pipe</a></div>
+
+<p> The member function <tt>read</tt> reads your histogram from a file/pipe. E.g.:
+
+<pre> 
+// Read the histogram from file/pipe (the first one, if more histograms are in file):
+h.read("filename.dat");
+// Read the 2-nd histogram from file/pipe:
+h.read("filename.dat", 2);
+</pre>
+
+<p> To read many histograms from a file/pipe, the <tt>read_many</tt> class was implemented:
+
+<pre> 
+// Read the histograms from file/pipe in order:
+hist::read_many("filename.dat")&gt;&gt;h1&gt;&gt;h2;
+// Read particular histograms from file/pipe:
+hist::read_many("filename.dat")&gt;&gt;h1&gt;&gt;2&gt;&gt;h2&gt;&gt;1;    // &lt;- Read the 2-nd into h1, the 1-st into h2.
+// Or:
+hist::read_many("filename.dat").get(h1, 2).get(h2, 1);    // &lt;- Read the 2-nd into h1, the 1-st into h2.
+// Print the dimension of histograms in file/pipe:
+cerr&lt;&lt;hist::read_many::dim("filename.dat")&lt;&lt;endl;
+// Print the number of histograms stored in file/pipe:
+cerr&lt;&lt;hist::read_many::numhists("filename.dat")&lt;&lt;endl;
+</pre>
+
+
+<p><div class=sectiontitle><a name="qplot">Quick plot facility</a></div>
+
+<p> Did you ever face the problem that you have to explore some 
+close-to-unknown dataset, thus you have to administer plenty of (e.g. 50)
+histograms? If you have to solve such a problem of producing quickly 
+simple, technical-like plots of many-many histograms (and possibly also 
+functions), then the tool <tt>qplot</tt> is for you! It is a class, which 
+imitates the scheme of <tt>write_many</tt>. It has many modifier functions, 
+however. The intention was to provide a very short syntax. E.g.:
+
+<pre> 
+// Plot two histograms h1 and h2, and a function f with label "Gaussian model":
+hist::qplot("filename.beps").title("Global title").min(1, 2.0).log(1, true).rangemin(1.0)
+                                                  .rangelog(true)&lt;&lt;h1&lt;&lt;h2&lt;&lt;f&lt;&lt;(const var)"Gaussian model";
+</pre>
+
+With this, one can plot 1 dimensional histograms (sxyerrorbars style), 
+1-dimensional functions (lines style), 2-dimensional histograms (scbox style), 
+2-dimensional functions (cbox style), 3-dimensional histograms (sliced to get 
+a sequence of 2-dimensional histograms, these are plotted with scbox), 
+3-dimensional functions (sliced to get 
+a sequence of 2-dimensional functions, these are plotted with cbox).
+
+<p> There also exists a double-plot mode, with which one can compare the followings: 
+two 2-dimensional histograms, a 2-dimensional histogram and a 2-dimensional function, 
+two 2-dimensional functions, furthermore the same for 3-dimensions (in this case, 
+the histograms or functions are sliced to get 2-dimensional objects). The first 
+one is plotted by color map (cbox or scbox), the second one is plotted by isolines on top of it. 
+I developed this tool to be able to show the 3-dimesional momentum spectrum of particles 
+in experiment NA49, where the number of potential track points left in the detector 
+for the given momentum values were plotted on top of this with isolines. I found it 
+so useful that I implemented it also in BLOP. E.g.:
+
+<pre> 
+// Plot the histogram h (the spectrum in question) and the histogram potpoints 
+// (the potential track points) on top of it, with isolines:
+hist::qplot("filename.beps", h, potpoints).title("Global title").rangelog(true);
+</pre>
+
+<p> Qplot can be initialized by a <tt>mpps</tt> terminal, a filename for a 
+<tt>blopeps</tt> file (as in the above example), or with no terminal specified 
+(in this case the figure will be printed onto <tt>x11_ps</tt> terminal).
+
+
+
+
+</div>
+<hr>
+
+<pre class=implementation>
+Sources:
+   <a href="meas.h.html">meas.h</a>
+   <a href="hist.h.html">hist.h</a>
+   <a href="meas.cc.html">meas.cc</a>
+   <a href="hist.cc.html">hist.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="warning.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: warning.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="kinematics.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: kinematics.html">
+    </a> 
+
+</body>
+</html>

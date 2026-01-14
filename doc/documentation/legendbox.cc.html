@@ -1,0 +1,603 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: legendbox.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include &lt;algorithm&gt;
+<a name="__line1"></a>#include &lt;typeinfo&gt;
+<a name="__line2"></a>#include &lt;sstream&gt;
+<a name="__line3"></a>#include "<a href="legendbox.h.html">legendbox.h</a>"
+<a name="__line4"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line5"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line6"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    length legendbox::default_borderwidth_(new length::base_id_t(terminal::LW));
+<a name="__line11"></a>    void legendbox::default_borderwidth(const length &amp;l) { default_borderwidth_ = l; }
+<a name="__line12"></a>    bool legendbox::default_multi_ = false;
+<a name="__line13"></a>    void legendbox::default_multi(bool f) { default_multi_ = f; }
+<a name="__line14"></a>    color legendbox::default_bordercolor_(0,0,0);
+<a name="__line15"></a>    void legendbox::default_bordercolor(const color &amp;c) { default_bordercolor_ = c; }
+<a name="__line16"></a>    color legendbox::default_fillcolor_(1,1,1);
+<a name="__line17"></a>    void legendbox::default_fillcolor(const color &amp;c) { default_fillcolor_ = c; }
+<a name="__line18"></a>    bool legendbox::default_draw_border_ = true;
+<a name="__line19"></a>    void legendbox::default_draw_border(bool f) { default_draw_border_ = f; }
+<a name="__line20"></a>    bool legendbox::default_fill_ = true;
+<a name="__line21"></a>    void legendbox::default_fill(bool f) { default_fill_ = f; }
+<a name="__line22"></a>    length legendbox::default_bordersep_(new length::base_id_t(terminal::MM));
+<a name="__line23"></a>    void legendbox::default_bordersep(const length &amp;l) { default_bordersep_ = l; }
+<a name="__line24"></a>    length legendbox::default_legend_sample_sep_ = lincombi(2,terminal::MM);
+<a name="__line25"></a>    void legendbox::default_legend_sample_sep(const length &amp;l) { default_legend_sample_sep_ = l; }
+<a name="__line26"></a>    length legendbox::default_sample_sample_sep_(new length::base_id_t(terminal::MM));
+<a name="__line27"></a>    void legendbox::default_sample_sample_sep(const length &amp;l) { default_sample_sample_sep_ = l; }
+<a name="__line28"></a>    length legendbox::default_sample_length_ = lincombi(4,terminal::MM);
+<a name="__line29"></a>    void legendbox::default_samplen( const length &amp;l ) { default_sample_length_ = l; }
+<a name="__line30"></a>    length legendbox::default_row_sep_(new length::base_id_t(terminal::EX));
+<a name="__line31"></a>    void legendbox::default_row_sep(const length &amp;l) { default_row_sep_ = l; }
+<a name="__line32"></a>
+<a name="__line33"></a>    legendbox &amp;legendbox::mknew(container &amp;parent)
+<a name="__line34"></a>    {
+<a name="__line35"></a>	legendbox *l = new legendbox;
+<a name="__line36"></a>	l-&gt;autodel(true);
+<a name="__line37"></a>	parent.add(l);
+<a name="__line38"></a>	return *l;
+<a name="__line39"></a>    }
+<a name="__line40"></a>
+<a name="__line41"></a>    void legendbox::print(terminal *term)
+<a name="__line42"></a>    {
+<a name="__line43"></a>	if(print_me_ &lt; 2) return;
+<a name="__line44"></a>	if(entries_.empty()) return;
+<a name="__line45"></a>
+<a name="__line46"></a>	{
+<a name="__line47"></a>	    bool something = false;
+<a name="__line48"></a>	    for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line49"></a>	    {
+<a name="__line50"></a>                <span class=comment>// If it is just a label, or if it's a graph to be printed, set the flag</span>
+<a name="__line51"></a>		if(!skip_(entries_[i])) something = true;
+<a name="__line52"></a>	    }
+<a name="__line53"></a>	    <span class=comment>// if there is nothing to print, simply return</span>
+<a name="__line54"></a>	    if(!something) return;
+<a name="__line55"></a>	}
+<a name="__line56"></a>
+<a name="__line57"></a>	term-&gt;open_layer(layer_);
+<a name="__line58"></a>	{
+<a name="__line59"></a>	    vector&lt;terminal::coord&gt; cc;
+<a name="__line60"></a>
+<a name="__line61"></a>	    if(draw_border_ || fill_)
+<a name="__line62"></a>	    {
+<a name="__line63"></a>		cc.push_back(terminal::coord(left().termspecific_id(),
+<a name="__line64"></a>					     bottom().termspecific_id()));
+<a name="__line65"></a>		cc.push_back(terminal::coord(right().termspecific_id(),
+<a name="__line66"></a>					     bottom().termspecific_id()));
+<a name="__line67"></a>		cc.push_back(terminal::coord(right().termspecific_id(),
+<a name="__line68"></a>					     top().termspecific_id()));
+<a name="__line69"></a>		cc.push_back(terminal::coord(left().termspecific_id(),
+<a name="__line70"></a>					     top().termspecific_id()));
+<a name="__line71"></a>		cc.push_back(terminal::coord(left().termspecific_id(),
+<a name="__line72"></a>					     bottom().termspecific_id()));
+<a name="__line73"></a>	    }
+<a name="__line74"></a>
+<a name="__line75"></a>	    if(fill_)
+<a name="__line76"></a>	    {
+<a name="__line77"></a>		term-&gt;set_color(fillcolor_);
+<a name="__line78"></a>		term-&gt;fill_polygon(cc);
+<a name="__line79"></a>	    }
+<a name="__line80"></a>	    if(draw_border_)
+<a name="__line81"></a>	    {
+<a name="__line82"></a>		term-&gt;set_linewidth(borderwidth_.termspecific_id());
+<a name="__line83"></a>		term-&gt;set_linestyle(sym::solid);
+<a name="__line84"></a>		term-&gt;set_color(bordercolor_);
+<a name="__line85"></a>		term-&gt;draw_lines(cc);
+<a name="__line86"></a>	    }
+<a name="__line87"></a>	}
+<a name="__line88"></a>
+<a name="__line89"></a>        
+<a name="__line90"></a>
+<a name="__line91"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line92"></a>	{
+<a name="__line93"></a>	    if(skip_(entries_[i])) continue;
+<a name="__line94"></a>
+<a name="__line95"></a>            
+<a name="__line96"></a>            <span class=comment>// Print the label (text) only if this is the first occurence within a multi-legend row</span>
+<a name="__line97"></a>	    if(entries_[i]-&gt;multi_number == 1) entries_[i]-&gt;legend.print(term);
+<a name="__line98"></a>
+<a name="__line99"></a>	    if(entries_[i]-&gt;multi_number &gt;= 1 &amp;&amp; entries_[i]-&gt;gr)
+<a name="__line100"></a>	    {
+<a name="__line101"></a>		graph_drawer *d = entries_[i]-&gt;gr-&gt;drawstyle();
+<a name="__line102"></a>		d-&gt;draw_sample(entries_[i]-&gt;sample_x,
+<a name="__line103"></a>			       entries_[i]-&gt;sample_y,
+<a name="__line104"></a>			       sample_length_,
+<a name="__line105"></a>			       entries_[i]-&gt;gr,
+<a name="__line106"></a>			       term);
+<a name="__line107"></a>	    }
+<a name="__line108"></a>
+<a name="__line109"></a>	}
+<a name="__line110"></a>
+<a name="__line111"></a>
+<a name="__line112"></a>	term-&gt;close_layer(layer_);
+<a name="__line113"></a>
+<a name="__line114"></a>    }
+<a name="__line115"></a>
+<a name="__line116"></a>    void legendbox::prepare_for_draw()
+<a name="__line117"></a>    {
+<a name="__line118"></a>        update();
+<a name="__line119"></a>
+<a name="__line120"></a>	if(print_me_ &lt; 1) return;
+<a name="__line121"></a>	left().register_me();
+<a name="__line122"></a>	right().register_me();
+<a name="__line123"></a>	bottom().register_me();
+<a name="__line124"></a>	top().register_me();
+<a name="__line125"></a>	sample_length_.register_me();
+<a name="__line126"></a>
+<a name="__line127"></a>	if(draw_border_) borderwidth_.register_me();
+<a name="__line128"></a>
+<a name="__line129"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line130"></a>	{
+<a name="__line131"></a>	    if(skip_(entries_[i])) continue;
+<a name="__line132"></a>	    entries_[i]-&gt;legend.prepare_for_draw();
+<a name="__line133"></a>            if(entries_[i]-&gt;gr)
+<a name="__line134"></a>            {
+<a name="__line135"></a>                entries_[i]-&gt;sample_x.register_me();
+<a name="__line136"></a>                entries_[i]-&gt;sample_y.register_me();
+<a name="__line137"></a>            }
+<a name="__line138"></a>	}
+<a name="__line139"></a>    }
+<a name="__line140"></a>
+<a name="__line141"></a>    legendbox &amp;legendbox::multi(bool i)
+<a name="__line142"></a>    {
+<a name="__line143"></a>	multi_ = i;
+<a name="__line144"></a>	return *this; 
+<a name="__line145"></a>    }
+<a name="__line146"></a>
+<a name="__line147"></a>    legendbox  &amp;legendbox::add_line()
+<a name="__line148"></a>    {
+<a name="__line149"></a>        entry *e = new entry;
+<a name="__line150"></a>        e-&gt;line = true;
+<a name="__line151"></a>        e-&gt;gr = 0;
+<a name="__line152"></a>        e-&gt;multi_number = 1;
+<a name="__line153"></a>        entries_.push_back(e);
+<a name="__line154"></a>        return *this;
+<a name="__line155"></a>    }
+<a name="__line156"></a>
+<a name="__line157"></a>    label &amp;legendbox::add(const var &amp;t)
+<a name="__line158"></a>    {
+<a name="__line159"></a>        entry *e = new entry;
+<a name="__line160"></a>        e-&gt;line = false;
+<a name="__line161"></a>        e-&gt;gr = 0;
+<a name="__line162"></a>        e-&gt;legend.text(t);
+<a name="__line163"></a>        e-&gt;multi_number = 1;
+<a name="__line164"></a>        entries_.push_back(e);
+<a name="__line165"></a>        return e-&gt;legend;
+<a name="__line166"></a>    }
+<a name="__line167"></a>
+<a name="__line168"></a>    void legendbox::add(blop::plottable *g)
+<a name="__line169"></a>    {
+<a name="__line170"></a>	entry *e = new entry;
+<a name="__line171"></a>        e-&gt;line = false;
+<a name="__line172"></a>	e-&gt;gr = g;
+<a name="__line173"></a>	e-&gt;multi_number = 1;
+<a name="__line174"></a>	entries_.push_back(e);
+<a name="__line175"></a>    }
+<a name="__line176"></a>
+<a name="__line177"></a>    bool legendbox::remove(blop::plottable *g)
+<a name="__line178"></a>    {
+<a name="__line179"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line180"></a>	{
+<a name="__line181"></a>	    if(entries_[i]-&gt;gr == g)
+<a name="__line182"></a>	    {
+<a name="__line183"></a>		delete entries_[i];
+<a name="__line184"></a>		entries_.erase(entries_.begin() + i);
+<a name="__line185"></a>		return true;
+<a name="__line186"></a>	    }
+<a name="__line187"></a>	}
+<a name="__line188"></a>	return false;
+<a name="__line189"></a>    }
+<a name="__line190"></a>
+<a name="__line191"></a>    void legendbox::clear()
+<a name="__line192"></a>    {
+<a name="__line193"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line194"></a>	{
+<a name="__line195"></a>	    delete entries_[i];
+<a name="__line196"></a>	}
+<a name="__line197"></a>	entries_.clear();
+<a name="__line198"></a>    }
+<a name="__line199"></a>
+<a name="__line200"></a><span class=comment>/*
+<a name="__line201"></a>    bool legendbox::skip_(plottable *g)
+<a name="__line202"></a>    {
+<a name="__line203"></a>	if(g == 0) return true;
+<a name="__line204"></a>	graph_drawer *d = g-&gt;drawstyle();
+<a name="__line205"></a>	if(d == 0 || !d-&gt;draws_sample()) return true;
+<a name="__line206"></a>	if(g-&gt;legend().str() == "") return true;
+<a name="__line207"></a>	return false;
+<a name="__line208"></a>    }
+<a name="__line209"></a>*/</span>
+<a name="__line210"></a>
+<a name="__line211"></a>    bool legendbox::skip_(legendbox::entry *e)
+<a name="__line212"></a>    {
+<a name="__line213"></a>        <span class=comment>// never skip simple text entries (i.e. no graph)</span>
+<a name="__line214"></a>        if(e-&gt;gr == 0) return false;
+<a name="__line215"></a>
+<a name="__line216"></a>        plottable *g = e-&gt;gr;
+<a name="__line217"></a>	graph_drawer *d = g-&gt;drawstyle();
+<a name="__line218"></a>	if(d == 0 || !d-&gt;draws_sample()) return true;
+<a name="__line219"></a>	if(g-&gt;legend().str() == "") return true;
+<a name="__line220"></a>	return false;
+<a name="__line221"></a>    }
+<a name="__line222"></a>
+<a name="__line223"></a>    void legendbox::update()
+<a name="__line224"></a>    {
+<a name="__line225"></a>	vector&lt;var&gt; different_labels;
+<a name="__line226"></a>
+<a name="__line227"></a>	<span class=comment>// collect those which should be printed</span>
+<a name="__line228"></a>	vector&lt;legendbox::entry*&gt; entries;
+<a name="__line229"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
+<a name="__line230"></a>	{
+<a name="__line231"></a>	    if(!skip_(entries_[i])) entries.push_back(entries_[i]);
+<a name="__line232"></a>	}
+<a name="__line233"></a>
+<a name="__line234"></a>	max_multisample_ = 1;
+<a name="__line235"></a>	for(unsigned int i=0; i&lt;entries.size(); ++i)
+<a name="__line236"></a>	{
+<a name="__line237"></a>	    int prev = -1;
+<a name="__line238"></a>	    if(multi_ &amp;&amp; entries[i]-&gt;gr)
+<a name="__line239"></a>	    {
+<a name="__line240"></a>                
+<a name="__line241"></a>		<span class=comment>// check if the legend of the ith graph coincides with any</span>
+<a name="__line242"></a>		<span class=comment>// of the preceding graphs' legends</span>
+<a name="__line243"></a>		for(unsigned int j=0; j&lt;i; ++j)
+<a name="__line244"></a>		{
+<a name="__line245"></a>
+<a name="__line246"></a>                    <span class=comment>// Only check those which have a graph.</span>
+<a name="__line247"></a>                    if(entries[j]-&gt;gr == 0) continue;
+<a name="__line248"></a>                    
+<a name="__line249"></a>		    if(entries[i]-&gt;gr-&gt;legend().str() ==
+<a name="__line250"></a>		       entries[j]-&gt;gr-&gt;legend().str())
+<a name="__line251"></a>		    {
+<a name="__line252"></a>			if(prev &lt; 0) prev = j;
+<a name="__line253"></a>
+<a name="__line254"></a>			plottable *g1 = entries[i]-&gt;gr;
+<a name="__line255"></a>			plottable *g2 = entries[j]-&gt;gr;
+<a name="__line256"></a>			    
+<a name="__line257"></a>			string p1, p2, l1, l2;
+<a name="__line258"></a>			{
+<a name="__line259"></a>			    ostringstream ost;
+<a name="__line260"></a>			    ost&lt;&lt;g1-&gt;pointsize();
+<a name="__line261"></a>			    p1 = ost.str();
+<a name="__line262"></a>			}
+<a name="__line263"></a>			{
+<a name="__line264"></a>			    ostringstream ost;
+<a name="__line265"></a>			    ost&lt;&lt;g2-&gt;pointsize();
+<a name="__line266"></a>			    p2 = ost.str();
+<a name="__line267"></a>			}
+<a name="__line268"></a>			{
+<a name="__line269"></a>			    ostringstream ost;
+<a name="__line270"></a>			    ost&lt;&lt;g1-&gt;linewidth();
+<a name="__line271"></a>			    l1 = ost.str();
+<a name="__line272"></a>			}
+<a name="__line273"></a>			{
+<a name="__line274"></a>			    ostringstream ost;
+<a name="__line275"></a>			    ost&lt;&lt;g2-&gt;linewidth();
+<a name="__line276"></a>			    l2 = ost.str();
+<a name="__line277"></a>			}
+<a name="__line278"></a>
+<a name="__line279"></a>			if(typeid(*(g1-&gt;drawstyle())) == typeid(*(g2-&gt;drawstyle())) &amp;&amp;
+<a name="__line280"></a>			   g1-&gt;fill()      == g2-&gt;fill()      &amp;&amp;
+<a name="__line281"></a>			   (!g1-&gt;fill() || (g1-&gt;fillcolor() == g2-&gt;fillcolor())) &amp;&amp;
+<a name="__line282"></a>			   (!g1-&gt;drawstyle()-&gt;uses_linecolor() || (g1-&gt;linecolor() == g2-&gt;linecolor())) &amp;&amp;
+<a name="__line283"></a>			   (!g1-&gt;drawstyle()-&gt;uses_linestyle() || (g1-&gt;linestyle() == g2-&gt;linestyle())) &amp;&amp;
+<a name="__line284"></a>                           (!g1-&gt;drawstyle()-&gt;uses_linewidth() || (l1 == l2)) &amp;&amp; 
+<a name="__line285"></a>			   (!g1-&gt;drawstyle()-&gt;draws_points() || equals(g1-&gt;pointtype(), g2-&gt;pointtype())) &amp;&amp;
+<a name="__line286"></a>			   (!g1-&gt;drawstyle()-&gt;uses_pointcolor() || (g1-&gt;pointcolor() == g2-&gt;pointcolor()))  &amp;&amp;
+<a name="__line287"></a>			   (!g1-&gt;drawstyle()-&gt;uses_pointsize() || (p1 == p2)))
+<a name="__line288"></a>			{
+<a name="__line289"></a>			    entries[i]-&gt;multi_number = 0;
+<a name="__line290"></a>			}
+<a name="__line291"></a>			else
+<a name="__line292"></a>                        {
+<a name="__line293"></a>                            entries[i]-&gt;multi_number = entries[j]-&gt;multi_number+1;
+<a name="__line294"></a>                        }
+<a name="__line295"></a>		    }
+<a name="__line296"></a>		}
+<a name="__line297"></a>	    }
+<a name="__line298"></a>
+<a name="__line299"></a>	    if(entries[i]-&gt;multi_number &gt; max_multisample_)
+<a name="__line300"></a>		max_multisample_ = entries[i]-&gt;multi_number;
+<a name="__line301"></a>
+<a name="__line302"></a>            if(entries[i]-&gt;gr)
+<a name="__line303"></a>            {
+<a name="__line304"></a>                entries[i]-&gt;legend.text(entries[i]-&gt;gr-&gt;legend());
+<a name="__line305"></a>                entries[i]-&gt;legend.textcolor(entries[i]-&gt;gr-&gt;legendcolor());
+<a name="__line306"></a>
+<a name="__line307"></a>                entries[i]-&gt;sample_y = !entries[i]-&gt;legend.bottom() + 0.5 * !entries[i]-&gt;legend.height();
+<a name="__line308"></a>                entries[i]-&gt;sample_x = !legend_xpos_ + !legend_sample_sep_ +
+<a name="__line309"></a>                    (entries[i]-&gt;multi_number - 1) * !sample_sample_sep_ +
+<a name="__line310"></a>                    (entries[i]-&gt;multi_number - 1 + 0.5) * !sample_length_;
+<a name="__line311"></a>            }
+<a name="__line312"></a>
+<a name="__line313"></a>            <span class=comment>// Now set the multi_number of the legend titles (or labels)</span>
+<a name="__line314"></a>	    if(prev &lt; 0) <span class=comment>// does not match any previous entry, or it is a standalone label without a graph</span>
+<a name="__line315"></a>	    {
+<a name="__line316"></a>                if(entries[i]-&gt;gr) different_labels.push_back(entries[i]-&gt;gr-&gt;legend());
+<a name="__line317"></a>                else different_labels.push_back(entries[i]-&gt;legend.text());
+<a name="__line318"></a>                
+<a name="__line319"></a>		entries[i]-&gt;legend.x(!legend_xpos_,sym::right);
+<a name="__line320"></a>		if(i == 0)
+<a name="__line321"></a>		{
+<a name="__line322"></a>		    if(draw_border_) entries[i]-&gt;legend.y(!top() - !bordersep_,sym::top);
+<a name="__line323"></a>		    else entries[i]-&gt;legend.y(!top(),sym::top);
+<a name="__line324"></a>		}
+<a name="__line325"></a>		else
+<a name="__line326"></a>		{
+<a name="__line327"></a>		    entries[i]-&gt;legend.y(!entries[i-1]-&gt;legend.bottom() - !row_sep_, sym::top);
+<a name="__line328"></a>		}
+<a name="__line329"></a>	    }
+<a name="__line330"></a>            <span class=comment>// Otherwise, if this entry matches a previous one, we will in fact not print the label (only the first</span>
+<a name="__line331"></a>            <span class=comment>// occurence), but the legend needs to be updated, since following labels will rely on this label's</span>
+<a name="__line332"></a>            <span class=comment>// position</span>
+<a name="__line333"></a>	    else 
+<a name="__line334"></a>	    {
+<a name="__line335"></a>		entries[i]-&gt;legend = entries[prev]-&gt;legend;
+<a name="__line336"></a>	    }   
+<a name="__line337"></a>	}
+<a name="__line338"></a>
+<a name="__line339"></a>	if(different_labels.empty()) return;
+<a name="__line340"></a>
+<a name="__line341"></a>	max_legendwidth_ = maxwidth(different_labels);
+<a name="__line342"></a>	if(draw_border_)
+<a name="__line343"></a>	{
+<a name="__line344"></a>	    legend_xpos_ = !left() + !bordersep_ + !max_legendwidth_;
+<a name="__line345"></a>	    calculated_width_ =
+<a name="__line346"></a>		!max_legendwidth_ +
+<a name="__line347"></a>		2*!bordersep_ +
+<a name="__line348"></a>		!legend_sample_sep_ +
+<a name="__line349"></a>		max_multisample_*!sample_length_ +
+<a name="__line350"></a>		(max_multisample_ - 1) * !sample_sample_sep_;
+<a name="__line351"></a>	    calculated_height_ = 2*!bordersep_ + (different_labels.size() - 1) * !row_sep_;
+<a name="__line352"></a>	}
+<a name="__line353"></a>	else
+<a name="__line354"></a>	{
+<a name="__line355"></a>	    legend_xpos_ = !left() + !max_legendwidth_;
+<a name="__line356"></a>	    calculated_width_ =
+<a name="__line357"></a>		!max_legendwidth_ +
+<a name="__line358"></a>		!legend_sample_sep_ +
+<a name="__line359"></a>		max_multisample_*!sample_length_ +
+<a name="__line360"></a>		(max_multisample_ - 1) * !sample_sample_sep_;
+<a name="__line361"></a>	    calculated_height_ = (different_labels.size() - 1) * !row_sep_;
+<a name="__line362"></a>	}
+<a name="__line363"></a>
+<a name="__line364"></a>	for(unsigned int i=0; i&lt;entries.size(); ++i)
+<a name="__line365"></a>	{
+<a name="__line366"></a>	    if(entries[i]-&gt;multi_number == 1)
+<a name="__line367"></a>		<span class=comment>//calculated_height_ += blop::height(entries[i]-&gt;gr-&gt;legend());</span>
+<a name="__line368"></a>		calculated_height_ += entries[i]-&gt;legend.height();
+<a name="__line369"></a>                
+<a name="__line370"></a>	}
+<a name="__line371"></a>
+<a name="__line372"></a>    }
+<a name="__line373"></a>
+<a name="__line374"></a>    legendbox &amp;legendbox::width(length len)
+<a name="__line375"></a>    {
+<a name="__line376"></a>	if(!len.initialized()) box::width(!calculated_width_);
+<a name="__line377"></a>	else box::width(len);
+<a name="__line378"></a>	return *this;
+<a name="__line379"></a>    }
+<a name="__line380"></a>
+<a name="__line381"></a>    legendbox &amp;legendbox::left(const length &amp;l)
+<a name="__line382"></a>    {
+<a name="__line383"></a>	box::left(l);
+<a name="__line384"></a>	return *this;
+<a name="__line385"></a>    }
+<a name="__line386"></a>    legendbox &amp;legendbox::right(const length &amp;l)
+<a name="__line387"></a>    {
+<a name="__line388"></a>	box::right(l);
+<a name="__line389"></a>	return *this;
+<a name="__line390"></a>    }
+<a name="__line391"></a>    legendbox &amp;legendbox::xcenter(const length &amp;l)
+<a name="__line392"></a>    {
+<a name="__line393"></a>	box::xcenter(l);
+<a name="__line394"></a>	return *this;
+<a name="__line395"></a>    }
+<a name="__line396"></a>    legendbox &amp;legendbox::bottom(const length &amp;l)
+<a name="__line397"></a>    {
+<a name="__line398"></a>	box::bottom(l);
+<a name="__line399"></a>	return *this;
+<a name="__line400"></a>    }
+<a name="__line401"></a>    legendbox &amp;legendbox::top(const length &amp;l)
+<a name="__line402"></a>    {
+<a name="__line403"></a>	box::top(l);
+<a name="__line404"></a>	return *this;
+<a name="__line405"></a>    }
+<a name="__line406"></a>    legendbox &amp;legendbox::ycenter(const length &amp;l)
+<a name="__line407"></a>    {
+<a name="__line408"></a>	box::ycenter(l);
+<a name="__line409"></a>	return *this;
+<a name="__line410"></a>    }
+<a name="__line411"></a>
+<a name="__line412"></a>
+<a name="__line413"></a>    legendbox &amp;legendbox::height(length len)
+<a name="__line414"></a>    {
+<a name="__line415"></a>	if(!len.initialized()) box::height(!calculated_height_);
+<a name="__line416"></a>	else box::height(len);
+<a name="__line417"></a>	return *this;
+<a name="__line418"></a>    }
+<a name="__line419"></a>
+<a name="__line420"></a>    legendbox &amp;legendbox::borderwidth(const length &amp;l)
+<a name="__line421"></a>    {
+<a name="__line422"></a>	borderwidth_ = l;
+<a name="__line423"></a>	return *this;
+<a name="__line424"></a>    }
+<a name="__line425"></a>
+<a name="__line426"></a>    const length &amp;legendbox::borderwidth() const
+<a name="__line427"></a>    {
+<a name="__line428"></a>	return borderwidth_;
+<a name="__line429"></a>    }
+<a name="__line430"></a>
+<a name="__line431"></a>
+<a name="__line432"></a>    legendbox::~legendbox()
+<a name="__line433"></a>    {
+<a name="__line434"></a>	std::vector&lt;blop::legendbox*&gt;::iterator i = find(all().begin(), all().end(), this);
+<a name="__line435"></a>	if(i == all().end())
+<a name="__line436"></a>	    err("Unregistered legendbox (programming error)");
+<a name="__line437"></a>	all().erase(i);
+<a name="__line438"></a>    }
+<a name="__line439"></a>
+<a name="__line440"></a>    legendbox::legendbox()
+<a name="__line441"></a>	: multi_(default_multi_), max_multisample_(0)
+<a name="__line442"></a>    {
+<a name="__line443"></a>	name("legendbox");
+<a name="__line444"></a>	layer("legend");
+<a name="__line445"></a>
+<a name="__line446"></a>	all().push_back(this);
+<a name="__line447"></a>
+<a name="__line448"></a>	box::width(!calculated_width_);
+<a name="__line449"></a>	box::height(!calculated_height_);
+<a name="__line450"></a>
+<a name="__line451"></a>	bordercolor_ = default_bordercolor_;
+<a name="__line452"></a>	fillcolor_ = default_fillcolor_;
+<a name="__line453"></a>
+<a name="__line454"></a>	draw_border_ = default_draw_border_;
+<a name="__line455"></a>	fill_ = default_fill_;
+<a name="__line456"></a>
+<a name="__line457"></a>	borderwidth_ = default_borderwidth_;
+<a name="__line458"></a>	legend_xpos_ = !left() + !bordersep_ + !max_legendwidth_;
+<a name="__line459"></a>	bordersep_ = default_bordersep_;
+<a name="__line460"></a>	legend_sample_sep_ = default_legend_sample_sep_;
+<a name="__line461"></a>	sample_sample_sep_ = default_sample_sample_sep_;
+<a name="__line462"></a>	sample_length_ = default_sample_length_;
+<a name="__line463"></a>	row_sep_ = default_row_sep_;
+<a name="__line464"></a>    }
+<a name="__line465"></a>
+<a name="__line466"></a>    legendbox &amp;legendbox::bordercolor(const color &amp;c)
+<a name="__line467"></a>    {
+<a name="__line468"></a>	bordercolor_ = c;
+<a name="__line469"></a>	draw_border_ = true;
+<a name="__line470"></a>	return *this;
+<a name="__line471"></a>    }
+<a name="__line472"></a>    const color &amp;legendbox::bordercolor() const
+<a name="__line473"></a>    {
+<a name="__line474"></a>	return bordercolor_;
+<a name="__line475"></a>    }
+<a name="__line476"></a>
+<a name="__line477"></a>    legendbox &amp;legendbox::fillcolor(const color &amp;c)
+<a name="__line478"></a>    {
+<a name="__line479"></a>	fillcolor_ = c;
+<a name="__line480"></a>	fill_ = true;
+<a name="__line481"></a>	return *this;
+<a name="__line482"></a>    }
+<a name="__line483"></a>    const color &amp;legendbox::fillcolor() const
+<a name="__line484"></a>    {
+<a name="__line485"></a>	return fillcolor_;
+<a name="__line486"></a>    }
+<a name="__line487"></a>
+<a name="__line488"></a>    legendbox &amp;legendbox::draw_border(bool i)
+<a name="__line489"></a>    {
+<a name="__line490"></a>	draw_border_ = i;
+<a name="__line491"></a>	return *this;
+<a name="__line492"></a>    }
+<a name="__line493"></a>    bool legendbox::draw_border() const
+<a name="__line494"></a>    {
+<a name="__line495"></a>	return draw_border_;
+<a name="__line496"></a>    }
+<a name="__line497"></a>
+<a name="__line498"></a>    legendbox &amp;legendbox::fill(bool i)
+<a name="__line499"></a>    {
+<a name="__line500"></a>	fill_ = i;
+<a name="__line501"></a>	return *this;
+<a name="__line502"></a>    }
+<a name="__line503"></a>    bool legendbox::fill() const
+<a name="__line504"></a>    {
+<a name="__line505"></a>	return fill_;
+<a name="__line506"></a>    }
+<a name="__line507"></a>
+<a name="__line508"></a>    legendbox &amp;legendbox::samplen(const length &amp;l)
+<a name="__line509"></a>    {
+<a name="__line510"></a>	sample_length_ = l;
+<a name="__line511"></a>	return *this;
+<a name="__line512"></a>    }
+<a name="__line513"></a>
+<a name="__line514"></a>    const length &amp;legendbox::samplen() const
+<a name="__line515"></a>    {
+<a name="__line516"></a>	return sample_length_;
+<a name="__line517"></a>    }
+<a name="__line518"></a>
+<a name="__line519"></a>    legendbox &amp;legendbox::bordersep(const length &amp;l)
+<a name="__line520"></a>    {
+<a name="__line521"></a>	bordersep_ = l;
+<a name="__line522"></a>	return *this;
+<a name="__line523"></a>    }
+<a name="__line524"></a>
+<a name="__line525"></a>    const length &amp;legendbox::bordersep() const
+<a name="__line526"></a>    {
+<a name="__line527"></a>	return bordersep_;
+<a name="__line528"></a>    }
+<a name="__line529"></a>
+<a name="__line530"></a>    legendbox &amp;legendbox::legend_sample_sep(const length &amp;l)
+<a name="__line531"></a>    {
+<a name="__line532"></a>	legend_sample_sep_ = l;
+<a name="__line533"></a>	return *this;
+<a name="__line534"></a>    }
+<a name="__line535"></a>    const length &amp;legendbox::legend_sample_sep() const
+<a name="__line536"></a>    {
+<a name="__line537"></a>	return legend_sample_sep_;
+<a name="__line538"></a>    }
+<a name="__line539"></a>
+<a name="__line540"></a>    legendbox &amp;legendbox::sample_sample_sep(const length &amp;l)
+<a name="__line541"></a>    {
+<a name="__line542"></a>	sample_sample_sep_ = l;
+<a name="__line543"></a>	return *this;
+<a name="__line544"></a>    }
+<a name="__line545"></a>    const length &amp;legendbox::sample_sample_sep() const
+<a name="__line546"></a>    {
+<a name="__line547"></a>	return sample_sample_sep_;
+<a name="__line548"></a>    }
+<a name="__line549"></a>
+<a name="__line550"></a>    legendbox &amp;legendbox::row_sep(const length &amp;l)
+<a name="__line551"></a>    {
+<a name="__line552"></a>	row_sep_ = l;
+<a name="__line553"></a>	return *this;
+<a name="__line554"></a>    }
+<a name="__line555"></a>    const length &amp;legendbox::row_sep() const
+<a name="__line556"></a>    {
+<a name="__line557"></a>	return row_sep_;
+<a name="__line558"></a>    }
+<a name="__line559"></a>
+<a name="__line560"></a>    std::vector&lt;blop::legendbox*&gt; &amp;legendbox::all()
+<a name="__line561"></a>    {
+<a name="__line562"></a>	static vector&lt;legendbox*&gt; *f = new vector&lt;legendbox*&gt;;
+<a name="__line563"></a>	return *f;
+<a name="__line564"></a>    }
+<a name="__line565"></a>
+<a name="__line566"></a>    void legendbox::remove_from_all(plottable *p)
+<a name="__line567"></a>    {
+<a name="__line568"></a>	for(unsigned int i=0; i&lt;all().size(); ++i)
+<a name="__line569"></a>	{
+<a name="__line570"></a>	    all()[i]-&gt;remove(p);
+<a name="__line571"></a>	}
+<a name="__line572"></a>    }
+<a name="__line573"></a>    
+<a name="__line574"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

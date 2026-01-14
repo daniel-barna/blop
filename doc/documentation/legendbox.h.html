@@ -1,0 +1,277 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: legendbox.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_LEGENDBOX_H__
+<a name="__line1"></a>#define __BLOP_LEGENDBOX_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line4"></a>#include "<a href="plottable.h.html">plottable.h</a>"
+<a name="__line5"></a>#include "<a href="pad.h.html">pad.h</a>"
+<a name="__line6"></a>#include "<a href="line.h.html">line.h</a>"
+<a name="__line7"></a>#include &lt;vector&gt;
+<a name="__line8"></a>
+<a name="__line9"></a>namespace blop
+<a name="__line10"></a>{
+<a name="__line11"></a>    class graph_drawer;
+<a name="__line12"></a>
+<a name="__line13"></a>    class legendbox : public box
+<a name="__line14"></a>	{
+<a name="__line15"></a><span class=private>	private:
+<a name="__line16"></a>	    length calculated_width_, calculated_height_;
+<a name="__line17"></a>
+<a name="__line18"></a>	    color bordercolor_, fillcolor_;
+<a name="__line19"></a>	    static color default_bordercolor_, default_fillcolor_;
+<a name="__line20"></a>
+<a name="__line21"></a>	    bool draw_border_, fill_;
+<a name="__line22"></a>	    static bool default_draw_border_, default_fill_;
+<a name="__line23"></a>
+<a name="__line24"></a>	    bool multi_;
+<a name="__line25"></a>	    static bool default_multi_;
+<a name="__line26"></a>
+<a name="__line27"></a>	    int max_multisample_;
+<a name="__line28"></a>	    length bordersep_,legend_sample_sep_,sample_sample_sep_;
+<a name="__line29"></a>	    static length default_bordersep_;
+<a name="__line30"></a>	    static length default_legend_sample_sep_;
+<a name="__line31"></a>	    static length default_sample_sample_sep_;
+<a name="__line32"></a>
+<a name="__line33"></a>	    length max_legendwidth_;
+<a name="__line34"></a>	    length legend_xpos_;
+<a name="__line35"></a>	    
+<a name="__line36"></a>	    length sample_length_;
+<a name="__line37"></a>	    static length default_sample_length_;
+<a name="__line38"></a>
+<a name="__line39"></a>	    length row_sep_;
+<a name="__line40"></a>	    static length default_row_sep_;
+<a name="__line41"></a>
+<a name="__line42"></a>	    length borderwidth_;
+<a name="__line43"></a>	    static length default_borderwidth_;
+<a name="__line44"></a>
+<a name="__line45"></a>	    <span class=comment>//bool skip_(plottable *);</span>
+<a name="__line46"></a>
+<a name="__line47"></a></span><span class=public>	public:
+<a name="__line48"></a>
+<a name="__line49"></a>	    struct entry
+<a name="__line50"></a>	    {
+<a name="__line51"></a>
+<a name="__line52"></a>                bool line;
+<a name="__line53"></a>
+<a name="__line54"></a>		label   legend;
+<a name="__line55"></a>
+<a name="__line56"></a>                <span class=comment>// number indicating the position (1, 2, ... etc) of this entry in case</span>
+<a name="__line57"></a>                <span class=comment>// it is part of a multi-legend, i.e. if several graphs share the legend,</span>
+<a name="__line58"></a>                <span class=comment>// and the samples are shown in the same line, next to each other.</span>
+<a name="__line59"></a>		int     multi_number;
+<a name="__line60"></a>                
+<a name="__line61"></a>		plottable  *gr;
+<a name="__line62"></a>
+<a name="__line63"></a>		length  sample_x,sample_y;
+<a name="__line64"></a>
+<a name="__line65"></a>	    };
+<a name="__line66"></a>
+<a name="__line67"></a></span><span class=private>	private:
+<a name="__line68"></a>            bool skip_(entry *e);
+<a name="__line69"></a>	    std::vector&lt;blop::legendbox::entry*&gt; entries_;
+<a name="__line70"></a>
+<a name="__line71"></a></span><span class=public>	public:
+<a name="__line72"></a>	    static legendbox &amp;mknew( container &amp;parent = pad::current() );
+<a name="__line73"></a>
+<a name="__line74"></a>	    legendbox();
+<a name="__line75"></a>	    ~legendbox();
+<a name="__line76"></a>
+<a name="__line77"></a>
+<a name="__line78"></a>	    <span class=comment>// ---------- switch multi-mode on/off --------------------------------------------</span>
+<a name="__line79"></a>	    <span class=comment>// In multi-mode all graphs with the same legend are put in one line</span>
+<a name="__line80"></a>	    <span class=comment>// with one single legend text, and all samples are presented in this</span>
+<a name="__line81"></a>	    <span class=comment>// line, next to each other. If multi-mode is off, every graph is</span>
+<a name="__line82"></a>	    <span class=comment>// put in a separate line</span>
+<a name="__line83"></a>
+<a name="__line84"></a>	    legendbox &amp;multi(bool);
+<a name="__line85"></a>	    bool multi() const { return multi_; }
+<a name="__line86"></a>	    static void default_multi(bool f);
+<a name="__line87"></a>
+<a name="__line88"></a>
+<a name="__line89"></a>	    <span class=comment>// ---------- Add or remove a graph from the legendbox  ---------------------------</span>
+<a name="__line90"></a>
+<a name="__line91"></a>	    void add(blop::plottable *);
+<a name="__line92"></a>	    virtual bool remove(blop::plottable *);
+<a name="__line93"></a>	    static void remove_from_all(blop::plottable *);
+<a name="__line94"></a>
+<a name="__line95"></a>            <span class=comment>// add just a label, without a graph</span>
+<a name="__line96"></a>            label &amp;add(const var &amp;);
+<a name="__line97"></a>
+<a name="__line98"></a>            legendbox &amp;add_line();
+<a name="__line99"></a>
+<a name="__line100"></a>	    <span class=comment>// ---------- Remove all graphs from the legendbox  -------------------------------</span>
+<a name="__line101"></a>
+<a name="__line102"></a>	    void clear();
+<a name="__line103"></a>
+<a name="__line104"></a>
+<a name="__line105"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line106"></a>	    
+<a name="__line107"></a>	    void update();
+<a name="__line108"></a>
+<a name="__line109"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line110"></a>	    <span class=comment>// Overwrite the automatically alculated width/height</span>
+<a name="__line111"></a>	    <span class=comment>// if len == unset, width/height is switched back to the</span>
+<a name="__line112"></a>	    <span class=comment>// automatically calculated values</span>
+<a name="__line113"></a>
+<a name="__line114"></a>	    legendbox &amp;width (length len);
+<a name="__line115"></a>	    legendbox &amp;height(length len);
+<a name="__line116"></a>	    
+<a name="__line117"></a>	    const length &amp;width() const { return box::width(); }
+<a name="__line118"></a>	    const length &amp;height() const { return box::height(); }
+<a name="__line119"></a>
+<a name="__line120"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line121"></a>	    <span class=comment>// Set or get the width of the border </span>
+<a name="__line122"></a>
+<a name="__line123"></a>	    legendbox    &amp;borderwidth(const length &amp;);
+<a name="__line124"></a>	    const length &amp;borderwidth() const;
+<a name="__line125"></a>	    static void   default_borderwidth(const length &amp;);
+<a name="__line126"></a>
+<a name="__line127"></a>
+<a name="__line128"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line129"></a>	    <span class=comment>// SET THE COLOR OF THE BORDER</span>
+<a name="__line130"></a>	    <span class=comment>// this automatically switches border-drawing ON</span>
+<a name="__line131"></a>
+<a name="__line132"></a>	    legendbox   &amp;bordercolor(const color &amp;);
+<a name="__line133"></a>	    const color &amp;bordercolor() const;
+<a name="__line134"></a>	    static void  default_bordercolor(const color &amp;);
+<a name="__line135"></a>
+<a name="__line136"></a>
+<a name="__line137"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line138"></a>	    <span class=comment>// Switch border-drawing on or off</span>
+<a name="__line139"></a>
+<a name="__line140"></a>	    legendbox  &amp;draw_border(bool i = true);
+<a name="__line141"></a>	    bool        draw_border() const;
+<a name="__line142"></a>	    static void default_draw_border(bool f); 
+<a name="__line143"></a>
+<a name="__line144"></a>
+<a name="__line145"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line146"></a>	    <span class=comment>// Set the background color of the legendbox</span>
+<a name="__line147"></a>	    <span class=comment>// this automatically switches background-drawing ON</span>
+<a name="__line148"></a>
+<a name="__line149"></a>	    legendbox   &amp;fillcolor(const color &amp;);
+<a name="__line150"></a>	    const color &amp;fillcolor() const;
+<a name="__line151"></a>	    static void  default_fillcolor(const color &amp;c); 
+<a name="__line152"></a>
+<a name="__line153"></a>
+<a name="__line154"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line155"></a>	    <span class=comment>// Switch off or on the filled background </span>
+<a name="__line156"></a>
+<a name="__line157"></a>	    legendbox   &amp;fill(bool i);
+<a name="__line158"></a>	    bool         fill() const;
+<a name="__line159"></a>	    static void  default_fill(bool f);
+<a name="__line160"></a>
+<a name="__line161"></a>
+<a name="__line162"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line163"></a>	    <span class=comment>// Set the length of the samples</span>
+<a name="__line164"></a>
+<a name="__line165"></a>	    legendbox    &amp;samplen(const length &amp;);
+<a name="__line166"></a>	    const length &amp;samplen() const;
+<a name="__line167"></a>	    static void   default_samplen(const length &amp;l);
+<a name="__line168"></a>
+<a name="__line169"></a>            legendbox    &amp;sample_length(const length &amp;l) { samplen(l); return *this; }
+<a name="__line170"></a>            static void default_sample_length(const length &amp;l) { default_samplen(l); }
+<a name="__line171"></a>
+<a name="__line172"></a>
+<a name="__line173"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line174"></a>	    <span class=comment>// Set the separation between text and the surrounding border</span>
+<a name="__line175"></a>
+<a name="__line176"></a>	    legendbox    &amp;bordersep(const length &amp;);
+<a name="__line177"></a>	    const length &amp;bordersep() const;
+<a name="__line178"></a>	    static void   default_bordersep(const length &amp;l);
+<a name="__line179"></a>
+<a name="__line180"></a>
+<a name="__line181"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line182"></a>	    <span class=comment>// Set the separation between the text and the sample</span>
+<a name="__line183"></a>
+<a name="__line184"></a>	    legendbox    &amp;legend_sample_sep(const length &amp;l);
+<a name="__line185"></a>	    const length &amp;legend_sample_sep() const;
+<a name="__line186"></a>	    static void   default_legend_sample_sep(const length &amp;l);
+<a name="__line187"></a>
+<a name="__line188"></a>
+<a name="__line189"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line190"></a>	    <span class=comment>// Set the separation between two samples in a multi-sample box</span>
+<a name="__line191"></a>
+<a name="__line192"></a>	    legendbox    &amp;sample_sample_sep(const length &amp;l);
+<a name="__line193"></a>	    const length &amp;sample_sample_sep() const;
+<a name="__line194"></a>	    static void   default_sample_sample_sep(const length &amp; l);
+<a name="__line195"></a>
+<a name="__line196"></a>
+<a name="__line197"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line198"></a>	    <span class=comment>// Set separation between rows</span>
+<a name="__line199"></a>
+<a name="__line200"></a>	    legendbox    &amp;row_sep(const length &amp;l);
+<a name="__line201"></a>	    const length &amp;row_sep() const;
+<a name="__line202"></a>	    static void   default_row_sep(const length &amp;l);
+<a name="__line203"></a>
+<a name="__line204"></a>
+<a name="__line205"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line206"></a>	    <span class=comment>// A vector keeping the pointers of all existing legendboxes</span>
+<a name="__line207"></a>	    static std::vector&lt;blop::legendbox*&gt; &amp;all();
+<a name="__line208"></a>
+<a name="__line209"></a>
+<a name="__line210"></a>	    void print(terminal *);
+<a name="__line211"></a>	    void prepare_for_draw();
+<a name="__line212"></a>
+<a name="__line213"></a>
+<a name="__line214"></a>	    legendbox &amp;layer(const var &amp;l) { grob::layer(l); return *this; }
+<a name="__line215"></a>
+<a name="__line216"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line217"></a>	    <span class=comment>// and overwrite the functions inherited from box, to return a legendbox instead of a box</span>
+<a name="__line218"></a>
+<a name="__line219"></a>	    legendbox &amp;left   (const length &amp;);
+<a name="__line220"></a>	    legendbox &amp;right  (const length &amp;);
+<a name="__line221"></a>	    legendbox &amp;xcenter(const length &amp;);
+<a name="__line222"></a>	    <span class=comment>//legendbox &amp;width  (const length &amp;);  this has been overwritten above</span>
+<a name="__line223"></a>
+<a name="__line224"></a>	    legendbox &amp;bottom (const length &amp;);
+<a name="__line225"></a>	    legendbox &amp;top    (const length &amp;);
+<a name="__line226"></a>	    legendbox &amp;ycenter(const length &amp;);
+<a name="__line227"></a>	    <span class=comment>//legendbox &amp;height (const length &amp;);  this has been overwritten above</span>
+<a name="__line228"></a>
+<a name="__line229"></a>	    const length &amp;left() const { return box::left(); }
+<a name="__line230"></a>	    const length &amp;right() const { return box::right(); }
+<a name="__line231"></a>	    const length &amp;xcenter() const { return box::xcenter(); }
+<a name="__line232"></a>	    <span class=comment>//const length &amp;width() const { return box::width(); } this has been overwritten above</span>
+<a name="__line233"></a>	    const length &amp;bottom() const { return box::bottom(); }
+<a name="__line234"></a>	    const length &amp;top() const { return box::top(); }
+<a name="__line235"></a>	    const length &amp;ycenter() const { return box::ycenter(); }
+<a name="__line236"></a>	    <span class=comment>//const length &amp;height() const { return box::height(); } this has been overwritten above</span>
+<a name="__line237"></a>
+<a name="__line238"></a>	};
+<a name="__line239"></a>
+<a name="__line240"></a>
+<a name="__line241"></a>}
+<a name="__line242"></a>
+<a name="__line243"></a>#ifdef __MAKECINT__
+<a name="__line244"></a>#pragma link off function blop::legendbox::prepare_for_draw();
+<a name="__line245"></a>#endif
+<a name="__line246"></a>
+<a name="__line247"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

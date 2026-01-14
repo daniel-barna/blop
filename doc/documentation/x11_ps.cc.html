@@ -1,0 +1,169 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: x11_ps.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="x11_ps.h.html">x11_ps.h</a>"
+<a name="__line1"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line2"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line3"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line4"></a>#include "<a href="config.h.html">config.h</a>"
+<a name="__line5"></a>#include &lt;signal.h&gt;
+<a name="__line6"></a>#include &lt;cstring&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>using namespace std;
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>    string &amp;x11_ps::default_viewer_()
+<a name="__line13"></a>    {
+<a name="__line14"></a>	static bool called = false;
+<a name="__line15"></a>	static string viewer;
+<a name="__line16"></a>	if(!called)
+<a name="__line17"></a>	{
+<a name="__line18"></a>	    if(!strcmp("BLOP_ARCH","darwin")) viewer = "open";
+<a name="__line19"></a>	    else
+<a name="__line20"></a>	    {
+<a name="__line21"></a>		string user = getenv("USER");
+<a name="__line22"></a>		if(system("which gv &gt;/dev/null 2&gt;&amp;1") == 0) viewer = "gv";
+<a name="__line23"></a>		else if(system(("pgrep -u " + user + " kwin &gt;/dev/null").c_str()) == 0)
+<a name="__line24"></a>		{
+<a name="__line25"></a>		    if(system("which okular &gt;/dev/null 2&gt;&amp;1") == 0) viewer = "okular";
+<a name="__line26"></a>		    else if(system("which kde-open &gt;/dev/null 2&gt;&amp;1") == 0) viewer = "kde-open";
+<a name="__line27"></a>		    else
+<a name="__line28"></a>		    {
+<a name="__line29"></a>			warning::print("No postscript viewer found");
+<a name="__line30"></a>			viewer = "no_postscript_viewer_found";
+<a name="__line31"></a>		    }
+<a name="__line32"></a>		}
+<a name="__line33"></a>		else if(system("which evince &gt;/dev/null 2&gt;&amp;1") == 0)
+<a name="__line34"></a>		{
+<a name="__line35"></a>		    warning::print("Using evince as default postscript viewer. "
+<a name="__line36"></a>				   "It does NOT update automatically, so it will be pretty useless...");
+<a name="__line37"></a>		    viewer = "evince";
+<a name="__line38"></a>		}
+<a name="__line39"></a>		else
+<a name="__line40"></a>		{
+<a name="__line41"></a>		    warning::print("No postscript viewer found");
+<a name="__line42"></a>		    viewer = "no_postscript_viewer_found";
+<a name="__line43"></a>		}
+<a name="__line44"></a>	    }
+<a name="__line45"></a>	}
+<a name="__line46"></a>	return viewer;
+<a name="__line47"></a>    }
+<a name="__line48"></a>
+<a name="__line49"></a>    string &amp;x11_ps::default_options_()
+<a name="__line50"></a>    {
+<a name="__line51"></a>	static bool called = false;
+<a name="__line52"></a>	static string option;
+<a name="__line53"></a>	if(!called)
+<a name="__line54"></a>	{
+<a name="__line55"></a>	    if(default_viewer_() == "gv")
+<a name="__line56"></a>	    {
+<a name="__line57"></a>		string gv_options = readcmd("gv -h");
+<a name="__line58"></a>		if(gv_options.find("-resize")  != string::npos) option += " -resize ";
+<a name="__line59"></a>		
+<a name="__line60"></a>		if(gv_options.find("-media=")  != string::npos) option += " -media=BBox ";
+<a name="__line61"></a>		else if(gv_options.find("-media ")  != string::npos) option += " -media BBox ";
+<a name="__line62"></a>		
+<a name="__line63"></a>		if(gv_options.find("-spartan") != string::npos) option += " -spartan ";
+<a name="__line64"></a>		if(gv_options.find("-watch")   != string::npos) option += " -watch ";
+<a name="__line65"></a>	    }
+<a name="__line66"></a>	    if(default_viewer_() == "open")
+<a name="__line67"></a>	    {
+<a name="__line68"></a>
+<a name="__line69"></a>	    }
+<a name="__line70"></a>	    called = true;
+<a name="__line71"></a>	}
+<a name="__line72"></a>	return option;
+<a name="__line73"></a>    }
+<a name="__line74"></a>
+<a name="__line75"></a>    void x11_ps::default_viewer(const var &amp;v)
+<a name="__line76"></a>    {
+<a name="__line77"></a>	default_viewer_() = v.str();
+<a name="__line78"></a>    }
+<a name="__line79"></a>
+<a name="__line80"></a>    void x11_ps::default_options(const var &amp;o)
+<a name="__line81"></a>    {
+<a name="__line82"></a>	default_options_() = o.str();
+<a name="__line83"></a>    }
+<a name="__line84"></a>
+<a name="__line85"></a>    x11_ps &amp;x11_ps::width(const var &amp;s)
+<a name="__line86"></a>    {
+<a name="__line87"></a>	width_ = s.str();
+<a name="__line88"></a>	return *this;
+<a name="__line89"></a>    }
+<a name="__line90"></a>
+<a name="__line91"></a>    x11_ps &amp;x11_ps::height(const var &amp;s)
+<a name="__line92"></a>    {
+<a name="__line93"></a>	height_ = s.str();
+<a name="__line94"></a>	return *this;
+<a name="__line95"></a>    }
+<a name="__line96"></a>
+<a name="__line97"></a>    x11_ps &amp;x11_ps::def()
+<a name="__line98"></a>    {
+<a name="__line99"></a>	static x11_ps g;
+<a name="__line100"></a>	return g;
+<a name="__line101"></a>    }
+<a name="__line102"></a>
+<a name="__line103"></a>    void x11_ps::print()
+<a name="__line104"></a>    {
+<a name="__line105"></a>	canvas::current().print(&amp;def());
+<a name="__line106"></a>    }
+<a name="__line107"></a>
+<a name="__line108"></a>    x11_ps::x11_ps()
+<a name="__line109"></a>	: blopeps(blop_bookkeeper::tmpfile("x11_ps_XXXXXX.beps"))
+<a name="__line110"></a>    {
+<a name="__line111"></a>	filename_eps_ = "";
+<a name="__line112"></a>        width_ = "0.9\\linewidth";
+<a name="__line113"></a>        height_ = "12cm";
+<a name="__line114"></a>	options_ = default_options_();
+<a name="__line115"></a>    }
+<a name="__line116"></a>
+<a name="__line117"></a>    x11_ps::~x11_ps()
+<a name="__line118"></a>    {
+<a name="__line119"></a>	viewer_.kill();
+<a name="__line120"></a>    }
+<a name="__line121"></a>
+<a name="__line122"></a>    void x11_ps::picture_end()
+<a name="__line123"></a>    {
+<a name="__line124"></a>	blopeps::picture_end();
+<a name="__line125"></a>	if(filename_eps_ == "")
+<a name="__line126"></a>	    filename_eps_=blop_bookkeeper::tmpfile("x11_ps_XXXXXX.eps");
+<a name="__line127"></a>	system("beps2eps -q -w '" + width_
+<a name="__line128"></a>	       + "' -h '" + height_ + "' " + filename_
+<a name="__line129"></a>	       + " " + filename_eps_);
+<a name="__line130"></a>	if(!viewer_.is_open())
+<a name="__line131"></a>	{
+<a name="__line132"></a>	    std::string cmd = default_viewer_() + " " + options_ + " " + filename_eps_;
+<a name="__line133"></a>	    viewer_.open(cmd);
+<a name="__line134"></a>	}
+<a name="__line135"></a>	else
+<a name="__line136"></a>	{
+<a name="__line137"></a>	    if(viewer_.cmd() == "gv") viewer_.kill(SIGHUP);
+<a name="__line138"></a>	}
+<a name="__line139"></a>    }
+<a name="__line140"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

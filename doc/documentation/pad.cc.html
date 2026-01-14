@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: pad.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line1"></a>#include "<a href="pad.h.html">pad.h</a>"
+<a name="__line2"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line3"></a>#include &lt;algorithm&gt;
+<a name="__line4"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line5"></a>
+<a name="__line6"></a>#include &lt;iostream&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>using namespace std;
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>
+<a name="__line13"></a>    <span class=comment>// ---------- pad -----------------------------------------------------------------</span>
+<a name="__line14"></a>
+<a name="__line15"></a>    color pad::default_bordercolor_(0,0,0);
+<a name="__line16"></a>    bool pad::default_draw_border_  = false;
+<a name="__line17"></a>    length pad::default_borderwidth_(new length::base_id_t(terminal::LW));
+<a name="__line18"></a>    bool pad::default_border_3D_ = false;
+<a name="__line19"></a>    color pad::default_fillcolor_(1,1,1);
+<a name="__line20"></a>    bool pad::default_fill_ = false;
+<a name="__line21"></a>
+<a name="__line22"></a>    pad &amp;pad::fillcolor(const color &amp;c)
+<a name="__line23"></a>    {
+<a name="__line24"></a>	fillcolor_ = c;
+<a name="__line25"></a>	fill_ = true;
+<a name="__line26"></a>	return *this;
+<a name="__line27"></a>    }
+<a name="__line28"></a>    color pad::fillcolor() const
+<a name="__line29"></a>    {
+<a name="__line30"></a>	return fillcolor_;
+<a name="__line31"></a>    }
+<a name="__line32"></a>    void pad::default_fillcolor(const color &amp;c)
+<a name="__line33"></a>    {
+<a name="__line34"></a>	default_fillcolor_ = c;
+<a name="__line35"></a>    }
+<a name="__line36"></a>
+<a name="__line37"></a>    pad &amp;pad::fill(bool i)
+<a name="__line38"></a>    {
+<a name="__line39"></a>	fill_ = i;
+<a name="__line40"></a>	return *this;
+<a name="__line41"></a>    }
+<a name="__line42"></a>    bool pad::fill() const
+<a name="__line43"></a>    {
+<a name="__line44"></a>	return fill_;
+<a name="__line45"></a>    }
+<a name="__line46"></a>    void pad::default_fill(bool i)
+<a name="__line47"></a>    {
+<a name="__line48"></a>	default_fill_ = i;
+<a name="__line49"></a>    }
+<a name="__line50"></a>
+<a name="__line51"></a>    void pad::draw_border_bg(terminal *t)
+<a name="__line52"></a>    {
+<a name="__line53"></a>	vector&lt;terminal::coord&gt; cc;
+<a name="__line54"></a>
+<a name="__line55"></a>	if(fill_)
+<a name="__line56"></a>	{
+<a name="__line57"></a>	    cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line58"></a>	    cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(0.0,2)));
+<a name="__line59"></a>	    cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(1.0,2)));
+<a name="__line60"></a>	    cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(1.0,2)));
+<a name="__line61"></a>	    cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line62"></a>
+<a name="__line63"></a>	    t-&gt;set_color(fillcolor_);
+<a name="__line64"></a>	    t-&gt;fill_polygon(cc);
+<a name="__line65"></a>
+<a name="__line66"></a>	    cc.clear();
+<a name="__line67"></a>	}
+<a name="__line68"></a>
+<a name="__line69"></a>	if(draw_border_)
+<a name="__line70"></a>	{
+<a name="__line71"></a>	    if(!border_3D_)
+<a name="__line72"></a>	    {
+<a name="__line73"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line74"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(0.0,2)));
+<a name="__line75"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(1.0,2)));
+<a name="__line76"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(1.0,2)));
+<a name="__line77"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line78"></a>
+<a name="__line79"></a>		t-&gt;set_linewidth(borderwidth_.termspecific_id());
+<a name="__line80"></a>		t-&gt;set_color(bordercolor_);
+<a name="__line81"></a>		t-&gt;set_linestyle(sym::solid);
+<a name="__line82"></a>		t-&gt;draw_lines(cc);
+<a name="__line83"></a>	    }
+<a name="__line84"></a>	    else
+<a name="__line85"></a>	    {
+<a name="__line86"></a>		length l1 = -1 * !borderwidth_;
+<a name="__line87"></a>		length l2 = !cwidth() + !borderwidth_;
+<a name="__line88"></a>		length l3 = !cheight() + !borderwidth_;
+<a name="__line89"></a>		l1.specialize(t);
+<a name="__line90"></a>		l2.specialize(t);
+<a name="__line91"></a>		l3.specialize(t);
+<a name="__line92"></a>
+<a name="__line93"></a>		color c1(::min(fillcolor_.red()*0.5 + 0.5 , 1.35*fillcolor_.red()),
+<a name="__line94"></a>			 ::min(fillcolor_.green()*0.5 + 0.5, 1.35*fillcolor_.green()),
+<a name="__line95"></a>			 ::min(fillcolor_.blue()*0.5 + 0.5, 1.35*fillcolor_.blue()));
+<a name="__line96"></a>
+<a name="__line97"></a>		color c2(fillcolor_.red() * 0.8,
+<a name="__line98"></a>			 fillcolor_.green() * 0.8,
+<a name="__line99"></a>			 fillcolor_.blue() * 0.8);
+<a name="__line100"></a>
+<a name="__line101"></a>		t-&gt;set_color(c1);
+<a name="__line102"></a>
+<a name="__line103"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line104"></a>		cc.push_back(terminal::coord(l1.termspecific_id(),l1.termspecific_id()));
+<a name="__line105"></a>		cc.push_back(terminal::coord(l1.termspecific_id(),l3.termspecific_id()));
+<a name="__line106"></a>		cc.push_back(terminal::coord(l2.termspecific_id(),l3.termspecific_id()));
+<a name="__line107"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(1.0,2)));
+<a name="__line108"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(1.0,2)));
+<a name="__line109"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line110"></a>		t-&gt;fill_polygon(cc);
+<a name="__line111"></a>		cc.clear();
+<a name="__line112"></a>
+<a name="__line113"></a>		t-&gt;set_color(c2);
+<a name="__line114"></a>
+<a name="__line115"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(1.0,2)));
+<a name="__line116"></a>		cc.push_back(terminal::coord(l2.termspecific_id(),l3.termspecific_id()));
+<a name="__line117"></a>		cc.push_back(terminal::coord(l2.termspecific_id(),l1.termspecific_id()));
+<a name="__line118"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(0.0,2)));
+<a name="__line119"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(1.0,2)));
+<a name="__line120"></a>		t-&gt;fill_polygon(cc);
+<a name="__line121"></a>		cc.clear();
+<a name="__line122"></a>
+<a name="__line123"></a>
+<a name="__line124"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line125"></a>		cc.push_back(terminal::coord(l1.termspecific_id(),l1.termspecific_id()));
+<a name="__line126"></a>		cc.push_back(terminal::coord(l2.termspecific_id(),l1.termspecific_id()));
+<a name="__line127"></a>		cc.push_back(terminal::coord(terminal::id(1.0,1),terminal::id(0.0,2)));
+<a name="__line128"></a>		cc.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0.0,2)));
+<a name="__line129"></a>		t-&gt;fill_polygon(cc);
+<a name="__line130"></a>		cc.clear();
+<a name="__line131"></a>	    }
+<a name="__line132"></a>	}
+<a name="__line133"></a>    }
+<a name="__line134"></a>
+<a name="__line135"></a>    void pad::print(terminal *t)
+<a name="__line136"></a>    {
+<a name="__line137"></a>	if(print_me_ &lt; 2) return;
+<a name="__line138"></a>	t-&gt;open_layer(layer_);
+<a name="__line139"></a>	t-&gt;subpicture_begin(terminal::coord(cleft().termspecific_id(),
+<a name="__line140"></a>					    cbottom().termspecific_id()),
+<a name="__line141"></a>			    terminal::coord(cright().termspecific_id(),
+<a name="__line142"></a>					    ctop().termspecific_id()));
+<a name="__line143"></a>	
+<a name="__line144"></a>	draw_border_bg(t);
+<a name="__line145"></a>	for(vector&lt;grob *&gt;::size_type i=0; i&lt;content_.size(); ++i)
+<a name="__line146"></a>	{
+<a name="__line147"></a>	    content_[i]-&gt;print(t);
+<a name="__line148"></a>	}
+<a name="__line149"></a>	t-&gt;subpicture_end();
+<a name="__line150"></a>	t-&gt;close_layer(layer_);
+<a name="__line151"></a>    }
+<a name="__line152"></a>
+<a name="__line153"></a>    void pad::prepare_for_draw()
+<a name="__line154"></a>    {
+<a name="__line155"></a>	if(print_me_ &lt; 1) return;
+<a name="__line156"></a>	container::prepare_for_draw();
+<a name="__line157"></a>	if(draw_border_) borderwidth_.register_me();
+<a name="__line158"></a>    }
+<a name="__line159"></a>    
+<a name="__line160"></a>    pad *pad::current_pad_ = 0;
+<a name="__line161"></a>
+<a name="__line162"></a>    void pad::cd_specific()
+<a name="__line163"></a>    {
+<a name="__line164"></a>	current_pad_ = this;
+<a name="__line165"></a>	frame::current_ = 0;
+<a name="__line166"></a>	for(unsigned int i=0; i&lt;content_.size(); ++i)
+<a name="__line167"></a>	{
+<a name="__line168"></a>	    if(frame *f = dynamic_cast&lt;frame *&gt;(content_[i])) frame::current_ = f;
+<a name="__line169"></a>	}
+<a name="__line170"></a>    }
+<a name="__line171"></a>
+<a name="__line172"></a>    pad &amp;pad::borderwidth (const length &amp;l)
+<a name="__line173"></a>    {
+<a name="__line174"></a>	borderwidth_ = l;
+<a name="__line175"></a>	return *this;
+<a name="__line176"></a>    }
+<a name="__line177"></a>    const length &amp;pad::borderwidth() const
+<a name="__line178"></a>    {
+<a name="__line179"></a>	return borderwidth_;
+<a name="__line180"></a>    }
+<a name="__line181"></a>    void pad::default_borderwidth(const length &amp;l)
+<a name="__line182"></a>    {
+<a name="__line183"></a>	default_borderwidth_ = l;
+<a name="__line184"></a>    }
+<a name="__line185"></a>
+<a name="__line186"></a>    pad &amp;pad::bordercolor (const color &amp;c)
+<a name="__line187"></a>    {
+<a name="__line188"></a>	draw_border_ = true;
+<a name="__line189"></a>	bordercolor_ = c;
+<a name="__line190"></a>	return *this;
+<a name="__line191"></a>    }
+<a name="__line192"></a>    color pad::bordercolor() const
+<a name="__line193"></a>    {
+<a name="__line194"></a>	return bordercolor_;
+<a name="__line195"></a>    }
+<a name="__line196"></a>    void pad::default_bordercolor(const color &amp;c)
+<a name="__line197"></a>    {
+<a name="__line198"></a>	default_bordercolor_ = c;
+<a name="__line199"></a>    }
+<a name="__line200"></a>
+<a name="__line201"></a>    pad &amp;pad::draw_border(bool i)
+<a name="__line202"></a>    {
+<a name="__line203"></a>	draw_border_ = i;
+<a name="__line204"></a>	return *this;
+<a name="__line205"></a>    }
+<a name="__line206"></a>    bool pad::draw_border() const
+<a name="__line207"></a>    {
+<a name="__line208"></a>	return draw_border_;
+<a name="__line209"></a>    }
+<a name="__line210"></a>    void pad::default_draw_border(bool i)
+<a name="__line211"></a>    {
+<a name="__line212"></a>	default_draw_border_ = i;
+<a name="__line213"></a>    }
+<a name="__line214"></a>
+<a name="__line215"></a>    pad &amp;pad::border_3D(bool i)
+<a name="__line216"></a>    {
+<a name="__line217"></a>	border_3D_ = i;
+<a name="__line218"></a>	return *this;
+<a name="__line219"></a>    }
+<a name="__line220"></a>    bool pad::border_3D() const
+<a name="__line221"></a>    {
+<a name="__line222"></a>	return border_3D_;
+<a name="__line223"></a>    }
+<a name="__line224"></a>    void pad::default_border_3D(bool i)
+<a name="__line225"></a>    {
+<a name="__line226"></a>	default_border_3D_ = i;
+<a name="__line227"></a>    }
+<a name="__line228"></a>
+<a name="__line229"></a>    pad::pad(const length &amp;x1,const length &amp;y1,
+<a name="__line230"></a>	     const length &amp;x2,const length &amp;y2,
+<a name="__line231"></a>	     bool is_canvas)
+<a name="__line232"></a>    {
+<a name="__line233"></a>	name("pad");
+<a name="__line234"></a>
+<a name="__line235"></a>	draw_border_ = default_draw_border_;
+<a name="__line236"></a>	bordercolor_ = default_bordercolor_;
+<a name="__line237"></a>	fill_ = default_fill_;
+<a name="__line238"></a>	borderwidth_ = default_borderwidth_;
+<a name="__line239"></a>	border_3D_ = default_border_3D_;
+<a name="__line240"></a>
+<a name="__line241"></a>	right(x2);
+<a name="__line242"></a>	left(x1);
+<a name="__line243"></a>	top(y2);
+<a name="__line244"></a>	bottom(y1);
+<a name="__line245"></a>
+<a name="__line246"></a>	lmargin(!borderwidth_);
+<a name="__line247"></a>	rmargin(!borderwidth_);
+<a name="__line248"></a>	bmargin(!borderwidth_);
+<a name="__line249"></a>	tmargin(!borderwidth_);
+<a name="__line250"></a>    }
+<a name="__line251"></a>
+<a name="__line252"></a>    pad::~pad()
+<a name="__line253"></a>    {
+<a name="__line254"></a>	if(current_pad_ == this)
+<a name="__line255"></a>	{
+<a name="__line256"></a>	    current_pad_ = 0;
+<a name="__line257"></a>	    frame::current_ = 0;
+<a name="__line258"></a>	}
+<a name="__line259"></a>    }
+<a name="__line260"></a>
+<a name="__line261"></a>    void pad::clear()
+<a name="__line262"></a>    {
+<a name="__line263"></a>        <span class=comment>// Set the title to the empty string. This automatically removes it from the container</span>
+<a name="__line264"></a>        title("");
+<a name="__line265"></a>        container::clear();
+<a name="__line266"></a>    }
+<a name="__line267"></a>
+<a name="__line268"></a>    pad &amp;pad::title(const var &amp;t)
+<a name="__line269"></a>    {
+<a name="__line270"></a>        if(t.str() != "")
+<a name="__line271"></a>        {
+<a name="__line272"></a>            if(!find(&amp;title_)) add(&amp;title_);
+<a name="__line273"></a>            title_.text(t);
+<a name="__line274"></a>            title_.x(0.5).y(1.0+EX).align(sym::center,sym::bottom);
+<a name="__line275"></a>            tmargin(blop::height(t)+2*EX);
+<a name="__line276"></a>        }
+<a name="__line277"></a>        else
+<a name="__line278"></a>        {
+<a name="__line279"></a>            remove(&amp;title_);
+<a name="__line280"></a>            tmargin(!borderwidth_);
+<a name="__line281"></a>        }
+<a name="__line282"></a>        return *this;
+<a name="__line283"></a>    }
+<a name="__line284"></a>	
+<a name="__line285"></a>    pad &amp;pad::mknew(length x1, length y1,
+<a name="__line286"></a>		    length x2, length y2)
+<a name="__line287"></a>
+<a name="__line288"></a>    {
+<a name="__line289"></a>	return mksub(x1,y1,x2,y2,canvas::current());
+<a name="__line290"></a>    }
+<a name="__line291"></a>
+<a name="__line292"></a>    pad &amp;pad::mksub(length x1, length y1,
+<a name="__line293"></a>		    length x2, length y2,
+<a name="__line294"></a>		    container &amp;parent)
+<a name="__line295"></a>    {
+<a name="__line296"></a>	pad *p = new pad(x1,y1,x2,y2);
+<a name="__line297"></a>	p-&gt;autodel(true);
+<a name="__line298"></a>	parent.add(p);
+<a name="__line299"></a>	p-&gt;cd();
+<a name="__line300"></a>	return *p;
+<a name="__line301"></a>    }
+<a name="__line302"></a>
+<a name="__line303"></a>    pad &amp;pad::current()
+<a name="__line304"></a>    {
+<a name="__line305"></a>	if(current_pad_ == 0) return canvas::current();
+<a name="__line306"></a>	return *current_pad_;
+<a name="__line307"></a>    }
+<a name="__line308"></a>
+<a name="__line309"></a>
+<a name="__line310"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

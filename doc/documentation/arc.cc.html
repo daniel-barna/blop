@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: arc.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="arc.h.html">arc.h</a>"
+<a name="__line1"></a>#include "<a href="container.h.html">container.h</a>"
+<a name="__line2"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line3"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line4"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line5"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    double arc::default_angle1_ = 0;
+<a name="__line10"></a>    double arc::default_angle2_ = 360*unit::deg;
+<a name="__line11"></a>    sym::linestyle arc::default_linestyle_ = sym::solid;
+<a name="__line12"></a>    length &amp;arc::default_linewidth_()
+<a name="__line13"></a>    {
+<a name="__line14"></a>	static length w = length::base_id_t(terminal::LW);
+<a name="__line15"></a>	return w;
+<a name="__line16"></a>    }
+<a name="__line17"></a>    color &amp;arc::default_linecolor_()
+<a name="__line18"></a>    {
+<a name="__line19"></a>	static color c(0,0,0);
+<a name="__line20"></a>	return c;
+<a name="__line21"></a>    }
+<a name="__line22"></a>    color &amp;arc::default_fillcolor_()
+<a name="__line23"></a>    {
+<a name="__line24"></a>	static color c(0,0,0);
+<a name="__line25"></a>	return c;
+<a name="__line26"></a>    }
+<a name="__line27"></a>    bool arc::default_draw_line_ = true;
+<a name="__line28"></a>    bool arc::default_fill_ = false;
+<a name="__line29"></a>
+<a name="__line30"></a>    void arc::default_linestyle(sym::linestyle i)
+<a name="__line31"></a>    {
+<a name="__line32"></a>	default_linestyle_ = i;
+<a name="__line33"></a>    }
+<a name="__line34"></a>    void arc::default_linewidth(length l)
+<a name="__line35"></a>    {
+<a name="__line36"></a>	default_linewidth_() = l;
+<a name="__line37"></a>    }
+<a name="__line38"></a>    void arc::default_linecolor(color &amp;c)
+<a name="__line39"></a>    {
+<a name="__line40"></a>	default_linecolor_() = c;
+<a name="__line41"></a>    }
+<a name="__line42"></a>    void arc::default_fillcolor(color &amp;c)
+<a name="__line43"></a>    {
+<a name="__line44"></a>	default_fillcolor_() = c;
+<a name="__line45"></a>    }
+<a name="__line46"></a>    void arc::default_draw_line(bool f)
+<a name="__line47"></a>    {
+<a name="__line48"></a>	default_draw_line_ = f;
+<a name="__line49"></a>    }
+<a name="__line50"></a>    void arc::default_fill(bool f)
+<a name="__line51"></a>    {
+<a name="__line52"></a>	default_fill_ = f;
+<a name="__line53"></a>    }
+<a name="__line54"></a>    length &amp;arc::default_rx()
+<a name="__line55"></a>    {
+<a name="__line56"></a>	static length rx = CM;
+<a name="__line57"></a>	return rx;
+<a name="__line58"></a>    }
+<a name="__line59"></a>    void arc::default_rx(length l)
+<a name="__line60"></a>    {
+<a name="__line61"></a>	default_rx() = l;
+<a name="__line62"></a>    }
+<a name="__line63"></a>    length &amp;arc::default_ry()
+<a name="__line64"></a>    {
+<a name="__line65"></a>	static length ry = CM;
+<a name="__line66"></a>	return ry;
+<a name="__line67"></a>    }
+<a name="__line68"></a>    void arc::default_ry(length l)
+<a name="__line69"></a>    {
+<a name="__line70"></a>	default_ry() = l;
+<a name="__line71"></a>    }
+<a name="__line72"></a>    void arc::default_angle1(double a)
+<a name="__line73"></a>    {
+<a name="__line74"></a>	default_angle1_ = a;
+<a name="__line75"></a>    }
+<a name="__line76"></a>    double arc::default_angle1() { return default_angle1_; }
+<a name="__line77"></a>    void arc::default_angle2(double a)
+<a name="__line78"></a>    {
+<a name="__line79"></a>	default_angle2_ = a;
+<a name="__line80"></a>    }
+<a name="__line81"></a>    double arc::default_angle2() { return default_angle2_; }
+<a name="__line82"></a>
+<a name="__line83"></a>    arc::arc(length x, length y, length rx, length ry, double angle1, double angle2)
+<a name="__line84"></a>    {
+<a name="__line85"></a>	x_ = x;
+<a name="__line86"></a>	y_ = y;
+<a name="__line87"></a>	rx_ = rx;
+<a name="__line88"></a>	ry_ = ry;
+<a name="__line89"></a>	angle1_ = angle1;
+<a name="__line90"></a>	angle2_ = angle2;
+<a name="__line91"></a>
+<a name="__line92"></a>	linestyle_ = default_linestyle_;
+<a name="__line93"></a>	linewidth_ = default_linewidth_();
+<a name="__line94"></a>	linecolor_ = default_linecolor_();
+<a name="__line95"></a>	fillcolor_ = default_fillcolor_();
+<a name="__line96"></a>	draw_line_ = default_draw_line_;
+<a name="__line97"></a>	fill_ = default_fill_;
+<a name="__line98"></a>    }
+<a name="__line99"></a>
+<a name="__line100"></a>    
+<a name="__line101"></a>    arc &amp;arc::draw (container *parent,
+<a name="__line102"></a>		      const length &amp;x, const length &amp;y,
+<a name="__line103"></a>		      const length &amp;rx,
+<a name="__line104"></a>		      const length &amp;ry,
+<a name="__line105"></a>		      double angle1,
+<a name="__line106"></a>		      double angle2)
+<a name="__line107"></a>    {
+<a name="__line108"></a>	arc *a = new arc(x,y,rx,ry,angle1,angle2);
+<a name="__line109"></a>	a-&gt;autodel(true);
+<a name="__line110"></a>	parent-&gt;add(a);
+<a name="__line111"></a>	return *a;
+<a name="__line112"></a>    }
+<a name="__line113"></a>
+<a name="__line114"></a>    arc &amp;arc::fdraw (const length &amp;x, const length &amp;y,
+<a name="__line115"></a>		     const length &amp;rx,
+<a name="__line116"></a>		     const length &amp;ry,
+<a name="__line117"></a>		     double angle1,
+<a name="__line118"></a>		     double angle2)
+<a name="__line119"></a>    {
+<a name="__line120"></a>	return arc::draw(&amp;frame::current(), x, y, rx, ry, angle1, angle2);
+<a name="__line121"></a>    }
+<a name="__line122"></a>    arc &amp;arc::pdraw (const length &amp;x, const length &amp;y,
+<a name="__line123"></a>		     const length &amp;rx,
+<a name="__line124"></a>		     const length &amp;ry,
+<a name="__line125"></a>		     double angle1,
+<a name="__line126"></a>		     double angle2)
+<a name="__line127"></a>    {
+<a name="__line128"></a>	return arc::draw(&amp;pad::current(), x, y, rx, ry, angle1, angle2);
+<a name="__line129"></a>    }
+<a name="__line130"></a>
+<a name="__line131"></a>    arc &amp;arc::cdraw (const length &amp;x, const length &amp;y,
+<a name="__line132"></a>		     const length &amp;rx,
+<a name="__line133"></a>		     const length &amp;ry,
+<a name="__line134"></a>		     double angle1,
+<a name="__line135"></a>		     double angle2)
+<a name="__line136"></a>    {
+<a name="__line137"></a>	return arc::draw(&amp;canvas::current(), x, y, rx, ry, angle1, angle2);
+<a name="__line138"></a>    }
+<a name="__line139"></a>
+<a name="__line140"></a>
+<a name="__line141"></a>    void arc::prepare_for_draw()
+<a name="__line142"></a>    {
+<a name="__line143"></a>	if(print_me_ == 0) return;
+<a name="__line144"></a>	if(parent() == 0)
+<a name="__line145"></a>	{
+<a name="__line146"></a>	    warning::print("Strange: no parent of arc");
+<a name="__line147"></a>	    return;
+<a name="__line148"></a>	}
+<a name="__line149"></a>	x_.set_scale(x_unit());
+<a name="__line150"></a>	y_.set_scale(y_unit());
+<a name="__line151"></a>	rx_.set_scale(x_unit());
+<a name="__line152"></a>	ry_.set_scale(y_unit());
+<a name="__line153"></a>	x_.register_me();
+<a name="__line154"></a>	y_.register_me();
+<a name="__line155"></a>	rx_.register_me();
+<a name="__line156"></a>	ry_.register_me();
+<a name="__line157"></a>	linewidth_.register_me();
+<a name="__line158"></a>    }
+<a name="__line159"></a>
+<a name="__line160"></a>    void arc::print(terminal *t)
+<a name="__line161"></a>    {
+<a name="__line162"></a>	if(print_me_ != 2) return;
+<a name="__line163"></a>	t-&gt;open_layer(layer_);
+<a name="__line164"></a>	if(fill_)
+<a name="__line165"></a>	{
+<a name="__line166"></a>	    t-&gt;set_color(fillcolor_);
+<a name="__line167"></a>	    t-&gt;fill_arc(terminal::coord(x_.termspecific_id(), y_.termspecific_id()),
+<a name="__line168"></a>			rx_.termspecific_id(), angle1_, angle2_);
+<a name="__line169"></a>	}
+<a name="__line170"></a>	t-&gt;set_color(linecolor_);
+<a name="__line171"></a>	t-&gt;set_linestyle(linestyle_);
+<a name="__line172"></a>	t-&gt;set_linewidth(linewidth_.termspecific_id());
+<a name="__line173"></a>	t-&gt;draw_arc(terminal::coord(x_.termspecific_id(), y_.termspecific_id()),
+<a name="__line174"></a>		    rx_.termspecific_id(), angle1_, angle2_);
+<a name="__line175"></a>	t-&gt;close_layer(layer_);
+<a name="__line176"></a>    }
+<a name="__line177"></a>
+<a name="__line178"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

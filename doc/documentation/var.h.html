@@ -1,0 +1,593 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: var.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_VAR_H__
+<a name="__line1"></a>#define __BLOP_VAR_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;string&gt;
+<a name="__line4"></a>#include &lt;iostream&gt;
+<a name="__line5"></a>#include &lt;vector&gt;
+<a name="__line6"></a>#include &lt;filesystem&gt;
+<a name="__line7"></a>
+<a name="__line8"></a><span class=comment>//#define _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE</span>
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>    using namespace std;
+<a name="__line13"></a>
+<a name="__line14"></a>    class array;
+<a name="__line15"></a>
+<a name="__line16"></a>    class var
+<a name="__line17"></a>    {
+<a name="__line18"></a><span class=protected>    protected:
+<a name="__line19"></a>        double double_;
+<a name="__line20"></a>        string string_;
+<a name="__line21"></a>        string format_;
+<a name="__line22"></a>        static string &amp;default_format_();
+<a name="__line23"></a>
+<a name="__line24"></a>        friend var abs(var);
+<a name="__line25"></a></span><span class=public>    public:
+<a name="__line26"></a>
+<a name="__line27"></a>
+<a name="__line28"></a>        <span class=comment>// ---------- Initialization from different types ---------------------------------</span>
+<a name="__line29"></a>
+<a name="__line30"></a>        var();    <span class=comment>// initialize to the empty string, and 0 numerical value</span>
+<a name="__line31"></a>        var(const string &amp;);
+<a name="__line32"></a>        var(double);
+<a name="__line33"></a>        var(long double);
+<a name="__line34"></a>        var(double, const var &amp;format);
+<a name="__line35"></a>        var(int);
+<a name="__line36"></a>        var(long int);
+<a name="__line37"></a>        var(unsigned int);
+<a name="__line38"></a>        var(const var &amp;);
+<a name="__line39"></a>        var(const char *s);
+<a name="__line40"></a>        var(char c);
+<a name="__line41"></a>        virtual ~var() {}
+<a name="__line42"></a>	    
+<a name="__line43"></a>
+<a name="__line44"></a>        static var sprintf(const var &amp;format, ...);
+<a name="__line45"></a>        <span class=comment>// ---------- FORMAT FOR NUMERICAL --&gt; STRING CONVERSION -----------------------</span>
+<a name="__line46"></a>        <span class=comment>// The format provided here WILL BE used in later operations to create</span>
+<a name="__line47"></a>        <span class=comment>// the string representation of a variable,  if it</span>
+<a name="__line48"></a>        <span class=comment>// is initialized or modified as a numerical value.</span>
+<a name="__line49"></a>        <span class=comment>// That is, it does NOT re-format the string representation from the numerical</span>
+<a name="__line50"></a>        <span class=comment>// value at the time of the call, only sets the format to be used later. </span>
+<a name="__line51"></a>        <span class=comment>// This  format is  used as the  format spec. in a </span>
+<a name="__line52"></a>        <span class=comment>// sprintf command. </span>
+<a name="__line53"></a>        <span class=comment>// The static function 'default_format' sets the default format</span>
+<a name="__line54"></a>        <span class=comment>// for all 'var's created after this point. </span>
+<a name="__line55"></a>
+<a name="__line56"></a>        var &amp;format(const var &amp;f);
+<a name="__line57"></a>        static void default_format(const var &amp;f);
+<a name="__line58"></a>
+<a name="__line59"></a>        <span class=comment>// Reformat the string representation from the floating-point representation according to</span>
+<a name="__line60"></a>        <span class=comment>// the given format</span>
+<a name="__line61"></a>        var &amp;reformat(const var &amp;f, bool set_format=true);
+<a name="__line62"></a>
+<a name="__line63"></a>        <span class=comment>// ---------- Format checking -----------------------------------------------------</span>
+<a name="__line64"></a>
+<a name="__line65"></a>        bool is_int() const;  <span class=comment>// returns true if non-empty, and contains only digits after an optional -</span>
+<a name="__line66"></a>        bool is_dbl() const;
+<a name="__line67"></a>
+<a name="__line68"></a>
+<a name="__line69"></a>        <span class=comment>// ---------- Set the double or string representation directly --------------------</span>
+<a name="__line70"></a>        <span class=comment>// without affecting the other (it will cause inconsistency, use with care)</span>
+<a name="__line71"></a>
+<a name="__line72"></a>        void dbl(double d)             { double_ = d; }
+<a name="__line73"></a>        void str(const std::string &amp;s) { string_ = s; }
+<a name="__line74"></a>
+<a name="__line75"></a>        <span class=comment>// ---------- Assignment from different types -------------------------------------</span>
+<a name="__line76"></a>
+<a name="__line77"></a>        virtual const var &amp;operator= (const string &amp;);
+<a name="__line78"></a>        virtual const var &amp;operator= (double);
+<a name="__line79"></a>        virtual const var &amp;operator= (int);
+<a name="__line80"></a>        virtual const var &amp;operator= (long int);
+<a name="__line81"></a>        virtual const var &amp;operator= (long long);
+<a name="__line82"></a>        virtual const var &amp;operator= (unsigned int);
+<a name="__line83"></a>        virtual const var &amp;operator= (const var &amp;);
+<a name="__line84"></a>        virtual const var &amp;operator= (const char *);
+<a name="__line85"></a>        virtual const var &amp;operator= (char c);
+<a name="__line86"></a>
+<a name="__line87"></a>
+<a name="__line88"></a>        <span class=comment>// ---------- ARITHMETIC OPERATIONS -----------------------------------------------</span>
+<a name="__line89"></a>
+<a name="__line90"></a>        virtual const var &amp;operator+= (const var &amp;);
+<a name="__line91"></a>        virtual const var &amp;operator+= (double);
+<a name="__line92"></a>        virtual const var &amp;operator+= (int);
+<a name="__line93"></a>        virtual const var &amp;operator+= (const string &amp;);
+<a name="__line94"></a>	    
+<a name="__line95"></a>        virtual const var &amp;operator-= (const var &amp;);
+<a name="__line96"></a>        virtual const var &amp;operator-= (double);
+<a name="__line97"></a>        virtual const var &amp;operator-= (int);
+<a name="__line98"></a>        virtual const var &amp;operator-= (const string &amp;);
+<a name="__line99"></a>
+<a name="__line100"></a>        virtual const var &amp;operator*= (const var &amp;);
+<a name="__line101"></a>        virtual const var &amp;operator*= (double);
+<a name="__line102"></a>        virtual const var &amp;operator*= (int);
+<a name="__line103"></a>        virtual const var &amp;operator*= (const string &amp;);
+<a name="__line104"></a>
+<a name="__line105"></a>        virtual const var &amp;operator/= (const var &amp;);
+<a name="__line106"></a>        virtual const var &amp;operator/= (double);
+<a name="__line107"></a>        virtual const var &amp;operator/= (int);
+<a name="__line108"></a>        virtual const var &amp;operator/= (const string &amp;);
+<a name="__line109"></a>	    
+<a name="__line110"></a>        virtual const var &amp;operator++ ();
+<a name="__line111"></a>        virtual var        operator++ (int);
+<a name="__line112"></a>        virtual const var &amp;operator-- ();
+<a name="__line113"></a>        virtual var        operator-- (int);
+<a name="__line114"></a>
+<a name="__line115"></a><span class=comment>/*
+<a name="__line116"></a>  virtual const var &amp;incr(const var &amp;); // make exact incr, if
+<a name="__line117"></a>  // both are a number
+<a name="__line118"></a>
+<a name="__line119"></a>  */</span>
+<a name="__line120"></a>
+<a name="__line121"></a>
+<a name="__line122"></a>        <span class=comment>// ---------- APPEND AS A STRING --------------------------------------------------</span>
+<a name="__line123"></a>        <span class=comment>// These operators append their arguments</span>
+<a name="__line124"></a>        <span class=comment>// as strings (to the string representation of the</span>
+<a name="__line125"></a>        <span class=comment>// variable)</span>
+<a name="__line126"></a>
+<a name="__line127"></a>        virtual const var &amp;operator &amp;= (double);
+<a name="__line128"></a>        virtual const var &amp;operator &amp;= (const string &amp;);
+<a name="__line129"></a>        virtual const var &amp;operator &amp;= (const var &amp;);
+<a name="__line130"></a>        virtual const var &amp;operator &amp;= (const char *);
+<a name="__line131"></a>        virtual const var &amp;operator &amp;= (int i);
+<a name="__line132"></a>        virtual const var &amp;operator &amp;= (char);
+<a name="__line133"></a>
+<a name="__line134"></a>
+<a name="__line135"></a>        <span class=comment>// ---------- CHARACTER INDEXING --------------------------------------------------</span>
+<a name="__line136"></a>        <span class=comment>// Indexing operator: access the ith character of</span>
+<a name="__line137"></a>        <span class=comment>// the string representation. The indexing begins</span>
+<a name="__line138"></a>        <span class=comment>// at 0 !!!  This currently can not be used to</span>
+<a name="__line139"></a>        <span class=comment>// modify single characters.</span>
+<a name="__line140"></a>
+<a name="__line141"></a>        char operator[] (int i) const;
+<a name="__line142"></a>        char back() const;
+<a name="__line143"></a>
+<a name="__line144"></a>        <span class=comment>// return the last character and remove it from the string</span>
+<a name="__line145"></a>        char pop_back();
+<a name="__line146"></a>
+<a name="__line147"></a>        <span class=comment>// ---------- IMPLICIT CONVERSION OPERATORS ---------------------------------------</span>
+<a name="__line148"></a>        <span class=comment>// these are implicit conversion operators, so that any</span>
+<a name="__line149"></a>        <span class=comment>// mathetmatical or other functions (with double arguments)</span>
+<a name="__line150"></a>        <span class=comment>// are applicable on 'var' variables without any extra</span>
+<a name="__line151"></a>        <span class=comment>// effort</span>
+<a name="__line152"></a>
+<a name="__line153"></a>        inline operator string() const { return string_; }
+<a name="__line154"></a>        inline operator double() const { return double_; }
+<a name="__line155"></a>        inline operator int   () const { return integer(); }
+<a name="__line156"></a>        operator bool () const;
+<a name="__line157"></a>
+<a name="__line158"></a>        <span class=comment>// Conversion to bool, to be used in if(...), while(...), etc</span>
+<a name="__line159"></a>        <span class=comment>// A variable of type 'var' will be converted to false, if</span>
+<a name="__line160"></a>        <span class=comment>// its string representation is "" (the empty string) or "0"</span>
+<a name="__line161"></a>        <span class=comment>// otherwise it is converted to true</span>
+<a name="__line162"></a>
+<a name="__line163"></a>
+<a name="__line164"></a>        <span class=comment>// ---------- EXPLICIT CONVERSIONS ------------------------------------------------</span>
+<a name="__line165"></a>
+<a name="__line166"></a>        int         integer() const;  <span class=comment>// unfortunately the keyword 'int' is reserved...</span>
+<a name="__line167"></a>
+<a name="__line168"></a>        <span class=comment>// The returned reference by the non-const functions (dbl and str)</span>
+<a name="__line169"></a>        <span class=comment>// can also be assigned. In this case no string &lt;--&gt; double conversion</span>
+<a name="__line170"></a>        <span class=comment>// is cone, more efficient for handling numerical-only values</span>
+<a name="__line171"></a>        double       &amp;dbl()       { return double_; }
+<a name="__line172"></a>        double        dbl() const { return double_; }
+<a name="__line173"></a>        string       &amp;str()       { return string_; }
+<a name="__line174"></a>        const string &amp;str() const { return string_; }
+<a name="__line175"></a>
+<a name="__line176"></a>        const char *c_str() const;
+<a name="__line177"></a>
+<a name="__line178"></a>        var &amp;round(int n=0);
+<a name="__line179"></a>
+<a name="__line180"></a>        typedef string::size_type size_type;
+<a name="__line181"></a>        static const size_type npos;
+<a name="__line182"></a>
+<a name="__line183"></a>
+<a name="__line184"></a>        <span class=comment>// ---------- SUBSTRING REPLACEMENT -----------------------------------------------</span>
+<a name="__line185"></a>
+<a name="__line186"></a>        var &amp;replace(const var &amp;from,const var &amp;to);  <span class=comment>// replace all occurences</span>
+<a name="__line187"></a>        var &amp;replace1(const var &amp;from,const var &amp;to); <span class=comment>// replace first occurence</span>
+<a name="__line188"></a>        var &amp;replace(size_type pos, size_type n, const var &amp;to); <span class=comment>// the same as std::string's replace</span>
+<a name="__line189"></a>
+<a name="__line190"></a>
+<a name="__line191"></a>        <span class=comment>// ---------- MEMBER FUNCTIONS OF std::string -------------------------------------</span>
+<a name="__line192"></a>
+<a name="__line193"></a>
+<a name="__line194"></a>        size_type find (const var &amp;,size_type i=0   ) const;
+<a name="__line195"></a>        size_type rfind(const var &amp;,size_type i=npos) const;
+<a name="__line196"></a>        size_type find_first_of(const var &amp;, size_type i=0   ) const;
+<a name="__line197"></a>        size_type find_last_of (const var &amp;, size_type i=npos) const;
+<a name="__line198"></a>        size_type find_first_not_of(const var &amp;, size_type i=0   ) const;
+<a name="__line199"></a>        size_type find_last_not_of (const var &amp;, size_type i=npos) const;
+<a name="__line200"></a>
+<a name="__line201"></a>        size_type size() const;
+<a name="__line202"></a>        size_type length() const;
+<a name="__line203"></a>
+<a name="__line204"></a>
+<a name="__line205"></a>        <span class=comment>// ---------- SUBSTRING ACCESS ----------------------------------------------------</span>
+<a name="__line206"></a>
+<a name="__line207"></a>        class subvar;
+<a name="__line208"></a>        subvar operator() (string::size_type from, string::size_type to = std::string::npos);
+<a name="__line209"></a>
+<a name="__line210"></a>        <span class=comment>// The 'subvar' class is a wrapper class, which behaves exactly</span>
+<a name="__line211"></a>        <span class=comment>// like a 'var' when used for reading. When this is modified, it</span>
+<a name="__line212"></a>        <span class=comment>// updates the 'var', of which is is a substring. For example</span>
+<a name="__line213"></a>        <span class=comment>// var s = "temperature-1.dat";</span>
+<a name="__line214"></a>        <span class=comment>// s(12,13) += 3;</span>
+<a name="__line215"></a>        <span class=comment>// The variable 's' is now: "temperature-4.dat"</span>
+<a name="__line216"></a>
+<a name="__line217"></a>        friend class var::subvar;
+<a name="__line218"></a>
+<a name="__line219"></a>        <span class=comment>// ---------- PATTERN MATCHING ----------------------------------------------------</span>
+<a name="__line220"></a>
+<a name="__line221"></a>        bool matches(const var &amp;pattern);
+<a name="__line222"></a>        int matches(const var &amp;pattern, array &amp;the_matches);
+<a name="__line223"></a>
+<a name="__line224"></a>        var &amp;replace_re(const var &amp;pattern, const var &amp;replacement);
+<a name="__line225"></a>
+<a name="__line226"></a>    };
+<a name="__line227"></a>
+<a name="__line228"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line229"></a>    <span class=comment>// replace all occurences of 'from' to 'to' in the variable 'v',</span>
+<a name="__line230"></a>    <span class=comment>// and return the new string. The original variable 'v' is not</span>
+<a name="__line231"></a>    <span class=comment>// modified (in contrast to the member function 'replace')</span>
+<a name="__line232"></a>    <span class=comment>// The second version, 'replace1' replaces only the first occurence</span>
+<a name="__line233"></a>
+<a name="__line234"></a>    var replace(const var &amp;from, const var &amp;to, const var &amp;in);
+<a name="__line235"></a>    inline var replace(const var &amp;from, const string &amp;to, const var &amp;in)       { return replace(from,var(to),in); }
+<a name="__line236"></a>    inline var replace(const string &amp;from, const var &amp;to, const var &amp;in)       { return replace(var(from),to,in); }
+<a name="__line237"></a>    inline var replace(const string &amp;from, const string &amp;to, const var &amp;in)    { return replace(var(from),var(to),in); }
+<a name="__line238"></a>    inline var replace(const var &amp;from, const var &amp;to, const string &amp;in)       { return replace(from, to, var(in)); }
+<a name="__line239"></a>    inline var replace(const var &amp;from, const string &amp;to, const string &amp;in)    { return replace(from,var(to),var(in)); }
+<a name="__line240"></a>    inline var replace(const string &amp;from, const var &amp;to, const string &amp;in)    { return replace(var(from),to,var(in)); }
+<a name="__line241"></a>    inline var replace(const string &amp;from, const string &amp;to, const string &amp;in) { return replace(var(from),var(to),var(in)); }
+<a name="__line242"></a>    inline var replace(const char *from, const char *to, const char *in)        { return replace(var(from),var(to),var(in)); }
+<a name="__line243"></a>    inline var replace(const char *from, const char *to, const var &amp;in)        { return replace(var(from),var(to),in); }
+<a name="__line244"></a>    inline var replace(const char *from, const char *to, const string &amp;in)        { return replace(var(from),var(to),var(in)); }
+<a name="__line245"></a>    inline var replace(const char *from, const var &amp;to, const char *in)           { return replace(var(from),to,var(in)); }
+<a name="__line246"></a>    inline var replace(const char *from, const var &amp;to, const var &amp;in)            { return replace(var(from),to,in); }
+<a name="__line247"></a>    inline var replace(const char *from, const var &amp;to, const string &amp;in)         { return replace(var(from),to,var(in)); }
+<a name="__line248"></a>    inline var replace(const var &amp;from, const char *to, const char *in)           { return replace(from,var(to),var(in)); }
+<a name="__line249"></a>    inline var replace(const var &amp;from, const char *to, const var &amp;in)            { return replace(from,var(to),in); }
+<a name="__line250"></a>    inline var replace(const var &amp;from, const char *to, const string &amp;in)         { return replace(from,var(to),var(in)); }
+<a name="__line251"></a>
+<a name="__line252"></a>
+<a name="__line253"></a>
+<a name="__line254"></a>    var replace1(const var &amp;from, const var &amp;to, const var &amp;in);
+<a name="__line255"></a>    var replace_re(const var &amp;pattern, const var &amp;replacement, const var &amp;in);
+<a name="__line256"></a>
+<a name="__line257"></a>    class var::subvar : public var
+<a name="__line258"></a>    {
+<a name="__line259"></a></span><span class=private>    private:
+<a name="__line260"></a>	subvar(var *v,string::size_type i1, string::size_type i2);
+<a name="__line261"></a>	friend class var;
+<a name="__line262"></a>	void update_var();
+<a name="__line263"></a>	
+<a name="__line264"></a>	var                     *var_;
+<a name="__line265"></a>	string::size_type   from_,to_;
+<a name="__line266"></a></span><span class=public>    public:
+<a name="__line267"></a>	subvar(const subvar &amp;);
+<a name="__line268"></a>	
+<a name="__line269"></a>	<span class=comment>// assignment operators</span>
+<a name="__line270"></a>	const var &amp;operator= (const string &amp;s) {var::operator=(s); update_var(); return *this;}
+<a name="__line271"></a>	const var &amp;operator= (const char   *s) {var::operator=(s); update_var(); return *this;}
+<a name="__line272"></a>	const var &amp;operator= (double        s) {var::operator=(s); update_var(); return *this;}
+<a name="__line273"></a>	const var &amp;operator= (int           s) {var::operator=(s); update_var(); return *this;}
+<a name="__line274"></a>	const var &amp;operator= (const var    &amp;s) {var::operator=(s); update_var(); return *this;}
+<a name="__line275"></a>	const var &amp;operator= (char          s) {var::operator=(s); update_var(); return *this;}
+<a name="__line276"></a>	
+<a name="__line277"></a>	<span class=comment>// arithmetic operators</span>
+<a name="__line278"></a>	virtual const var &amp;operator+= (const var &amp;s)    {var::operator+=(s); update_var(); return *this;}
+<a name="__line279"></a>	virtual const var &amp;operator+= (double     s)    {var::operator+=(s); update_var(); return *this;}
+<a name="__line280"></a>	virtual const var &amp;operator+= (const string &amp;s) {var::operator+=(s); update_var(); return *this;}
+<a name="__line281"></a>	
+<a name="__line282"></a>	virtual const var &amp;operator-= (const var &amp;s)    {var::operator-=(s); update_var(); return *this;}
+<a name="__line283"></a>	virtual const var &amp;operator-= (double     s)    {var::operator-=(s); update_var(); return *this;}
+<a name="__line284"></a>	virtual const var &amp;operator-= (const string &amp;s) {var::operator-=(s); update_var(); return *this;}
+<a name="__line285"></a>	
+<a name="__line286"></a>	virtual const var &amp;operator*= (const var &amp;s)    {var::operator*=(s); update_var(); return *this;}
+<a name="__line287"></a>	virtual const var &amp;operator*= (double     s)    {var::operator*=(s); update_var(); return *this;}
+<a name="__line288"></a>	virtual const var &amp;operator*= (const string &amp;s) {var::operator*=(s); update_var(); return *this;}
+<a name="__line289"></a>	
+<a name="__line290"></a>	virtual const var &amp;operator/= (const var &amp;s)    {var::operator/=(s); update_var(); return *this;}
+<a name="__line291"></a>	virtual const var &amp;operator/= (double     s)    {var::operator/=(s); update_var(); return *this;}
+<a name="__line292"></a>	virtual const var &amp;operator/= (const string &amp;s) {var::operator/=(s); update_var(); return *this;}
+<a name="__line293"></a>	
+<a name="__line294"></a>	virtual const var &amp;operator++ ()      {var::operator++(); update_var(); return *this;}
+<a name="__line295"></a>	virtual var        operator++ (int)   {var::operator++(0); update_var(); return *this;}
+<a name="__line296"></a>	virtual const var &amp;operator-- ()      {var::operator--(); update_var(); return *this;}
+<a name="__line297"></a>	virtual var        operator-- (int)   {var::operator--(0); update_var(); return *this;}
+<a name="__line298"></a>	
+<a name="__line299"></a>	<span class=comment>// append as string:</span>
+<a name="__line300"></a>	virtual const var &amp;operator&amp;= (double s)         {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line301"></a>	virtual const var &amp;operator&amp;= (const string &amp;s)  {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line302"></a>	virtual const var &amp;operator&amp;= (const var &amp;s)     {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line303"></a>	virtual const var &amp;operator&amp;= (const char *s)    {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line304"></a>	virtual const var &amp;operator&amp;= (int s)            {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line305"></a>	virtual const var &amp;operator&amp;= (char s)           {var::operator&amp;=(s); update_var(); return *this;}
+<a name="__line306"></a>	
+<a name="__line307"></a>    };
+<a name="__line308"></a>    
+<a name="__line309"></a>    
+<a name="__line310"></a>    var abs(var);
+<a name="__line311"></a>    
+<a name="__line312"></a>    
+<a name="__line313"></a>
+<a name="__line314"></a>    <span class=comment>// ---------- comparison operators: as floating point numbers  --------------------</span>
+<a name="__line315"></a>    bool operator&lt; (const blop::var &amp;v,double d);
+<a name="__line316"></a>    bool operator&lt; (const blop::var &amp;v,int    i);
+<a name="__line317"></a>    bool operator&lt; (double d,const blop::var &amp;v);
+<a name="__line318"></a>    bool operator&lt; (int    i,const blop::var &amp;v);
+<a name="__line319"></a>    bool operator&lt; (const blop::var &amp;v1,const blop::var &amp;v2);
+<a name="__line320"></a>
+<a name="__line321"></a>    bool operator&lt;= (const blop::var &amp;v,double d);
+<a name="__line322"></a>    bool operator&lt;= (const blop::var &amp;v,int i);
+<a name="__line323"></a>    bool operator&lt;= (double d,const blop::var &amp;v);
+<a name="__line324"></a>    bool operator&lt;= (int    i,const blop::var &amp;v);
+<a name="__line325"></a>    bool operator&lt;= (const blop::var &amp;v1,const blop::var &amp;v2);
+<a name="__line326"></a>
+<a name="__line327"></a>    bool operator&gt; (const blop::var &amp;v,double d);
+<a name="__line328"></a>    bool operator&gt; (const blop::var &amp;v,int i);
+<a name="__line329"></a>    bool operator&gt; (double d,const blop::var &amp;v);
+<a name="__line330"></a>    bool operator&gt; (int    i,const blop::var &amp;v);
+<a name="__line331"></a>    bool operator&gt; (const blop::var &amp;v1,const blop::var &amp;v2);
+<a name="__line332"></a>
+<a name="__line333"></a>    bool operator&gt;= (const blop::var &amp;v,double d);
+<a name="__line334"></a>    bool operator&gt;= (const blop::var &amp;v,int i);
+<a name="__line335"></a>    bool operator&gt;= (double d,const blop::var &amp;v);
+<a name="__line336"></a>    bool operator&gt;= (int    i,const blop::var &amp;v);
+<a name="__line337"></a>    bool operator&gt;= (const blop::var &amp;v1,const blop::var &amp;v2);
+<a name="__line338"></a>
+<a name="__line339"></a>
+<a name="__line340"></a>    <span class=comment>// ---------- COMPARISON OPERATORS  -----------------------------------------------</span>
+<a name="__line341"></a>    <span class=comment>// The method of comparisons ( == and != ) depends on the</span>
+<a name="__line342"></a>    <span class=comment>// type of the other object, to which a 'var' is compared.</span>
+<a name="__line343"></a>    <span class=comment>// Comparisons with 'var', 'string' or 'char*' are carried</span>
+<a name="__line344"></a>    <span class=comment>// out using the string representation of 'var', while</span>
+<a name="__line345"></a>    <span class=comment>// comparisons with 'double' use the floating point repre-</span>
+<a name="__line346"></a>    <span class=comment>// sentation of 'var'.</span>
+<a name="__line347"></a>
+<a name="__line348"></a>    <span class=comment>// WARNING: with the current version of CINT (5.15.92)</span>
+<a name="__line349"></a>    <span class=comment>// these comparison operators don't work, they produce a segfault.</span>
+<a name="__line350"></a>    <span class=comment>// Use explicit conversions for comparing a 'var' with a string</span>
+<a name="__line351"></a>    <span class=comment>// or a double, for example:</span>
+<a name="__line352"></a>    <span class=comment>// var v = "something";</span>
+<a name="__line353"></a>    <span class=comment>// if(v.str() == "something") { ... }</span>
+<a name="__line354"></a>
+<a name="__line355"></a>    bool operator== (const blop::var &amp;v1, const blop::var &amp;v2);
+<a name="__line356"></a>    bool operator== (const blop::var &amp;v1, const char * v2);
+<a name="__line357"></a>    bool operator== (const char *v1     , const blop::var &amp;v2);
+<a name="__line358"></a>    bool operator== (const blop::var &amp;v1, const std::string &amp;v2);
+<a name="__line359"></a>    bool operator== (const std::string &amp;v1   , const blop::var &amp;v2);
+<a name="__line360"></a>
+<a name="__line361"></a>    <span class=comment>// the above comparison operators compare the arguments as</span>
+<a name="__line362"></a>    <span class=comment>// strings !</span>
+<a name="__line363"></a>
+<a name="__line364"></a>    bool operator== (const blop::var &amp;v1, double d);
+<a name="__line365"></a>    bool operator== (const blop::var &amp;v1, int    i);
+<a name="__line366"></a>    bool operator== (double d, const blop::var &amp;v2);
+<a name="__line367"></a>    bool operator== (int    i, const blop::var &amp;v2);
+<a name="__line368"></a>
+<a name="__line369"></a>    <span class=comment>// these comparison operators compare the floating point</span>
+<a name="__line370"></a>    <span class=comment>// representation of 'var'</span>
+<a name="__line371"></a>
+<a name="__line372"></a>    bool operator != (const blop::var &amp;v1, const blop::var &amp;v2);
+<a name="__line373"></a>    bool operator != (const blop::var &amp;v1, const char * v2);
+<a name="__line374"></a>    bool operator != (const char *v1     , const blop::var &amp;v2);
+<a name="__line375"></a>    bool operator != (const blop::var &amp;v1, const std::string &amp;v2);
+<a name="__line376"></a>    bool operator != (const std::string &amp;v1   , const blop::var &amp;v2);
+<a name="__line377"></a>    bool operator != (const blop::var &amp;v1, double d);
+<a name="__line378"></a>    bool operator != (double d,            const blop::var &amp;v2);
+<a name="__line379"></a>    bool operator != (const blop::var &amp;v1, int    i);
+<a name="__line380"></a>    bool operator != (int    i,            const blop::var &amp;v2);
+<a name="__line381"></a>
+<a name="__line382"></a>    <span class=comment>// these are simply the negated == operators</span>
+<a name="__line383"></a>
+<a name="__line384"></a>    std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out,const blop::var &amp;v);
+<a name="__line385"></a>    std::istream &amp;operator&gt;&gt;(std::istream &amp;in ,      blop::var &amp;v);
+<a name="__line386"></a>
+<a name="__line387"></a>
+<a name="__line388"></a>    var operator&amp; (const var &amp;v1,const var &amp;v2);
+<a name="__line389"></a>    var operator&amp; (const var &amp;v1,const std::string &amp;s    );
+<a name="__line390"></a>    var operator&amp; (const std::string &amp;s    ,const var &amp;v2);
+<a name="__line391"></a>    var operator&amp; (const var &amp;v1,const char *s      );
+<a name="__line392"></a>    var operator&amp; (const char *s      ,const var &amp;v2);
+<a name="__line393"></a>    var operator&amp; (const var &amp;v1,double d           );
+<a name="__line394"></a>    var operator&amp; (double d           ,const var &amp;v2);
+<a name="__line395"></a>    var operator&amp; (const std::string &amp;s1,const std::string &amp;s2);
+<a name="__line396"></a>    var operator&amp; (const std::string &amp;s1,const char   *s2);
+<a name="__line397"></a>    var operator&amp; (const char   *s1,const std::string &amp;s2);
+<a name="__line398"></a>    var operator&amp; (double, const std::string &amp;);
+<a name="__line399"></a>    var operator&amp; (const std::string &amp;,double);
+<a name="__line400"></a>    var operator&amp; (const var &amp;v, int i);
+<a name="__line401"></a>    var operator&amp; (int i, const var &amp;v);
+<a name="__line402"></a>    var operator&amp; (const var &amp;v, char c);
+<a name="__line403"></a>    var operator&amp; (char c, const var &amp;v);
+<a name="__line404"></a>
+<a name="__line405"></a>#ifdef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
+<a name="__line406"></a>    blop::var operator+ (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line407"></a>    blop::var operator+ (const blop::var &amp;v1,double d)            ;
+<a name="__line408"></a>    blop::var operator+ (double d, const blop::var &amp;v2)           ;
+<a name="__line409"></a>    blop::var operator+ (const blop::var &amp;v1, int d)              ;
+<a name="__line410"></a>    blop::var operator+ (int d, const blop::var &amp;v2)              ;
+<a name="__line411"></a>    blop::var operator+ (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line412"></a>    blop::var operator+ (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line413"></a>    blop::var operator+ (const blop::var &amp;v1,const char *s)       ;
+<a name="__line414"></a>    blop::var operator+ (const char *s,const blop::var &amp;v2)       ;
+<a name="__line415"></a>
+<a name="__line416"></a>    blop::var operator- (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line417"></a>    blop::var operator- (const blop::var &amp;v1,double d)            ;
+<a name="__line418"></a>    blop::var operator- (double d, const blop::var &amp;v2)           ;
+<a name="__line419"></a>    blop::var operator- (const blop::var &amp;v1, int d)              ;
+<a name="__line420"></a>    blop::var operator- (int d, const blop::var &amp;v2)              ;
+<a name="__line421"></a>    blop::var operator- (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line422"></a>    blop::var operator- (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line423"></a>    blop::var operator- (const blop::var &amp;v1,const char *s)       ;
+<a name="__line424"></a>    blop::var operator- (const char *s,const blop::var &amp;v2)       ;
+<a name="__line425"></a>
+<a name="__line426"></a>    blop::var operator* (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line427"></a>    blop::var operator* (const blop::var &amp;v1,double d)            ;
+<a name="__line428"></a>    blop::var operator* (double d, const blop::var &amp;v2)           ;
+<a name="__line429"></a>    blop::var operator* (const blop::var &amp;v1,int d)               ;
+<a name="__line430"></a>    blop::var operator* (int d, const blop::var &amp;v1)              ;
+<a name="__line431"></a>    blop::var operator* (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line432"></a>    blop::var operator* (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line433"></a>    blop::var operator* (const blop::var &amp;v1,const char *s)       ;
+<a name="__line434"></a>    blop::var operator* (const char *s,const blop::var &amp;v2)       ;
+<a name="__line435"></a>
+<a name="__line436"></a>    blop::var operator/ (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line437"></a>    blop::var operator/ (const blop::var &amp;v1,double d)            ;
+<a name="__line438"></a>    blop::var operator/ (double d, const blop::var &amp;v2)           ;
+<a name="__line439"></a>    blop::var operator/ (const blop::var &amp;v1, int d)              ;
+<a name="__line440"></a>    blop::var operator/ (int d, const blop::var &amp;v2)              ;
+<a name="__line441"></a>    blop::var operator/ (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line442"></a>    blop::var operator/ (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line443"></a>    blop::var operator/ (const blop::var &amp;v1,const char *s)       ;
+<a name="__line444"></a>    blop::var operator/ (const char *s,const blop::var &amp;v2)       ;
+<a name="__line445"></a>
+<a name="__line446"></a>    blop::var operator- (const blop::var &amp;);
+<a name="__line447"></a>    
+<a name="__line448"></a>#endif <span class=comment>// _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE</span>
+<a name="__line449"></a>
+<a name="__line450"></a>}
+<a name="__line451"></a>
+<a name="__line452"></a>#ifdef __CINT__
+<a name="__line453"></a>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out,const blop::var &amp;v);
+<a name="__line454"></a>std::istream &amp;operator&gt;&gt;(std::istream &amp;in ,      blop::var &amp;v);
+<a name="__line455"></a>#endif
+<a name="__line456"></a>
+<a name="__line457"></a>blop::var pow  (const blop::var &amp;,const blop::var &amp;);
+<a name="__line458"></a>blop::var exp  (const blop::var &amp;);
+<a name="__line459"></a>blop::var log  (const blop::var &amp;);
+<a name="__line460"></a>blop::var log10(const blop::var &amp;);
+<a name="__line461"></a>blop::var sqrt (const blop::var &amp;);
+<a name="__line462"></a>blop::var sin  (const blop::var &amp;);
+<a name="__line463"></a>blop::var cos  (const blop::var &amp;);
+<a name="__line464"></a>blop::var asin (const blop::var &amp;);
+<a name="__line465"></a>blop::var acos (const blop::var &amp;);
+<a name="__line466"></a>blop::var tan  (const blop::var &amp;);
+<a name="__line467"></a>blop::var atan (const blop::var &amp;);
+<a name="__line468"></a>blop::var sinh (const blop::var &amp;);
+<a name="__line469"></a>blop::var asinh(const blop::var &amp;);
+<a name="__line470"></a>blop::var cosh (const blop::var &amp;);
+<a name="__line471"></a>blop::var acosh(const blop::var &amp;);
+<a name="__line472"></a>
+<a name="__line473"></a>#ifndef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
+<a name="__line474"></a>
+<a name="__line475"></a>blop::var operator+ (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line476"></a>blop::var operator+ (const blop::var &amp;v1,double d)            ;
+<a name="__line477"></a>blop::var operator+ (double d, const blop::var &amp;v2)           ;
+<a name="__line478"></a>blop::var operator+ (const blop::var &amp;v1, int d)              ;
+<a name="__line479"></a>blop::var operator+ (int d, const blop::var &amp;v2)              ;
+<a name="__line480"></a>blop::var operator+ (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line481"></a>blop::var operator+ (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line482"></a>blop::var operator+ (const blop::var &amp;v1,const char *s)       ;
+<a name="__line483"></a>blop::var operator+ (const char *s,const blop::var &amp;v2)       ;
+<a name="__line484"></a>
+<a name="__line485"></a>blop::var operator- (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line486"></a>blop::var operator- (const blop::var &amp;v1,double d)            ;
+<a name="__line487"></a>blop::var operator- (double d, const blop::var &amp;v2)           ;
+<a name="__line488"></a>blop::var operator- (const blop::var &amp;v1, int d)              ;
+<a name="__line489"></a>blop::var operator- (int d, const blop::var &amp;v2)              ;
+<a name="__line490"></a>blop::var operator- (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line491"></a>blop::var operator- (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line492"></a>blop::var operator- (const blop::var &amp;v1,const char *s)       ;
+<a name="__line493"></a>blop::var operator- (const char *s,const blop::var &amp;v2)       ;
+<a name="__line494"></a>
+<a name="__line495"></a>blop::var operator* (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line496"></a>blop::var operator* (const blop::var &amp;v1,double d)            ;
+<a name="__line497"></a>blop::var operator* (double d, const blop::var &amp;v2)           ;
+<a name="__line498"></a>blop::var operator* (const blop::var &amp;v1,int d)               ;
+<a name="__line499"></a>blop::var operator* (int d, const blop::var &amp;v1)              ;
+<a name="__line500"></a>blop::var operator* (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line501"></a>blop::var operator* (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line502"></a>blop::var operator* (const blop::var &amp;v1,const char *s)       ;
+<a name="__line503"></a>blop::var operator* (const char *s,const blop::var &amp;v2)       ;
+<a name="__line504"></a>
+<a name="__line505"></a>blop::var operator/ (const blop::var &amp;v1,const blop::var &amp;v2) ;
+<a name="__line506"></a>blop::var operator/ (const blop::var &amp;v1,double d)            ;
+<a name="__line507"></a>blop::var operator/ (double d, const blop::var &amp;v2)           ;
+<a name="__line508"></a>blop::var operator/ (const blop::var &amp;v1, int d)              ;
+<a name="__line509"></a>blop::var operator/ (int d, const blop::var &amp;v2)              ;
+<a name="__line510"></a>blop::var operator/ (const blop::var &amp;v1,const std::string &amp;s);
+<a name="__line511"></a>blop::var operator/ (const std::string &amp;s,const blop::var &amp;v2);
+<a name="__line512"></a>blop::var operator/ (const blop::var &amp;v1,const char *s)       ;
+<a name="__line513"></a>blop::var operator/ (const char *s,const blop::var &amp;v2)       ;
+<a name="__line514"></a>
+<a name="__line515"></a>blop::var operator- (const blop::var &amp;v)                      ;
+<a name="__line516"></a>
+<a name="__line517"></a>#else
+<a name="__line518"></a>
+<a name="__line519"></a>inline blop::var operator+ (const blop::var &amp;v1,const blop::var &amp;v2) { return blop::operator+(v1,v2); }
+<a name="__line520"></a>inline blop::var operator+ (const blop::var &amp;v1,double d)            { return blop::operator+(v1,d);  }
+<a name="__line521"></a>inline blop::var operator+ (double d, const blop::var &amp;v2)           { return blop::operator+(d,v2);  }
+<a name="__line522"></a>inline blop::var operator+ (const blop::var &amp;v1, int d)              { return blop::operator+(v1,d);  }
+<a name="__line523"></a>inline blop::var operator+ (int d, const blop::var &amp;v2)              { return blop::operator+(d,v2);  }
+<a name="__line524"></a>inline blop::var operator+ (const blop::var &amp;v1,const std::string &amp;s){ return blop::operator+(v1,s);  }
+<a name="__line525"></a>inline blop::var operator+ (const std::string &amp;s,const blop::var &amp;v2){ return blop::operator+(s,v2);  }
+<a name="__line526"></a>inline blop::var operator+ (const blop::var &amp;v1,const char *s)       { return blop::operator+(v1,s);  }
+<a name="__line527"></a>inline blop::var operator+ (const char *s,const blop::var &amp;v2)       { return blop::operator+(s,v2);  }
+<a name="__line528"></a>
+<a name="__line529"></a>inline blop::var operator- (const blop::var &amp;v1,const blop::var &amp;v2) { return blop::operator-(v1,v2); }
+<a name="__line530"></a>inline blop::var operator- (const blop::var &amp;v1,double d)            { return blop::operator-(v1,d);  }
+<a name="__line531"></a>inline blop::var operator- (double d, const blop::var &amp;v2)           { return blop::operator-(d,v2);  }
+<a name="__line532"></a>inline blop::var operator- (const blop::var &amp;v1, int d)              { return blop::operator-(v1,d);  }
+<a name="__line533"></a>inline blop::var operator- (int d, const blop::var &amp;v2)              { return blop::operator-(d,v2);  }
+<a name="__line534"></a>inline blop::var operator- (const blop::var &amp;v1,const std::string &amp;s){ return blop::operator-(v1,s);  }
+<a name="__line535"></a>inline blop::var operator- (const std::string &amp;s,const blop::var &amp;v2){ return blop::operator-(s,v2);  }
+<a name="__line536"></a>inline blop::var operator- (const blop::var &amp;v1,const char *s)       { return blop::operator-(v1,s);  }
+<a name="__line537"></a>inline blop::var operator- (const char *s,const blop::var &amp;v2)       { return blop::operator-(s,v2);  }
+<a name="__line538"></a>
+<a name="__line539"></a>inline blop::var operator* (const blop::var &amp;v1,const blop::var &amp;v2) { return blop::operator*(v1,v2); }
+<a name="__line540"></a>inline blop::var operator* (const blop::var &amp;v1,double d)            { return blop::operator*(v1,d);  }
+<a name="__line541"></a>inline blop::var operator* (double d, const blop::var &amp;v2)           { return blop::operator*(d,v2);  }
+<a name="__line542"></a>inline blop::var operator* (const blop::var &amp;v1,int d)               { return blop::operator*(v1,d);  }
+<a name="__line543"></a>inline blop::var operator* (int d, const blop::var &amp;v1)              { return blop::operator*(d,v1);  }
+<a name="__line544"></a>inline blop::var operator* (const blop::var &amp;v1,const std::string &amp;s){ return blop::operator*(v1,s);  }
+<a name="__line545"></a>inline blop::var operator* (const std::string &amp;s,const blop::var &amp;v2){ return blop::operator*(s,v2);  }
+<a name="__line546"></a>inline blop::var operator* (const blop::var &amp;v1,const char *s)       { return blop::operator*(v1,s);  }
+<a name="__line547"></a>inline blop::var operator* (const char *s,const blop::var &amp;v2)       { return blop::operator*(s,v2);  }
+<a name="__line548"></a>
+<a name="__line549"></a>inline blop::var operator/ (const blop::var &amp;v1,const blop::var &amp;v2) { return blop::operator/(v1,v2); }
+<a name="__line550"></a>inline blop::var operator/ (const blop::var &amp;v1,double d)            { return blop::operator/(v1,d);  }
+<a name="__line551"></a>inline blop::var operator/ (double d, const blop::var &amp;v2)           { return blop::operator/(d,v2);  }
+<a name="__line552"></a>inline blop::var operator/ (const blop::var &amp;v1, int d)              { return blop::operator/(v1,d);  }
+<a name="__line553"></a>inline blop::var operator/ (int d, const blop::var &amp;v2)              { return blop::operator/(d,v2);  }
+<a name="__line554"></a>inline blop::var operator/ (const blop::var &amp;v1,const std::string &amp;s){ return blop::operator/(v1,s);  }
+<a name="__line555"></a>inline blop::var operator/ (const std::string &amp;s,const blop::var &amp;v2){ return blop::operator/(s,v2);  }
+<a name="__line556"></a>inline blop::var operator/ (const blop::var &amp;v1,const char *s)       { return blop::operator/(v1,s);  }
+<a name="__line557"></a>inline blop::var operator/ (const char *s,const blop::var &amp;v2)       { return blop::operator/(s,v2);  }
+<a name="__line558"></a>
+<a name="__line559"></a>inline blop::var operator- (const blop::var &amp;v)                      { return blop::operator-(v);     }
+<a name="__line560"></a>
+<a name="__line561"></a>#endif <span class=comment>// _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE</span>
+<a name="__line562"></a>
+<a name="__line563"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

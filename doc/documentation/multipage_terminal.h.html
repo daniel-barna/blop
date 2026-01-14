@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: multipage_terminal.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MULTIPAGE_TERMINAL_H__
+<a name="__line1"></a>#define __BLOP_MULTIPAGE_TERMINAL_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line4"></a>#include "<a href="pdf.h.html">pdf.h</a>"
+<a name="__line5"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a><span class=comment>/*
+<a name="__line8"></a>  multipage_terminal is a base class for terminals which can be
+<a name="__line9"></a>  constructed from several individual pages, and which is refreshed
+<a name="__line10"></a>  (i.e. assembled from its individual pages) regularly during its
+<a name="__line11"></a>  creation. It is useful if a very long procedure is creating the
+<a name="__line12"></a>  pages, and you want to monitor the output during the
+<a name="__line13"></a>  process,i.e. not wait until the whole program terminates.
+<a name="__line14"></a>
+<a name="__line15"></a> */</span>
+<a name="__line16"></a>
+<a name="__line17"></a>namespace blop
+<a name="__line18"></a>{
+<a name="__line19"></a>    template &lt;typename T&gt;
+<a name="__line20"></a>    class multipage_terminal
+<a name="__line21"></a>    {
+<a name="__line22"></a><span class=protected>    protected:
+<a name="__line23"></a>        std::string outfilename_;
+<a name="__line24"></a>        bool        needs_flush_;
+<a name="__line25"></a>        std::vector&lt;std::string&gt; page_filenames_;
+<a name="__line26"></a>        std::string print_option_;
+<a name="__line27"></a></span><span class=private>    private:
+<a name="__line28"></a>        std::string tmpdir_;
+<a name="__line29"></a>        int pagecounter_;
+<a name="__line30"></a>        int flush_frequency_;
+<a name="__line31"></a></span><span class=public>    public:
+<a name="__line32"></a>        multipage_terminal(const var &amp;filename)
+<a name="__line33"></a>            : outfilename_(filename.str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("multipage_terminal_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+<a name="__line34"></a>        {}
+<a name="__line35"></a>        virtual ~multipage_terminal() {}
+<a name="__line36"></a>
+<a name="__line37"></a>        virtual void assemble_pages(const std::vector&lt;std::string&gt; &amp;filenames) = 0;
+<a name="__line38"></a>        virtual void print_option(const var &amp;opt) { print_option_ = opt.str(); }
+<a name="__line39"></a>        virtual void print(var opt="")
+<a name="__line40"></a>        {
+<a name="__line41"></a>            if(opt.str() == "") opt = print_option_;
+<a name="__line42"></a>            char filename[300];
+<a name="__line43"></a>            sprintf(filename,"%s/page_%i",tmpdir_.c_str(),pagecounter_++);
+<a name="__line44"></a>            if(opt.str() == "") T::print(var(filename));
+<a name="__line45"></a>            else T::print(var(filename),opt);
+<a name="__line46"></a>            page_filenames_.push_back(filename);
+<a name="__line47"></a>            if(pagecounter_%flush_frequency_==0)
+<a name="__line48"></a>            {
+<a name="__line49"></a>                assemble_pages(page_filenames_);
+<a name="__line50"></a>                needs_flush_ = false;
+<a name="__line51"></a>            }
+<a name="__line52"></a>            else needs_flush_ = true;
+<a name="__line53"></a>        }
+<a name="__line54"></a>    };
+<a name="__line55"></a>
+<a name="__line56"></a>    class multipage_pdf : public multipage_terminal&lt;pdf&gt;
+<a name="__line57"></a>    {
+<a name="__line58"></a></span><span class=public>    public:
+<a name="__line59"></a>        multipage_pdf(const var &amp;filename) : multipage_terminal&lt;pdf&gt;(filename) {}
+<a name="__line60"></a>        ~multipage_pdf();
+<a name="__line61"></a>        void assemble_pages(const std::vector&lt;std::string&gt; &amp;filenames);
+<a name="__line62"></a>    };
+<a name="__line63"></a>
+<a name="__line64"></a>}
+<a name="__line65"></a>
+<a name="__line66"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

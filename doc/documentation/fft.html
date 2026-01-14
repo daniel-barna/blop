@@ -1,0 +1,337 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Fast Fourier Transformation</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="units.html">
+   <link rel="Next" href="sorting-data.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="units.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: units.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="sorting-data.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: sorting-data.html">
+    </a> <br>
+
+<center class=title><b>
+Fast Fourier Transformation
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+See the two examples below
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#conventions"> Conventions           </a>
+<li><a href="#data">        Transforming raw data </a>
+<li><a href="#graph">       Transforming graphs   </a>
+<li><a href="#file">        Transforming data from a file </a>
+<li><a href="#function">    Transforming functions</a>
+<li><a href="#inverse">     Inverse transformation</a>
+<li><a href="#length">      Number of datapoints  </a>
+</ul>
+
+<p><div class='sectiontitle'><a
+name="conventions">Conventions</a></div>
+
+<p>
+Although Fourier-transformation can be carried out in any two
+variables, the most frequently used application is to use it between
+the time-domain and frequency-domain. Therefore the two conjugate
+variables in this documentation will be referred to as time(t) and
+frequency(f). The convention used here is to use frequency, and not
+omega: the transformation kernel is 
+<span title="exp(-S 2 PI f t)">
+<math>
+exp(-i<mi>S</mi> <mn>2</mn> <mo>&pi;</mo> <mi>f</mi> <mi>t</mi>)
+</math>
+</span>, where 'S' determines the direction of the
+transformation (see <a href="#inverse">later</a>).
+
+<ul>
+<li>Forward Fourier transformation of the series {<i>v<sub>m</sub></i>}: <table cellspacing=0>
+<tr align="center">
+	<td><i>u<sub>k</sub></i><big>&nbsp;</big>=&nbsp;</td>
+        <td>1<br>&#8212;&#8212;&#8212;<br>N<sup>1/2</sup></td>
+	<td><small>N-1</small><br>
+	    <big><big>&#8721;</big></big><br>
+	    <small><i>m</i>=0</small>
+        </td>
+	<td>
+          <i>v</i><sub>m</sub> exp<big>(</big> -2 &pi; i  k m / N  <big>)</big>
+        </td>
+</tr>
+</table>
+<li>Backward (inverse) Fourier transformation of the series {<i>u<sub>r</sub></i>}: <table cellspacing=0>
+<tr align="center">
+	<td><i>v<sub>m</sub></i><big>&nbsp;</big>=&nbsp;</td>
+        <td>1<br>&#8212;&#8212;&#8212;<br>N<sup>1/2</sup></td>
+	<td><small>N-1</small><br>
+	    <big><big>&#8721;</big></big><br>
+	    <small><i>m</i>=0</small>
+        </td>
+	<td>
+          <i>u</i><sub>k</sub> exp<big>(</big> 2 &pi; i k m / N  <big>)</big>
+        </td>
+</tr>
+</table>
+</ul>
+The two are the inverse of each other. 
+
+<p>The fourier transform of
+<math>cos(2<mo>&pi;</mo><mi>f</mi><mi>t</mi>)</math> (sampled over one
+period <math><mi>T</mi>=1/<mi>f</mi></math>) is
+<math>u<sub>1,-1</sub>=<mi>N</mi><sup>1/2</sup>/<mi>2</mi></math>, all
+other components are zero.  
+
+<p>The fourier transform of
+<math>sin(2<mo>&pi;</mo><mi>f</mi><mi>t</mi>)</math> (sampled over one
+period <math><mi>T</mi>=1/<mi>f</mi></math>) is
+<math>u<sub>1</sub>=-i<mi>N</mi><sup>1/2</sup>/<mi>2</mi></math>, 
+<math>u<sub>-1</sub>=i<mi>N</mi><sup>1/2</sup>/<mi>2</mi></math>, 
+other components are zero.  
+
+
+<p><div class='sectiontitle'><a name="data">Transforming
+raw data</a></div>
+
+One can transform a discrete dataset stored in an array of double, in
+a packed format: 
+
+<pre>bool fft(unsigned long int n, double packed_data[], int direction = +1);</pre>
+
+packed_data[2*i  ] = RE(data[i]),  packed_data[2*i+1] = IM(data[i]),
+and the same array in the same format contains the transformed data
+after the call.  
+
+
+<p><div class='sectiontitle'><a name="graph">Transforming
+graphs</a></div>
+
+<p>
+One can transform a discrete dataset stored in a dgraph. The first
+column of the graph is interpreted as the time(t) or frequency(f)
+variable. The second column is interpreted as the real part of the
+sampled data. The third column is interpreted as the imaginary part of
+the sampled data. If the graph does not have a third column, it is
+taken to be 0. 
+
+<p>The output dgraph (which may be the same as the input) will contain
+the transformed data: the first column is the conjugate variable (f or
+t, if the input was t or f, respectively), 2nd column is the real
+part, 3rd column is the imaginary part. The output dgraph will always
+contain 3 columns. The pseudo-code below shows an example:
+
+<pre>
+dgraph time(1024,3);
+
+// initialize the input data. could also be read from a file. 
+for(int i=0; i<1024; ++i)
+{
+  time[i][0] = i*some_delta_t;
+  time[i][1] = realpart(i);
+  time[i][2] = imaginaryparty(i);
+}
+
+dgraph frequency(1024,3);
+<a href="fft.cc.html#fft_from_dgraph" style="text-decoration:none;">fft(time,frequency);</a>
+plot(frequency,_1,sqrt(_2*_2+_3*_3)); // show the absolute value of
+                                      // each frequency component
+</pre>
+
+<p><div class='sectiontitle'><a name="file">Transforming
+data from a file</a></div>
+
+<a href="fft.cc.html#fft_from_file" style="text-decoration:none;">
+<pre>bool fft(const var &amp;filename, dgraph &amp;transformed, int direction=1,
+         const function &amp;time_or_freq=unset, 
+         const function &amp;real=unset, 
+         const function &amp;imag=unset);</pre>
+</a>
+
+This function reads the content of the file '<tt>filename</tt>', and stores the
+transformed values in the output dgraph '<tt>transformed</tt>'. The 3 functions
+<tt>tim_or_freq</tt>, <tt>real</tt> and <tt>imag</tt> will specify, what
+combinations of the data fiels in the file should be interpreted as
+time (or frequency), and real/imaginary parts of the data. 
+In their default setting (<tt>unset</tt>) all columns of the datafile
+are read in, sequentially, and the first 3 colums are interpreted as
+time/frequency, real, imaginary.  
+
+
+
+<p><div class='sectiontitle'><a name="function">Transforming a
+function</a></div>
+
+<p>
+One can also transform an arbitrary function. Since the FFT algorithm
+works on a discrete data, the function is first sampled, and then fed
+into the fft algorithm:
+
+<pre>
+const double f = 100;
+const double PI = 3.1415;
+function f(cos(-2*PI*f*_1),sin(-2*PI*f*_1));
+   // first component is real part, second is imaginary part
+int nsamples=1024; // must be 2^n
+double x1 = 0, x2 = 10/f;     // sampling range: 10 full cycles
+dgraph fspectrum;
+<a href="fft.cc.html#fft_from_function" style="text-decoration:none;">fft(f, nsamples, x1, x2, fspectrum);</a>
+plot(fspectrum,_1,sqrt(_2*_2+_3*_3));
+</pre>
+
+<p><div class='sectiontitle'><a name='inverse'>Inverse
+transformation</a></div>
+
+<p>Both <tt>fft(...)</tt> functions shown above have a last argument,
+which were not used in the above examples (it defaults&nbsp;to&nbsp;+1):
+
+<pre>
+bool fft(const dgraph &in, dgraph &out, int S=+1);
+bool fft(const function &f, int nsamples, double x1, double x2,dgraph &out, int S=+1);
+</pre>
+
+This   <tt>S</tt>    parameter   defines   the    direction   of   the
+transformation.  The transformation with  S=-1 is  the <i>inverse</i>  of the
+transformation  with S=+1, and  vice-versa. It's  a question  of taste
+which is called as <i>the transformation</i> and <i>the inverse</i>.
+
+<p>The <tt>S</tt> parameter  appears here in the formula,  if g(x) and
+G(y)  are the  transformed  function-pairs (x/y  being  either t/f  or
+vice-versa):
+<a href="#formula1" title="\int dx exp(-S 2 PI x y) g(x)">
+<math>
+G(y) = 
+<mo stretchy="true" largeop="true">&int;</mo> 
+<mi>dx</mi>
+exp(-<mi>S</mi> <mn>2</mn> <mo>&pi;</mo> <mi>x</mi> <mi>y</mi>) g(x)
+</math>
+</a>
+
+<p>
+With the default value S=+1, the transform of the function in the
+time-domain F(t)=exp(2*PI*f0*t) will be a Dirac-delta at <tt>f0</tt> 
+in the frequency-domain.
+
+<p>These transformations are normalized, which means that applying the
+transformation and the inverse transformation in sequence should
+produce the original function. This means that if, for example, the
+cos(x) function is FFT'd over its period (i.e. you sample cos(x) in N
+points between 0 and 2pi), then the n=1 and n=N-1 components of the
+spectrum will have magnitudes sqrt(N)/2.
+
+<p>
+Note however, that the output data of
+the fft transformation starts <b>always</b> at t=0 or 
+f=0: in the example given below, the input dgraph starts at a certain
+time-offset (and not at t=0). The doubly-transformed graph agrees with
+this graph, but starts at 0. Make sure, that the input graphs starts
+at a t (or f) value, which is an integer times the stepsize. 
+
+<table>
+<tr>
+<td>
+<pre>
+const double PI = 3.1415;
+const double f0 = 10e6;  // 10 MHz
+const double T = 1.0/f0; // one period
+
+// exp(i*2*PI*f0*t)
+function f(cos(2*PI*f0*_1),sin(2*PI*f0*_1));
+
+const int N = 512;       // # of samples
+const double L = 10*T;   // Sampled time (10 cycles)
+const double dt = L/N;   // sampling step
+
+// do not start sampling at t=0
+const double t0shift = 18*dt;
+
+dgraph time(N,3), freq(N,3), time2(N,3);
+
+f.sample(time, N, t0shift, t0shift+L); 
+
+fft(time,freq,+1);
+fft(freq,time2,-1);
+
+set::xrange(0,2*T);
+set::yrange(-1,2);
+
+plot(time,_1,_2).ds(lines())
+    .ac(blue).legend("Orig RE");
+mplot(time,_1,_3).ds(lines())
+    .ac(red).legend("Orig IM");
+mplot(time2,_1,_2).ds(points()).ps(0.5*PS)
+     .ac(blue).legend("2xFFT RE");
+mplot(time2,_1,_3).ds(points()).ps(0.5*PS)
+     .ac(red).legend("2xFFT IM");
+</pre>
+</td>
+<td>
+<img src="figs/fft.png">
+</td>
+</tr>
+</table>
+
+<p><div class='sectiontitle'><a name="length">Number of the datapoints</a></div>
+
+If the GNU Scientific Library development package (libgsl-dev, or
+similar) was installed at the time when blop was configured and
+compiled, one can use an arbitrary number of sampled data points for
+the FFT algorithms. Otherwise the Numerical Recipes algorithm is used,
+which only works for 2^n sized samples. Note however, that even in the
+GSL case, a dedicated routine is used for 2^n-sized samples, which
+makes them faster.
+
+
+</div>
+<hr>
+Sorry, if these formulas would not appear correctly in your browser,
+there is the LaTeX coding:
+
+<ul>
+<li>
+<a name="formula1">
+\int dx exp(S 2 PI x y) g(x)
+</a>
+
+</ul>
+
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="fft.h.html">fft.h</a>
+   <a href="fft.cc.html">fft.cc</a>
+</pre>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="units.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: units.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="sorting-data.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: sorting-data.html">
+    </a> 
+
+</body>
+</html>

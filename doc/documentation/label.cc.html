@@ -1,0 +1,454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: label.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line1"></a>#include "<a href="container.h.html">container.h</a>"
+<a name="__line2"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line3"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line4"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line5"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line6"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    length &amp;label::default_gap_()
+<a name="__line11"></a>    {
+<a name="__line12"></a>        length::base_id_t b(terminal::EX);
+<a name="__line13"></a>        static blop::length l(b);
+<a name="__line14"></a>        return l;
+<a name="__line15"></a>    }
+<a name="__line16"></a>    void label::default_gap(const length &amp;l)
+<a name="__line17"></a>    {
+<a name="__line18"></a>        default_gap_() = l;
+<a name="__line19"></a>    }
+<a name="__line20"></a>
+<a name="__line21"></a>    sym::position label::default_xalign_ = sym::left;
+<a name="__line22"></a>    sym::position label::default_yalign_ = sym::base;
+<a name="__line23"></a>    label::anchorsys label::default_anchorsystem_ = label::rotated;
+<a name="__line24"></a>    color label::default_textcolor_(0,0,0);
+<a name="__line25"></a>    double label::default_angle_ = 0;
+<a name="__line26"></a>    label *label::last_ = 0;
+<a name="__line27"></a>    sym::position &amp;label::default_direction()
+<a name="__line28"></a>    {
+<a name="__line29"></a>        static sym::position dir = sym::down;
+<a name="__line30"></a>        return dir;
+<a name="__line31"></a>    }
+<a name="__line32"></a>
+<a name="__line33"></a>    label &amp;label::draw(container *parent,
+<a name="__line34"></a>		       const var &amp;text, length x, length y)
+<a name="__line35"></a>    {
+<a name="__line36"></a>	if(parent == 0) err("label::draw ==&gt; parent == 0");
+<a name="__line37"></a>
+<a name="__line38"></a>	last_ = new label(text);
+<a name="__line39"></a>	last_-&gt;x(x).y(y);
+<a name="__line40"></a>	last_-&gt;autodel(true);
+<a name="__line41"></a>	parent-&gt;add(last_);
+<a name="__line42"></a>	return *last_;
+<a name="__line43"></a>    }
+<a name="__line44"></a>    label &amp;label::draw(container *parent, const var &amp;text, sym::position dir)
+<a name="__line45"></a>    {
+<a name="__line46"></a>        label *last = parent-&gt;get_last&lt;label&gt;();
+<a name="__line47"></a>	if(!last)
+<a name="__line48"></a>        {
+<a name="__line49"></a>            return label::draw(parent,text,
+<a name="__line50"></a>                               (dir==sym::left?0.95:0.05),
+<a name="__line51"></a>                               (dir==sym::up?0.05:0.95))
+<a name="__line52"></a>                .xalign(dir==sym::left?sym::right:sym::left)
+<a name="__line53"></a>                .yalign(dir==sym::up  ?sym::bottom:sym::top);
+<a name="__line54"></a>        }
+<a name="__line55"></a>        if(dir == sym::up)
+<a name="__line56"></a>        {
+<a name="__line57"></a>	    return label::draw(parent,
+<a name="__line58"></a>                               text,
+<a name="__line59"></a>                               (last-&gt;xalign_==sym::left?last-&gt;left():(last-&gt;xalign_==sym::right?last-&gt;right():last-&gt;xcenter())),
+<a name="__line60"></a>                               last-&gt;top()+default_gap_()).xalign(last-&gt;xalign_).yalign(sym::bottom);
+<a name="__line61"></a>        }
+<a name="__line62"></a>        if(dir == sym::left)
+<a name="__line63"></a>        {
+<a name="__line64"></a>	    return label::draw(parent,text,last-&gt;left()-default_gap_(),last-&gt;bottom()).xalign(sym::right).yalign(sym::bottom);
+<a name="__line65"></a>        }
+<a name="__line66"></a>        if(dir == sym::right)
+<a name="__line67"></a>        {
+<a name="__line68"></a>	    return label::draw(parent,text,last-&gt;right()+default_gap_(),last-&gt;bottom()).xalign(sym::left).yalign(sym::bottom);
+<a name="__line69"></a>        }
+<a name="__line70"></a>        return label::draw(parent,
+<a name="__line71"></a>                           text,
+<a name="__line72"></a>                           (last-&gt;xalign_==sym::left?last-&gt;left():(last-&gt;xalign_==sym::right?last-&gt;right():last-&gt;xcenter())),
+<a name="__line73"></a>                           last-&gt;bottom()-default_gap_()).xalign(last-&gt;xalign_).yalign(sym::top);
+<a name="__line74"></a>    }
+<a name="__line75"></a>
+<a name="__line76"></a>
+<a name="__line77"></a>    label &amp;label::fdraw(const var &amp;text, const plottable &amp;p, double xvalue, const length &amp;dy)
+<a name="__line78"></a>    {
+<a name="__line79"></a>        function x = _1;
+<a name="__line80"></a>        if(p.drawstyle()) x = p.drawstyle()-&gt;get_x(&amp;p);
+<a name="__line81"></a>        function y = _2;
+<a name="__line82"></a>        if(p.drawstyle()) y = p.drawstyle()-&gt;get_y(&amp;p);
+<a name="__line83"></a>
+<a name="__line84"></a>        double yvalue = unset;
+<a name="__line85"></a>
+<a name="__line86"></a>        double yy_closest = unset;
+<a name="__line87"></a>        double xx_closest = unset;
+<a name="__line88"></a>
+<a name="__line89"></a>        double xx_last=0, yy_last=0;
+<a name="__line90"></a>        for(unsigned int i=0; i&lt;p.size(); ++i)
+<a name="__line91"></a>        {
+<a name="__line92"></a>            std::vector&lt;blop::var&gt; result;
+<a name="__line93"></a>            x.meval_dbl(*(p.get(i)),result);
+<a name="__line94"></a>            const double xx = result[0].dbl();
+<a name="__line95"></a>            y.meval_dbl(*(p.get(i)),result);
+<a name="__line96"></a>            const double yy = result[0].dbl();
+<a name="__line97"></a>
+<a name="__line98"></a>            if(i==0 || std::abs(xx-xvalue) &lt; (std::abs(xx_closest-xvalue)))
+<a name="__line99"></a>            {
+<a name="__line100"></a>                xx_closest = xx;
+<a name="__line101"></a>                yy_closest = yy;
+<a name="__line102"></a>            }
+<a name="__line103"></a>
+<a name="__line104"></a>            if(i&gt;0 &amp;&amp; (xvalue-xx_last)*(xvalue-xx) &lt;= 0)
+<a name="__line105"></a>            {
+<a name="__line106"></a>                yvalue = yy_last + (yy-yy_last)/(xx-xx_last)*(xvalue-xx_last);
+<a name="__line107"></a>                break;
+<a name="__line108"></a>            }
+<a name="__line109"></a>
+<a name="__line110"></a>            xx_last = xx;
+<a name="__line111"></a>            yy_last = yy;
+<a name="__line112"></a>        }
+<a name="__line113"></a>        
+<a name="__line114"></a>        if(yvalue == unset)
+<a name="__line115"></a>        {
+<a name="__line116"></a>            return label::fdraw(text,
+<a name="__line117"></a>                                (p.xaxis() == axis::x1 ? x1len(xx_closest) : x2len(xx_closest)),
+<a name="__line118"></a>                                (p.yaxis() == axis::y1 ? y1len(yy_closest) : y2len(yy_closest))+dy);
+<a name="__line119"></a>
+<a name="__line120"></a>        }
+<a name="__line121"></a>
+<a name="__line122"></a>        return label::fdraw(text,
+<a name="__line123"></a>                            (p.xaxis() == axis::x1 ? x1len(xvalue) : x2len(xvalue)),
+<a name="__line124"></a>                            (p.yaxis() == axis::y1 ? y1len(yvalue) : y2len(yvalue))+dy);
+<a name="__line125"></a>    }
+<a name="__line126"></a>
+<a name="__line127"></a>    label &amp;label::fdraw(const var &amp;text, length x, length y)
+<a name="__line128"></a>    {
+<a name="__line129"></a>	return label::draw(&amp;frame::current(),text,x,y);
+<a name="__line130"></a>    }
+<a name="__line131"></a>
+<a name="__line132"></a>    label &amp;label::pdraw(const var &amp;text, length x, length y)
+<a name="__line133"></a>    {
+<a name="__line134"></a>	return label::draw(&amp;pad::current(),text,x,y);
+<a name="__line135"></a>    }
+<a name="__line136"></a>    
+<a name="__line137"></a>    label &amp;label::cdraw(const var &amp;text, length x, length y)
+<a name="__line138"></a>    {
+<a name="__line139"></a>	return label::draw(&amp;canvas::current(),text,x,y);
+<a name="__line140"></a>    }
+<a name="__line141"></a>
+<a name="__line142"></a>    label &amp;label::fdraw(const var &amp;text, sym::position dir)
+<a name="__line143"></a>    {
+<a name="__line144"></a>        return draw(&amp;frame::current(),text,dir);
+<a name="__line145"></a>    }
+<a name="__line146"></a>
+<a name="__line147"></a>    label &amp;label::pdraw(const var &amp;text, sym::position dir)
+<a name="__line148"></a>    {
+<a name="__line149"></a>        return draw(&amp;pad::current(),text, dir);
+<a name="__line150"></a>    }
+<a name="__line151"></a>    
+<a name="__line152"></a>    label &amp;label::cdraw(const var &amp;text, sym::position dir)
+<a name="__line153"></a>    {
+<a name="__line154"></a>        return draw(&amp;canvas::current(),text, dir);
+<a name="__line155"></a>    }
+<a name="__line156"></a>    
+<a name="__line157"></a>
+<a name="__line158"></a>    bool label::operator== (const label &amp;o) const
+<a name="__line159"></a>    {
+<a name="__line160"></a>	return
+<a name="__line161"></a>	    text_ == o.text_ &amp;&amp;
+<a name="__line162"></a>	    angle_ == o.angle_ &amp;&amp;
+<a name="__line163"></a>	    color_ == o.color_ &amp;&amp;
+<a name="__line164"></a>	    xalign_ == o.xalign_ &amp;&amp;
+<a name="__line165"></a>	    yalign_ == o.yalign_;
+<a name="__line166"></a>    }
+<a name="__line167"></a>
+<a name="__line168"></a>    void label::print(terminal *t)
+<a name="__line169"></a>    {
+<a name="__line170"></a>	if(print_me_ &lt; 2) return;
+<a name="__line171"></a>	t-&gt;open_layer(layer_);
+<a name="__line172"></a>	t-&gt;set_color(color_);
+<a name="__line173"></a><span class=comment>/*
+<a name="__line174"></a>  // debugging
+<a name="__line175"></a>	vector&lt;terminal::coord&gt; c;
+<a name="__line176"></a>	c.push_back(terminal::coord(x_.termspecific_id(),y_.termspecific_id()));
+<a name="__line177"></a>	c.push_back(terminal::coord(x_.termspecific_id(),terminal::id(1,2)));
+<a name="__line178"></a>	t-&gt;draw_lines(c);
+<a name="__line179"></a>*/</span>
+<a name="__line180"></a>	t-&gt;draw_text(terminal::coord(x_.termspecific_id(),
+<a name="__line181"></a>				     y_.termspecific_id()),
+<a name="__line182"></a>		     text_.str(),
+<a name="__line183"></a>		     xalign_,
+<a name="__line184"></a>		     yalign_,
+<a name="__line185"></a>                     angle_dx_.termspecific_id(),
+<a name="__line186"></a>                     angle_dy_.termspecific_id(),
+<a name="__line187"></a>		     anchorsystem_==rotated);
+<a name="__line188"></a>	t-&gt;close_layer(layer_);
+<a name="__line189"></a>    }
+<a name="__line190"></a>
+<a name="__line191"></a>    void label::prepare_for_draw()
+<a name="__line192"></a>    {
+<a name="__line193"></a>	if(print_me_ &lt; 1) return;
+<a name="__line194"></a>	x_.set_scale(x_unit());
+<a name="__line195"></a>	y_.set_scale(y_unit());
+<a name="__line196"></a>        angle_dx_.set_scale(x_unit());
+<a name="__line197"></a>        angle_dy_.set_scale(y_unit());
+<a name="__line198"></a>
+<a name="__line199"></a>	x_.register_me();
+<a name="__line200"></a>	y_.register_me();
+<a name="__line201"></a>        angle_dx_.register_me();
+<a name="__line202"></a>        angle_dy_.register_me();
+<a name="__line203"></a>    }
+<a name="__line204"></a>
+<a name="__line205"></a>    label::label(const var &amp;s)
+<a name="__line206"></a>	: text_(s)
+<a name="__line207"></a>    {
+<a name="__line208"></a>	
+<a name="__line209"></a>	name("label");
+<a name="__line210"></a>
+<a name="__line211"></a>	angle_ = default_angle_;
+<a name="__line212"></a>        angle_dx_ = MM*::cos(angle_);
+<a name="__line213"></a>        angle_dy_ = MM*::sin(angle_);
+<a name="__line214"></a>	color_ = default_textcolor_;
+<a name="__line215"></a>	xalign_ = default_xalign_;
+<a name="__line216"></a>	yalign_ = default_yalign_;
+<a name="__line217"></a>	anchorsystem_ = default_anchorsystem_;
+<a name="__line218"></a>
+<a name="__line219"></a>	box::left(0.0);
+<a name="__line220"></a>	box::width(blop::width(text_,angle_));
+<a name="__line221"></a>
+<a name="__line222"></a>	box::bottom(0.0);
+<a name="__line223"></a>	box::height(blop::height(text_,angle_));
+<a name="__line224"></a>    }
+<a name="__line225"></a>
+<a name="__line226"></a>    const label &amp;label::operator= (const label &amp;o)
+<a name="__line227"></a>    {
+<a name="__line228"></a>	text_ = o.text_;
+<a name="__line229"></a>	angle_ = o.angle_;
+<a name="__line230"></a>        angle_dx_ = o.angle_dx_;
+<a name="__line231"></a>        angle_dy_ = o.angle_dy_;
+<a name="__line232"></a>	color_ = o.color_;
+<a name="__line233"></a>	x_ = o.x_;
+<a name="__line234"></a>	y_ = o.y_;
+<a name="__line235"></a>	xalign_ = o.xalign_;
+<a name="__line236"></a>	yalign_ = o.yalign_;
+<a name="__line237"></a>
+<a name="__line238"></a>	box::operator=(o);
+<a name="__line239"></a>
+<a name="__line240"></a>	return *this;
+<a name="__line241"></a>    }
+<a name="__line242"></a>
+<a name="__line243"></a>    label::label(const label &amp;o)
+<a name="__line244"></a>    {
+<a name="__line245"></a>	*this = o;
+<a name="__line246"></a>    }
+<a name="__line247"></a>
+<a name="__line248"></a>    const var    &amp;label::text()   const {return text_;}
+<a name="__line249"></a>    double        label::angle()  const {return angle_;}
+<a name="__line250"></a>    const color  &amp;label::textcolor()  const {return color_;}
+<a name="__line251"></a>
+<a name="__line252"></a>    label     &amp;label::text(const var &amp;s) 
+<a name="__line253"></a>    {
+<a name="__line254"></a>	text_ = s; 
+<a name="__line255"></a>	box::width (blop::width (text_,angle_));
+<a name="__line256"></a>	box::height(blop::height(text_,angle_));
+<a name="__line257"></a>
+<a name="__line258"></a>	return *this;
+<a name="__line259"></a>    }
+<a name="__line260"></a>    label     &amp;label::angle(double a)
+<a name="__line261"></a>    {
+<a name="__line262"></a>	angle_ = a;
+<a name="__line263"></a>        angle_dx_ = MM*::cos(angle_);
+<a name="__line264"></a>        angle_dy_ = MM*::sin(angle_);
+<a name="__line265"></a>	box::width (blop::width (text_,angle_));
+<a name="__line266"></a>	box::height(blop::height(text_,angle_));
+<a name="__line267"></a>
+<a name="__line268"></a>	return *this;
+<a name="__line269"></a>    }
+<a name="__line270"></a>
+<a name="__line271"></a>    label     &amp;label::textcolor(const color &amp;c)
+<a name="__line272"></a>    {
+<a name="__line273"></a>	color_ = c; return *this;
+<a name="__line274"></a>    }
+<a name="__line275"></a>
+<a name="__line276"></a>    label &amp;label::xalign(sym::position a)
+<a name="__line277"></a>    {
+<a name="__line278"></a>	xalign_ = a;
+<a name="__line279"></a>	if(a == sym::left)
+<a name="__line280"></a>	{
+<a name="__line281"></a>	    box::width(blop::width(text_,angle_));
+<a name="__line282"></a>	    box::left(!x_);
+<a name="__line283"></a>	}
+<a name="__line284"></a>	else if(a == sym::right)
+<a name="__line285"></a>	{
+<a name="__line286"></a>	    box::width(blop::width(text_,angle_));
+<a name="__line287"></a>	    box::right(!x_);
+<a name="__line288"></a>	}
+<a name="__line289"></a>	else
+<a name="__line290"></a>	{
+<a name="__line291"></a>	    box::width(blop::width(text_,angle_));
+<a name="__line292"></a>	    box::left(!x_ - 0.5*!box::width());
+<a name="__line293"></a>	}
+<a name="__line294"></a>	return *this;
+<a name="__line295"></a>    }
+<a name="__line296"></a>
+<a name="__line297"></a>    label &amp;label::xalign(sym::position a, anchorsys asys)
+<a name="__line298"></a>    {
+<a name="__line299"></a>	anchorsystem(asys);
+<a name="__line300"></a>	xalign(a);
+<a name="__line301"></a>	return *this;
+<a name="__line302"></a>    }
+<a name="__line303"></a>
+<a name="__line304"></a>
+<a name="__line305"></a>    label &amp;label::x(const length &amp;l)
+<a name="__line306"></a>    {
+<a name="__line307"></a>	x_ = l;
+<a name="__line308"></a>	xalign(xalign_);
+<a name="__line309"></a>	return *this;
+<a name="__line310"></a>    }
+<a name="__line311"></a>    label &amp;label::x(const length &amp;l,sym::position al)
+<a name="__line312"></a>    {
+<a name="__line313"></a>	x_ = l;
+<a name="__line314"></a>	xalign(al);
+<a name="__line315"></a>	return *this;
+<a name="__line316"></a>    }
+<a name="__line317"></a>
+<a name="__line318"></a>    label &amp;label::yalign(sym::position a)
+<a name="__line319"></a>    {
+<a name="__line320"></a>	yalign_ = a;
+<a name="__line321"></a>	if(a == sym::bottom)
+<a name="__line322"></a>	{
+<a name="__line323"></a>	    box::height(blop::height(text_,angle_));
+<a name="__line324"></a>	    box::bottom(!y_);
+<a name="__line325"></a>	}
+<a name="__line326"></a>	else if(a == sym::top)
+<a name="__line327"></a>	{
+<a name="__line328"></a>	    box::height(blop::height(text_,angle_));
+<a name="__line329"></a>	    box::top(!y_);
+<a name="__line330"></a>	}
+<a name="__line331"></a>	else
+<a name="__line332"></a>	{
+<a name="__line333"></a>	    box::height(blop::height(text_,angle_));
+<a name="__line334"></a>	    box::bottom(!y_ - 0.5*!box::height());
+<a name="__line335"></a>	}
+<a name="__line336"></a>	return *this;
+<a name="__line337"></a>    }
+<a name="__line338"></a>
+<a name="__line339"></a>    label &amp;label::yalign(sym::position a, anchorsys asys)
+<a name="__line340"></a>    {
+<a name="__line341"></a>	anchorsystem(asys);
+<a name="__line342"></a>	yalign(a);
+<a name="__line343"></a>	return *this;
+<a name="__line344"></a>    }
+<a name="__line345"></a>
+<a name="__line346"></a>
+<a name="__line347"></a>    label &amp;label::y(const length &amp;l)
+<a name="__line348"></a>    {
+<a name="__line349"></a>	y_ = l;
+<a name="__line350"></a>	yalign(yalign_);
+<a name="__line351"></a>	return *this;
+<a name="__line352"></a>    }
+<a name="__line353"></a>    label &amp;label::y(const length &amp;l,sym::position al)
+<a name="__line354"></a>    {
+<a name="__line355"></a>	y_ = l;
+<a name="__line356"></a>	yalign(al);
+<a name="__line357"></a>	return *this;
+<a name="__line358"></a>    }
+<a name="__line359"></a>
+<a name="__line360"></a>    label &amp;label::align(sym::position xx, sym::position yy)
+<a name="__line361"></a>    {
+<a name="__line362"></a>	xalign(xx);
+<a name="__line363"></a>	yalign(yy);
+<a name="__line364"></a>	return *this;
+<a name="__line365"></a>    }
+<a name="__line366"></a>
+<a name="__line367"></a>    label &amp;label::align(sym::position xx, sym::position yy, anchorsys asys)
+<a name="__line368"></a>    {
+<a name="__line369"></a>	anchorsystem(asys);
+<a name="__line370"></a>	align(xx,yy);
+<a name="__line371"></a>	return *this;
+<a name="__line372"></a>    }
+<a name="__line373"></a>
+<a name="__line374"></a>
+<a name="__line375"></a>    label &amp;label::left(const length &amp;l)
+<a name="__line376"></a>    {
+<a name="__line377"></a>	x(l,sym::left);
+<a name="__line378"></a>	return *this;
+<a name="__line379"></a>    }
+<a name="__line380"></a>
+<a name="__line381"></a>    label &amp;label::right(const length &amp;l)
+<a name="__line382"></a>    {
+<a name="__line383"></a>	x(l,sym::right);
+<a name="__line384"></a>	return *this;
+<a name="__line385"></a>    }
+<a name="__line386"></a>
+<a name="__line387"></a>    label &amp;label::xcenter(const length &amp;l)
+<a name="__line388"></a>    {
+<a name="__line389"></a>	x(l,sym::center);
+<a name="__line390"></a>	return *this;
+<a name="__line391"></a>    }
+<a name="__line392"></a>
+<a name="__line393"></a>    label &amp;label::width(const length &amp;l)
+<a name="__line394"></a>    {
+<a name="__line395"></a>	warning::print("Please, do not try to set the width of a label!",
+<a name="__line396"></a>		       "label::width(const length &amp;)");
+<a name="__line397"></a>	return *this;
+<a name="__line398"></a>    }
+<a name="__line399"></a>
+<a name="__line400"></a>    label &amp;label::bottom(const length &amp;l)
+<a name="__line401"></a>    {
+<a name="__line402"></a>	y(l,sym::bottom);
+<a name="__line403"></a>	return *this;
+<a name="__line404"></a>    }
+<a name="__line405"></a>
+<a name="__line406"></a>    label &amp;label::top(const length &amp;l)
+<a name="__line407"></a>    {
+<a name="__line408"></a>	y(l,sym::top);
+<a name="__line409"></a>	return *this;
+<a name="__line410"></a>    }
+<a name="__line411"></a>
+<a name="__line412"></a>    label &amp;label::ycenter(const length &amp;l)
+<a name="__line413"></a>    {
+<a name="__line414"></a>	y(l,sym::center);
+<a name="__line415"></a>	return *this;
+<a name="__line416"></a>    }
+<a name="__line417"></a>
+<a name="__line418"></a>    label &amp;label::height(const length &amp;l)
+<a name="__line419"></a>    {
+<a name="__line420"></a>	warning::print("Please, do not try to set the height of a label!",
+<a name="__line421"></a>		       "label::height(const length &amp;)");
+<a name="__line422"></a>	return *this;
+<a name="__line423"></a>    }
+<a name="__line424"></a>
+<a name="__line425"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

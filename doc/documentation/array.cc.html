@@ -1,0 +1,260 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: array.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="array.h.html">array.h</a>"
+<a name="__line1"></a>#include &lt;map&gt;
+<a name="__line2"></a>#include &lt;algorithm&gt;
+<a name="__line3"></a>#include &lt;functional&gt;
+<a name="__line4"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line5"></a>
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    var array::join(const var &amp;separator, unsigned int from, int to) const
+<a name="__line10"></a>    {
+<a name="__line11"></a>        var result = "";
+<a name="__line12"></a>        unsigned int TO = size();
+<a name="__line13"></a>        if(to&gt;=0 &amp;&amp; to&lt;=(int)size()) TO = to;
+<a name="__line14"></a>        for(unsigned int i=from; i&lt;TO; ++i)
+<a name="__line15"></a>        {
+<a name="__line16"></a>            if(i&gt;from) result &amp;= separator;
+<a name="__line17"></a>            result &amp;= (*this)[i];
+<a name="__line18"></a>        }
+<a name="__line19"></a>        return result;
+<a name="__line20"></a>    }
+<a name="__line21"></a>
+<a name="__line22"></a>    array &amp;array::replace(const var &amp;from, const var &amp;to)
+<a name="__line23"></a>    {
+<a name="__line24"></a>	for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line25"></a>	{
+<a name="__line26"></a>	    (*this)[i].replace(from,to);
+<a name="__line27"></a>	}
+<a name="__line28"></a>        return *this;
+<a name="__line29"></a>    }
+<a name="__line30"></a>    array &amp;array::replace_re(const var &amp;pattern, const var &amp;replacement)
+<a name="__line31"></a>    {
+<a name="__line32"></a>	for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line33"></a>	{
+<a name="__line34"></a>	    (*this)[i].replace_re(pattern,replacement);
+<a name="__line35"></a>	}
+<a name="__line36"></a>        return *this;
+<a name="__line37"></a>    }
+<a name="__line38"></a>
+<a name="__line39"></a>    class var_less_s : public std::binary_function&lt;var,var,bool&gt;
+<a name="__line40"></a>    {
+<a name="__line41"></a><span class=public>    public:
+<a name="__line42"></a>	bool operator()(const var &amp;x, const var &amp;y) const { return x.str()&lt;y.str(); }
+<a name="__line43"></a>    };
+<a name="__line44"></a>    class var_less_n : public std::binary_function&lt;var,var,bool&gt;
+<a name="__line45"></a>    {
+<a name="__line46"></a></span><span class=public>    public:
+<a name="__line47"></a>	bool operator()(const var &amp;x, const var &amp;y) const { return x.dbl()&lt;y.dbl(); }
+<a name="__line48"></a>    };
+<a name="__line49"></a>    
+<a name="__line50"></a>
+<a name="__line51"></a>    void array::sort_s()
+<a name="__line52"></a>    {
+<a name="__line53"></a>	std::sort(begin(), end(), var_less_s());
+<a name="__line54"></a>    }
+<a name="__line55"></a>    void array::sort_n()
+<a name="__line56"></a>    {
+<a name="__line57"></a>	std::sort(begin(), end(), var_less_n());
+<a name="__line58"></a>    }
+<a name="__line59"></a>
+<a name="__line60"></a>    var array::outfs_ = " ";
+<a name="__line61"></a>    var array::infs_  = " ";
+<a name="__line62"></a>
+<a name="__line63"></a>    const var &amp;array::outfs() { return outfs_; }
+<a name="__line64"></a>    void array::outfs(const var &amp;f) { outfs_ = f; }
+<a name="__line65"></a>    const var &amp;array::infs() { return infs_; }
+<a name="__line66"></a>    void array::infs(const var &amp;f) { infs_ = f; }
+<a name="__line67"></a>
+<a name="__line68"></a>    array::array() : iterator_(0) {}
+<a name="__line69"></a>    array::array(const array &amp;o) : std::vector&lt;blop::var&gt;(o), iterator_(o.iterator_) {}
+<a name="__line70"></a>    array::array(unsigned int size) : std::vector&lt;blop::var&gt;(size), iterator_(0) {}
+<a name="__line71"></a>
+<a name="__line72"></a>    array::array(const std::initializer_list&lt;double&gt; &amp;l) : iterator_(0)
+<a name="__line73"></a>    {
+<a name="__line74"></a>        reserve(l.size());
+<a name="__line75"></a>        for(auto &amp;e : l) push_back(e);
+<a name="__line76"></a>    }
+<a name="__line77"></a>    array::array(const std::initializer_list&lt;int&gt; &amp;l) : iterator_(0)
+<a name="__line78"></a>    {
+<a name="__line79"></a>        reserve(l.size());
+<a name="__line80"></a>        for(auto &amp;e : l) push_back(e);
+<a name="__line81"></a>    }
+<a name="__line82"></a>    array::array(const std::initializer_list&lt;std::string&gt; &amp;l) : iterator_(0)
+<a name="__line83"></a>    {
+<a name="__line84"></a>        reserve(l.size());
+<a name="__line85"></a>        for(auto &amp;e : l) push_back(e);
+<a name="__line86"></a>    }
+<a name="__line87"></a>    array::array(const std::initializer_list&lt;const char *&gt; &amp;l) : iterator_(0)
+<a name="__line88"></a>    {
+<a name="__line89"></a>        reserve(l.size());
+<a name="__line90"></a>        for(auto &amp;e : l) push_back(e);
+<a name="__line91"></a>    }
+<a name="__line92"></a>    array::array(const std::initializer_list&lt;blop::var&gt; &amp;l) : iterator_(0)
+<a name="__line93"></a>    {
+<a name="__line94"></a>        reserve(l.size());
+<a name="__line95"></a>        for(auto &amp;e : l) push_back(e);
+<a name="__line96"></a>    }
+<a name="__line97"></a>
+<a name="__line98"></a>    void array::setfirst() { iterator_ = 0; }
+<a name="__line99"></a>    void array::setlast() { iterator_ = size()-1; }
+<a name="__line100"></a>    void array::set(int i) { iterator_ = i; }
+<a name="__line101"></a>    int array::pos() const { return iterator_ ; }
+<a name="__line102"></a>    array::operator bool () const {return 0&lt;=iterator_ &amp;&amp; iterator_&lt;size();}
+<a name="__line103"></a>    const array &amp;array::operator++() {++iterator_; return *this;}
+<a name="__line104"></a>    const array &amp;array::operator--() {--iterator_; return *this;}
+<a name="__line105"></a>    var &amp;array::operator()()
+<a name="__line106"></a>    {
+<a name="__line107"></a>	if(0&lt;=iterator_ &amp;&amp; iterator_&lt;size()) return (*this)[iterator_];
+<a name="__line108"></a>	warning::print("Iterator is out of range","array::operator()");
+<a name="__line109"></a>	static var dummy;
+<a name="__line110"></a>	return dummy;
+<a name="__line111"></a>    }
+<a name="__line112"></a>    const var &amp;array::operator()() const { return (*this)[iterator_]; }
+<a name="__line113"></a>
+<a name="__line114"></a>    const array &amp;array::operator=(const array &amp;rhs)
+<a name="__line115"></a>    {
+<a name="__line116"></a>	std::vector&lt;blop::var&gt;::operator=(rhs);
+<a name="__line117"></a>	iterator_ = rhs.iterator_;
+<a name="__line118"></a>	return rhs;
+<a name="__line119"></a>    }
+<a name="__line120"></a>
+<a name="__line121"></a>    var array::pop_back()
+<a name="__line122"></a>    {
+<a name="__line123"></a>	var result = "";
+<a name="__line124"></a>	if(!empty())
+<a name="__line125"></a>	{
+<a name="__line126"></a>	    result = back();
+<a name="__line127"></a>	    resize(size()-1);
+<a name="__line128"></a>	}
+<a name="__line129"></a>	return result;
+<a name="__line130"></a>    }
+<a name="__line131"></a>
+<a name="__line132"></a>
+<a name="__line133"></a>    array &amp;array::erase(unsigned int pos)
+<a name="__line134"></a>    {
+<a name="__line135"></a>	std::vector&lt;blop::var&gt;::erase(begin()+pos);
+<a name="__line136"></a>	return *this;
+<a name="__line137"></a>    }
+<a name="__line138"></a>
+<a name="__line139"></a>    array &amp;array::push_back(const array &amp;other)
+<a name="__line140"></a>    {
+<a name="__line141"></a>	int off = size();
+<a name="__line142"></a>	resize(size() + other.size());
+<a name="__line143"></a>	for(unsigned int i=0; i&lt;other.size(); ++i)
+<a name="__line144"></a>	{
+<a name="__line145"></a>	    (*this)[off+i] = other[i];
+<a name="__line146"></a>	}
+<a name="__line147"></a>	return *this;
+<a name="__line148"></a>    }
+<a name="__line149"></a>
+<a name="__line150"></a>
+<a name="__line151"></a>
+<a name="__line152"></a>    
+<a name="__line153"></a>
+<a name="__line154"></a>    array &amp;array::operator() (const var &amp;v)
+<a name="__line155"></a>    {
+<a name="__line156"></a>	vector&lt;var&gt;::push_back(v);
+<a name="__line157"></a>	return *this;
+<a name="__line158"></a>    }
+<a name="__line159"></a>
+<a name="__line160"></a>
+<a name="__line161"></a>    void array::push_front(const var &amp;v)
+<a name="__line162"></a>    {
+<a name="__line163"></a>	resize(size() + 1);
+<a name="__line164"></a>	for(int i=size()-1; i&gt;=1; --i)
+<a name="__line165"></a>	{
+<a name="__line166"></a>	    (*this)[i] = (*this)[i-1];
+<a name="__line167"></a>	}
+<a name="__line168"></a>	(*this)[0] = v;
+<a name="__line169"></a>    }
+<a name="__line170"></a>
+<a name="__line171"></a>    void array::push_front(const array &amp;o)
+<a name="__line172"></a>    {
+<a name="__line173"></a>	int oldsize = size();
+<a name="__line174"></a>	int newsize =   oldsize + o.size();
+<a name="__line175"></a>	resize(newsize);
+<a name="__line176"></a>	for(int i=oldsize-1; i&gt;=0; --i)
+<a name="__line177"></a>	{
+<a name="__line178"></a>	    (*this)[i+o.size()] = (*this)[i];
+<a name="__line179"></a>	}
+<a name="__line180"></a>	for(unsigned int i=0; i&lt;o.size(); ++i)
+<a name="__line181"></a>	{
+<a name="__line182"></a>	    (*this)[i] = o[i];
+<a name="__line183"></a>	}
+<a name="__line184"></a>    }
+<a name="__line185"></a>
+<a name="__line186"></a>    array array::tmp_;
+<a name="__line187"></a>
+<a name="__line188"></a>    array &amp;array::sequence(const var &amp;step, const var &amp;from, const var &amp;to)
+<a name="__line189"></a>    {
+<a name="__line190"></a>	tmp_.clear();
+<a name="__line191"></a>	for(var v = from; v.dbl() &lt;= to.dbl(); v += step)
+<a name="__line192"></a>	{
+<a name="__line193"></a>	    tmp_.push_back(v);
+<a name="__line194"></a>	}
+<a name="__line195"></a>	return tmp_;
+<a name="__line196"></a>    }
+<a name="__line197"></a>
+<a name="__line198"></a>    array &amp;array::make(const var &amp;v)
+<a name="__line199"></a>    {
+<a name="__line200"></a>	tmp_.clear();
+<a name="__line201"></a>	tmp_.push_back(v);
+<a name="__line202"></a>	return tmp_;
+<a name="__line203"></a>    }
+<a name="__line204"></a>
+<a name="__line205"></a>    array array_unique(const array &amp;a)
+<a name="__line206"></a>    {
+<a name="__line207"></a>	std::map&lt;std::string, bool&gt; m;
+<a name="__line208"></a>	for(unsigned int i=0; i&lt;a.size(); ++i) m[a[i]] = true;
+<a name="__line209"></a>	array result;
+<a name="__line210"></a>	for(std::map&lt;std::string,bool&gt;::iterator i=m.begin();
+<a name="__line211"></a>	    i != m.end(); ++i)
+<a name="__line212"></a>	{
+<a name="__line213"></a>	    result.push_back((*i).first);
+<a name="__line214"></a>	}
+<a name="__line215"></a>	return result;
+<a name="__line216"></a>    }
+<a name="__line217"></a>
+<a name="__line218"></a>}
+<a name="__line219"></a>
+<a name="__line220"></a>
+<a name="__line221"></a>
+<a name="__line222"></a>std::ostream&amp; operator&lt;&lt; (std::ostream &amp;out, const blop::array &amp;a)
+<a name="__line223"></a>{
+<a name="__line224"></a>    for(unsigned int i=0; i&lt;a.size(); ++i)
+<a name="__line225"></a>    {
+<a name="__line226"></a>	out&lt;&lt;a[i];
+<a name="__line227"></a>	if(i &lt; a.size()-1) out&lt;&lt;blop::array::outfs();
+<a name="__line228"></a>    }
+<a name="__line229"></a>    return out;
+<a name="__line230"></a>}
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: ignore.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line1"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line2"></a>
+<a name="__line3"></a>namespace blop
+<a name="__line4"></a>{
+<a name="__line5"></a>    std::vector&lt;std::string&gt; &amp;ignore::list_()
+<a name="__line6"></a>    {
+<a name="__line7"></a>	static std::vector&lt;std::string&gt; the_list;
+<a name="__line8"></a>	if(the_list.empty())
+<a name="__line9"></a>	{
+<a name="__line10"></a>	    the_list.push_back("inf");
+<a name="__line11"></a>	    the_list.push_back("-inf");
+<a name="__line12"></a>	    the_list.push_back("nan");
+<a name="__line13"></a>	}
+<a name="__line14"></a>	return the_list;
+<a name="__line15"></a>    }
+<a name="__line16"></a>
+<a name="__line17"></a>    void ignore::add(const var &amp;v)
+<a name="__line18"></a>    {
+<a name="__line19"></a>	list_().push_back(v.str());
+<a name="__line20"></a>    }
+<a name="__line21"></a>
+<a name="__line22"></a>    void ignore::clear()
+<a name="__line23"></a>    {
+<a name="__line24"></a>	list_().clear();
+<a name="__line25"></a>    }
+<a name="__line26"></a>
+<a name="__line27"></a>    bool ignore::it(const var &amp;v)
+<a name="__line28"></a>    {
+<a name="__line29"></a>	if(v.dbl() == unset) return true;
+<a name="__line30"></a>	if(!finite(v.dbl())) return true;
+<a name="__line31"></a>	for(unsigned int i=0; i&lt;list_().size(); ++i)
+<a name="__line32"></a>	{
+<a name="__line33"></a>	    if(list_()[i] == v.str()) return true;
+<a name="__line34"></a>	}
+<a name="__line35"></a>	return false;
+<a name="__line36"></a>    }
+<a name="__line37"></a>
+<a name="__line38"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

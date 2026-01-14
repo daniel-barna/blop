@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Video terminal</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="multi-page-terminals.html ">
+   <link rel="Next" href="fitting.html ">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="multi-page-terminals.html ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: multi-page-terminals.html ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="fitting.html ">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: fitting.html ">
+    </a> <br>
+
+<center class=title><b>
+Video terminal
+</b></center>
+<hr>
+
+<div class=prguide>
+<u>Practical Guide:</u> 
+<pre> 
+video out("video.avi","-w 12cm -h 8cm");
+set::xrange(-10,10);
+set::yrange(0,100);
+for(double a=0; a<1; a += 0.01)
+{
+  plot(_1,a*_1*_1);
+  out.print();
+}
+</pre>
+This script would produce a video with an increasing parabola. It is
+adviced to fix the x/y-ranges, otherwise they are automatically
+adjusted, and will jump from frame to frame in the video.
+</div> 
+<hr>
+
+<div class=description>
+The <tt>video</tt> terminal produces a video output, assembled from
+separate video frames. Use whatever plotting commands you need to
+create a frame, then use the <tt>print()</tt> member function of this
+terminal to print out the current canvas into one video frame. 
+
+<p>It uses <tt>ffmpeg</tt> to assemble the individual frames into a
+movie. 
+
+<p>Generating a movie might take long, one needs to create several
+hundred or thousand frames. You may want to have a look at the result
+before the whole process ends. By default, the movie is (re-)generated
+after each 100 frames. To change this value, use the
+<tt>.autorefresh(int)</tt> member function.
+
+<p>Framerate: use the <tt>.fps(int)</tt> member function to set the frames-per-second. 
+
+
+</div>
+<hr>
+
+<pre class=implementation>
+Souce files:
+   <a href="video.h.html">video.h</a>
+   <a href="video.cc.html">video.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="multi-page-terminals.html ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: multi-page-terminals.html ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="fitting.html ">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: fitting.html ">
+    </a> 
+
+</body>
+</html>

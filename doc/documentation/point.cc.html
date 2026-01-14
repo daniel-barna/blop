@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: point.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="point.h.html">point.h</a>"
+<a name="__line1"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line2"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line3"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    point_drawer *point::default_type_ = new circle(true);
+<a name="__line8"></a>    color point::default_color_(0,0,0);
+<a name="__line9"></a>    length point::default_size_(new length::base_id_t(terminal::PS));
+<a name="__line10"></a>
+<a name="__line11"></a>    point::point()
+<a name="__line12"></a>    {
+<a name="__line13"></a>	type_ = default_type_-&gt;clone();
+<a name="__line14"></a>	size_ = default_size_;
+<a name="__line15"></a>	color_ = default_color_;
+<a name="__line16"></a>    }
+<a name="__line17"></a>
+<a name="__line18"></a>    point::~point()
+<a name="__line19"></a>    {
+<a name="__line20"></a>	delete type_;
+<a name="__line21"></a>    }
+<a name="__line22"></a>
+<a name="__line23"></a>    void point::default_pointtype(const point_drawer &amp;t)
+<a name="__line24"></a>    {
+<a name="__line25"></a>	delete default_type_;
+<a name="__line26"></a>	default_type_ = t.clone();
+<a name="__line27"></a>    }
+<a name="__line28"></a>    point &amp;point::pointtype(const point_drawer &amp;t)
+<a name="__line29"></a>    {
+<a name="__line30"></a>	delete type_;
+<a name="__line31"></a>	type_ = t.clone();
+<a name="__line32"></a>	return *this;
+<a name="__line33"></a>    }
+<a name="__line34"></a>    point &amp;point::pt(const point_drawer &amp;t)
+<a name="__line35"></a>    {
+<a name="__line36"></a>	return pointtype(t);
+<a name="__line37"></a>    }
+<a name="__line38"></a>    const point_drawer &amp;point::pointtype() const
+<a name="__line39"></a>    {
+<a name="__line40"></a>	return *type_;
+<a name="__line41"></a>    }
+<a name="__line42"></a>
+<a name="__line43"></a>    void point::default_pointcolor(const color &amp;c)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	default_color_ = c;
+<a name="__line46"></a>    }
+<a name="__line47"></a>    point &amp;point::pointcolor(const color &amp;c)
+<a name="__line48"></a>    {
+<a name="__line49"></a>	color_ = c;
+<a name="__line50"></a>	return *this;
+<a name="__line51"></a>    }
+<a name="__line52"></a>    point &amp;point::pc(const color &amp;c)
+<a name="__line53"></a>    {
+<a name="__line54"></a>	return pointcolor(c);
+<a name="__line55"></a>    }
+<a name="__line56"></a>    const color &amp;point::pointcolor() const {return color_;}
+<a name="__line57"></a>
+<a name="__line58"></a>    void point::default_pointsize(const length &amp;l)
+<a name="__line59"></a>    {
+<a name="__line60"></a>	default_size_ = l;
+<a name="__line61"></a>    }
+<a name="__line62"></a>    point &amp;point::pointsize(const length &amp;l)
+<a name="__line63"></a>    {
+<a name="__line64"></a>	size_ = l;
+<a name="__line65"></a>	return *this;
+<a name="__line66"></a>    }
+<a name="__line67"></a>    point &amp;point::ps(const length &amp;l)
+<a name="__line68"></a>    {
+<a name="__line69"></a>	return pointsize(l);
+<a name="__line70"></a>    }
+<a name="__line71"></a>    const length &amp;point::pointsize() const {return size_; }
+<a name="__line72"></a>
+<a name="__line73"></a>    void point::print(terminal *t)
+<a name="__line74"></a>    {
+<a name="__line75"></a>	if(print_me_ &lt; 2) return;
+<a name="__line76"></a>	t-&gt;open_layer(layer_);
+<a name="__line77"></a>	t-&gt;set_color(color_);
+<a name="__line78"></a>	t-&gt;translate(x_.termspecific_id(), y_.termspecific_id());
+<a name="__line79"></a>	type_-&gt;draw(t);
+<a name="__line80"></a>	t-&gt;reset_transformation();
+<a name="__line81"></a>	t-&gt;close_layer(layer_);
+<a name="__line82"></a>    }
+<a name="__line83"></a>
+<a name="__line84"></a>    point &amp;point::draw(container *parent, length x, length y)
+<a name="__line85"></a>    {
+<a name="__line86"></a>	if(parent == 0) err("point::draw ==&gt; parent t== 0");
+<a name="__line87"></a>
+<a name="__line88"></a>	point *p = new point();
+<a name="__line89"></a>	p-&gt;x(x).y(y);
+<a name="__line90"></a>	p-&gt;autodel(true);
+<a name="__line91"></a>	parent-&gt;add(p);
+<a name="__line92"></a>	return *p;
+<a name="__line93"></a>    }
+<a name="__line94"></a>    point &amp;point::fdraw(length x,length y)
+<a name="__line95"></a>    {
+<a name="__line96"></a>	return point::draw(&amp;frame::current(), x, y);
+<a name="__line97"></a>    }
+<a name="__line98"></a>    point &amp;point::pdraw(length x,length y)
+<a name="__line99"></a>    {
+<a name="__line100"></a>	return point::draw(&amp;pad::current(), x, y);
+<a name="__line101"></a>    }
+<a name="__line102"></a>    point &amp;point::cdraw(length x,length y)
+<a name="__line103"></a>    {
+<a name="__line104"></a>	return point::draw(&amp;canvas::current(), x, y);
+<a name="__line105"></a>    }
+<a name="__line106"></a>
+<a name="__line107"></a>    void point::prepare_for_draw()
+<a name="__line108"></a>    {
+<a name="__line109"></a>	if(print_me_ &lt; 1) return;
+<a name="__line110"></a>	x_.set_scale(x_unit());
+<a name="__line111"></a>	y_.set_scale(y_unit());
+<a name="__line112"></a>	x_.register_me();
+<a name="__line113"></a>	y_.register_me();
+<a name="__line114"></a>	size_.register_me();
+<a name="__line115"></a>	type_-&gt;prepare_for_draw(size_);
+<a name="__line116"></a>    }
+<a name="__line117"></a>
+<a name="__line118"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

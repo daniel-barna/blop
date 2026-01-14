@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: arrowhead.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_ARROWHEAD_H__
+<a name="__line1"></a>#define __BLOP_ARROWHEAD_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line4"></a>#include "<a href="grob.h.html">grob.h</a>"
+<a name="__line5"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    class arrowhead : public grob
+<a name="__line10"></a>    {
+<a name="__line11"></a><span class=public>    public:
+<a name="__line12"></a>	virtual arrowhead *clone() const = 0;
+<a name="__line13"></a>
+<a name="__line14"></a>	class simple;
+<a name="__line15"></a>	class filled;
+<a name="__line16"></a>
+<a name="__line17"></a>	arrowhead &amp;layer(const var &amp; l) { grob::layer(l); return *this; }
+<a name="__line18"></a>
+<a name="__line19"></a>	virtual arrowhead &amp;size(const length &amp;l) = 0;
+<a name="__line20"></a>	virtual arrowhead &amp;angle(double a) = 0;
+<a name="__line21"></a>    };
+<a name="__line22"></a>
+<a name="__line23"></a>
+<a name="__line24"></a>    class arrowhead::simple : public arrowhead
+<a name="__line25"></a>    {
+<a name="__line26"></a></span><span class=private>    private:
+<a name="__line27"></a>	length length_,l_,t1_,t2_;
+<a name="__line28"></a>	double angle_;
+<a name="__line29"></a>	void set_t_();
+<a name="__line30"></a></span><span class=public>    public:
+<a name="__line31"></a>	simple(const length &amp;l, double a=45);
+<a name="__line32"></a>	simple(const arrowhead::simple &amp;o);
+<a name="__line33"></a>	void prepare_for_draw();
+<a name="__line34"></a>	void print(terminal *);
+<a name="__line35"></a>	
+<a name="__line36"></a>	simple &amp;size(const length  &amp;l);
+<a name="__line37"></a>	const length &amp;size() const;
+<a name="__line38"></a>	simple &amp;angle(double a);
+<a name="__line39"></a>	double angle() const;
+<a name="__line40"></a>	virtual arrowhead *clone() const;
+<a name="__line41"></a>    };
+<a name="__line42"></a>    
+<a name="__line43"></a>    class arrowhead::filled : public arrowhead
+<a name="__line44"></a>    {
+<a name="__line45"></a></span><span class=private>    private:
+<a name="__line46"></a>	bool l1_eq_l2_;
+<a name="__line47"></a>	length length_,l_,t1_,t2_,length2_, l2_;
+<a name="__line48"></a>	double angle_;
+<a name="__line49"></a>	void set_t_();
+<a name="__line50"></a></span><span class=public>    public:
+<a name="__line51"></a>	filled(const length &amp;l=EX, double a=45);
+<a name="__line52"></a>	filled(const length &amp;l, double a, const length &amp;l2);
+<a name="__line53"></a>	filled(const filled &amp;);
+<a name="__line54"></a>	void prepare_for_draw();
+<a name="__line55"></a>	void print(terminal *);
+<a name="__line56"></a>	
+<a name="__line57"></a>	filled &amp;size(const length  &amp;l);
+<a name="__line58"></a>	filled &amp;size2(const length &amp;l);
+<a name="__line59"></a>	const length &amp;size() const;
+<a name="__line60"></a>	const length &amp;size2() const;
+<a name="__line61"></a>	filled &amp;angle(double a);
+<a name="__line62"></a>	double angle() const;
+<a name="__line63"></a>	virtual arrowhead *clone() const;
+<a name="__line64"></a>    };
+<a name="__line65"></a>    
+<a name="__line66"></a>
+<a name="__line67"></a>
+<a name="__line68"></a>}
+<a name="__line69"></a>
+<a name="__line70"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

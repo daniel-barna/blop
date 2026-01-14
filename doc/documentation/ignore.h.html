@@ -1,0 +1,55 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: ignore.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_IGNORE_H__
+<a name="__line1"></a>#define __BLOP_IGNORE_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;string&gt;
+<a name="__line5"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>
+<a name="__line10"></a>    class ignore
+<a name="__line11"></a>    {
+<a name="__line12"></a><span class=private>    private:
+<a name="__line13"></a>	static std::vector&lt;std::string&gt; &amp;list_();
+<a name="__line14"></a>
+<a name="__line15"></a></span><span class=public>    public:
+<a name="__line16"></a>	static void add(const var &amp;v);
+<a name="__line17"></a>	static void clear();
+<a name="__line18"></a>	static bool it(const var &amp;v);
+<a name="__line19"></a>    };
+<a name="__line20"></a>    
+<a name="__line21"></a>}
+<a name="__line22"></a>
+<a name="__line23"></a>
+<a name="__line24"></a>#endif
+<a name="__line25"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

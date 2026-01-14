@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: warning.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_WARNING_H__
+<a name="__line1"></a>#define __BLOP_WARNING_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line4"></a>#include &lt;iostream&gt;
+<a name="__line5"></a>#include &lt;vector&gt;
+<a name="__line6"></a>#include &lt;string&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>
+<a name="__line11"></a>class warning
+<a name="__line12"></a>{
+<a name="__line13"></a><span class=private> private:   
+<a name="__line14"></a>    static var prompt_;
+<a name="__line15"></a>    static var format_;
+<a name="__line16"></a>    static var fnformat_;
+<a name="__line17"></a>    static std::ostream *destination_;
+<a name="__line18"></a>    static bool delete_destination_;
+<a name="__line19"></a>    static std::vector&lt;std::string&gt; exclude_;
+<a name="__line20"></a></span><span class=public> public:
+<a name="__line21"></a>
+<a name="__line22"></a>    <span class=comment>// ---------- Set the 'prompt' (first part of each warning output line) -----------</span>
+<a name="__line23"></a>    static void prompt(const var &amp;p) { prompt_ = p; }
+<a name="__line24"></a>    static var &amp;prompt() { return prompt_; }
+<a name="__line25"></a>
+<a name="__line26"></a>    <span class=comment>// ---------- Specify format of warning messages ----------------------------------</span>
+<a name="__line27"></a>    <span class=comment>// %p in this string will be substituted by prompt</span>
+<a name="__line28"></a>    <span class=comment>// %m will be substituted by the warning message</span>
+<a name="__line29"></a>    <span class=comment>// %F by the fnformat (below. it stands for function name format)</span>
+<a name="__line30"></a>    <span class=comment>// %f is replaced by the function name</span>
+<a name="__line31"></a>    <span class=comment>// defaults are: format = "%p %m\n%F"</span>
+<a name="__line32"></a>    <span class=comment>//               fnformat = "%p      [in %f]\n"</span>
+<a name="__line33"></a>    <span class=comment>//               prompt   = [blop]</span>
+<a name="__line34"></a>    <span class=comment>// therefore warning::print("Warning Message","function::name(...)");</span>
+<a name="__line35"></a>    <span class=comment>// will produce</span>
+<a name="__line36"></a>    <span class=comment>// [blop] Warning Message</span>
+<a name="__line37"></a>    <span class=comment>// [blop]        [in function::name(...)]</span>
+<a name="__line38"></a>
+<a name="__line39"></a>    static void format(const var &amp;f) { format_ = f; }
+<a name="__line40"></a>    static var &amp;format() { return format_; }
+<a name="__line41"></a>
+<a name="__line42"></a>    static void fnformat(const var &amp;f) { fnformat_ = f; }
+<a name="__line43"></a>    static var &amp;fnformat() { return fnformat_; }
+<a name="__line44"></a>
+<a name="__line45"></a>
+<a name="__line46"></a>    <span class=comment>// ---------- Specify destination of warning messages (redirection) ---------------</span>
+<a name="__line47"></a>    static void   destination(ostream &amp;dest);
+<a name="__line48"></a>    static void   destination(const var &amp;filename);
+<a name="__line49"></a>    std::ostream &amp;destination() { return *destination_ ; }
+<a name="__line50"></a>
+<a name="__line51"></a>    static void   exclude(const var &amp;);
+<a name="__line52"></a>
+<a name="__line53"></a>    <span class=comment>// ---------- Print a warning message according to above specs --------------------</span>
+<a name="__line54"></a>    <span class=comment>// </span>
+<a name="__line55"></a>    static void print(const var &amp;message, const var &amp;funcname = "");
+<a name="__line56"></a>};
+<a name="__line57"></a>
+<a name="__line58"></a>class debug
+<a name="__line59"></a>{
+<a name="__line60"></a></span><span class=private> private:   
+<a name="__line61"></a>    static var prompt_;
+<a name="__line62"></a>    static var format_;
+<a name="__line63"></a>    static var fnformat_;
+<a name="__line64"></a>    static std::ostream *destination_;
+<a name="__line65"></a>    static bool delete_destination_;
+<a name="__line66"></a>    static std::vector&lt;std::string&gt; exclude_;
+<a name="__line67"></a>    static bool on_;
+<a name="__line68"></a></span><span class=public> public:
+<a name="__line69"></a>
+<a name="__line70"></a>    <span class=comment>// ------- Switch debug on/off</span>
+<a name="__line71"></a>    static void on(bool f) { on_ = f; }
+<a name="__line72"></a>    static bool on() { return on_; }
+<a name="__line73"></a>
+<a name="__line74"></a>    <span class=comment>// ---------- Set the 'prompt' (first part of each warning output line) -----------</span>
+<a name="__line75"></a>    static void prompt(const var &amp;p) { prompt_ = p; }
+<a name="__line76"></a>    static var &amp;prompt() { return prompt_; }
+<a name="__line77"></a>
+<a name="__line78"></a>    <span class=comment>// ---------- Specify format of warning messages ----------------------------------</span>
+<a name="__line79"></a>    <span class=comment>// %p in this string will be substituted by prompt</span>
+<a name="__line80"></a>    <span class=comment>// %m will be substituted by the warning message</span>
+<a name="__line81"></a>    <span class=comment>// %F by the fnformat (below. it stands for function name format)</span>
+<a name="__line82"></a>    <span class=comment>// %f is replaced by the function name</span>
+<a name="__line83"></a>    <span class=comment>// defaults are: format = "%p %m\n%F"</span>
+<a name="__line84"></a>    <span class=comment>//               fnformat = "%p      [in %f]\n"</span>
+<a name="__line85"></a>    <span class=comment>//               prompt   = [blop]</span>
+<a name="__line86"></a>    <span class=comment>// therefore warning::print("Warning Message","function::name(...)");</span>
+<a name="__line87"></a>    <span class=comment>// will produce</span>
+<a name="__line88"></a>    <span class=comment>// [blop] Warning Message</span>
+<a name="__line89"></a>    <span class=comment>// [blop]        [in function::name(...)]</span>
+<a name="__line90"></a>
+<a name="__line91"></a>    static void format(const var &amp;f) { format_ = f; }
+<a name="__line92"></a>    static var &amp;format() { return format_; }
+<a name="__line93"></a>
+<a name="__line94"></a>    static void fnformat(const var &amp;f) { fnformat_ = f; }
+<a name="__line95"></a>    static var &amp;fnformat() { return fnformat_; }
+<a name="__line96"></a>
+<a name="__line97"></a>
+<a name="__line98"></a>    <span class=comment>// ---------- Specify destination of warning messages (redirection) ---------------</span>
+<a name="__line99"></a>    static void   destination(ostream &amp;dest);
+<a name="__line100"></a>    static void   destination(const var &amp;filename);
+<a name="__line101"></a>    std::ostream &amp;destination() { return *destination_ ; }
+<a name="__line102"></a>
+<a name="__line103"></a>    static void   exclude(const var &amp;);
+<a name="__line104"></a>
+<a name="__line105"></a>    <span class=comment>// ---------- Print a warning message according to above specs --------------------</span>
+<a name="__line106"></a>    <span class=comment>// </span>
+<a name="__line107"></a>    static void print(const var &amp;message, const var &amp;funcname = "");
+<a name="__line108"></a>};
+<a name="__line109"></a>
+<a name="__line110"></a>
+<a name="__line111"></a>
+<a name="__line112"></a>}
+<a name="__line113"></a>
+<a name="__line114"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

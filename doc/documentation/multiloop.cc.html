@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: multiloop.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="multiloop.h.html">multiloop.h</a>"
+<a name="__line1"></a>#include &lt;iostream&gt;
+<a name="__line2"></a>
+<a name="__line3"></a>
+<a name="__line4"></a>multiloop::multiloop(unsigned int size, int to, int from, bool permutations) : current_(size), from_(size), to_(size), permutations_(permutations) 
+<a name="__line5"></a>{
+<a name="__line6"></a>    for(unsigned int i=0; i&lt;size; ++i)
+<a name="__line7"></a>    {
+<a name="__line8"></a>        from_[i] = from;
+<a name="__line9"></a>        to_[i] = to;
+<a name="__line10"></a>    }
+<a name="__line11"></a>    <span class=comment>// Initialize the state to 'false' in case init_() fails (which can happen if no permutations are allowed,</span>
+<a name="__line12"></a>    <span class=comment>// and the limits are too low to allow all indices to be different)</span>
+<a name="__line13"></a>    reset();
+<a name="__line14"></a>}
+<a name="__line15"></a>
+<a name="__line16"></a>
+<a name="__line17"></a>bool multiloop::init_(int j)
+<a name="__line18"></a>{
+<a name="__line19"></a>    if(permutations_)
+<a name="__line20"></a>    {
+<a name="__line21"></a>        for(unsigned int i=j; i&lt;current_.size(); ++i) current_[i] = from_[i];
+<a name="__line22"></a>    }
+<a name="__line23"></a>    else
+<a name="__line24"></a>    {
+<a name="__line25"></a>        for(unsigned int i=j; i&lt;current_.size(); ++i) 
+<a name="__line26"></a>        {
+<a name="__line27"></a>            current_[i] = (i==0?from_[i]:current_[i-1]+1);
+<a name="__line28"></a>            if(current_[i]&gt;=to_[i]) return false;
+<a name="__line29"></a>        }
+<a name="__line30"></a>    }
+<a name="__line31"></a>    return true;
+<a name="__line32"></a>}
+<a name="__line33"></a>
+<a name="__line34"></a>
+<a name="__line35"></a>int &amp;multiloop::operator[](int i) 
+<a name="__line36"></a>{
+<a name="__line37"></a>    return current_[i];
+<a name="__line38"></a>}
+<a name="__line39"></a>const int &amp;multiloop::operator[](int i)  const
+<a name="__line40"></a>{
+<a name="__line41"></a>    return current_[i];
+<a name="__line42"></a>}
+<a name="__line43"></a>
+<a name="__line44"></a>void multiloop::reset()
+<a name="__line45"></a>{
+<a name="__line46"></a>    state_ = init_();
+<a name="__line47"></a>    pos_ = 0;
+<a name="__line48"></a>}
+<a name="__line49"></a>
+<a name="__line50"></a>bool multiloop::operator++()
+<a name="__line51"></a>{
+<a name="__line52"></a>    <span class=comment>// Do nothing if not in a correct state</span>
+<a name="__line53"></a>    if(state_==false) return false;
+<a name="__line54"></a>
+<a name="__line55"></a>    int i=current_.size()-1; 
+<a name="__line56"></a>
+<a name="__line57"></a>    for(; i&gt;=0; --i)
+<a name="__line58"></a>    {
+<a name="__line59"></a>        <span class=comment>// Try to increase the ith index.</span>
+<a name="__line60"></a>        if(++current_[i]&lt;to_[i]) 
+<a name="__line61"></a>        {
+<a name="__line62"></a>            <span class=comment>// If the increased index is within limits, reinitialize subsequent indices. If we succeed, we are done</span>
+<a name="__line63"></a>            if(init_(i+1))
+<a name="__line64"></a>            {
+<a name="__line65"></a>                ++pos_;
+<a name="__line66"></a>                return true;
+<a name="__line67"></a>            }
+<a name="__line68"></a>            <span class=comment>// Otherwise go backwards to previous index, and try to increase that one.</span>
+<a name="__line69"></a>        }
+<a name="__line70"></a>    }
+<a name="__line71"></a>
+<a name="__line72"></a>    <span class=comment>// WE could not increment, set to false</span>
+<a name="__line73"></a>    if(i&lt;0)
+<a name="__line74"></a>    {
+<a name="__line75"></a>        init_();
+<a name="__line76"></a>        state_ = false;
+<a name="__line77"></a>        return false;
+<a name="__line78"></a>    }
+<a name="__line79"></a>
+<a name="__line80"></a>    std::cerr&lt;&lt;"This should never happen (?) in multiloop.cc"&lt;&lt;std::endl;
+<a name="__line81"></a>    return true;
+<a name="__line82"></a>}
+<a name="__line83"></a>
+<a name="__line84"></a>void multiloop::set(unsigned int i)
+<a name="__line85"></a>{
+<a name="__line86"></a>    reset();
+<a name="__line87"></a>    for(unsigned int j=0; j&lt;i; ++j) ++(*this);
+<a name="__line88"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

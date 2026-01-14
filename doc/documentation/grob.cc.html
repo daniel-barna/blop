@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: grob.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="grob.h.html">grob.h</a>"
+<a name="__line1"></a>#include "<a href="pad.h.html">pad.h</a>"
+<a name="__line2"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line3"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    using namespace std;
+<a name="__line8"></a>
+<a name="__line9"></a>    length &amp;grob::default_x_unit_() { static length l = CM; return l; }
+<a name="__line10"></a>    length &amp;grob::default_y_unit_() { static length l = CM; return l; }
+<a name="__line11"></a>    bool grob::default_use_parent_x_unit_ = true;
+<a name="__line12"></a>    bool grob::default_use_parent_y_unit_ = true;
+<a name="__line13"></a>    
+<a name="__line14"></a>    void grob::default_x_unit(length l) {default_x_unit_() = l; default_use_parent_x_unit_ = false; }
+<a name="__line15"></a>    void grob::default_y_unit(length l) {default_y_unit_() = l; default_use_parent_y_unit_ = false; }
+<a name="__line16"></a>    void grob::default_unit(length l)
+<a name="__line17"></a>    {
+<a name="__line18"></a>	default_x_unit(l);
+<a name="__line19"></a>	default_y_unit(l);
+<a name="__line20"></a>    }
+<a name="__line21"></a>    void grob::default_x_unit(int) { default_use_parent_x_unit_ = true; }
+<a name="__line22"></a>    void grob::default_y_unit(int) { default_use_parent_y_unit_ = true; }
+<a name="__line23"></a>    void grob::default_unit(int)
+<a name="__line24"></a>    {
+<a name="__line25"></a>	default_x_unit(use_parent);
+<a name="__line26"></a>	default_y_unit(use_parent);
+<a name="__line27"></a>    }
+<a name="__line28"></a>
+<a name="__line29"></a>    length grob::x_unit()
+<a name="__line30"></a>    {
+<a name="__line31"></a>	return !x_unit_;
+<a name="__line32"></a>    }
+<a name="__line33"></a>    grob &amp;grob::x_unit(length x)
+<a name="__line34"></a>    {
+<a name="__line35"></a>	x_unit_ = x;
+<a name="__line36"></a>	return *this;
+<a name="__line37"></a>    }
+<a name="__line38"></a>    grob &amp;grob::x_unit(int)
+<a name="__line39"></a>    {
+<a name="__line40"></a>	x_unit_ = !parent_cwidth_;
+<a name="__line41"></a>	return *this;
+<a name="__line42"></a>    }
+<a name="__line43"></a>
+<a name="__line44"></a>
+<a name="__line45"></a>    length grob::y_unit()
+<a name="__line46"></a>    {
+<a name="__line47"></a>	return !y_unit_;
+<a name="__line48"></a>    }
+<a name="__line49"></a>    grob &amp;grob::y_unit(length x)
+<a name="__line50"></a>    {
+<a name="__line51"></a>	y_unit_ = x;
+<a name="__line52"></a>	return *this;
+<a name="__line53"></a>    }
+<a name="__line54"></a>    grob &amp;grob::y_unit(int)
+<a name="__line55"></a>    {
+<a name="__line56"></a>	y_unit_ = !parent_cheight_;
+<a name="__line57"></a>	return *this;
+<a name="__line58"></a>    }
+<a name="__line59"></a>
+<a name="__line60"></a>    grob &amp;grob::unit(length x)
+<a name="__line61"></a>    {
+<a name="__line62"></a>	x_unit(x);
+<a name="__line63"></a>	y_unit(x);
+<a name="__line64"></a>	return *this;
+<a name="__line65"></a>    }
+<a name="__line66"></a>    grob &amp;grob::unit(int)
+<a name="__line67"></a>    {
+<a name="__line68"></a>	x_unit(use_parent);
+<a name="__line69"></a>	y_unit(use_parent);
+<a name="__line70"></a>	return *this;
+<a name="__line71"></a>    }
+<a name="__line72"></a>
+<a name="__line73"></a>    grob::grob(): parent_(0), autodel_(false), print_me_(2), layer_("default")
+<a name="__line74"></a>    {
+<a name="__line75"></a>	modified_ = true;
+<a name="__line76"></a>	parent_cwidth_ = ZERO;
+<a name="__line77"></a>	parent_cheight_ = ZERO;
+<a name="__line78"></a>	if(default_use_parent_x_unit_) x_unit_ = !parent_cwidth_;
+<a name="__line79"></a>	else x_unit_ = default_x_unit_();
+<a name="__line80"></a>	if(default_use_parent_y_unit_) y_unit_ = !parent_cheight_;
+<a name="__line81"></a>	else y_unit_ = default_y_unit_();
+<a name="__line82"></a>    }
+<a name="__line83"></a>
+<a name="__line84"></a>    void grob::print_hierarchy(int level)
+<a name="__line85"></a>    {
+<a name="__line86"></a>	for(int i=0; i&lt;level*4; ++i) cout&lt;&lt;" ";
+<a name="__line87"></a>	cout&lt;&lt;name()&lt;&lt;endl;
+<a name="__line88"></a>    }
+<a name="__line89"></a>
+<a name="__line90"></a>    bool grob::parent(container *p)
+<a name="__line91"></a>    {
+<a name="__line92"></a>	if(p == 0)
+<a name="__line93"></a>	{
+<a name="__line94"></a>	    parent_cwidth_ = ZERO;
+<a name="__line95"></a>	    parent_cheight_ = ZERO;
+<a name="__line96"></a>	    return false;
+<a name="__line97"></a>	}
+<a name="__line98"></a>	parent_ = p;
+<a name="__line99"></a>	parent_cwidth_ = !parent_-&gt;cwidth();
+<a name="__line100"></a>	parent_cheight_ = !parent_-&gt;cheight();
+<a name="__line101"></a>	return true;
+<a name="__line102"></a>    }
+<a name="__line103"></a>
+<a name="__line104"></a>
+<a name="__line105"></a>    grob::~grob()
+<a name="__line106"></a>    {
+<a name="__line107"></a>	container::remove_from_all(this);
+<a name="__line108"></a>    }
+<a name="__line109"></a>
+<a name="__line110"></a>    grobs &amp;grobs::linecolor(const color &amp;c)
+<a name="__line111"></a>    {
+<a name="__line112"></a>        for(auto g: grobs_) g-&gt;linecolor(c);
+<a name="__line113"></a>        return *this;
+<a name="__line114"></a>    }
+<a name="__line115"></a>
+<a name="__line116"></a>    grobs &amp;grobs::fillcolor(const color &amp;c)
+<a name="__line117"></a>    {
+<a name="__line118"></a>        for(auto g: grobs_) g-&gt;linecolor(c);
+<a name="__line119"></a>        return *this;
+<a name="__line120"></a>    }
+<a name="__line121"></a>
+<a name="__line122"></a>    grobs &amp;grobs::linestyle(sym::linestyle s)
+<a name="__line123"></a>    {
+<a name="__line124"></a>        for(auto g: grobs_) g-&gt;linestyle(s);
+<a name="__line125"></a>        return *this;
+<a name="__line126"></a>    }
+<a name="__line127"></a>
+<a name="__line128"></a>    grobs &amp;grobs::linewidth(const length &amp;l)
+<a name="__line129"></a>    {
+<a name="__line130"></a>        for(auto g: grobs_) g-&gt;linewidth(l);
+<a name="__line131"></a>        return *this;
+<a name="__line132"></a>    }
+<a name="__line133"></a>
+<a name="__line134"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

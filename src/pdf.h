@@ -29,7 +29,10 @@ namespace blop
 	// for this 'beps2pdf' script. Say 'beps2pdf --help' to get a list
 	// of available options (and their meaning :-)
 
-	static void    print(const var &filename, const var &opts = var(""));
+	static void print(const var &filename, const var &opts = var(""));
+        static void print(const char *filename, const var &opts = var("")) { print(var(filename), opts); }  
+        static void print(const std::string &filename, const var &opts = var("")) { print(var(filename),opts); }
+        static void print(const std::filesystem::path &filename, const var &opts = var("")) {print(var(filename.c_str()), opts);}
 
 
 	// ---------  constructor, destructor  --------------------------

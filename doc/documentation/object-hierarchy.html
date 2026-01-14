@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Object hierarchy</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="color.html">
+   <link rel="Next" href="grob.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="color.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: color.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="grob.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: grob.html">
+    </a> <br>
+
+<center class=title><b>
+Object hierarchy
+</b></center>
+<hr>
+
+<div class=description>
+<p>
+Blop is written in C++, so <i>object hierarchy</i> can have the
+following meanings:  
+<ul>
+<li><a href="#object-hierarchy-in-a-figure">The object hierarchy in a figure</a>
+<li><a href="#class-inheritance">The hierarchy of class inheritance in C++</a>
+</ul>
+<hr>
+<p>
+<a name="object-hierarchy-in-a-figure"><center>Object hierarchy in a figure</center></a>
+
+<p>
+<center>
+<img src="figs/object-hierarchy.png">
+</center>
+
+<p>  Objects in  a  plot  are organized  in  a containment  hierarchy:
+certain  objects (like <tt>canvas</tt>,  <tt>pad</tt>, <tt>frame</tt>)
+are containers,  which can contain other objects  (other containers as
+well).  The center of the  coordinate system within a container is its
+lower left corner. The  extension of the container's coordinate system
+within  its   parent  can  be   obtained  via  the   member  functions
+<tt>cleft()</tt>,  <tt>cbottom()</tt>,  <tt>cheight()</tt>, etc.   The
+position of the  objects can be set also (see  somewhere else), and it
+can  also  be  read  using  member functions  of  these  objects  like
+<tt>left()</tt>, <tt>bottom()</tt>, etc.   These functions return a <a
+href="length.html"><tt>length</tt></a>, which  is to be  understood as
+the distance  from the parent's  origin in the horizontal  or vertical
+direction. A  container's <i>outer</i> extension (that  is, the region
+it occupies  within its  parent, and which  is returned by  the member
+functions <tt>left()</tt>, <tt>bottom()</tt>, etc) does not have to be
+the same as  the region that it defines as  its coordinate system, and
+the  extension   of  which  is   returned  by  the   member  functions
+<tt>cleft()</tt>,  etc. For example  a <tt>pad</tt>s  inner coordinate
+system  (in  which  its  contents  are  printed)  is  smaller  by  the
+borderwith of the pad, than its whole size.
+
+<p>   The  topmost   element  in   the  object   hierarchy  is   a  <a
+href="pad.h.html"><tt>canvas</tt></a>.   This  is  the  root  of  this
+hierarchy,  all other objects  must be  contained in  a canvas,  or in
+another object (which is finally  contained in a canvas).  A canvas is
+a  virtual something,  it exists  only in  the computer's  memory.  In
+order  to realize  it, you  have  to print  it to  some terminal  (see
+somewhere else).  You can have  several canvases at the same time. You
+always   have  an  active   canvas,  which   is  accessible   via  the
+<tt>canvas::current()</tt> function, which  returns a reference to the
+active canvas.
+
+<p>  You  can  specify  a  sub-area  of a  canvas  by  creating  a  <a
+href="pad.h.html"><tt>pad</tt></a>  inside the  canvas (or  inside any
+other <tt>pad</tt>). This  object is a container, and  it does nothing
+else than specifies a rectangular  area within its parent, and all its
+contents will  be printed  within this rectangular  area. You  have an
+active pad, all  plotting or other commands (see  somewhere else) work
+on  the active  pad. The  active pad  is accessible  via  the function
+<tt>pad::current()</tt>,  which  returns  a  reference to  the  active
+pad. A <tt>canvas</tt> is also a <tt>pad</tt>, if you don't create any
+subpad  within a canvas,  your active  canvas and  active pad  are the
+same: this canvas.
+
+<p>  Within   a  pad   (or  the  canvas)   you  normally  have   a  <a
+href="frame.h.html"><tt>frame</tt></a>.   This object provides  4 axes
+(two  horizontal ones:  x1 (lower)  and x2  (upper), and  two vertical
+ones: y1 (left) and y2 (right)).  You can have several frames within a
+pad. Your active frame is accessible via <tt>frame::current()</tt>. 
+
+<p>  All  the  above  containers  (canvas,  pad,  frame)  can  contain
+graphical objects (grobs). For  example text labels, which are created
+by one of the following functions:
+<pre>
+label::pdraw(var  text, length  x, length  y);  // draw into current pad
+label::fdraw(var  text, length  x, length  y);  // draw into current frame
+label::cdraw(var  text, length  x, length  y);  // draw into current canvas
+</pre>
+(these functions  create a  text label and  add it into  the currently
+active  pad, frame or canvas ==&gt; hence  the initial  'p', 'f' or 'c'  in  the function  names)
+
+<p> Graphs are special since they  need a reference frame, so they can
+only be put into a  frame. The <a href="plotting-data.html"><tt>plot(...)</tt></a> 
+functions create and put graphs into the current frame. 
+
+<hr>
+<a name="class-inheritance"><center>Class inheritance</center></a>
+
+<p>
+... under construction, browse the <a href="source.html">source files</a> instead. 
+
+</div>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="color.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: color.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="grob.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: grob.html">
+    </a> 
+
+</body>
+</html>

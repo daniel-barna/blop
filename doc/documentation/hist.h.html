@@ -1,0 +1,805 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: hist.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __HIST_H
+<a name="__line1"></a>#define __HIST_H
+<a name="__line2"></a>
+<a name="__line3"></a>
+<a name="__line4"></a>#include &lt;vector&gt;
+<a name="__line5"></a>#include &lt;stdlib.h&gt;
+<a name="__line6"></a>#include "<a href="meas.h.html">meas.h</a>"
+<a name="__line7"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line8"></a>#include "<a href="blopeps.h.html">blopeps.h</a>"
+<a name="__line9"></a>#include "<a href="mpps.h.html">mpps.h</a>"
+<a name="__line10"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line11"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line12"></a>
+<a name="__line13"></a>
+<a name="__line14"></a>namespace blop
+<a name="__line15"></a>{
+<a name="__line16"></a>
+<a name="__line17"></a><span class=comment>// Forward declaration of class hist:</span>
+<a name="__line18"></a>    class hist;
+<a name="__line19"></a>
+<a name="__line20"></a>    <span class=comment>// Class for histogram construction. Also can be used to control histogram </span>
+<a name="__line21"></a>    <span class=comment>// filling from file.</span>
+<a name="__line22"></a>    class histopt
+<a name="__line23"></a>    {
+<a name="__line24"></a><span class=protected>    protected:
+<a name="__line25"></a>
+<a name="__line26"></a>        <span class=comment>// These fields are necessary for histogram construction.</span>
+<a name="__line27"></a>        int dim_;
+<a name="__line28"></a>        std::vector&lt;double&gt; min_;
+<a name="__line29"></a>        static double default_min_;
+<a name="__line30"></a>        static bool default_min_isset_;
+<a name="__line31"></a>        std::vector&lt;double&gt; max_;
+<a name="__line32"></a>        static double default_max_;
+<a name="__line33"></a>        static bool default_max_isset_;
+<a name="__line34"></a>        std::vector&lt;int&gt; bins_;
+<a name="__line35"></a>        static int default_bins_;
+<a name="__line36"></a>        static bool default_bins_isset_;
+<a name="__line37"></a>        std::vector&lt;double&gt; binsize_;
+<a name="__line38"></a>        static double default_binsize_;
+<a name="__line39"></a>        static bool default_binsize_isset_;
+<a name="__line40"></a>        std::vector&lt;blop::var&gt; axistitle_;
+<a name="__line41"></a>        var rangetitle_;
+<a name="__line42"></a>        var legend_;
+<a name="__line43"></a>        <span class=comment>// These datafields are necessary for administering reading from file.</span>
+<a name="__line44"></a>        function x_, y_;
+<a name="__line45"></a>        static function default_x_, default_y_;
+<a name="__line46"></a>        function condition_;
+<a name="__line47"></a>        static function default_condition_;
+<a name="__line48"></a>        function x_condition_, y_condition_;
+<a name="__line49"></a>        static function default_x_condition_, default_y_condition_;
+<a name="__line50"></a>        int maxlines_;
+<a name="__line51"></a>        static int default_maxlines_;
+<a name="__line52"></a>
+<a name="__line53"></a>        unsigned int buffer_size_;  <span class=comment>// number of entries to buffer before setting (automatically) the ranges</span>
+<a name="__line54"></a>        bool         dont_clear_buffer_;
+<a name="__line55"></a>        friend class hist;
+<a name="__line56"></a>
+<a name="__line57"></a></span><span class=public>    public:
+<a name="__line58"></a>        <span class=comment>// Default constructor, copy constructor, destructor.</span>
+<a name="__line59"></a>        histopt();
+<a name="__line60"></a>        histopt(const histopt&amp;);
+<a name="__line61"></a>        ~histopt();
+<a name="__line62"></a>        <span class=comment>// These functions are for histogram construction.</span>
+<a name="__line63"></a>
+<a name="__line64"></a>        int dim() const { return dim_; }
+<a name="__line65"></a>        histopt &amp;dim(int d) { dim_ = d; return *this; }
+<a name="__line66"></a>
+<a name="__line67"></a>        histopt&amp; min(const int axis, const double minvalue);
+<a name="__line68"></a>        double min(const int axis) const;
+<a name="__line69"></a>        static void default_min(const double minvalue);
+<a name="__line70"></a>
+<a name="__line71"></a>        histopt&amp; max(const int axis, const double maxvalue);
+<a name="__line72"></a>        double max(const int axis) const;
+<a name="__line73"></a>        static void default_max(const double maxvalue);
+<a name="__line74"></a>
+<a name="__line75"></a>        histopt&amp; bins(const int axis, const int nbins);
+<a name="__line76"></a>        int bins(const int axis) const;
+<a name="__line77"></a>        static void default_bins(const int nbins);
+<a name="__line78"></a>
+<a name="__line79"></a>        histopt&amp; binsize(const int axis, const double binsize);
+<a name="__line80"></a>        double binsize(const int axis) const;
+<a name="__line81"></a>        static void default_binsize(const double binsize);
+<a name="__line82"></a>
+<a name="__line83"></a>        histopt&amp; axistitle(const int axis, const var &amp;Title);
+<a name="__line84"></a>        var axistitle(const int axis);
+<a name="__line85"></a>        histopt&amp; rangetitle(const var &amp;Title);
+<a name="__line86"></a>        var rangetitle();
+<a name="__line87"></a>        histopt&amp; legend(const var &amp;Title);
+<a name="__line88"></a>        var legend();
+<a name="__line89"></a>
+<a name="__line90"></a>        <span class=comment>// These functions are for input from file.</span>
+<a name="__line91"></a>        histopt&amp; x(const function &amp;f);
+<a name="__line92"></a>        histopt&amp; x(const function &amp;f1, const function &amp;f2);
+<a name="__line93"></a>        histopt&amp; x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line94"></a>        const function&amp; x() const { return x_; }
+<a name="__line95"></a>        static void default_x(const function &amp;f);
+<a name="__line96"></a>        static void default_x(const function &amp;f1, const function &amp;f2);
+<a name="__line97"></a>        static void default_x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line98"></a>        histopt&amp; y(const function &amp;f);
+<a name="__line99"></a>        const function&amp; y() const { return y_; }
+<a name="__line100"></a>        static void default_y(const function &amp;f);
+<a name="__line101"></a>        histopt &amp;maxlines(const int i) { maxlines_=i; return *this; }
+<a name="__line102"></a>        int maxlines() const { return maxlines_; }
+<a name="__line103"></a>        static void default_maxlines(const int i) { default_maxlines_=i; }
+<a name="__line104"></a>        histopt &amp;condition(const function &amp;f) { condition_ = f; return *this; }
+<a name="__line105"></a>        const function &amp;condition() const { return condition_; }
+<a name="__line106"></a>        static void default_condition(const function &amp;f) { default_condition_=f; }
+<a name="__line107"></a>        histopt &amp;x_condition(const function &amp;f) { x_condition_ = f; return *this; }
+<a name="__line108"></a>        const function &amp;x_condition() const { return x_condition_; }
+<a name="__line109"></a>        static void default_x_condition(const function &amp;f) { default_x_condition_=f; }
+<a name="__line110"></a>        histopt &amp;y_condition(const function &amp;f) { y_condition_ = f; return *this; }
+<a name="__line111"></a>        const function &amp;y_condition() const { return y_condition_; }
+<a name="__line112"></a>        static void default_y_condition(const function &amp;f) { default_y_condition_=f; }
+<a name="__line113"></a>        histopt &amp;xmin(double x)
+<a name="__line114"></a>        {
+<a name="__line115"></a>            if(x != unset) x_condition_ = (x&lt;_1);
+<a name="__line116"></a>            else x_condition_ = unset;
+<a name="__line117"></a>            return *this;
+<a name="__line118"></a>        }
+<a name="__line119"></a>        histopt &amp;xmax(double x)
+<a name="__line120"></a>        {
+<a name="__line121"></a>            if(x != unset) x_condition_ = (_1&lt;x);
+<a name="__line122"></a>            else x_condition_ = unset;
+<a name="__line123"></a>            return *this;
+<a name="__line124"></a>        }
+<a name="__line125"></a>        histopt &amp;xrange(double x1, double x2)
+<a name="__line126"></a>        {
+<a name="__line127"></a>            if(x1 == unset &amp;&amp; x2 == unset) x_condition_ = unset;
+<a name="__line128"></a>            if(x1 != unset &amp;&amp; x2 != unset) x_condition_ = (x1&lt;_1) &amp;&amp; (_1&lt;x2);
+<a name="__line129"></a>            if(x1 == unset &amp;&amp; x2 != unset) x_condition_ = (_1&lt;x2);
+<a name="__line130"></a>            if(x1 != unset &amp;&amp; x2 == unset) x_condition_ = (x1&lt;_1);
+<a name="__line131"></a>            return *this;
+<a name="__line132"></a>        }
+<a name="__line133"></a>        histopt &amp;ymin(double x)
+<a name="__line134"></a>        {
+<a name="__line135"></a>            if(x != unset) y_condition_ = (x&lt;_1);
+<a name="__line136"></a>            else y_condition_ = unset;
+<a name="__line137"></a>            return *this;
+<a name="__line138"></a>        }
+<a name="__line139"></a>        histopt &amp;ymax(double x)
+<a name="__line140"></a>        {
+<a name="__line141"></a>            if(x != unset) y_condition_ = (_1&lt;x);
+<a name="__line142"></a>            else y_condition_ = unset;
+<a name="__line143"></a>            return *this;
+<a name="__line144"></a>        }
+<a name="__line145"></a>        histopt &amp;yrange(double x1, double x2)
+<a name="__line146"></a>        {
+<a name="__line147"></a>            if(x1 == unset &amp;&amp; x2 == unset) y_condition_ = unset;
+<a name="__line148"></a>            if(x1 != unset &amp;&amp; x2 != unset) y_condition_ = (x1&lt;_1) &amp;&amp; (_1&lt;x2);
+<a name="__line149"></a>            if(x1 == unset &amp;&amp; x2 != unset) y_condition_ = (_1&lt;x2);
+<a name="__line150"></a>            if(x1 != unset &amp;&amp; x2 == unset) y_condition_ = (x1&lt;_1);
+<a name="__line151"></a>            return *this;
+<a name="__line152"></a>        }
+<a name="__line153"></a>        friend class hist;
+<a name="__line154"></a>
+<a name="__line155"></a>        histopt &amp;buffer_size(unsigned int s) 
+<a name="__line156"></a>        {
+<a name="__line157"></a>            buffer_size_ = s;
+<a name="__line158"></a>            return *this;
+<a name="__line159"></a>        }
+<a name="__line160"></a>        unsigned int buffer_size() const { return buffer_size_; }
+<a name="__line161"></a>
+<a name="__line162"></a>    };
+<a name="__line163"></a>
+<a name="__line164"></a>
+<a name="__line165"></a><span class=comment>// Class for merging domain side. See next class.</span>
+<a name="__line166"></a>    class mergeopt_side
+<a name="__line167"></a>    {
+<a name="__line168"></a></span><span class=protected>    protected:
+<a name="__line169"></a>        double min_;
+<a name="__line170"></a>        double max_;
+<a name="__line171"></a>        int merge_;
+<a name="__line172"></a></span><span class=public>    public:
+<a name="__line173"></a>        mergeopt_side();
+<a name="__line174"></a>        mergeopt_side(const double Min, const double Max, const int Merge);
+<a name="__line175"></a>        mergeopt_side(const mergeopt_side&amp;);
+<a name="__line176"></a>        ~mergeopt_side();
+<a name="__line177"></a>        bool operator==(const mergeopt_side &amp;m_other) const { return (m_other.min_==min_ &amp;&amp; m_other.max_==max_ &amp;&amp; m_other.merge_==merge_ ? true : false); }
+<a name="__line178"></a>        bool operator&gt;(const mergeopt_side &amp;m_other) const { return false; }
+<a name="__line179"></a>        bool operator&lt;(const mergeopt_side &amp;m_other) const { return false; }
+<a name="__line180"></a>        friend class hist;
+<a name="__line181"></a>    };
+<a name="__line182"></a><span class=comment>// Class for managing the merging of the bins of a multidimensional histogram.</span>
+<a name="__line183"></a>    class mergeopt : public std::vector&lt;blop::mergeopt_side&gt;
+<a name="__line184"></a>    {
+<a name="__line185"></a></span><span class=public>    public:
+<a name="__line186"></a>    mergeopt() : std::vector&lt;blop::mergeopt_side&gt;() {  }
+<a name="__line187"></a>    mergeopt(const mergeopt &amp;m_other) : std::vector&lt;blop::mergeopt_side&gt;(m_other) {  }
+<a name="__line188"></a>        <span class=comment>// Add a side to the merging scheme.</span>
+<a name="__line189"></a>        mergeopt&amp; side(const double Min, const double Max, const int Merge);
+<a name="__line190"></a>    };
+<a name="__line191"></a>
+<a name="__line192"></a>
+<a name="__line193"></a><span class=comment>// Class for histograms. Axis indices are 1-based on the user side!</span>
+<a name="__line194"></a>    class hist : public plottable
+<a name="__line195"></a>    {
+<a name="__line196"></a></span><span class=protected>    protected:
+<a name="__line197"></a>        <span class=comment>// the number of entries to buffer before we automatically set the ranges and fill the entries. No buffering if 0</span>
+<a name="__line198"></a>        mutable int                 buffer_size_;  
+<a name="__line199"></a>        <span class=comment>// the buffer. buffer_.size() contains the actual number of entries i the buffer</span>
+<a name="__line200"></a>        mutable std::vector&lt;double&gt; buffer_;        
+<a name="__line201"></a>
+<a name="__line202"></a>        <span class=comment>// Graph drawers:</span>
+<a name="__line203"></a>        static graph_drawer* &amp;default_graph_drawer_1_();
+<a name="__line204"></a>        static graph_drawer* &amp;default_graph_drawer_2_();
+<a name="__line205"></a>        void set_graph_drawer_() const;
+<a name="__line206"></a>        static point_drawer* default_point_drawer_;
+<a name="__line207"></a>
+<a name="__line208"></a>        <span class=comment>// Dimension of histogram domain:</span>
+<a name="__line209"></a>        mutable int dim_;
+<a name="__line210"></a>        <span class=comment>// Domain minimum in each direction:</span>
+<a name="__line211"></a>        mutable std::vector&lt;double&gt; min_;
+<a name="__line212"></a>        <span class=comment>// Domain maximum in each direction:</span>
+<a name="__line213"></a>        mutable std::vector&lt;double&gt; max_;
+<a name="__line214"></a>        <span class=comment>// Number of domain bins in each direction:</span>
+<a name="__line215"></a>        mutable std::vector&lt;int&gt; bins_;
+<a name="__line216"></a>        <span class=comment>// Binwidths in each direction:</span>
+<a name="__line217"></a>        mutable std::vector&lt;double&gt; binsize_;
+<a name="__line218"></a>        <span class=comment>// Title of domain in each direction:</span>
+<a name="__line219"></a>        mutable std::vector&lt;blop::var&gt; axistitle_;
+<a name="__line220"></a>        <span class=comment>// Title of range:</span>
+<a name="__line221"></a>        mutable var rangetitle_;
+<a name="__line222"></a>        <span class=comment>// Legend of histogram: it is inherited from class plottable as legend_.</span>
+<a name="__line223"></a>
+<a name="__line224"></a>        <span class=comment>// Array of multipliers for calculating indices:</span>
+<a name="__line225"></a>        mutable std::vector&lt;int&gt; mul_;
+<a name="__line226"></a>
+<a name="__line227"></a>        <span class=comment>// Index array:</span>
+<a name="__line228"></a>        mutable std::vector&lt;int&gt; ind_;
+<a name="__line229"></a>
+<a name="__line230"></a>        <span class=comment>// Arrays to store hits and statistical errors:</span>
+<a name="__line231"></a>        mutable std::vector&lt;blop::meas&gt; h_;  <span class=comment>// mutable because flush_buffer() const must modify it</span>
+<a name="__line232"></a>
+<a name="__line233"></a>        <span class=comment>// Array to store bin merging scheme:</span>
+<a name="__line234"></a>        mutable std::vector&lt;int&gt; m_;
+<a name="__line235"></a>	
+<a name="__line236"></a>        <span class=comment>// A datamembers for communication with plottable class:</span>
+<a name="__line237"></a>        mutable std::vector&lt;unsigned int&gt; sequence_;
+<a name="__line238"></a>        mutable std::vector&lt;unsigned int&gt; invsequence_;
+<a name="__line239"></a>        mutable datapoint datapoint_;
+<a name="__line240"></a>
+<a name="__line241"></a>        <span class=comment>// Technical reinitializer function (never used by user):</span>
+<a name="__line242"></a>        void reinit_(const int dim, 
+<a name="__line243"></a>                     const std::vector&lt;double&gt; &amp;dbegin, const std::vector&lt;double&gt; &amp;dend, 
+<a name="__line244"></a>                     const std::vector&lt;int&gt; &amp;dbins, 
+<a name="__line245"></a>                     const std::vector&lt;blop::var&gt; &amp;dtitle, const var &amp;rtitle, 
+<a name="__line246"></a>                     const var &amp;hlegend) const;
+<a name="__line247"></a>
+<a name="__line248"></a></span><span class=public>    public:
+<a name="__line249"></a>        void flush_buffer() const;
+<a name="__line250"></a>
+<a name="__line251"></a>        static void default_drawstyle_1(const graph_drawer &amp;d);
+<a name="__line252"></a>        static void default_drawstyle_2(const graph_drawer &amp;d);
+<a name="__line253"></a>        static void default_pointtype(const point_drawer &amp;);
+<a name="__line254"></a>
+<a name="__line255"></a>        <span class=comment>// Default constructor.</span>
+<a name="__line256"></a>        hist();
+<a name="__line257"></a>        <span class=comment>// Constructor with histopt parameter.</span>
+<a name="__line258"></a>        hist(const histopt&amp;);
+<a name="__line259"></a>
+<a name="__line260"></a>        <span class=comment>// Special constructors for 1, 2, or 3 dimensional histograms.</span>
+<a name="__line261"></a>        hist(const double Min, const double Max, const int Bins,
+<a name="__line262"></a>             const var &amp;Title = "",
+<a name="__line263"></a>             const var &amp;rTitle="Entries/Bincell",
+<a name="__line264"></a>             const var &amp;Legend="");
+<a name="__line265"></a>
+<a name="__line266"></a>        hist(double min1, double max1, int bins1,
+<a name="__line267"></a>             double min2, double max2, int bins2);
+<a name="__line268"></a>        hist(const double Min1, const double Max1, const int Bins1, const var &amp;Title1, 
+<a name="__line269"></a>             const double Min2, const double Max2, const int Bins2, const var &amp;Title2, 
+<a name="__line270"></a>             const var &amp;rTitle="Entries/Bincell", const var &amp;Legend="");
+<a name="__line271"></a>
+<a name="__line272"></a>        hist(double min1, double max1, int bins1,
+<a name="__line273"></a>             double min2, double max2, int bins2,
+<a name="__line274"></a>             double min3, double max3, int bins3);
+<a name="__line275"></a>        hist(const double Min1, const double Max1, const int Bins1, const var &amp;Title1, 
+<a name="__line276"></a>             const double Min2, const double Max2, const int Bins2, const var &amp;Title2, 
+<a name="__line277"></a>             const double Min3, const double Max3, const int Bins3, const var &amp;Title3, 
+<a name="__line278"></a>             const var &amp;rTitle="Entries/Bincell", const var &amp;Legend="");
+<a name="__line279"></a>        <span class=comment>// Copy constructor.</span>
+<a name="__line280"></a>        hist(const hist&amp;);
+<a name="__line281"></a>        <span class=comment>// Destructor.</span>
+<a name="__line282"></a>        ~hist();
+<a name="__line283"></a>        <span class=comment>// Reinitializer function from histopt parameter.</span>
+<a name="__line284"></a>        void reinit(const histopt&amp;);
+<a name="__line285"></a>        void reinit(const histopt&amp;) const; <span class=comment>// must make it const becuase it is called from get(int) const (via flush_buffer()).</span>
+<a name="__line286"></a>        <span class=comment>// Special reinitializers for 1, 2, or 3 dimensional histograms.</span>
+<a name="__line287"></a>        void reinit(const double Min, const double Max, const int Bins, const var &amp;Title="", 
+<a name="__line288"></a>                    const var &amp;rTitle="Entries/Bincell", const var &amp;Legend="");
+<a name="__line289"></a>        void reinit(const double Min1, const double Max1, const int Bins1, const var &amp;Title1, 
+<a name="__line290"></a>                    const double Min2, const double Max2, const int Bins2, const var &amp;Title2, 
+<a name="__line291"></a>                    const var &amp;rTitle="Entries/Bincell", const var &amp;Legend="");
+<a name="__line292"></a>        void reinit(const double Min1, const double Max1, const int Bins1, const var &amp;Title1, 
+<a name="__line293"></a>                    const double Min2, const double Max2, const int Bins2, const var &amp;Title2, 
+<a name="__line294"></a>                    const double Min3, const double Max3, const int Bins3, const var &amp;Title3, 
+<a name="__line295"></a>                    const var &amp;rTitle="Entries/Bincell", const var &amp;Legend="");
+<a name="__line296"></a>        <span class=comment>// Reinitializer function from an other histogram; analogue of </span>
+<a name="__line297"></a>        <span class=comment>// copy constructor.</span>
+<a name="__line298"></a>        void reinit(const hist&amp;);
+<a name="__line299"></a>
+<a name="__line300"></a>        <span class=comment>// Assignment, increment, sum etc. operators of histograms.</span>
+<a name="__line301"></a>        const hist&amp; operator=(const hist&amp;);
+<a name="__line302"></a>        const hist&amp; operator+=(const hist&amp;);
+<a name="__line303"></a>        const hist&amp; operator-=(const hist&amp;);
+<a name="__line304"></a>        const hist&amp; operator*=(const hist&amp;);
+<a name="__line305"></a>        const hist&amp; operator*=(const meas&amp;);
+<a name="__line306"></a>        const hist&amp; operator*=(const double);
+<a name="__line307"></a>        const hist&amp; operator/=(const hist&amp;);
+<a name="__line308"></a>        const hist&amp; operator/=(const meas&amp;);
+<a name="__line309"></a>        const hist&amp; operator/=(const double);
+<a name="__line310"></a>
+<a name="__line311"></a>        <span class=comment>// Projection of a histogram. This projects out a specified axis </span>
+<a name="__line312"></a>        <span class=comment>// (i.e. integration is performed on specified axis). Projection </span>
+<a name="__line313"></a>        <span class=comment>// assumes that the projection of the given histogram will also </span>
+<a name="__line314"></a>        <span class=comment>// have rectangular bins. Otherwise, returns error message and empty </span>
+<a name="__line315"></a>        <span class=comment>// histogram.</span>
+<a name="__line316"></a>        hist project_out(const int axis) const;
+<a name="__line317"></a>
+<a name="__line318"></a>        <span class=comment>// This prepares a slice of the histogram. </span>
+<a name="__line319"></a>        <span class=comment>// The slice is taken at a level plane, defined by a constant </span>
+<a name="__line320"></a>        <span class=comment>// coordinate surface, at a given axis direction.</span>
+<a name="__line321"></a>        hist slice(const int axis, const double level) const;
+<a name="__line322"></a>
+<a name="__line323"></a>        <span class=comment>// Calculate the integral of the histogram.</span>
+<a name="__line324"></a>        meas integral() const;
+<a name="__line325"></a>
+<a name="__line326"></a>        <span class=comment>// Transform the histogram with a function.</span>
+<a name="__line327"></a>        void transform(const function&amp;);
+<a name="__line328"></a>
+<a name="__line329"></a>        <span class=comment>// Determine if every value of a histogram is not nan or +/-inf.</span>
+<a name="__line330"></a>        static bool isfinite(const hist&amp;);
+<a name="__line331"></a>        static bool isinf(const hist&amp;);
+<a name="__line332"></a>        static bool isnan(const hist&amp;);
+<a name="__line333"></a>        static bool isset(const hist&amp;);
+<a name="__line334"></a>        static bool isunset(const hist&amp;);
+<a name="__line335"></a>        bool isfinite() const;
+<a name="__line336"></a>        bool isinf() const;
+<a name="__line337"></a>        bool isnan() const;
+<a name="__line338"></a>        bool isset() const;
+<a name="__line339"></a>        bool isunset() const;
+<a name="__line340"></a>
+<a name="__line341"></a>        <span class=comment>// ---------------  duplicate -----------------------------------</span>
+<a name="__line342"></a>
+<a name="__line343"></a>        hist &amp;dup();
+<a name="__line344"></a>
+<a name="__line345"></a>
+<a name="__line346"></a>        <span class=comment>// To replace every nan or +/-inf bin value by a given number. </span>
+<a name="__line347"></a>        <span class=comment>// Can be useful after e.g. division of two histograms, where </span>
+<a name="__line348"></a>        <span class=comment>// some bins with zero hits cause inf values because of division </span>
+<a name="__line349"></a>        <span class=comment>// by zero.</span>
+<a name="__line350"></a>        void mkfinite(const double newvalue=unset);
+<a name="__line351"></a>
+<a name="__line352"></a>        <span class=comment>// Annulation a histogram. Arguments: the string "reset", if the </span>
+<a name="__line353"></a>        <span class=comment>// merging is to be also reset.</span>
+<a name="__line354"></a>        void annulate(const var &amp;reset="");
+<a name="__line355"></a>
+<a name="__line356"></a>        <span class=comment>// A nested template class to handle vector with 1-based indices:</span>
+<a name="__line357"></a>        template&lt;class T&gt;
+<a name="__line358"></a>            class vector_1based : public std::vector&lt;T&gt;
+<a name="__line359"></a>        {
+<a name="__line360"></a></span><span class=public>        public:
+<a name="__line361"></a>        vector_1based() : std::vector&lt;T&gt;() {  }
+<a name="__line362"></a>        vector_1based(const size_type i) : std::vector&lt;T&gt;(i) {  }
+<a name="__line363"></a>        vector_1based(const vector_1based &amp;v) : std::vector&lt;T&gt;(v) {  }
+<a name="__line364"></a>            T&amp; operator[](const size_type i)
+<a name="__line365"></a>            {
+<a name="__line366"></a>                if ( i&gt;0 &amp;&amp; i&lt;=this-&gt;size() ) return *(vector&lt;T&gt;::begin()+i-1);
+<a name="__line367"></a>                else
+<a name="__line368"></a>                {
+<a name="__line369"></a>                    warning::print("Index out of range! (1-based indices!!!)", "T&amp; hist::vector_1based&lt;T&gt;::operator[](const size_type)");
+<a name="__line370"></a>                    if ( !(this-&gt;size()&gt;0) ) { std::cerr&lt;&lt;"Empty vector! Exiting to avoid a segfault...\n"; exit(1); }
+<a name="__line371"></a>                    return *(vector&lt;T&gt;::begin());
+<a name="__line372"></a>                }
+<a name="__line373"></a>            }
+<a name="__line374"></a>            const T&amp; operator[](const size_type i) const 
+<a name="__line375"></a>            {
+<a name="__line376"></a>                if ( i&gt;0 &amp;&amp; i&lt;=this-&gt;size() ) return *(vector&lt;T&gt;::begin()+i-1);
+<a name="__line377"></a>                else
+<a name="__line378"></a>                {
+<a name="__line379"></a>                    warning::print("Index out of range! (1-based indices!!!)", "const T&amp; hist::vector_1based&lt;T&gt;::operator[](const size_type) const");
+<a name="__line380"></a>                    if ( !(this-&gt;size()&gt;0) ) { std::cerr&lt;&lt;"Empty vector! Exiting to avoid a segfault...\n"; exit(1); }
+<a name="__line381"></a>                    return *(vector&lt;T&gt;::begin());
+<a name="__line382"></a>                }
+<a name="__line383"></a>            }
+<a name="__line384"></a>        };
+<a name="__line385"></a>
+<a name="__line386"></a>        <span class=comment>// A type for point position.</span>
+<a name="__line387"></a>        typedef vector_1based&lt;double&gt; point;
+<a name="__line388"></a>        <span class=comment>// A type for a bin cell.</span>
+<a name="__line389"></a>        typedef vector_1based&lt;blop::meas&gt; cell;
+<a name="__line390"></a>
+<a name="__line391"></a>        <span class=comment>// Find the bin identifier for a given position.</span>
+<a name="__line392"></a>        unsigned int bin(const point &amp;pos) const;
+<a name="__line393"></a>        unsigned int bin(const datapoint &amp;pos) const;
+<a name="__line394"></a>        <span class=comment>// The same, special to 1, 2, 3, or 4 dimensional histograms.</span>
+<a name="__line395"></a>        unsigned int bin(const double x) const;
+<a name="__line396"></a>        unsigned int bin(const double x, const double y) const;
+<a name="__line397"></a>        unsigned int bin(const double x, const double y, const double z) const;
+<a name="__line398"></a>        unsigned int bin(const double x, const double y, const double z, const double t) const;
+<a name="__line399"></a>        unsigned int bin(const var &amp;x) const;
+<a name="__line400"></a>        unsigned int bin(const var &amp;x, const var &amp;y) const;
+<a name="__line401"></a>        unsigned int bin(const var &amp;x, const var &amp;y, const var &amp;z) const;
+<a name="__line402"></a>        unsigned int bin(const var &amp;x, const var &amp;y, const var &amp;z, const var &amp;t) const;
+<a name="__line403"></a>
+<a name="__line404"></a>        <span class=comment>// Find the position for a bin identifier.</span>
+<a name="__line405"></a>        cell pos(const unsigned int i) const;
+<a name="__line406"></a>        <span class=comment>// The same, but only return projection to a given axis.</span>
+<a name="__line407"></a>        meas pos(const unsigned int i, const int axis) const;
+<a name="__line408"></a>
+<a name="__line409"></a>        <span class=comment>// Access to a bin content.</span>
+<a name="__line410"></a>        meas&amp; operator[](const unsigned int);
+<a name="__line411"></a>        const meas&amp; operator[](const unsigned int) const;
+<a name="__line412"></a>
+<a name="__line413"></a>        double binsize(int axis) const;
+<a name="__line414"></a>        double binwidth(int axis) const { return binsize(axis); }
+<a name="__line415"></a>
+<a name="__line416"></a>        <span class=comment>// Add or remove a (weighted) entry to a histogram at a position.</span>
+<a name="__line417"></a>        hist &amp;fill(const point &amp;pos, const double weight=1.0);
+<a name="__line418"></a>        const hist&amp; fill(const point &amp;pos, const double weight=1.0) const;
+<a name="__line419"></a>        hist&amp; remove(const point &amp;pos);
+<a name="__line420"></a>        hist&amp; remove(const point &amp;pos, const double weight);
+<a name="__line421"></a>        hist&amp; fill(const datapoint &amp;pos, const var &amp;weight=1.0);
+<a name="__line422"></a>        hist&amp; remove(const datapoint &amp;pos);
+<a name="__line423"></a>        hist&amp; remove(const datapoint &amp;pos, const var &amp;weight);
+<a name="__line424"></a>        <span class=comment>// The same, special to 1, 2, or 3 dimensional histograms. If more </span>
+<a name="__line425"></a>        <span class=comment>// double arguments are given than the dimension of the histogram, </span>
+<a name="__line426"></a>        <span class=comment>// then the dim+1-th argument is considered as a weight, the rest </span>
+<a name="__line427"></a>        <span class=comment>// is ignored.</span>
+<a name="__line428"></a>        hist&amp; fill(const double);
+<a name="__line429"></a>        hist&amp; fill(const double, const double);
+<a name="__line430"></a>        hist&amp; fill(const double, const double, const double);
+<a name="__line431"></a>        hist&amp; fill(const double, const double, const double, const double);
+<a name="__line432"></a>        hist&amp; remove(const double);
+<a name="__line433"></a>        hist&amp; remove(const double, const double);
+<a name="__line434"></a>        hist&amp; remove(const double, const double, const double);
+<a name="__line435"></a>        hist&amp; remove(const double, const double, const double, const double);
+<a name="__line436"></a>        hist&amp; fill(const var&amp; x) { fill(x.dbl()); return *this; }
+<a name="__line437"></a>        hist&amp; fill(const var&amp; x, const var&amp; y) { fill(x.dbl(),y.dbl()); return *this; }
+<a name="__line438"></a>        hist&amp; fill(const var&amp; x, const var&amp; y, const var&amp; z) { fill(x.dbl(),y.dbl(),z.dbl()); return *this; }
+<a name="__line439"></a>        hist&amp; fill(const var&amp; x, const var&amp; y, const var&amp; z, const var&amp; w) { fill(x.dbl(),y.dbl(),z.dbl(),w.dbl()); return *this; }
+<a name="__line440"></a>        hist&amp; remove(const var&amp;);
+<a name="__line441"></a>        hist&amp; remove(const var&amp;, const var&amp;);
+<a name="__line442"></a>        hist&amp; remove(const var&amp;, const var&amp;, const var&amp;);
+<a name="__line443"></a>        hist&amp; remove(const var&amp;, const var&amp;, const var&amp;, const var&amp;);
+<a name="__line444"></a>
+<a name="__line445"></a>        <span class=comment>// fill a range of a 1D histogram</span>
+<a name="__line446"></a>        hist&amp; fill_range(double x1, double x2, double weight);
+<a name="__line447"></a>
+<a name="__line448"></a>        <span class=comment>// Merge the bins of a histogram according to a merging scheme.</span>
+<a name="__line449"></a>        <span class=comment>// Example:</span>
+<a name="__line450"></a>        <span class=comment>// h.merge(mergeopt().side(0.5, 1.0, 2).side(0.0, 0.8, 4));</span>
+<a name="__line451"></a>        <span class=comment>// The class 'mergeopt' stores the geometric scheme of the merging. </span>
+<a name="__line452"></a>        <span class=comment>// The merging domain is a multidimensional rectangle, and on each </span>
+<a name="__line453"></a>        <span class=comment>// edge, one can specify that what-fold the bins are to be merged in </span>
+<a name="__line454"></a>        <span class=comment>// that direction. </span>
+<a name="__line455"></a>        <span class=comment>// Here, the .side(const double min, const double max, const int merge) </span>
+<a name="__line456"></a>        <span class=comment>// member function of the class 'mergeopt' specifies this information, </span>
+<a name="__line457"></a>        <span class=comment>// for each edge. If the integer labeled 'merge' above is 0, then </span>
+<a name="__line458"></a>        <span class=comment>// the whole domain in that projection is merged into a single bin.</span>
+<a name="__line459"></a>        hist&amp; merge(const mergeopt&amp;);
+<a name="__line460"></a>        <span class=comment>// The same, but special for 1, 2 and 3 dimensional histograms.</span>
+<a name="__line461"></a>        hist&amp; merge(const double Min, const double Max, const int Merge);
+<a name="__line462"></a>        hist&amp; merge(const double Min1, const double Max1, const int Merge1, const double Min2, const double Max2, const int Merge2);
+<a name="__line463"></a>        hist&amp; merge(const double Min1, const double Max1, const int Merge1, const double Min2, const double Max2, const int Merge2, const double Min3, const double Max3, const int Merge3);
+<a name="__line464"></a>
+<a name="__line465"></a>        <span class=comment>// Kill a bin (set it to unset), specified by an identifier.</span>
+<a name="__line466"></a>        hist&amp; killbin(const unsigned int i);
+<a name="__line467"></a>        <span class=comment>// Kill a bin, specified by a geometric point.</span>
+<a name="__line468"></a>        hist&amp; killpoint(const point &amp;pos);
+<a name="__line469"></a>        hist&amp; killpoint(const datapoint &amp;pos);
+<a name="__line470"></a>        <span class=comment>// The same, but special to 1, 2, or 3 dimensional histograms.</span>
+<a name="__line471"></a>        hist&amp; killpoint(const double);
+<a name="__line472"></a>        hist&amp; killpoint(const double, const double);
+<a name="__line473"></a>        hist&amp; killpoint(const double, const double, const double);
+<a name="__line474"></a>        hist&amp; killpoint(const var&amp;);
+<a name="__line475"></a>        hist&amp; killpoint(const var&amp;, const var&amp;);
+<a name="__line476"></a>        hist&amp; killpoint(const var&amp;, const var&amp;, const var&amp;);
+<a name="__line477"></a>
+<a name="__line478"></a>        <span class=comment>// Interpolate a histogram with the bin scheme of an other</span>
+<a name="__line479"></a>        <span class=comment>// histogram (1d only). Arguments: an other histogram </span>
+<a name="__line480"></a>        <span class=comment>// (possibly with different binning scheme), and the </span>
+<a name="__line481"></a>        <span class=comment>// interpolation method (spline/linear).</span>
+<a name="__line482"></a>        hist interpolate(const hist &amp;other_scheme, const std::string &amp;method="linear") const;
+<a name="__line483"></a>
+<a name="__line484"></a>        <span class=comment>// Get the dimension of the histogram.</span>
+<a name="__line485"></a>        int dim() const;
+<a name="__line486"></a>        <span class=comment>// Set and get title of domain, range and of the histogram.</span>
+<a name="__line487"></a>        hist&amp; axistitle(const int axis, const var&amp;);
+<a name="__line488"></a>        var axistitle(const int axis) const;
+<a name="__line489"></a>        hist&amp; rangetitle(const var&amp;);
+<a name="__line490"></a>        var rangetitle() const;
+<a name="__line491"></a>        hist&amp; legend(const var&amp;);
+<a name="__line492"></a>        var legend() const;
+<a name="__line493"></a>        <span class=comment>// Get the number of bins in a direction.</span>
+<a name="__line494"></a>        int bins(const int axis) const;
+<a name="__line495"></a>
+<a name="__line496"></a>        <span class=comment>// A nested class for writing many histograms into a file.</span>
+<a name="__line497"></a>        <span class=comment>// Typical syntax:</span>
+<a name="__line498"></a>        <span class=comment>// hist::write_many("filename.dat")&lt;&lt;h1&lt;&lt;h2&lt;&lt;h3;</span>
+<a name="__line499"></a>        class write_many
+<a name="__line500"></a>        {
+<a name="__line501"></a></span><span class=protected>        protected:
+<a name="__line502"></a>            var dataFileName_;
+<a name="__line503"></a>            ostream *output_;
+<a name="__line504"></a>            bool isFlushed_;
+<a name="__line505"></a>            std::vector&lt;blop::hist*&gt; oHistos_;
+<a name="__line506"></a></span><span class=public>        public:
+<a name="__line507"></a>            write_many();
+<a name="__line508"></a>            write_many(ostream &amp;output);
+<a name="__line509"></a>            write_many(const var &amp;datafilename);
+<a name="__line510"></a>            ~write_many();
+<a name="__line511"></a>            write_many&amp; reinit(ostream &amp;output);
+<a name="__line512"></a>            write_many&amp; reinit(const var &amp;datafilename);
+<a name="__line513"></a>            write_many&amp; flush();
+<a name="__line514"></a>            write_many&amp; operator&lt;&lt;(hist&amp;);
+<a name="__line515"></a>            write_many&amp; put(hist&amp;);
+<a name="__line516"></a>        };
+<a name="__line517"></a>        <span class=comment>// Function to write a single histogram into a file. E.g.:</span>
+<a name="__line518"></a>        <span class=comment>// h.write("filename.dat");</span>
+<a name="__line519"></a>        hist&amp; write(ostream &amp;output);
+<a name="__line520"></a>        hist&amp; write(const var &amp;filename);
+<a name="__line521"></a>
+<a name="__line522"></a>        <span class=comment>// Function to fill an existing histogram from a datafile.</span>
+<a name="__line523"></a>        hist&amp; fill_from(istream &amp;input, const histopt &amp;hopt);
+<a name="__line524"></a>        hist&amp; fill_from(const var &amp;filename, const histopt &amp;hopt);
+<a name="__line525"></a>        hist&amp; fill_from(const dgraph &amp;g, const histopt &amp;hopt);
+<a name="__line526"></a>
+<a name="__line527"></a>        <span class=comment>// A nested class for reading many histograms from a file.</span>
+<a name="__line528"></a>        <span class=comment>// Typical syntax:</span>
+<a name="__line529"></a>        <span class=comment>// hist::read_many("filename.dat")&gt;&gt;h1&gt;&gt;h2&gt;&gt;h3;</span>
+<a name="__line530"></a>        <span class=comment>// Or:</span>
+<a name="__line531"></a>        <span class=comment>// hist::read_many("filename.dat")&gt;&gt;h1&gt;&gt;2&gt;&gt;h2&gt;&gt;4&gt;&gt;h3&gt;&gt;7;</span>
+<a name="__line532"></a>        <span class=comment>// to read the 2-nd histogram into h1, the 4-th into h2, and the </span>
+<a name="__line533"></a>        <span class=comment>// 7-th into h3.</span>
+<a name="__line534"></a>        class read_many
+<a name="__line535"></a>        {
+<a name="__line536"></a></span><span class=protected>        protected:
+<a name="__line537"></a>            var dataFileName_;
+<a name="__line538"></a>            istream *input_;
+<a name="__line539"></a>            bool isFlushed_;
+<a name="__line540"></a>            std::vector&lt; std::pair&lt;blop::hist*, int&gt; &gt; iHistos_;
+<a name="__line541"></a></span><span class=public>        public:
+<a name="__line542"></a>            read_many();
+<a name="__line543"></a>            read_many(istream &amp;input);
+<a name="__line544"></a>            read_many(const var &amp;datafilename);
+<a name="__line545"></a>            ~read_many();
+<a name="__line546"></a>            read_many&amp; reinit(istream &amp;input);
+<a name="__line547"></a>            read_many&amp; reinit(const var &amp;datafilename);
+<a name="__line548"></a>            read_many&amp; flush();
+<a name="__line549"></a>            read_many&amp; operator&gt;&gt;(hist&amp;);
+<a name="__line550"></a>            read_many&amp; operator&gt;&gt;(const int number_of_histo);
+<a name="__line551"></a>            read_many&amp; get(hist&amp;, const int number_of_histo=0);
+<a name="__line552"></a>            <span class=comment>// Get the dimension from a histogram file:</span>
+<a name="__line553"></a>            static int dim(istream&amp;);
+<a name="__line554"></a>            static int dim(const var&amp;);
+<a name="__line555"></a>            <span class=comment>// Get the number of histograms from a file:</span>
+<a name="__line556"></a>            static int numhists(istream&amp;);
+<a name="__line557"></a>            static int numhists(const var&amp;);
+<a name="__line558"></a>        };
+<a name="__line559"></a>        <span class=comment>// Function to read a single histogram from file. E.g.:</span>
+<a name="__line560"></a>        <span class=comment>// h.read("filename.dat", 2);</span>
+<a name="__line561"></a>        <span class=comment>// to read the 2-nd histogram into h.</span>
+<a name="__line562"></a>        hist&amp; read(istream &amp;input, const int number_of_histo=1);
+<a name="__line563"></a>        hist&amp; read(const var &amp;datafilename, const int number_of_histo=1);
+<a name="__line564"></a>
+<a name="__line565"></a>        <span class=comment>// Hint functions for plotting.</span>
+<a name="__line566"></a>        function x_hint() const;
+<a name="__line567"></a>        function dx_hint() const;
+<a name="__line568"></a>        function x1_hint() const;
+<a name="__line569"></a>        function x2_hint() const;
+<a name="__line570"></a>        function y_hint() const;
+<a name="__line571"></a>        function dy_hint() const;
+<a name="__line572"></a>        function y1_hint() const;
+<a name="__line573"></a>        function y2_hint() const;
+<a name="__line574"></a>        function z_hint() const;
+<a name="__line575"></a>        function dz_hint() const;
+<a name="__line576"></a>        function z1_hint() const;
+<a name="__line577"></a>        function z2_hint() const;
+<a name="__line578"></a>
+<a name="__line579"></a>        <span class=comment>// Some communication functions for plotting.</span>
+<a name="__line580"></a>        <span class=comment>// -&gt; Why not 'const datapoint* get(const unsigned int index) const;' ?</span>
+<a name="__line581"></a>        const datapoint* get(int index) const;
+<a name="__line582"></a>        size_type size() const;
+<a name="__line583"></a>
+<a name="__line584"></a>        <span class=comment>// Return the min/max values along the 'd'th dimension</span>
+<a name="__line585"></a>        double min(int d) const;
+<a name="__line586"></a>        double max(int d) const;
+<a name="__line587"></a>
+<a name="__line588"></a>        var min(const function &amp;fmin, function fret) const;
+<a name="__line589"></a>        var max(const function &amp;fmax, function fret) const;
+<a name="__line590"></a>
+<a name="__line591"></a>        int columns() const;
+<a name="__line592"></a>        void prepare_for_draw(axis *,axis *, frame *, int count);
+<a name="__line593"></a>
+<a name="__line594"></a>        <span class=comment>// Explicit conversion to dgraph.</span>
+<a name="__line595"></a>        dgraph to_dgraph() const;
+<a name="__line596"></a>
+<a name="__line597"></a>        <span class=comment>// Class to quickly plot many histograms on mpps or blopeps terminals.</span>
+<a name="__line598"></a>        <span class=comment>// (Shorthand version of mplot for histograms. Useful for quick, </span>
+<a name="__line599"></a>        <span class=comment>// technical-like plotting.)</span>
+<a name="__line600"></a>        <span class=comment>// Syntax: e.g. </span>
+<a name="__line601"></a>        <span class=comment>// hist h1(0.0, 100.0, 100, "Random variable");</span>
+<a name="__line602"></a>        <span class=comment>// hist h2(0.0, 100.0, 100, "Random variable");</span>
+<a name="__line603"></a>        <span class=comment>// hist h3(0.0, 100.0, 100, "Random variable");</span>
+<a name="__line604"></a>        <span class=comment>// ...</span>
+<a name="__line605"></a>        <span class=comment>// h3=h1+h2;</span>
+<a name="__line606"></a>        <span class=comment>// mpps bm;</span>
+<a name="__line607"></a>        <span class=comment>// bm.open("epsfile.eps");</span>
+<a name="__line608"></a>        <span class=comment>//  hist::qplot(bm).title("Global title")&lt;&lt;h1&lt;&lt;h2&lt;&lt;h3;</span>
+<a name="__line609"></a>        <span class=comment>//  -- here one can plot other histograms also to the same terminal --</span>
+<a name="__line610"></a>        <span class=comment>// bm.close();</span>
+<a name="__line611"></a>        <span class=comment>// One can also plot function -s to this </span>
+<a name="__line612"></a>        <span class=comment>// terminal with &lt;&lt;. An var after a function </span>
+<a name="__line613"></a>        <span class=comment>// with &amp; operator is taken to be the legend of the last function. E.g.:</span>
+<a name="__line614"></a>        <span class=comment>// hist h;</span>
+<a name="__line615"></a>        <span class=comment>// ...Some procedure with h...</span>
+<a name="__line616"></a>        <span class=comment>// hist::qplot(bm)&lt;&lt;h&lt;&lt;(1.0/sqrt(2.0*M_PI)*exp(-0.5*_1*_1))&lt;&lt;(const var)"Gaussian model";</span>
+<a name="__line617"></a>        class qplot
+<a name="__line618"></a>        {
+<a name="__line619"></a></span><span class=protected>        protected:
+<a name="__line620"></a>            <span class=comment>// BLOP multiple paged postscript terminal pointer.</span>
+<a name="__line621"></a>            mpps *blopMpps_;
+<a name="__line622"></a>            <span class=comment>// BLOP eps file name.</span>
+<a name="__line623"></a>            var blopEpsName_;
+<a name="__line624"></a>            <span class=comment>// Global title:</span>
+<a name="__line625"></a>            var globaltitle_;
+<a name="__line626"></a>            <span class=comment>// Maximum and minimum of domain, if one wants to restrict it when plotting.</span>
+<a name="__line627"></a>            std::vector&lt; std::pair&lt;int, double&gt; &gt; min_;
+<a name="__line628"></a>            std::vector&lt; std::pair&lt;int, double&gt; &gt; max_;
+<a name="__line629"></a>            <span class=comment>// Maximum and minimum of range, if one wants to restrict it when plotting.</span>
+<a name="__line630"></a>            std::pair&lt;bool, double&gt; rangemin_;
+<a name="__line631"></a>            std::pair&lt;bool, double&gt; rangemax_;
+<a name="__line632"></a>            <span class=comment>// Maximum and minimum of range, if one wants to restrict it when plotting with isolines.</span>
+<a name="__line633"></a>            std::pair&lt;bool, double&gt; isomin_;
+<a name="__line634"></a>            std::pair&lt;bool, double&gt; isomax_;
+<a name="__line635"></a>            <span class=comment>// Domain and range linear/logarythmic scale switch.</span>
+<a name="__line636"></a>            std::vector&lt; std::pair&lt;int, bool&gt; &gt; log_;
+<a name="__line637"></a>            std::pair&lt;bool, bool&gt; rangelog_;
+<a name="__line638"></a>            std::pair&lt;bool, bool&gt; isolog_;
+<a name="__line639"></a>            <span class=comment>// Vector of histogram pointers and functions and function legends to be plotted.</span>
+<a name="__line640"></a></span><span class=public>        public:
+<a name="__line641"></a>            class oStuff_t
+<a name="__line642"></a>            {
+<a name="__line643"></a></span><span class=protected>            protected:
+<a name="__line644"></a>                hist *h;
+<a name="__line645"></a>                function f;
+<a name="__line646"></a>                var l;
+<a name="__line647"></a></span><span class=public>            public:
+<a name="__line648"></a>            oStuff_t() : h(NULL), f(unset), l("__NULL") {  }
+<a name="__line649"></a>            oStuff_t(const oStuff_t &amp;other) : h(other.h), f(other.f), l(other.l) {  }
+<a name="__line650"></a>            oStuff_t(hist *hi, const function &amp;func, const var &amp;leg) : h(hi), f(func), l(leg) {  }
+<a name="__line651"></a>                bool operator==(const oStuff_t&amp;) const { return false; }
+<a name="__line652"></a>                bool operator&lt;(const oStuff_t &amp;) const { return false; }
+<a name="__line653"></a>                bool operator&gt;(const oStuff_t &amp;) const { return false; }
+<a name="__line654"></a>                friend class hist::qplot;
+<a name="__line655"></a>            };
+<a name="__line656"></a></span><span class=protected>        protected:
+<a name="__line657"></a>            std::vector&lt;blop::hist::qplot::oStuff_t&gt; oStuff_;
+<a name="__line658"></a>            <span class=comment>// Flag for double plot.</span>
+<a name="__line659"></a>            bool doubleplot_;
+<a name="__line660"></a>            <span class=comment>// Flush flag.</span>
+<a name="__line661"></a>            bool isFlushed_;
+<a name="__line662"></a></span><span class=public>        public:
+<a name="__line663"></a>            <span class=comment>// Constructor. Plot to blopmpps terminal.</span>
+<a name="__line664"></a>            qplot(mpps &amp;bm);
+<a name="__line665"></a>            <span class=comment>// Constructor. Plot to blopeps terminal.</span>
+<a name="__line666"></a>            qplot(const var &amp;blopepsname);
+<a name="__line667"></a>            <span class=comment>// Constructor. Plot to x11_ps terminal.</span>
+<a name="__line668"></a>            qplot();
+<a name="__line669"></a>            <span class=comment>// Reinitializer. Plot to blopmpps terminal.</span>
+<a name="__line670"></a>            qplot&amp; reinit(mpps &amp;bm);
+<a name="__line671"></a>            <span class=comment>// Reinitializer. Plot to blopeps terminal.</span>
+<a name="__line672"></a>            qplot&amp; reinit(const var &amp;blopepsname);
+<a name="__line673"></a>            <span class=comment>// Reinitializer. Plot to x11_ps terminal.</span>
+<a name="__line674"></a>            qplot&amp; reinit();
+<a name="__line675"></a>            <span class=comment>// The following constructors and reinit functions are for </span>
+<a name="__line676"></a>            <span class=comment>// plotting exactly two histograms or functions. Useful </span>
+<a name="__line677"></a>            <span class=comment>// e.g. when comparing two 2 dimensional histogram or function: </span>
+<a name="__line678"></a>            <span class=comment>// the first one is drawn with color map, the other </span>
+<a name="__line679"></a>            <span class=comment>// is drawn with isolines.</span>
+<a name="__line680"></a>            qplot(mpps &amp;blopmpps, hist &amp;h1, hist &amp;h2);
+<a name="__line681"></a>            qplot(const var &amp;blopepsname, hist &amp;h1, hist &amp;h2);
+<a name="__line682"></a>            qplot(hist &amp;h1, hist &amp;h2);
+<a name="__line683"></a>            qplot(mpps &amp;blopmpps, hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line684"></a>            qplot(const var &amp;blopepsname, hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line685"></a>            qplot(hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line686"></a>            qplot(mpps &amp;blopmpps, const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line687"></a>            qplot(const var &amp;blopepsname, const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line688"></a>            qplot(const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line689"></a>            qplot&amp; reinit(mpps &amp;blopmpps, hist &amp;h1, hist &amp;h2);
+<a name="__line690"></a>            qplot&amp; reinit(const var &amp;blopepsname, hist &amp;h1, hist &amp;h2);
+<a name="__line691"></a>            qplot&amp; reinit(hist &amp;h1, hist &amp;h2);
+<a name="__line692"></a>            qplot&amp; reinit(mpps &amp;blopmpps, hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line693"></a>            qplot&amp; reinit(const var &amp;blopepsname, hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line694"></a>            qplot&amp; reinit(hist &amp;h, const function &amp;f, const var &amp;legend="__NULL");
+<a name="__line695"></a>            qplot&amp; reinit(mpps &amp;blopmpps, const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line696"></a>            qplot&amp; reinit(const var &amp;blopepsname, const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line697"></a>            qplot&amp; reinit(const function &amp;f1, const function &amp;f2, const var &amp;legend1="__NULL", const var &amp;legend2="__NULL");
+<a name="__line698"></a>            <span class=comment>// Destructor. Flushes plot.</span>
+<a name="__line699"></a>            ~qplot();
+<a name="__line700"></a>            <span class=comment>// Global title.</span>
+<a name="__line701"></a>            qplot&amp; title(const var &amp;gtitle);
+<a name="__line702"></a>            <span class=comment>// Set minimum or maximum of plotting domain axes.</span>
+<a name="__line703"></a>            qplot&amp; min(const int axis, const double value);
+<a name="__line704"></a>            qplot&amp; max(const int axis, const double value);
+<a name="__line705"></a>            <span class=comment>// Set minimum or maximum of plotting range.</span>
+<a name="__line706"></a>            qplot&amp; rangemin(const double);
+<a name="__line707"></a>            qplot&amp; rangemax(const double);
+<a name="__line708"></a>            <span class=comment>// Set minimum or maximum of plotting range, when using isolines.</span>
+<a name="__line709"></a>            qplot&amp; isomin(const double);
+<a name="__line710"></a>            qplot&amp; isomax(const double);
+<a name="__line711"></a>            <span class=comment>// Set logarythmic/linear scales for plotting domain axes.</span>
+<a name="__line712"></a>            qplot&amp; log(const int axis, const bool flag);
+<a name="__line713"></a>            <span class=comment>// Set logarythmic/linear scales for plotting range.</span>
+<a name="__line714"></a>            qplot&amp; rangelog(const bool);
+<a name="__line715"></a>            <span class=comment>// Set logarythmic/linear scales for plotting range, when using isolines.</span>
+<a name="__line716"></a>            qplot&amp; isolog(const bool);
+<a name="__line717"></a>            <span class=comment>// Append a histogram to the histogram pointer vector.</span>
+<a name="__line718"></a>            qplot&amp; operator&lt;&lt;(hist &amp;h);
+<a name="__line719"></a>            qplot&amp; put(hist &amp;h);
+<a name="__line720"></a>            <span class=comment>// Append a function to the function pointer vector.</span>
+<a name="__line721"></a>            qplot&amp; operator&lt;&lt;(const function &amp;f);
+<a name="__line722"></a>            qplot&amp; operator&lt;&lt;(const var &amp;functionlegend);
+<a name="__line723"></a>            qplot&amp; put(const function &amp;f, const var &amp;functionlegend="__NULL");
+<a name="__line724"></a>            <span class=comment>// Color sequence and color mapping functions (hardcoded for now).</span>
+<a name="__line725"></a>            static color color_sequence(const int);
+<a name="__line726"></a>            static color color_mapping(double value, double min, double max);
+<a name="__line727"></a>            <span class=comment>// Flush.</span>
+<a name="__line728"></a>            qplot&amp; flush();
+<a name="__line729"></a>        };
+<a name="__line730"></a>
+<a name="__line731"></a>        <span class=comment>// Dummy operators for CINT:</span>
+<a name="__line732"></a>        bool operator==(const hist &amp;h_other) const { return false; }
+<a name="__line733"></a>        bool operator&gt;(const hist &amp;h_other) const { return false; }
+<a name="__line734"></a>        bool operator&lt;(const hist &amp;h_other) const { return false; }
+<a name="__line735"></a>
+<a name="__line736"></a>        hist &amp;layer(const var &amp; l) { plottable::layer(l); return *this; }
+<a name="__line737"></a>    };
+<a name="__line738"></a>
+<a name="__line739"></a><span class=comment>// Histogram operations:</span>
+<a name="__line740"></a>    hist apply(const function&amp;, const hist&amp;);
+<a name="__line741"></a>    hist operator+(const hist&amp;, const hist&amp;);
+<a name="__line742"></a>    hist operator-(const hist&amp;, const hist&amp;);
+<a name="__line743"></a>    hist operator-(const hist&amp;);
+<a name="__line744"></a>    hist operator*(const hist&amp;, const hist&amp;);
+<a name="__line745"></a>    hist operator*(const hist&amp;, const meas&amp;);
+<a name="__line746"></a>    hist operator*(const hist&amp;, const double);
+<a name="__line747"></a>    hist operator*(const meas&amp;, const hist&amp;);
+<a name="__line748"></a>    hist operator*(const double, const hist&amp;);
+<a name="__line749"></a>    hist operator/(const hist &amp;, const hist&amp;);
+<a name="__line750"></a>    hist operator/(const hist&amp;, const meas&amp;);
+<a name="__line751"></a>    hist operator/(const hist&amp;, const double);
+<a name="__line752"></a>    hist operator/(const meas&amp;, const hist&amp;);
+<a name="__line753"></a>    hist operator/(const double, const hist&amp;);
+<a name="__line754"></a>    meas integral(const hist&amp;);
+<a name="__line755"></a>
+<a name="__line756"></a><span class=comment>// Prepare a histogram from a datafile.</span>
+<a name="__line757"></a>    hist&amp; mkhist(istream &amp;input, const histopt &amp;hopt=histopt());
+<a name="__line758"></a>    hist&amp; mkhist(const var &amp;filename, const histopt &amp;hopt=histopt());
+<a name="__line759"></a><span class=comment>// Prepare a histogram from a datagraph.</span>
+<a name="__line760"></a>    hist&amp; mkhist(const dgraph &amp;datagraph, const histopt &amp;hopt=histopt());
+<a name="__line761"></a>
+<a name="__line762"></a><span class=comment>// Prepare a histogram from a datafile, and directly plot it.</span>
+<a name="__line763"></a>    hist&amp; histplot(istream &amp;input, const histopt &amp;hopt=histopt());
+<a name="__line764"></a>    hist&amp; mhistplot(istream &amp;input, const histopt &amp;hopt=histopt());
+<a name="__line765"></a>    hist&amp; histplot(const var &amp;filename, const histopt &amp;hopt=histopt());
+<a name="__line766"></a>    hist&amp; mhistplot(const var &amp;filename, const histopt &amp;hopt=histopt());
+<a name="__line767"></a><span class=comment>// Prepare a histogram from a datagraph, and directly plot it.</span>
+<a name="__line768"></a>    hist&amp; histplot(const dgraph &amp;datagraph, const histopt &amp;hopt=histopt());
+<a name="__line769"></a>    hist&amp; mhistplot(const dgraph &amp;datagraph, const histopt &amp;hopt=histopt());
+<a name="__line770"></a>
+<a name="__line771"></a>
+<a name="__line772"></a>}
+<a name="__line773"></a>
+<a name="__line774"></a>
+<a name="__line775"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

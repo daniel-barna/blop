@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Change the position of an axis</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="axis-transform.html">
+   <link rel="Next" href="units.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-transform.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-transform.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="units.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: units.html">
+    </a> <br>
+
+<center class=title><b>
+Change the position of an axis
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+
+// the important line is this:
+frame::current().y1axis()->pos(x1len(0));  // put y axis at 0 position
+frame::current().x1axis()->pos(y1len(2));  // put y axis at 0 position
+
+// plot something else
+frame::current().draw_frame(false); // do not draw the rectangular frame
+set::xrange(-10,10);
+set::xtitle("X values");
+set::ytitle("Y values");
+plot(_1,_1*sin(_1)+2);
+</pre>
+</div><hr>
+<div class='description'>
+
+The position of an axis can be changed from its default value (either
+side of a frame) using the following function:
+
+<pre>void axis::pos(const length &);</pre>
+
+Note that this function does not expect a numeric value, which would
+set the position of the axis along, say, the x1 axis. It expects an
+argument of type <a href="length.html"><tt>length</tt></a>, because
+this is more generic: one can for example position the y1 axis to the
+0-value on the x1 axis as in the example above. <br>
+
+<center><img src='figs/axis-pos.png'></center>
+
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="axis.h.html">axis.h</a>
+   <a href="axis.cc.html">axis.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-transform.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-transform.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="units.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: units.html">
+    </a> 
+
+</body>
+</html>

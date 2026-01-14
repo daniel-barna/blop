@@ -1,0 +1,261 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Multi-frame</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="frame.html">
+   <link rel="Next" href="graph.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="frame.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: frame.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="graph.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: graph.html">
+    </a> <br>
+
+<center class=title><b>
+Multi-frame
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u><br>
+<pre>
+mframe &f = mframe::mknew(2,2);     // create a multiframe with 2x2 subframes
+f.cd(1,1);                          // change to the lower left
+plot("datafile");                   // ... and plot something in it
+f.cd(1,2);                          // change to the lower right
+....
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+
+<ul>
+<li><a href="#mknew">   Creating an mframe </a>
+<li><a href="#cd">      Making a subframe the current (active) frame </a>
+<li><a href="#cd_next"> Looping over the subframes </a>
+<li><a href="#parenthesisop"> Access a subframe </a>
+<li><a href="#sizes">   Setting the size of rows/columns</a>
+<li><a href="#gap">     Setting gap size between subframes</a>
+<li><a href="#margins"> Setting the frame margins</a>
+<li><a href="#hide_subframe"> Hiding a subframe </a>
+<li><a href="#title">   Setting a title</a>
+<li><a href="#equal_ranges"> Enforcing equal ranges</a>
+</ul>
+
+<p> Mframe  (multi-frame) is  an object  which can be  used to  set up
+multiple frames arranged in a grid. The frames within one column share
+their horizontal axes (x1 and x2), and the frames within one row share
+they  vertical axes  (y1 and  y2). This  means, that  for  example the
+x1-range of the frames within one  column is the same, and the x1 axis
+is drawn  only for the  lowest frame, and  other frames above  it will
+only display the tics of this axis. 
+
+<! =============== creating an mframe ===============================>
+
+<p><div class=sectiontitle><a name="mknew">Creating an mframe</a></div> 
+
+An mframe can be created with the static member function<br>  
+
+<pre>mframe &mframe::mknew(int N1,int N2);</pre>
+
+This   function  creates  a   new  mframe   (within  the   current  <a
+href="canvas-pad.html">pad</a>), consisting of a <tt>N1 x N2</tt> grid
+of   frames,   and   <a  href="design-concepts.html#mknew">returns   a
+reference</a> to the newly created object. The convention for indexing
+the  frames is the  following: horizontal  indices run  from 1  to N1,
+vertical indices run from 1 to  N2, and (1,1) refers to the lower left
+frame, (N1,N2) refers to the upper right frame.
+
+
+<! =================== cd ===========================================>
+
+<p><div class=sectiontitle><a name="cd">Making a subframe the current (active)
+frame:</a></div>
+
+To make the subframe (i,j) be the currently active
+frame, use the member funtion
+
+<pre>mframe &mframe::cd(int i,int j);</pre>
+
+<p>   By  default,  when   an  <tt>mframe</tt>   is  created   by  the
+<tt>mknew</tt> function (see above), the active frame is automatically
+set  to be  the <i>first  subframe</i> in  the looping  direction (see
+below).  Since  the default looping  direction is <tt>right_down</tt>,
+the   first  subframe   is   the  left-top   one.    However,  if   an
+<tt>mframe</tt> is  not created by <tt>mknew</tt>,  the constructor of
+<tt>mframe</tt> does not change the active frame.
+
+<p>There is also another <tt>cd(int)</tt> function with a single
+integer argument, so that one can select any subframe with a single
+running index. The subframes are numbered depending on the looping
+direction (see here below) set for the frame. If, for example, the
+looping direction is set to <tt>right_down</tt>, the subframes are
+numbered like this:
+<table border=1 cellpadding=0 cellspacing=0>
+<tr><td>1<td>2<td>3
+<tr><td>4<td>5<td>6
+</table>
+If the direction is <tt>down_right</tt>, the subframes are numbered like
+this:
+<table border=1 cellpadding=0 cellspacing=0>
+<tr><td>1<td>3<td>5
+<tr><td>2<td>4<td>6
+</table>
+etc....
+
+
+
+<! ================= cd_next  =======================================>
+
+<p><div class=sectiontitle><a name="cd_next">Looping  over the subframes
+</a></div>
+
+One very
+often  wants   to  plot  several   datafiles/functions  in  subsequent
+subframes of an  <tt>mframe</tt>, and in this case  it is difficult to
+keep  track  of  the   horizontal  and  vertical  indices  within  the
+<tt>mframe</tt>.     This   is   the    point   where    the   genious
+<tt>cd_next()</tt> function  helps: it loops  over the subframes  in a
+user-specifiable  direction.   The  direction   can  be  set  via  the
+<tt>direction(int)</tt>   member    function   (there   is    also   a
+<tt>default_direction(int)</tt>,          see          the          <a
+href="design-concepts.html#default">design     concepts</a>).      The
+arguments          can         be         <tt>mframe::right_down</tt>,
+<tt>mframe::right_up</tt>,   <tt>mframe::down_right</tt>,   etc.   The
+default direction is right_down.  If the <tt>mframe::jump</tt> is ORed
+with these values, the looping  jumps to the beginning when it reaches
+the last subframe in  the given direction, and <tt>cd_next()</tt> will
+always  return  true.   Otherwise,  if  <tt>cd_next</tt>  has  reached
+already the last  subframe in the given direction,  it will do nothing
+and return false.
+
+<pre>
+mframe &f = mframe::mknew(3,3).direction(mframe::right_up);
+for(var i=0; i<9; ++i, f.cd_next())
+{
+  plot("datafile" & i);
+}
+</pre>
+
+
+<! ============== direct access to subframe =========================>
+
+
+<p><div class=sectiontitle><a name="parenthesisop">Direct access to a subframe</a></div>
+
+ A
+subframe can be directly accessed by the parenthesis operator (with 2
+indices), which returns a pointer to the given subframe:
+
+<pre>frame *mframe::operator()(int i,int j); </pre>
+
+<p>An mframe is also a <a href="container.html">container</a>, its own
+coordinate system extends from the lower left corner of its lower left
+subframe to the upper right corner of its upper right subframe. 
+
+<! ============== Setting the size of rows/columns ==================>
+
+<p><div class=sectiontitle><a  name="sizes">Setting the  sizes  of rows/columns</a></div>
+
+The
+sizes of the  subframes, and the gap between the  subframes can be set
+in an analogous way to mpad (see <a href="mpad.html#sizes">there</a>).
+
+<! ============== Setting gap size between subframes ================>
+
+<p><div class=sectiontitle><a  name="gap">Setting gap  size between  subframes</a></div>
+
+ Use
+the <tt>mframe::gap(const length &)</tt> member function to make a gap
+between the subframes (so that they do not touch each other).
+
+<! ================== frame margins  ================================>
+
+<p><div class=sectiontitle><a name="margins">The frame margins</a></div>
+
+ For a single frame,
+a  margin is  called the  area  reserved for  the axis  tics and  axis
+titles.  In the  case of  the <tt>mframe</tt>,  this  is automatically
+calculated from the corresponding values of all subframes (for example
+the  left margin  being the  maximum  to hold  all y1  axes' tics  and
+titles). These dimensions can be obtained by
+<pre>length &mframe::lmargin();
+length &mframe::rmargin();
+length &mframe::bmargin();
+length &mframe::tmargin();</pre>
+
+<p>The margins can be also  overwritten by calling the above functions
+with a <tt>length</tt> argument. In this case the corresponding margin
+is forced to be the given length, and will not be calculated to nicely
+accumulate all axis tics/titles:
+<pre>mframe &mframe::lmargin(const length &);
+// etc....</pre>
+
+<! ================== Hiding a subframe  ================================>
+
+<p><div class=sectiontitle><a name="hide_subframe">Hiding a subframe</a></div>
+
+By default, all subframes of an <tt>mframe</tt> are shown. If you want
+to hide some of them, use this member function:
+<pre>
+mframe &mframe::show_subframe(int i, int j, bool show);
+</pre>
+
+
+<! ================== Setting title  ================================>
+
+<p><div class=sectiontitle><a name="title">Setting the title for a mframe</a></div>
+
+<p>Use the member function <tt>mframe::title(const var &amp;)</tt> to
+set the title, which will be positioned at the top margin of the
+mframe, centered horizontally.
+
+<pre>mframe &amp;mf = mframe::mknew(2,2).title("This is the title").gap(2*MM);</pre>
+
+<! ================== Equal ranges  ================================>
+
+<p><div class=sectiontitle><a name="equal_ranges">Enforcing equal ranges of all subframes</a></div>
+
+<p>Use the member function <tt>mframe::equal_ranges(unsigned int axes)</tt> to
+enforce equal ranges for the specified axes. For example
+<tt>mframe::equal_ranges(axis::x1);</tt> enforces equal ranges for
+only the x1 axis, <tt>mframe::equal_ranges(axis::x1|axis::y1);</tt>
+enforces equal ranges for two axes. 
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="mframe.h.html">mframe.h</a>
+   <a href="mframe.cc.html">mframe.cc</a>
+</pre><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="frame.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: frame.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="graph.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: graph.html">
+    </a> 
+
+</body>
+</html>

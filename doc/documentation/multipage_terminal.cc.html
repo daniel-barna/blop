@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: multipage_terminal.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="multipage_terminal.h.html">multipage_terminal.h</a>"
+<a name="__line1"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line2"></a>
+<a name="__line3"></a>namespace blop
+<a name="__line4"></a>{
+<a name="__line5"></a>
+<a name="__line6"></a>    void multipage_pdf::assemble_pages(const std::vector&lt;std::string&gt; &amp;filenames)
+<a name="__line7"></a>    {
+<a name="__line8"></a>        std::string cmd = "pdftk ";
+<a name="__line9"></a>        for(unsigned int i=0; i&lt;filenames.size(); ++i) cmd += filenames[i] + " ";
+<a name="__line10"></a>        cmd += "cat output " + outfilename_;
+<a name="__line11"></a>        system(cmd);
+<a name="__line12"></a>    }
+<a name="__line13"></a>
+<a name="__line14"></a>    multipage_pdf::~multipage_pdf()
+<a name="__line15"></a>    {
+<a name="__line16"></a>        if(needs_flush_) assemble_pages(page_filenames_);
+<a name="__line17"></a>    }
+<a name="__line18"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

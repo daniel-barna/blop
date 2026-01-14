@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: constants.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_CONSTANTS_H__
+<a name="__line1"></a>#define __BLOP_CONSTANTS_H__
+<a name="__line2"></a>#include &lt;float.h&gt;
+<a name="__line3"></a>#include &lt;cmath&gt;
+<a name="__line4"></a>#include &lt;cmath&gt;
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    <span class=comment>/*
+<a name="__line8"></a>      For the value that is defined as 'unset', the following should hold:
+<a name="__line9"></a>      - if two values are 'unset', the operator == should return 1 for them
+<a name="__line10"></a>      - unset should not be equal to any other number
+<a name="__line11"></a>      The first does not hold for nan (i.e. sqrt(-1.0)). Inf(=1.0/0.0) would
+<a name="__line12"></a>      be ok, but cint complains about things like this:
+<a name="__line13"></a>      Error: Symbol inf is not defined in current scope  function.h:272:
+<a name="__line14"></a>      (        void copy_arg_ranges_(const function &amp;f1,
+<a name="__line15"></a>                              const function &amp;f2=blop::unset,
+<a name="__line16"></a>                              const function &amp;f3=blop::unset,....)
+<a name="__line17"></a>
+<a name="__line18"></a>      Therefore some rarely used value is adopted for the moment                              
+<a name="__line19"></a>
+<a name="__line20"></a>     */</span>
+<a name="__line21"></a>
+<a name="__line22"></a>    namespace { const double unset = DBL_MAX; }
+<a name="__line23"></a><span class=comment>//    namespace { const double unset = 1.0/0.0; }</span>
+<a name="__line24"></a>}
+<a name="__line25"></a>#endif
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

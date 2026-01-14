@@ -1,0 +1,94 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: tic.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_TIC_H__
+<a name="__line1"></a>#define __BLOP_TIC_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;string&gt;
+<a name="__line4"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line5"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line6"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>
+<a name="__line11"></a>
+<a name="__line12"></a>    class tic
+<a name="__line13"></a>	{
+<a name="__line14"></a><span class=private>	private:
+<a name="__line15"></a>	    double value_;
+<a name="__line16"></a>	    std::string label_;
+<a name="__line17"></a></span><span class=public>	public:
+<a name="__line18"></a>	    tic(double v=0,const var &amp;s="")
+<a name="__line19"></a>		: value_(v), label_(s.str()) {}
+<a name="__line20"></a>
+<a name="__line21"></a>	    tic(const tic &amp;);
+<a name="__line22"></a>	    bool operator== (const tic &amp;) const;
+<a name="__line23"></a>	    bool operator&lt; (const tic &amp;) const {return false;}
+<a name="__line24"></a>	    bool operator&gt; (const tic &amp;) const {return false;}
+<a name="__line25"></a>
+<a name="__line26"></a>	    tic &amp;label(const var &amp;s) { label_ = s.str(); return *this;}
+<a name="__line27"></a>	    var label() const {return label_;}
+<a name="__line28"></a>	    
+<a name="__line29"></a>	    tic &amp;value(double v) {value_ = v; return *this;}
+<a name="__line30"></a>	    double value() const {return value_;}
+<a name="__line31"></a>	};
+<a name="__line32"></a>
+<a name="__line33"></a>
+<a name="__line34"></a>
+<a name="__line35"></a><span class=comment>// This function determines an optimal scale parameters for a datarange.</span>
+<a name="__line36"></a><span class=comment>// Note that in the case of logscale the value 'minimum' and 'maximum' </span>
+<a name="__line37"></a><span class=comment>// has to be greater than zero. The value 'step' has to be greater than </span>
+<a name="__line38"></a><span class=comment>// zero if fixed. The axis cut-out ranges can be specified arbitrarily </span>
+<a name="__line39"></a><span class=comment>// provided that the cut-out domains do not overlap.</span>
+<a name="__line40"></a><span class=comment>// The function prepares a tic vector 'tics', with number of tics between </span>
+<a name="__line41"></a><span class=comment>// 'nmintics' and '2*nmintics'.</span>
+<a name="__line42"></a>void calculate_tics(double &amp;minimum,
+<a name="__line43"></a>		    const bool minfixed, 
+<a name="__line44"></a>		    double &amp;maximum,
+<a name="__line45"></a>		    const bool maxfixed, 
+<a name="__line46"></a>		    double &amp;step,
+<a name="__line47"></a>		    const bool stepfixed,
+<a name="__line48"></a>		    double tic_min,       <span class=comment>// specify a restricted range for the tics</span>
+<a name="__line49"></a>		    double tic_max,
+<a name="__line50"></a>		    blop::tic &amp;scale,
+<a name="__line51"></a>		    double unit, 
+<a name="__line52"></a>		    const std::vector&lt; std::pair&lt;double,double&gt; &gt; &amp;cuts, 
+<a name="__line53"></a>		    const bool logscale, 
+<a name="__line54"></a>		    const int normalform_tics,  <span class=comment>// 0 --&gt; no normal (with powers of ten) form. 1 --&gt; normal form. 2 --&gt; if range is beyond 0.1..10, use normalform, otherwise no normal form</span>
+<a name="__line55"></a>		    const bool normalform_scale, 
+<a name="__line56"></a>		    std::vector&lt;blop::tic&gt; &amp;tics, 
+<a name="__line57"></a>		    const char *tic_format="%g",
+<a name="__line58"></a>                    const blop::function &amp;tic_format_func=unset,
+<a name="__line59"></a>		    const char *scale_format="%g",
+<a name="__line60"></a>		    const int nmintics=5,
+<a name="__line61"></a>                    bool symmetric_range=false);
+<a name="__line62"></a>    
+<a name="__line63"></a>}
+<a name="__line64"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

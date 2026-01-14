@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mppdf.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MPPDF_H__
+<a name="__line1"></a>#define __BLOP_MPPDF_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="mpps.h.html">mpps.h</a>"
+<a name="__line4"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    class mppdf : public mpps
+<a name="__line9"></a>    {
+<a name="__line10"></a><span class=private>    private:
+<a name="__line11"></a>        string filename_;
+<a name="__line12"></a></span><span class=public>    public:
+<a name="__line13"></a>        mppdf() {}
+<a name="__line14"></a>        mppdf(const var &amp;filename);
+<a name="__line15"></a>        ~mppdf();
+<a name="__line16"></a>
+<a name="__line17"></a>        virtual void open(const var &amp;filename);
+<a name="__line18"></a>        virtual bool flush();
+<a name="__line19"></a>    };
+<a name="__line20"></a>}
+<a name="__line21"></a>
+<a name="__line22"></a>
+<a name="__line23"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

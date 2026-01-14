@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: versatile_pdf.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_VERSATILE_PDF_H__
+<a name="__line1"></a>#define __BLOP_VERSATILE_PDF_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line4"></a>#include "<a href="pdf.h.html">pdf.h</a>"
+<a name="__line5"></a>#include "<a href="jpg.h.html">jpg.h</a>"
+<a name="__line6"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line7"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line8"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>    class versatile_pdf
+<a name="__line13"></a>    {
+<a name="__line14"></a><span class=protected>    protected:
+<a name="__line15"></a>        std::string outfilename_;
+<a name="__line16"></a>        bool        needs_flush_;
+<a name="__line17"></a>        std::vector&lt;std::string&gt; page_filenames_;
+<a name="__line18"></a>        std::string print_option_;
+<a name="__line19"></a></span><span class=private>    private:
+<a name="__line20"></a>        std::string tmpdir_;
+<a name="__line21"></a>        int pagecounter_;
+<a name="__line22"></a>        int flush_frequency_;
+<a name="__line23"></a></span><span class=public>    public:
+<a name="__line24"></a>        versatile_pdf(const var &amp;filename)
+<a name="__line25"></a>            : outfilename_(filename.str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+<a name="__line26"></a>        {}
+<a name="__line27"></a>        versatile_pdf(const std::filesystem::path &amp;filename)
+<a name="__line28"></a>            : outfilename_(filename.c_str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+<a name="__line29"></a>        {}
+<a name="__line30"></a>
+<a name="__line31"></a>        virtual ~versatile_pdf();
+<a name="__line32"></a>
+<a name="__line33"></a>        virtual void assemble_pages(const std::vector&lt;std::string&gt; &amp;filenames);
+<a name="__line34"></a>        virtual void print_option(const var &amp;opt) { print_option_ = opt.str(); }
+<a name="__line35"></a>
+<a name="__line36"></a>        virtual void include(const var &amp;filename, const var &amp;convert_options="");
+<a name="__line37"></a>
+<a name="__line38"></a>        <span class=comment>// Print the current canvas into the pdf file, at the specified page count 'at_page'.</span>
+<a name="__line39"></a>        <span class=comment>// For example at_page=1 means insert it as the first page.</span>
+<a name="__line40"></a>        <span class=comment>// If this is the default 0, the printout is appended to the pdf file</span>
+<a name="__line41"></a>        template &lt;typename T =pdf&gt;
+<a name="__line42"></a>        void print(var opt="",int at_page=0, bool replace=false)
+<a name="__line43"></a>        {
+<a name="__line44"></a>            if(opt.str() == "") opt = print_option_;
+<a name="__line45"></a>            char filename[300];
+<a name="__line46"></a>
+<a name="__line47"></a>            {
+<a name="__line48"></a>                string fmt = string("%s/page_%i") + T::filename_extension();
+<a name="__line49"></a>                sprintf(filename,fmt.c_str(),tmpdir_.c_str(),pagecounter_++);
+<a name="__line50"></a>            }
+<a name="__line51"></a>
+<a name="__line52"></a>            if(opt.str() == "") T::print(filename);
+<a name="__line53"></a>            else T::print(filename,opt);
+<a name="__line54"></a>
+<a name="__line55"></a>            string filename_to_be_stored;
+<a name="__line56"></a>            if(T::filename_extension() == ".pdf")
+<a name="__line57"></a>            {
+<a name="__line58"></a>                <span class=comment>//page_filenames_.push_back(filename);</span>
+<a name="__line59"></a>                filename_to_be_stored = filename;
+<a name="__line60"></a>            }
+<a name="__line61"></a>            else
+<a name="__line62"></a>            {
+<a name="__line63"></a>                string pdf_filename = blop::replace(var(T::filename_extension()), var(pdf::filename_extension()), var(filename)).str();
+<a name="__line64"></a>                string cmd = std::string("convert ") + std::string(filename) + " " + pdf_filename;
+<a name="__line65"></a>                if(system(cmd) == 0)
+<a name="__line66"></a>                {
+<a name="__line67"></a>                    filename_to_be_stored = pdf_filename;
+<a name="__line68"></a>                    <span class=comment>//page_filenames_.push_back(pdf_filename);</span>
+<a name="__line69"></a>                }
+<a name="__line70"></a>                else
+<a name="__line71"></a>                {
+<a name="__line72"></a>                    warning::print(string("Conversion failed: ") + cmd,
+<a name="__line73"></a>                                   "versatile_pdf::print(...)");
+<a name="__line74"></a>                                   
+<a name="__line75"></a>                }
+<a name="__line76"></a>            }
+<a name="__line77"></a>            if(at_page&lt;=0) page_filenames_.push_back(filename_to_be_stored);
+<a name="__line78"></a>            else
+<a name="__line79"></a>            {
+<a name="__line80"></a>                if(--at_page &gt;= (int)(page_filenames_.size()))
+<a name="__line81"></a>                {
+<a name="__line82"></a>                    page_filenames_.push_back(filename_to_be_stored);
+<a name="__line83"></a>                }
+<a name="__line84"></a>                else
+<a name="__line85"></a>                {
+<a name="__line86"></a>                    if(replace) page_filenames_[at_page] = filename_to_be_stored;
+<a name="__line87"></a>                    else page_filenames_.insert(page_filenames_.begin()+at_page,filename_to_be_stored);
+<a name="__line88"></a>                }
+<a name="__line89"></a>            }
+<a name="__line90"></a>            if(pagecounter_%flush_frequency_==0)
+<a name="__line91"></a>            {
+<a name="__line92"></a>                assemble_pages(page_filenames_);
+<a name="__line93"></a>                needs_flush_ = false;
+<a name="__line94"></a>            }
+<a name="__line95"></a>            else needs_flush_ = true;
+<a name="__line96"></a>        }
+<a name="__line97"></a>
+<a name="__line98"></a>    };
+<a name="__line99"></a>
+<a name="__line100"></a>
+<a name="__line101"></a>}
+<a name="__line102"></a>
+<a name="__line103"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

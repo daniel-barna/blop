@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: dgraph.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_DGRAPH_H__
+<a name="__line1"></a>#define __BLOP_DGRAPH_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="graph.h.html">graph.h</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include "<a href="array.h.html">array.h</a>"
+<a name="__line6"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line7"></a>#include &lt;iostream&gt;
+<a name="__line8"></a>
+<a name="__line9"></a>namespace blop
+<a name="__line10"></a>{
+<a name="__line11"></a>
+<a name="__line12"></a>    class dgraph : public graph
+<a name="__line13"></a>	{
+<a name="__line14"></a><span class=private>	private:
+<a name="__line15"></a>	    var filename_;
+<a name="__line16"></a>
+<a name="__line17"></a>	    void init_defaults();
+<a name="__line18"></a>
+<a name="__line19"></a>	    static length default_pointsize_;
+<a name="__line20"></a>	    static point_drawer  *default_point_drawer_;
+<a name="__line21"></a>	    static color  default_pointcolor_;
+<a name="__line22"></a>	    static color default_linecolor_;
+<a name="__line23"></a>	    static length default_linewidth_;
+<a name="__line24"></a>	    static sym::linestyle    default_linestyle_;
+<a name="__line25"></a>	    static color default_fillcolor_;
+<a name="__line26"></a>	    static bool  default_fill_;
+<a name="__line27"></a>	    static color default_legendcolor_;
+<a name="__line28"></a>	    static graph_drawer* &amp;default_graph_drawer_();
+<a name="__line29"></a>	    static var default_legend_;
+<a name="__line30"></a>	    static bool  falsecondition_break_;
+<a name="__line31"></a>            static std::string default_comment_chars_;
+<a name="__line32"></a>
+<a name="__line33"></a>	    int columns_;
+<a name="__line34"></a>
+<a name="__line35"></a>	    std::istream *open_file(const var &amp;filename);
+<a name="__line36"></a>
+<a name="__line37"></a>	    vector&lt;var&gt; title_hints_;
+<a name="__line38"></a>	    bool title_hints_latex_;
+<a name="__line39"></a>	    bool autotitles_;
+<a name="__line40"></a>	    static bool default_autotitles_;
+<a name="__line41"></a>            
+<a name="__line42"></a>            std::string comment_chars_;
+<a name="__line43"></a>
+<a name="__line44"></a></span><span class=public>	public:
+<a name="__line45"></a>	    <span class=comment>// ---------- default properties --------------------------------------------------</span>
+<a name="__line46"></a>	    static void default_legend(const var &amp;);  <span class=comment>// %f in this string is replaced by the filename</span>
+<a name="__line47"></a>	    static void default_pointsize(length l);
+<a name="__line48"></a>	    static void default_pointtype(const point_drawer &amp;);
+<a name="__line49"></a>	    static void default_pointcolor(const color &amp;);
+<a name="__line50"></a>	    static void default_linecolor(const color &amp;);
+<a name="__line51"></a>	    static void default_linewidth(length l);
+<a name="__line52"></a>	    static void default_linestyle(sym::linestyle);
+<a name="__line53"></a>	    static void default_fillcolor(const color &amp;);
+<a name="__line54"></a>	    static void default_fill(bool);
+<a name="__line55"></a>	    static void default_legendcolor(const color &amp;);
+<a name="__line56"></a>	    static void default_drawstyle(const graph_drawer &amp;);
+<a name="__line57"></a>	    static void falsecondition_break(bool b) { falsecondition_break_ = b; }
+<a name="__line58"></a>            static void default_comment_chars(const std::string &amp;s);
+<a name="__line59"></a>            static std::string default_comment_chars() { return default_comment_chars_; }
+<a name="__line60"></a>
+<a name="__line61"></a>	    int columns() const {return columns_;}
+<a name="__line62"></a>	    dgraph &amp;columns(int ncol);
+<a name="__line63"></a>
+<a name="__line64"></a>	    dgraph(const dgraph &amp;);
+<a name="__line65"></a>	    const dgraph &amp;operator=(const dgraph &amp;);
+<a name="__line66"></a>
+<a name="__line67"></a>	    dgraph();
+<a name="__line68"></a>
+<a name="__line69"></a>	    dgraph(int npoints, int cols);
+<a name="__line70"></a>
+<a name="__line71"></a>	    dgraph(int n, const double x[], const double y[]);
+<a name="__line72"></a>	    dgraph(int n, const double x[], const double y[], const double z[]);
+<a name="__line73"></a>	    dgraph(int n, const double x[], const double y[], const double z[], const double w[]);
+<a name="__line74"></a>
+<a name="__line75"></a>	    dgraph(int n,const var x[],const var y[]);
+<a name="__line76"></a>	    dgraph(int n,const var x[],const var y[],const var z[]);
+<a name="__line77"></a>	    dgraph(int n,const var x[],const var y[],const var z[],const var w[]);
+<a name="__line78"></a>
+<a name="__line79"></a>	    dgraph(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line80"></a>		   const std::vector&lt;blop::var&gt; &amp;y);
+<a name="__line81"></a>	    dgraph(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line82"></a>		   const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line83"></a>		   const std::vector&lt;blop::var&gt; &amp;z);
+<a name="__line84"></a>	    dgraph(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line85"></a>		   const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line86"></a>		   const std::vector&lt;blop::var&gt; &amp;z,
+<a name="__line87"></a>		   const std::vector&lt;blop::var&gt; &amp;w);
+<a name="__line88"></a>
+<a name="__line89"></a>	    dgraph(const std::vector&lt;double&gt; &amp;x,
+<a name="__line90"></a>		   const std::vector&lt;double&gt; &amp;y);
+<a name="__line91"></a>	    dgraph(const std::vector&lt;double&gt; &amp;x,
+<a name="__line92"></a>		   const std::vector&lt;double&gt; &amp;y,
+<a name="__line93"></a>		   const std::vector&lt;double&gt; &amp;z);
+<a name="__line94"></a>	    dgraph(const std::vector&lt;double&gt; &amp;x,
+<a name="__line95"></a>		   const std::vector&lt;double&gt; &amp;y,
+<a name="__line96"></a>		   const std::vector&lt;double&gt; &amp;z,
+<a name="__line97"></a>		   const std::vector&lt;double&gt; &amp;w);
+<a name="__line98"></a>
+<a name="__line99"></a>            dgraph(const var &amp;filename,
+<a name="__line100"></a>                   function f1 = unset,
+<a name="__line101"></a>                   function f2 = unset,
+<a name="__line102"></a>                   function f3 = unset,
+<a name="__line103"></a>                   function f4 = unset,
+<a name="__line104"></a>                   function f5 = unset);
+<a name="__line105"></a>
+<a name="__line106"></a>
+<a name="__line107"></a>	    ~dgraph() {}
+<a name="__line108"></a>
+<a name="__line109"></a>	    dgraph        &amp;read    (istream &amp;input,
+<a name="__line110"></a>				    function f1 = unset,
+<a name="__line111"></a>				    function f2 = unset,
+<a name="__line112"></a>				    function f3 = unset,
+<a name="__line113"></a>				    function f4 = unset,
+<a name="__line114"></a>                                    function f5 = unset);
+<a name="__line115"></a>	    static dgraph &amp;read_static    (istream &amp;input,
+<a name="__line116"></a>				    function f1 = unset,
+<a name="__line117"></a>				    function f2 = unset,
+<a name="__line118"></a>				    function f3 = unset,
+<a name="__line119"></a>				    function f4 = unset,
+<a name="__line120"></a>                                    function f5 = unset);
+<a name="__line121"></a>
+<a name="__line122"></a>            <span class=comment>// The 'condition' function must return at least 1 value, can return 2 values.</span>
+<a name="__line123"></a>            <span class=comment>// Those points for which the first returned value is zero, will be skipped</span>
+<a name="__line124"></a>            <span class=comment>// Whenver the second returnerd value is zero, the processing of the file will be interrupted.</span>
+<a name="__line125"></a>
+<a name="__line126"></a>	    dgraph        &amp;read_if (istream &amp;input,
+<a name="__line127"></a>				    const function &amp;condition,
+<a name="__line128"></a>				    function f1 = unset,
+<a name="__line129"></a>				    function f2 = unset,
+<a name="__line130"></a>				    function f3 = unset,
+<a name="__line131"></a>				    function f4 = unset,
+<a name="__line132"></a>                                    function f5 = unset);
+<a name="__line133"></a>	    static dgraph &amp;read_if_static (istream &amp;input,
+<a name="__line134"></a>				    const function &amp;condition,
+<a name="__line135"></a>				    function f1 = unset,
+<a name="__line136"></a>				    function f2 = unset,
+<a name="__line137"></a>				    function f3 = unset,
+<a name="__line138"></a>				    function f4 = unset,
+<a name="__line139"></a>                                    function f5 = unset);
+<a name="__line140"></a>
+<a name="__line141"></a>	    dgraph        &amp;read    (const var &amp;filename,
+<a name="__line142"></a>				    function f1 = unset,
+<a name="__line143"></a>				    function f2 = unset,
+<a name="__line144"></a>				    function f3 = unset,
+<a name="__line145"></a>				    function f4 = unset,
+<a name="__line146"></a>                                    function f5 = unset);
+<a name="__line147"></a>	    static dgraph   &amp;read_static  (const var &amp;filename,
+<a name="__line148"></a>				    function f1 = unset,
+<a name="__line149"></a>				    function f2 = unset,
+<a name="__line150"></a>				    function f3 = unset,
+<a name="__line151"></a>				    function f4 = unset,
+<a name="__line152"></a>                                    function f5 = unset);
+<a name="__line153"></a>
+<a name="__line154"></a>	    dgraph        &amp;read_if (const var &amp;filename,
+<a name="__line155"></a>				    const function &amp;condition,
+<a name="__line156"></a>				    function f1 = unset,
+<a name="__line157"></a>				    function f2 = unset,
+<a name="__line158"></a>				    function f3 = unset,
+<a name="__line159"></a>				    function f4 = unset,
+<a name="__line160"></a>                                    function f5 = unset);
+<a name="__line161"></a>            static dgraph &amp;read_if_static (const var &amp;filename,
+<a name="__line162"></a>				    const function &amp;condition,
+<a name="__line163"></a>				    function f1 = unset,
+<a name="__line164"></a>				    function f2 = unset,
+<a name="__line165"></a>				    function f3 = unset,
+<a name="__line166"></a>				    function f4 = unset,
+<a name="__line167"></a>                                    function f5 = unset);
+<a name="__line168"></a>
+<a name="__line169"></a>
+<a name="__line170"></a>	    static void read_groups_if(istream &amp;file, const function &amp;grouping_value,
+<a name="__line171"></a>				     const function &amp;condition,
+<a name="__line172"></a>				     const function &amp;filter, plottables *out);
+<a name="__line173"></a>	    static void read_groups_if(const var &amp;filename, const function &amp;grouping_value,
+<a name="__line174"></a>				       const function &amp;condition,
+<a name="__line175"></a>				       const function &amp;filter, plottables *out);
+<a name="__line176"></a>
+<a name="__line177"></a>            dgraph &amp;remove_unset(); <span class=comment>// remove unset, inf, nan</span>
+<a name="__line178"></a>
+<a name="__line179"></a>            dgraph &amp;comment_chars(const std::string &amp;s);
+<a name="__line180"></a>
+<a name="__line181"></a>	    graph &amp;smooth(int col_index, double weight1=1, double weight2=2, double weight3=1);
+<a name="__line182"></a>	    graph &amp;smooth_range(int col_index_x, double from, double to,
+<a name="__line183"></a>				int col_index,
+<a name="__line184"></a>				double weight1=1, double weight2=2, double weight3=1);
+<a name="__line185"></a>
+<a name="__line186"></a>	    dgraph &amp;add(const datapoint &amp;p);
+<a name="__line187"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2);
+<a name="__line188"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3);
+<a name="__line189"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4);
+<a name="__line190"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5);
+<a name="__line191"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6);
+<a name="__line192"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7);
+<a name="__line193"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8);
+<a name="__line194"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8, const var &amp;x9);
+<a name="__line195"></a>	    dgraph &amp;add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8, const var &amp;x9, const var &amp;x10);
+<a name="__line196"></a>            dgraph &amp;add(int n, double val[]);
+<a name="__line197"></a>
+<a name="__line198"></a>            <span class=comment>// ---------- Find the min/max of an expression evaluated over the whole graph ----</span>
+<a name="__line199"></a>            <span class=comment>// (just redefine graph::min(const function &amp;) and graph::max(const function &amp;)</span>
+<a name="__line200"></a>            double min(const function &amp;fmin, function fret=unset) { return graph::min(fmin,fret); }
+<a name="__line201"></a>            double max(const function &amp;fmax, function fret=unset) { return graph::max(fmax,fret); }
+<a name="__line202"></a>
+<a name="__line203"></a>
+<a name="__line204"></a>	    <span class=comment>// ---------- max/min value in a column  ------------------------------------------</span>
+<a name="__line205"></a>	    <span class=comment>// Find the max/min of column 'n', if column 'm' is</span>
+<a name="__line206"></a>	    <span class=comment>// in the range [low..high]</span>
+<a name="__line207"></a>
+<a name="__line208"></a>	    double min(int n, int m, double low, double high);
+<a name="__line209"></a>	    double max(int n, int m, double low, double high);
+<a name="__line210"></a>
+<a name="__line211"></a>            <span class=comment>// ---------- calculate the average of a column -----------------------------------</span>
+<a name="__line212"></a>
+<a name="__line213"></a>            <span class=comment>// Return the average of an expression over the graph</span>
+<a name="__line214"></a>            double average(blop::function &amp;f);
+<a name="__line215"></a>
+<a name="__line216"></a>            <span class=comment>// Returns the average of column 'n' if column 'm' is in the range [low..high]</span>
+<a name="__line217"></a>            double average(int n, int m, double low, double high);
+<a name="__line218"></a>
+<a name="__line219"></a>	    <span class=comment>// ---------- block ---------------------------------------------------------------</span>
+<a name="__line220"></a>	    <span class=comment>// pick a block (continous set of data in a file/stream,</span>
+<a name="__line221"></a>	    <span class=comment>// between empty lines)</span>
+<a name="__line222"></a>	    <span class=comment>// i=1 corresponds to the first block</span>
+<a name="__line223"></a>	    <span class=comment>// This function alters the graph itself: it ERASES every</span>
+<a name="__line224"></a>	    <span class=comment>// other datapoint outside of the ith block.</span>
+<a name="__line225"></a>
+<a name="__line226"></a>	    graph &amp;block(int i); 
+<a name="__line227"></a>
+<a name="transform">
+<a name="__line229"></a>	    <span class=comment>// ---------- transform a column --------------------------------------------------</span>
+<a name="__line230"></a>	    <span class=comment>// Make a transformation on a column specified by 'col' (1-based)</span>
+<a name="__line231"></a>	    <span class=comment>// The arguments given to the function 'f' are the values</span>
+<a name="__line232"></a>	    <span class=comment>// in all columns (that is, if you want to multiply column 2</span>
+<a name="__line233"></a>	    <span class=comment>// by column 1, then say: transform_column(2,_1*_2);</span>
+<a name="__line234"></a>
+<a name="__line235"></a>	    dgraph &amp;transform_column(int col, function f);
+<a name="__line236"></a>
+<a name="__line237"></a>            <span class=comment>// ---------- transform a whole dgraph --------------------------------------------</span>
+<a name="__line238"></a>            <span class=comment>// Loop over the graph and transform each point. The function 'f' will be</span>
+<a name="__line239"></a>            <span class=comment>// called on the original point, and its return value will overwrite</span>
+<a name="__line240"></a>            <span class=comment>// the original datapoint. _0 evaluates to the index of the data-point (0-based)</span>
+<a name="__line241"></a>
+<a name="__line242"></a>            dgraph &amp;transform(const function &amp;f);
+<a name="__line243"></a>
+</a>
+<a name="__line245"></a>
+<a name="__line246"></a>	    <span class=comment>// ---------- obtain a point, and resize if necessary -----------------------------</span>
+<a name="__line247"></a>
+<a name="__line248"></a>	    datapoint &amp;operator[] (int i);
+<a name="__line249"></a>	    const datapoint &amp;operator[] (int i) const;
+<a name="__line250"></a>	    dgraph &amp;resize(int newsize);
+<a name="__line251"></a>
+<a name="__line252"></a>
+<a name="__line253"></a>	    <span class=comment>// ---------- autotitles ----------------------------------------------------------</span>
+<a name="__line254"></a>
+<a name="__line255"></a>	    plottable &amp;autotitles(bool f) { autotitles_ = f; return *this; }
+<a name="__line256"></a>	    static void default_autotitles(bool f) { default_autotitles_ = f; }
+<a name="__line257"></a>
+<a name="__line258"></a>	    <span class=comment>// ---------- duplicate -----------------------------------------------------------</span>
+<a name="__line259"></a>
+<a name="__line260"></a>	    dgraph &amp;dup();
+<a name="__line261"></a>
+<a name="__line262"></a>	    void prepare_for_draw(axis *,axis *, frame *, int count);
+<a name="__line263"></a>
+<a name="__line264"></a>	    dgraph &amp;layer(const var &amp; l) { plottable::layer(l); return *this; }
+<a name="__line265"></a>
+<a name="__line266"></a>            dgraph &amp;sort(const blop::function &amp;key);
+<a name="__line267"></a>
+<a name="__line268"></a>            <span class=comment>// ---------- filter --------------------------------------------------------------</span>
+<a name="__line269"></a>            <span class=comment>// Filter the graph: create a new one (using 'new') containing only those</span>
+<a name="__line270"></a>            <span class=comment>// datapoints for which the function returns true</span>
+<a name="__line271"></a>            dgraph *filter(const blop::function &amp;filt);
+<a name="__line272"></a>            dgraph *filter(const blop::function &amp;filt, const blop::function &amp;trans);
+<a name="__line273"></a>	};
+<a name="__line274"></a>
+<a name="__line275"></a>
+<a name="__line276"></a>}
+<a name="__line277"></a>
+<a name="__line278"></a>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const blop::dgraph &amp;g);
+<a name="__line279"></a>
+<a name="__line280"></a>
+<a name="__line281"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

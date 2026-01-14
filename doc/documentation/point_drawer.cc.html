@@ -1,0 +1,425 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: point_drawer.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>
+<a name="__line1"></a>#include "<a href="point_drawer.h.html">point_drawer.h</a>"
+<a name="__line2"></a>#include "<a href="graph.h.html">graph.h</a>"
+<a name="__line3"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line4"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line5"></a>#include &lt;cmath&gt;
+<a name="__line6"></a>#include &lt;typeinfo&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    const point_drawer &amp;point_drawer::get(unsigned int n)
+<a name="__line11"></a>    {
+<a name="__line12"></a>        return point_by_index(n);
+<a name="__line13"></a>    }
+<a name="__line14"></a>
+<a name="__line15"></a>    bool equals(point_drawer *p1, point_drawer *p2)
+<a name="__line16"></a>    {
+<a name="__line17"></a>	if(p1 == 0 &amp;&amp; p2 != 0) return false;
+<a name="__line18"></a>	if(p2 == 0 &amp;&amp; p1 != 0) return false;
+<a name="__line19"></a>	if(p1 == 0 &amp;&amp; p2 == 0) return true;
+<a name="__line20"></a>	if(typeid(*p1) != typeid(*p2)) return false;
+<a name="__line21"></a>	return p1-&gt;equals(p2);
+<a name="__line22"></a>    }
+<a name="__line23"></a>
+<a name="__line24"></a>    <span class=comment>// ---------- circle  -------------------------------------------------------------</span>
+<a name="__line25"></a>
+<a name="__line26"></a>
+<a name="__line27"></a>    circle::circle(bool filled)
+<a name="__line28"></a>    {
+<a name="__line29"></a>        fill(filled);
+<a name="__line30"></a>    }
+<a name="__line31"></a>
+<a name="__line32"></a>    point_drawer *circle::clone() const
+<a name="__line33"></a>    {
+<a name="__line34"></a>	return new circle(*this);
+<a name="__line35"></a>    }
+<a name="__line36"></a>
+<a name="__line37"></a>    void circle::prepare_for_draw(const length &amp;size)
+<a name="__line38"></a>    {
+<a name="__line39"></a>	r_ = 0.5*!size;
+<a name="__line40"></a>	r_.register_me();
+<a name="__line41"></a>    }
+<a name="__line42"></a>    
+<a name="__line43"></a>    void circle::draw(terminal *t,const length &amp;s)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	r_ = 0.5 * !s;
+<a name="__line46"></a>	if(!r_.specialize(t))
+<a name="__line47"></a>	{
+<a name="__line48"></a>	    cerr&lt;&lt;"Failed to specialize length in 'circle::draw'"&lt;&lt;endl;
+<a name="__line49"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line50"></a>	    return;
+<a name="__line51"></a>	}
+<a name="__line52"></a>	draw(t);
+<a name="__line53"></a>    }
+<a name="__line54"></a>
+<a name="__line55"></a>    void circle::draw(terminal *t)
+<a name="__line56"></a>    {
+<a name="__line57"></a>	if(fill_) t-&gt;fill_arc(terminal::coord(0,0),r_.termspecific_id());
+<a name="__line58"></a>	else t-&gt;draw_arc(terminal::coord(0,0),r_.termspecific_id());
+<a name="__line59"></a>    }
+<a name="__line60"></a>
+<a name="__line61"></a>
+<a name="__line62"></a>
+<a name="__line63"></a>    <span class=comment>// ---------- square  -------------------------------------------------------------</span>
+<a name="__line64"></a>
+<a name="__line65"></a>    square::square(bool filled)
+<a name="__line66"></a>    {
+<a name="__line67"></a>        fill(filled);
+<a name="__line68"></a>    }
+<a name="__line69"></a>
+<a name="__line70"></a>    point_drawer *square::clone() const
+<a name="__line71"></a>    {
+<a name="__line72"></a>	return new square(*this);
+<a name="__line73"></a>    }
+<a name="__line74"></a>
+<a name="__line75"></a>    void square::prepare_for_draw(const length &amp;size)
+<a name="__line76"></a>    {
+<a name="__line77"></a>	l1 = -0.5 * !size;
+<a name="__line78"></a>	l2 =  0.5 * !size;
+<a name="__line79"></a>	l1.register_me();
+<a name="__line80"></a>	l2.register_me();
+<a name="__line81"></a>    }
+<a name="__line82"></a>    
+<a name="__line83"></a>    void square::draw(terminal *t,const length &amp;s)
+<a name="__line84"></a>    {
+<a name="__line85"></a>	l1 = -0.5 * !s;
+<a name="__line86"></a>	l2 =  0.5 * !s;
+<a name="__line87"></a>	if(!l1.specialize(t) || !l2.specialize(t))
+<a name="__line88"></a>	{
+<a name="__line89"></a>	    cerr&lt;&lt;"Failed to specialize length in 'square::draw'"&lt;&lt;endl;
+<a name="__line90"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line91"></a>	    return;
+<a name="__line92"></a>	}
+<a name="__line93"></a>	draw(t);
+<a name="__line94"></a>    }
+<a name="__line95"></a>
+<a name="__line96"></a>    void square::draw(terminal *t)
+<a name="__line97"></a>    {
+<a name="__line98"></a>	vector&lt;terminal::coord&gt; cc;
+<a name="__line99"></a>	cc.push_back(terminal::coord(l1.termspecific_id(),l1.termspecific_id()));
+<a name="__line100"></a>	cc.push_back(terminal::coord(l2.termspecific_id(),l1.termspecific_id()));
+<a name="__line101"></a>	cc.push_back(terminal::coord(l2.termspecific_id(),l2.termspecific_id()));
+<a name="__line102"></a>	cc.push_back(terminal::coord(l1.termspecific_id(),l2.termspecific_id()));
+<a name="__line103"></a>	cc.push_back(terminal::coord(l1.termspecific_id(),l1.termspecific_id()));
+<a name="__line104"></a>	if(fill_) t-&gt;fill_polygon(cc);
+<a name="__line105"></a>	else t-&gt;draw_lines(cc);
+<a name="__line106"></a>    }
+<a name="__line107"></a>
+<a name="__line108"></a>
+<a name="__line109"></a>    <span class=comment>// ---------- diamond -------------------------------------------------------------</span>
+<a name="__line110"></a>
+<a name="__line111"></a>    diamond::diamond(bool filled)
+<a name="__line112"></a>    {
+<a name="__line113"></a>        fill(filled);
+<a name="__line114"></a>    }
+<a name="__line115"></a>
+<a name="__line116"></a>    point_drawer *diamond::clone() const
+<a name="__line117"></a>    {
+<a name="__line118"></a>	return new diamond(*this);
+<a name="__line119"></a>    }
+<a name="__line120"></a>
+<a name="__line121"></a>    void diamond::prepare_for_draw(const length &amp;size)
+<a name="__line122"></a>    {
+<a name="__line123"></a>	l1 = -1/::sqrt(2.0) * !size;
+<a name="__line124"></a>	l2 =  1/::sqrt(2.0) * !size;
+<a name="__line125"></a>	l1.register_me();
+<a name="__line126"></a>	l2.register_me();
+<a name="__line127"></a>    }
+<a name="__line128"></a>    
+<a name="__line129"></a>    void diamond::draw(terminal *t,const length &amp;s)
+<a name="__line130"></a>    {
+<a name="__line131"></a>	l1 = -1/::sqrt(2.0) * !s;
+<a name="__line132"></a>	l2 =  1/::sqrt(2.0) * !s;
+<a name="__line133"></a>	if(!l1.specialize(t) || !l2.specialize(t))
+<a name="__line134"></a>	{
+<a name="__line135"></a>	    cerr&lt;&lt;"Failed to specialize length in 'diamond::draw'"&lt;&lt;endl;
+<a name="__line136"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line137"></a>	    return;
+<a name="__line138"></a>	}
+<a name="__line139"></a>	draw(t);
+<a name="__line140"></a>    }
+<a name="__line141"></a>
+<a name="__line142"></a>    void diamond::draw(terminal *t)
+<a name="__line143"></a>    {
+<a name="__line144"></a>	vector&lt;terminal::coord&gt; cc;
+<a name="__line145"></a>	cc.push_back(terminal::coord(l1.termspecific_id(),0));
+<a name="__line146"></a>	cc.push_back(terminal::coord(0,l1.termspecific_id()));
+<a name="__line147"></a>	cc.push_back(terminal::coord(l2.termspecific_id(),0));
+<a name="__line148"></a>	cc.push_back(terminal::coord(0,l2.termspecific_id()));
+<a name="__line149"></a>	cc.push_back(terminal::coord(l1.termspecific_id(),0));
+<a name="__line150"></a>	if(fill_) t-&gt;fill_polygon(cc);
+<a name="__line151"></a>	else t-&gt;draw_lines(cc);
+<a name="__line152"></a>    }
+<a name="__line153"></a>
+<a name="__line154"></a>    <span class=comment>// ---------- triangle ------------------------------------------------------------</span>
+<a name="__line155"></a>
+<a name="__line156"></a>
+<a name="__line157"></a>    triangle::triangle(bool filled,bool dir_up)
+<a name="__line158"></a>	: up_(dir_up)
+<a name="__line159"></a>    {
+<a name="__line160"></a>        fill(filled);
+<a name="__line161"></a>    }
+<a name="__line162"></a>
+<a name="__line163"></a>    point_drawer *triangle::clone() const
+<a name="__line164"></a>    {
+<a name="__line165"></a>	return new triangle(*this);
+<a name="__line166"></a>    }
+<a name="__line167"></a>
+<a name="__line168"></a>    void triangle::prepare_for_draw(const length &amp;size)
+<a name="__line169"></a>    {
+<a name="__line170"></a>	x1 = -0.6 * !size;
+<a name="__line171"></a>	x2 =  0.6 * !size;
+<a name="__line172"></a>	if(up_)
+<a name="__line173"></a>	{
+<a name="__line174"></a>	    y1 = -0.34 * !size;
+<a name="__line175"></a>	    y2 = 0.692 * !size;
+<a name="__line176"></a>	}
+<a name="__line177"></a>	else
+<a name="__line178"></a>	{
+<a name="__line179"></a>	    y1 = 0.34 * !size;
+<a name="__line180"></a>	    y2 = -0.692 * !size;
+<a name="__line181"></a>	}
+<a name="__line182"></a>	x1.register_me();
+<a name="__line183"></a>	x2.register_me();
+<a name="__line184"></a>	y1.register_me();
+<a name="__line185"></a>	y2.register_me();
+<a name="__line186"></a>    }
+<a name="__line187"></a>    
+<a name="__line188"></a>    void triangle::draw(terminal *t,const length &amp;s)
+<a name="__line189"></a>    {
+<a name="__line190"></a>	x1 = -0.6 * !s;
+<a name="__line191"></a>	x2 =  0.6 * !s;
+<a name="__line192"></a>	y1 = -0.34 * !s;
+<a name="__line193"></a>	y2 = 0.692 * !s;
+<a name="__line194"></a>	if(!x1.specialize(t) ||	!x2.specialize(t) || !y1.specialize(t) || !y2.specialize(t))
+<a name="__line195"></a>	{
+<a name="__line196"></a>	    cerr&lt;&lt;"Failed to specialize length in 'triangle::draw'"&lt;&lt;endl;
+<a name="__line197"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line198"></a>	    return;
+<a name="__line199"></a>	}
+<a name="__line200"></a>	draw(t);
+<a name="__line201"></a>    }
+<a name="__line202"></a>
+<a name="__line203"></a>    void triangle::draw(terminal *t)
+<a name="__line204"></a>    {
+<a name="__line205"></a>	vector&lt;terminal::coord&gt; cc;
+<a name="__line206"></a>	cc.push_back(terminal::coord(x1.termspecific_id(),y1.termspecific_id()));
+<a name="__line207"></a>	cc.push_back(terminal::coord(x2.termspecific_id(),y1.termspecific_id()));
+<a name="__line208"></a>	cc.push_back(terminal::coord(0,y2.termspecific_id()));
+<a name="__line209"></a>	cc.push_back(terminal::coord(x1.termspecific_id(),y1.termspecific_id()));
+<a name="__line210"></a>	if(fill_) t-&gt;fill_polygon(cc);
+<a name="__line211"></a>	else t-&gt;draw_lines(cc);
+<a name="__line212"></a>    }
+<a name="__line213"></a>
+<a name="__line214"></a>    <span class=comment>// ---------- plus  ---------------------------------------------------------------</span>
+<a name="__line215"></a>
+<a name="__line216"></a>    point_drawer *plus::clone() const
+<a name="__line217"></a>    {
+<a name="__line218"></a>	return new plus;
+<a name="__line219"></a>    }
+<a name="__line220"></a>
+<a name="__line221"></a>    void plus::prepare_for_draw(const length &amp;size)
+<a name="__line222"></a>    {
+<a name="__line223"></a>	l1_ = -0.5 * !size;
+<a name="__line224"></a>	l2_ =  0.5 * !size;
+<a name="__line225"></a>	l1_.register_me();
+<a name="__line226"></a>	l2_.register_me();
+<a name="__line227"></a>    }
+<a name="__line228"></a>
+<a name="__line229"></a>    void plus::draw(terminal *t,const length &amp;s)
+<a name="__line230"></a>    {
+<a name="__line231"></a>	l1_ = -0.5 * !s;
+<a name="__line232"></a>	l2_ =  0.5 * !s;
+<a name="__line233"></a>	if(!l1_.specialize(t) || !l2_.specialize(t))
+<a name="__line234"></a>	{
+<a name="__line235"></a>	    cerr&lt;&lt;"Failed to specialize length in 'plus::draw'"&lt;&lt;endl;
+<a name="__line236"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line237"></a>	    return;
+<a name="__line238"></a>	}
+<a name="__line239"></a>	draw(t);
+<a name="__line240"></a>    }
+<a name="__line241"></a>
+<a name="__line242"></a>    void plus::draw(terminal *t)
+<a name="__line243"></a>    {
+<a name="__line244"></a>	t-&gt;draw_line(terminal::coord(l1_.termspecific_id(), terminal::id(0,2)),
+<a name="__line245"></a>		     terminal::coord(l2_.termspecific_id(), terminal::id(0,2)));
+<a name="__line246"></a>	t-&gt;draw_line(terminal::coord(terminal::id(0,1), l1_.termspecific_id()),
+<a name="__line247"></a>	             terminal::coord(terminal::id(0,1), l2_.termspecific_id()));
+<a name="__line248"></a>    }
+<a name="__line249"></a>
+<a name="__line250"></a>    <span class=comment>// ---------- cross  --------------------------------------------------------------</span>
+<a name="__line251"></a>
+<a name="__line252"></a>    point_drawer *cross::clone() const
+<a name="__line253"></a>    {
+<a name="__line254"></a>	return new cross;
+<a name="__line255"></a>    }
+<a name="__line256"></a>
+<a name="__line257"></a>    void cross::prepare_for_draw(const length &amp;size)
+<a name="__line258"></a>    {
+<a name="__line259"></a>	l1_ = -0.5/::sqrt(2) * !size;
+<a name="__line260"></a>	l2_ =  0.5/::sqrt(2) * !size;
+<a name="__line261"></a>	l1_.register_me();
+<a name="__line262"></a>	l2_.register_me();
+<a name="__line263"></a>    }
+<a name="__line264"></a>
+<a name="__line265"></a>    void cross::draw(terminal *t,const length &amp;s)
+<a name="__line266"></a>    {
+<a name="__line267"></a>	l1_ = -0.5/::sqrt(2) * !s;
+<a name="__line268"></a>	l2_ =  0.5/::sqrt(2) * !s;
+<a name="__line269"></a>	if(!l1_.specialize(t) || !l2_.specialize(t))
+<a name="__line270"></a>	{
+<a name="__line271"></a>	    cerr&lt;&lt;"Failed to specialize length in 'cross::draw'"&lt;&lt;endl;
+<a name="__line272"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line273"></a>	    return;
+<a name="__line274"></a>	}
+<a name="__line275"></a>	draw(t);
+<a name="__line276"></a>    }
+<a name="__line277"></a>
+<a name="__line278"></a>    void cross::draw(terminal *t)
+<a name="__line279"></a>    {
+<a name="__line280"></a>	t-&gt;draw_line(terminal::coord(l1_.termspecific_id(), l1_.termspecific_id()),
+<a name="__line281"></a>		     terminal::coord(l2_.termspecific_id(), l2_.termspecific_id()));
+<a name="__line282"></a>	t-&gt;draw_line(terminal::coord(l1_.termspecific_id(), l2_.termspecific_id()),
+<a name="__line283"></a>		     terminal::coord(l2_.termspecific_id(), l1_.termspecific_id()));
+<a name="__line284"></a>    }
+<a name="__line285"></a>
+<a name="__line286"></a>
+<a name="__line287"></a>    <span class=comment>// ---------- star4  --------------------------------------------------------------</span>
+<a name="__line288"></a>
+<a name="__line289"></a>    star4::star4(bool filled)  { fill(filled); }
+<a name="__line290"></a>    
+<a name="__line291"></a>    point_drawer *star4::clone() const
+<a name="__line292"></a>    {
+<a name="__line293"></a>	return new star4(fill_);
+<a name="__line294"></a>    }
+<a name="__line295"></a>
+<a name="__line296"></a>    void star4::prepare_for_draw(const length &amp;size)
+<a name="__line297"></a>    {
+<a name="__line298"></a>	l1_ = -0.5 * !size;
+<a name="__line299"></a>	l2_ =  0.5 * !size;
+<a name="__line300"></a>	l3_ = -0.1 * !size;
+<a name="__line301"></a>	l4_ =  0.1 * !size;
+<a name="__line302"></a>	l1_.register_me();
+<a name="__line303"></a>	l2_.register_me();
+<a name="__line304"></a>	l3_.register_me();
+<a name="__line305"></a>	l4_.register_me();
+<a name="__line306"></a>    }
+<a name="__line307"></a>
+<a name="__line308"></a>    void star4::draw(terminal *t,const length &amp;s)
+<a name="__line309"></a>    {
+<a name="__line310"></a>	l1_ = -0.5 * !s;
+<a name="__line311"></a>	l2_ =  0.5 * !s;
+<a name="__line312"></a>	l3_ = -0.1 * !s;
+<a name="__line313"></a>	l4_ =  0.1 * !s;
+<a name="__line314"></a>	if(!l1_.specialize(t) || !l2_.specialize(t) || !l3_.specialize(t) || !l4_.specialize(t))
+<a name="__line315"></a>	{
+<a name="__line316"></a>	    cerr&lt;&lt;"Failed to specialize length in 'star4::draw'"&lt;&lt;endl;
+<a name="__line317"></a>	    cerr&lt;&lt;"This graph will not be drawn"&lt;&lt;endl;
+<a name="__line318"></a>	    return;
+<a name="__line319"></a>	}
+<a name="__line320"></a>	draw(t);
+<a name="__line321"></a>    }
+<a name="__line322"></a>
+<a name="__line323"></a>    void star4::draw(terminal *t)
+<a name="__line324"></a>    {
+<a name="__line325"></a>	vector&lt;terminal::coord&gt; cc;
+<a name="__line326"></a>	cc.push_back(terminal::coord(l1_.termspecific_id(),terminal::id(0,2)));
+<a name="__line327"></a>	cc.push_back(terminal::coord(l3_.termspecific_id(),l3_.termspecific_id()));
+<a name="__line328"></a>	cc.push_back(terminal::coord(terminal::id(0,1),l1_.termspecific_id()));
+<a name="__line329"></a>	cc.push_back(terminal::coord(l4_.termspecific_id(),l3_.termspecific_id()));
+<a name="__line330"></a>	cc.push_back(terminal::coord(l2_.termspecific_id(),terminal::id(0,2)));
+<a name="__line331"></a>	cc.push_back(terminal::coord(l4_.termspecific_id(),l4_.termspecific_id()));
+<a name="__line332"></a>	cc.push_back(terminal::coord(terminal::id(0,1),l2_.termspecific_id()));
+<a name="__line333"></a>	cc.push_back(terminal::coord(l3_.termspecific_id(),l4_.termspecific_id()));
+<a name="__line334"></a>	cc.push_back(terminal::coord(l1_.termspecific_id(),terminal::id(0,2)));
+<a name="__line335"></a>	if(fill_) t-&gt;fill_polygon(cc);
+<a name="__line336"></a>	else t-&gt;draw_lines(cc);	
+<a name="__line337"></a>    }
+<a name="__line338"></a>
+<a name="__line339"></a>    <span class=comment>// ---------- autopoint -----------------------------------------------------------</span>
+<a name="__line340"></a>
+<a name="__line341"></a>    autopoint::autopoint(const autopoint &amp;rhs)
+<a name="__line342"></a>    {
+<a name="__line343"></a>	if(rhs.drawer_) drawer_ = rhs.drawer_-&gt;clone();
+<a name="__line344"></a>	else drawer_ = 0;
+<a name="__line345"></a>    }
+<a name="__line346"></a>
+<a name="__line347"></a>    point_drawer *autopoint::clone() const
+<a name="__line348"></a>    {
+<a name="__line349"></a>	return new autopoint(*this);
+<a name="__line350"></a>    }
+<a name="__line351"></a>
+<a name="__line352"></a>    void autopoint::draw(terminal *t)
+<a name="__line353"></a>    {
+<a name="__line354"></a>	if(drawer_) drawer_-&gt;draw(t);
+<a name="__line355"></a>	else warning::print("Type is not set for autopoint","autopoint::draw(terminal*)");
+<a name="__line356"></a>    }
+<a name="__line357"></a>    void autopoint::draw(terminal *t, const length &amp;l)
+<a name="__line358"></a>    {
+<a name="__line359"></a>	if(drawer_) drawer_-&gt;draw(t,l);
+<a name="__line360"></a>	else warning::print("Type is not set for autopoint","autopoint::draw(terminal*,const length &amp;)");
+<a name="__line361"></a>    }
+<a name="__line362"></a>    void autopoint::prepare_for_draw(const length &amp;l)
+<a name="__line363"></a>    {
+<a name="__line364"></a>	if(drawer_) drawer_-&gt;prepare_for_draw(l);
+<a name="__line365"></a>	else warning::print("Type is not set for autopoint","autopoint::prepare_for_draw(const length &amp;)");
+<a name="__line366"></a>    }
+<a name="__line367"></a>    bool autopoint::equals(point_drawer *other)
+<a name="__line368"></a>    {
+<a name="__line369"></a>	if(!drawer_) return false;
+<a name="__line370"></a>	return drawer_-&gt;equals(other);
+<a name="__line371"></a>    }
+<a name="__line372"></a>
+<a name="__line373"></a>
+<a name="__line374"></a>    const point_drawer &amp;point_by_index(unsigned int ind)
+<a name="__line375"></a>    {
+<a name="__line376"></a>        static vector&lt;point_drawer*&gt; the_types;
+<a name="__line377"></a>        if(the_types.empty())
+<a name="__line378"></a>        {
+<a name="__line379"></a>            the_types.push_back(new fsquare);
+<a name="__line380"></a>            the_types.push_back(new square);
+<a name="__line381"></a>            the_types.push_back(new fdiamond);
+<a name="__line382"></a>            the_types.push_back(new diamond);
+<a name="__line383"></a>            the_types.push_back(new ftriangledown);
+<a name="__line384"></a>            the_types.push_back(new triangledown);
+<a name="__line385"></a>            the_types.push_back(new ftriangle);
+<a name="__line386"></a>            the_types.push_back(new triangle);
+<a name="__line387"></a>            the_types.push_back(new fcircle);
+<a name="__line388"></a>            the_types.push_back(new circle);
+<a name="__line389"></a>            the_types.push_back(new fstar4);
+<a name="__line390"></a>            the_types.push_back(new star4);
+<a name="__line391"></a>            the_types.push_back(new plus);
+<a name="__line392"></a>            the_types.push_back(new cross);
+<a name="__line393"></a>        }
+<a name="__line394"></a>        return *the_types[ind%the_types.size()];
+<a name="__line395"></a>    }
+<a name="__line396"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

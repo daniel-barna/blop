@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: grob.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_GROB_H__
+<a name="__line1"></a>#define __BLOP_GROB_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line4"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line5"></a>#include &lt;vector&gt;
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    class pad;
+<a name="__line10"></a>    class container;
+<a name="__line11"></a>
+<a name="__line12"></a>    <span class=comment>/*
+<a name="__line13"></a>      grob == GRaphical OBject
+<a name="__line14"></a>      This is meant to be the base class for all graphical objects
+<a name="__line15"></a>    */</span>
+<a name="__line16"></a>
+<a name="__line17"></a>
+<a name="__line18"></a>    class grob
+<a name="__line19"></a>    {
+<a name="__line20"></a>	friend class container;
+<a name="__line21"></a><span class=private>    private:
+<a name="__line22"></a>	container *parent_;
+<a name="__line23"></a>	std::string name_;
+<a name="__line24"></a>        bool autodel_;
+<a name="__line25"></a>
+<a name="__line26"></a>        bool above_grid_ = false;
+<a name="__line27"></a>
+<a name="__line28"></a></span><span class=protected>    protected:
+<a name="__line29"></a>
+<a name="__line30"></a>	virtual bool parent(container *p);
+<a name="__line31"></a>
+<a name="__line32"></a>	    <span class=comment>// When a grob is added into a container, the container</span>
+<a name="__line33"></a>	    <span class=comment>// calls this function to notify the grob about being</span>
+<a name="__line34"></a>	    <span class=comment>// added into a container. Derived classes can overload</span>
+<a name="__line35"></a>	    <span class=comment>// this function to make additional bookkeeping, but</span>
+<a name="__line36"></a>	    <span class=comment>// they should always call grob::parent(...) as well.</span>
+<a name="__line37"></a>	    <span class=comment>// If the function returns false (as in the case of</span>
+<a name="__line38"></a>	    <span class=comment>// the 'canvas'), it means that this object can not</span>
+<a name="__line39"></a>	    <span class=comment>// be added into a container, and the container will not</span>
+<a name="__line40"></a>	    <span class=comment>// store a reference to this object</span>
+<a name="__line41"></a>
+<a name="__line42"></a>	int print_me_;
+<a name="__line43"></a>
+<a name="__line44"></a>	    <span class=comment>// indicates status:</span>
+<a name="__line45"></a>	    <span class=comment>// 0 ==&gt; do not print this object, do not specialize its lengths</span>
+<a name="__line46"></a>	    <span class=comment>// 1 ==&gt; do not print, but calculate lengths</span>
+<a name="__line47"></a>	    <span class=comment>// 2 ==&gt; print</span>
+<a name="__line48"></a>
+<a name="__line49"></a>	static length &amp;default_x_unit_();
+<a name="__line50"></a>	static length &amp;default_y_unit_();
+<a name="__line51"></a>	static bool default_use_parent_x_unit_, default_use_parent_y_unit_;
+<a name="__line52"></a>
+<a name="__line53"></a>	length x_unit_, y_unit_, parent_cwidth_, parent_cheight_;
+<a name="__line54"></a>
+<a name="__line55"></a>	bool modified_;
+<a name="__line56"></a>
+<a name="__line57"></a>	var layer_;
+<a name="__line58"></a>
+<a name="__line59"></a></span><span class=public>    public:
+<a name="__line60"></a>
+<a name="__line61"></a>        virtual grob &amp;above_grid(bool f) { above_grid_ = f; return *this; }
+<a name="__line62"></a>        bool above_grid() const { return above_grid_; }
+<a name="__line63"></a>
+<a name="__line64"></a>	string name() const {return name_;}
+<a name="__line65"></a>	void   name(const string &amp;s) {name_ = s;}
+<a name="__line66"></a>	virtual bool modified() const { return modified_; }
+<a name="__line67"></a>	virtual void modified(bool f) { modified_ = f;    }
+<a name="__line68"></a>
+<a name="__line69"></a>	<span class=comment>// ---------- Returns the parent of this grob  ------------------------------------</span>
+<a name="__line70"></a>
+<a name="__line71"></a>	virtual container       *parent()       { return parent_; }
+<a name="__line72"></a>        virtual const container *parent() const { return parent_; }
+<a name="__line73"></a>
+<a name="__line74"></a>
+<a name="__line75"></a>	static void default_x_unit(length l);
+<a name="__line76"></a>	static void default_y_unit(length l);
+<a name="__line77"></a>	static void default_unit(length);
+<a name="__line78"></a>	enum { use_parent = 100 };
+<a name="__line79"></a>	static void default_x_unit(int);
+<a name="__line80"></a>	static void default_y_unit(int);
+<a name="__line81"></a>	static void default_unit(int);
+<a name="__line82"></a>
+<a name="__line83"></a>	length x_unit();
+<a name="__line84"></a>	length y_unit();
+<a name="__line85"></a>	grob &amp;x_unit(length);
+<a name="__line86"></a>	grob &amp;x_unit(int);
+<a name="__line87"></a>	grob &amp;y_unit(length);
+<a name="__line88"></a>	grob &amp;y_unit(int);
+<a name="__line89"></a>	grob &amp;unit(length);
+<a name="__line90"></a>	grob &amp;unit(int);
+<a name="__line91"></a>
+<a name="__line92"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line93"></a>	<span class=comment>// This member function should make all necessary preparations,</span>
+<a name="__line94"></a>	<span class=comment>// which are needed for the object to be drawn (axes have to</span>
+<a name="__line95"></a>	<span class=comment>// calculate their ranges, lengths have to be registered, etc)</span>
+<a name="__line96"></a>	<span class=comment>// The different graphical objects, depending on their type,</span>
+<a name="__line97"></a>	<span class=comment>// will need different sets of lengths in order to be</span>
+<a name="__line98"></a>	<span class=comment>// drawn onto a terminal. These lengths will have to be</span>
+<a name="__line99"></a>	<span class=comment>// specialized (see length.h). In order to specialize all</span>
+<a name="__line100"></a>	<span class=comment>// needed lengths, they should be registered (length::register_me())</span>
+<a name="__line101"></a>	<span class=comment>// This member function should call length::register_me() on</span>
+<a name="__line102"></a>	<span class=comment>// the lengths, which are needed for it to be drawn.</span>
+<a name="__line103"></a>	
+<a name="__line104"></a>	virtual void prepare_for_draw() = 0;
+<a name="__line105"></a>
+<a name="__line106"></a>
+<a name="__line107"></a>	
+<a name="__line108"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line109"></a>	<span class=comment>// grobs can be contained in containers. Sine grobs can be </span>
+<a name="__line110"></a>	<span class=comment>// created as automatic variables also (when their destructor</span>
+<a name="__line111"></a>	<span class=comment>// is automatically called when they scope expires), containers</span>
+<a name="__line112"></a>	<span class=comment>// do not deallocate these objects when they are cleared.</span>
+<a name="__line113"></a>	<span class=comment>// However, when creating grobs dynamically (operator new),</span>
+<a name="__line114"></a>	<span class=comment>// one's task is easier if containers deallocate the</span>
+<a name="__line115"></a>	<span class=comment>// objects. </span>
+<a name="__line116"></a>	<span class=comment>// Containers (when deleted or cleared) will deallocate</span>
+<a name="__line117"></a>	<span class=comment>// those grobs in them, which have autodel=true </span>
+<a name="__line118"></a>	<span class=comment>// autodel is false by default</span>
+<a name="__line119"></a>	
+<a name="__line120"></a>        grob &amp;autodel(bool b) { autodel_ = b; return *this; }
+<a name="__line121"></a>	bool autodel() const  { return autodel_; }
+<a name="__line122"></a>
+<a name="__line123"></a>	<span class=comment>// ---------- change layer --------------------------------------------------------</span>
+<a name="__line124"></a>
+<a name="__line125"></a>	virtual grob      &amp;layer(const var &amp;l)  { layer_ = l; return *this; }
+<a name="__line126"></a>	virtual const var &amp;layer() const { return layer_; }
+<a name="__line127"></a>
+<a name="__line128"></a>
+<a name="__line129"></a>	grob();
+<a name="__line130"></a>
+<a name="__line131"></a>
+<a name="__line132"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line133"></a>	<span class=comment>// The destructor scans all existing containers (every container</span>
+<a name="__line134"></a>	<span class=comment>// is registered behind the scenes), and removes the currently </span>
+<a name="__line135"></a>	<span class=comment>// destroyed grob from all containers, so you never have to worry,</span>
+<a name="__line136"></a>	<span class=comment>// that a container holds a reference to an unexisting grob.</span>
+<a name="__line137"></a>
+<a name="__line138"></a>	virtual ~grob();
+<a name="__line139"></a>
+<a name="__line140"></a>
+<a name="__line141"></a>
+<a name="__line142"></a>	virtual void print(terminal *) = 0;
+<a name="__line143"></a>
+<a name="__line144"></a>
+<a name="__line145"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line146"></a>	<span class=comment>// switch on or off the object (that is, the object will</span>
+<a name="__line147"></a>	<span class=comment>// be printed or not)</span>
+<a name="__line148"></a>
+<a name="__line149"></a>	virtual void on ()       {print_me_ = 2;}   <span class=comment>// object will be printed</span>
+<a name="__line150"></a>	virtual void invisible() {print_me_ = 1;}   <span class=comment>// object not printed, but lengths calculated</span>
+<a name="__line151"></a>	virtual void off()       {print_me_ = 0;}   <span class=comment>// not printed, no lengths are calculated</span>
+<a name="__line152"></a>	virtual int  visibility() const { return print_me_; } 
+<a name="__line153"></a>
+<a name="__line154"></a>
+<a name="__line155"></a>	virtual void print_hierarchy(int level=0);
+<a name="__line156"></a>
+<a name="__line157"></a>        virtual grob &amp;linecolor(const color &amp;c) { return *this; }
+<a name="__line158"></a>        virtual grob &amp;fillcolor(const color &amp;c) { return *this; }
+<a name="__line159"></a>        virtual grob &amp;linestyle(sym::linestyle s) { return *this; }
+<a name="__line160"></a>        virtual grob &amp;linewidth(const length &amp;l)  { return *this; }
+<a name="__line161"></a>
+<a name="__line162"></a>    };
+<a name="__line163"></a>
+<a name="__line164"></a>    class grobs
+<a name="__line165"></a>    {
+<a name="__line166"></a></span><span class=private>    private:
+<a name="__line167"></a>        vector&lt;grob*&gt; grobs_;
+<a name="__line168"></a></span><span class=public>    public:
+<a name="__line169"></a>        void add(grob *g) { grobs_.push_back(g); }
+<a name="__line170"></a>
+<a name="__line171"></a>        grobs &amp;linecolor(const color &amp;c);
+<a name="__line172"></a>        grobs &amp;lc(const color &amp;c) { return linecolor(c); }
+<a name="__line173"></a>
+<a name="__line174"></a>        grobs &amp;fillcolor(const color &amp;c);
+<a name="__line175"></a>        grobs &amp;fc(const color &amp;c) { return fillcolor(c); }
+<a name="__line176"></a>
+<a name="__line177"></a>        grobs &amp;linestyle(sym::linestyle s);
+<a name="__line178"></a>        grobs &amp;ls(sym::linestyle s) { return linestyle(s); }
+<a name="__line179"></a>
+<a name="__line180"></a>        grobs &amp;linewidth(const length &amp;l);
+<a name="__line181"></a>        grobs &amp;lw(const length &amp;l) { return linewidth(l); }
+<a name="__line182"></a>    };
+<a name="__line183"></a>
+<a name="__line184"></a>
+<a name="__line185"></a>}
+<a name="__line186"></a>
+<a name="__line187"></a>
+<a name="__line188"></a>
+<a name="__line189"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

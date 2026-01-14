@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: sym.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_SYM_H__
+<a name="__line1"></a>#define __BLOP_SYM_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>
+<a name="__line6"></a><span class=comment>/*
+<a name="__line7"></a>All the symbolic constants are implemented as an enumerated type
+<a name="__line8"></a>within the blop::sym namespace, in order to avoid global
+<a name="__line9"></a>namespace pollution
+<a name="__line10"></a> */</span>
+<a name="__line11"></a>
+<a name="__line12"></a>namespace blop
+<a name="__line13"></a>{
+<a name="__line14"></a>    namespace sym
+<a name="__line15"></a>    {
+<a name="__line16"></a>      typedef enum { begin=1, end=2, center=4, left=8, right=16, top=32, bottom=64, base=128, up=256, down=512 } position;
+<a name="__line17"></a>      <span class=comment>//typedef enum { solid=100, dotted, dashed, dashdotted, dashddotted } linestyle;</span>
+<a name="__line18"></a>      typedef enum { right_down, right_up, left_down, left_up, down_right, down_left, up_right, up_left } scan2d;
+<a name="__line19"></a>      typedef enum { horizontal=1, vertical=2 } horizontal_vertical;
+<a name="__line20"></a>
+<a name="__line21"></a>
+<a name="__line22"></a>      typedef std::vector&lt;double&gt; linestyle;
+<a name="__line23"></a>
+<a name="__line24"></a>      extern linestyle &amp;init_linestyle(int i); 
+<a name="__line25"></a>
+<a name="__line26"></a>      namespace
+<a name="__line27"></a>      {
+<a name="__line28"></a>          linestyle &amp;solid       = blop::sym::init_linestyle(0);
+<a name="__line29"></a>          linestyle &amp;dotted      = blop::sym::init_linestyle(1);
+<a name="__line30"></a>          linestyle &amp;dashed      = blop::sym::init_linestyle(2);
+<a name="__line31"></a>          linestyle &amp;dashdotted  = blop::sym::init_linestyle(3);
+<a name="__line32"></a>          linestyle &amp;dashddotted = blop::sym::init_linestyle(4);
+<a name="__line33"></a>      }
+<a name="__line34"></a>  }
+<a name="__line35"></a>}
+<a name="__line36"></a>
+<a name="__line37"></a>#endif
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

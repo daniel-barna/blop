@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Multi-pad</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="canvas-pad.html">
+   <link rel="Next" href="frame.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="canvas-pad.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: canvas-pad.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="frame.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: frame.html">
+    </a> <br>
+
+<center class=title><b>
+Multi-pad
+</b></center>
+<hr>
+
+
+<div class=prguide><u>Practical Guide:</u><br>
+<pre>
+mpad &p = mpad::mknew(3,2).width(1,4*CM).rwidth(2,3).rwidth(3,1).draw_border(true);
+
+      // divide your canvas into a 3x2 grid of pads set the first column width to 4 cm, 
+      // and the remaining horizontal space is divided among cols 2 and 3 in a ratio 3:1
+
+p.cd(1,1);                    // activate the lower left one
+plot("datafile");
+p.cd(2,2);                    // activate the upper right
+plot("anotherfile");
+
+// this example shows how to plot different files in the different subpads
+// of an mpad
+mpad &p2 = mpad::mknew(3,3);
+for(var i=0; i<9; ++i, p2.cd_next())
+{
+   plot("file" & i);
+}
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#whatis">     What is an mpad?         </a>
+<li><a href="#mknew">      Creating an mpad         </a>
+<li><a href="#gap">        Setting a gap between subpads  </a>
+<li><a href="#sizes">      Setting size of subpads  </a>
+<li><a href="#cd">         Activate a subpad        </a>
+<li><a href="#cd_next">    Looping over the subpads </a>
+<li><a href="#access_subpad"> Direct access to a subpad </a>
+</ul>
+
+<p><div class='sectiontitle'><a name="whatis">What is an mpad?</a></div>
+
+<p> Mpad (multi-pad) is an object which can be used to set up multiple
+pads arranged in a grid. 
+
+<p><div class='sectiontitle'><a name="mknew">Creating an mpad</a></div>
+
+An mpad can be created with the static member function<br>
+<pre>mpad &mpad::mknew(int N1,int N2);</pre>
+
+<p>This function creates  a new mpad consisting of  a <tt>N1 x N2</tt>
+grid      of       pads,      adds      it       into      the      <a
+href="canvas-pad.html#current">current  pad</a>,   and  it  returns  a
+reference to the new object. The lower left subpad in
+this mpad will be activated (that  will be the current pad). 
+
+
+<p><div class='sectiontitle'><a name="gap">Setting a gap between
+subpads</a></div>
+
+<p>A uniform gap between the columns and rows can be specified with the
+<pre>mpad &mpad::gap(const length &);</pre> function. 
+
+
+<p><div class='sectiontitle'><a name="sizes">Setting size of subpads</a></div>
+
+<p>
+Widths and  heights of pad columns or  rows can be specified
+in two ways:
+<ul>
+<li><u>Specify an exact dimension (such as 4*CM):</u> 
+<pre>
+   mpad &mpad::width (int col_index, const length &width );
+   mpad &mpad::height(int row_index, const length &height);
+</pre>
+<li><u>Specify a  relative dimension:</u>  the widths of
+the  fixed-width  columns  (see  previous  point)  and  the  gaps  are
+subtracted from the  total width of the mpad,  and the remaining space
+is distributed  over the non-fixed-width columns  in a user-defineable
+ratio. The  same holds for the  row heights. To  specify these ratios,
+use the 
+<pre>
+   mpad &mpad::rwidth (int col_index, double ratio);
+   mpad &mpad::rheight(int row_index, double ratio)
+</pre>
+functions. If for  example one calls <tt>rwidth(1,3).rwidth(2,1)</tt>,
+then the available  space will be distributed amongst  columns 1 and 2
+in the  ratio 3:1.  Initially every column  and row  size is set  to a
+relative dimension of 1.
+</ul>
+
+
+
+
+<p>An mpad  is also a <a  href="container.html">container</a>, its own
+coordinate system extends from the lower left corner of its lower left
+subpad, to the upper right corner of its upper right subpad. 
+
+<p>The   <a  href="canvas-pad.html#visual_atts">visual  properties</a>
+(bordercolor, borderwidth, etc) of all its subpads can be set with one
+single call  to mpad's member  functions, which have the  same calling
+syntax as those of pad:
+
+<pre>
+   mpad &mpad::draw_border(bool);           // switch on/off border-drawing
+   mpad &mpad::bordercolor(const color &);  // color of the border (not too surprisingly)
+   mpad &mpad::borderwidth(const length &); // set the width of the border
+   mpad &mpad::border_3D(bool);             // draw a 3D border
+   mpad &mpad::bgcolor(const color &);      // set the bgcolor, and implicitely call fill_bg
+   mpad &mpad::fill_bg(bool);               // fill the background with bgcolor
+</pre>
+
+
+
+<p><div class='sectiontitle'><a name="cd">Activate a subpad</a></div>
+To activate a subpad of an mpad (that is, to make it the currently
+active pad), you can use the
+
+<pre>mpad &mpad::cd(int i,int j); </pre>
+
+member function.  The indexes <tt>i</tt> and <tt>j</tt>  run from 1
+to <tt>N1</tt>  or <tt>N2</tt>, respectively, (1,1)  meaning the lower
+left one. 
+
+<p>There is also another <tt>cd(int)</tt> function with a single
+integer argument, so that one can select any subpad with a single
+running index. The subpads are numbered depending on the looping
+direction (see here below) set for the pad. If, for example, the
+looping direction is set to <tt>right_down</tt>, the subpads are
+numbered like this:
+<table border=1 cellpadding=0 cellspacing=0>
+<tr><td>1<td>2<td>3
+<tr><td>4<td>5<td>6
+</table>
+If the direction is <tt>down_right</tt>, the subpads are numbered like
+this:
+<table border=1 cellpadding=0 cellspacing=0>
+<tr><td>1<td>3<td>5
+<tr><td>2<td>4<td>6
+</table>
+etc....
+
+<p><div class='sectiontitle'><a name="cd_next">Looping over the subpads</a></div>
+
+<p>There is a mechanism to automatically loop over the subpads of an
+mpad in a specified direction. This is done by the <tt>cd_next()</tt>
+function of mpad. 
+
+<p>
+The possible values for the direction of looping are defined within the 
+<tt>mpad</tt> class: 
+
+<pre>enum {right_up, right_down, left_up, left_down,
+      up_right, up_left, down_right, down_left, jump}</pre> 
+
+and can be set by the <tt>mpad::direction(int)</tt> function for one
+mpad, or globally, the default value can be set via the static
+<tt>mpad::default_direction(int)</tt> function. The default value is
+<tt>right_down</tt> (as you read/write). For example:
+
+<pre>mpad::default_direction(mpad::right_down | mpad::jump);
+mpad &p = mpad::mknew(3,3);  // create 3x3 grid
+p.cd(1,3);                   // change to left upper subpad
+for(int i=0; i<9; ++i, p.cd_next())
+{
+  plot(...);
+} </pre>
+
+<p>For example  the meaning of  <tt>right_up</tt> is to go  one subpad
+right (when <tt>cd_next()</tt> is called),  and if the end of the line
+is reached,  go to the  leftmost pad in  the above-lying line.  If the
+last   subpad   is  reached   in   this   order,   the  behaviour   of
+<tt>cd_next()</tt>  depends on  the  <tt>jump</tt> flag  being set  or
+unset. If it is set  (see above), then <tt>cd_next()</tt> jumps to the
+first subpad  in the specified  order, and returns true.  Otherwise it
+does nothing, and returns false  to have a feedback about reaching the
+end of the sequence.
+
+
+<p><div class='sectiontitle'><a name="access_subpad">Direct access to a subpad</a></div>
+
+<p>A subpad of an <tt>mpad</tt> can be directly accessed by the
+parenthesis operator: 
+<pre>
+pad *mpad::operator() (int ix, int iy);
+</pre>
+
+For example, this code below creates a 4x4 <tt>mpad</tt>, and creates
+a shared legendbox to the lower-right one:
+
+<pre>
+mpad &p = mpad::mknew(2,2).gap(4*MM);
+legendbox &leg = legendbox::mknew(*p(2,1));  // create the legendbox in lower-right subpad
+
+frame::current().legend(leg);
+plot(something);
+
+p.cd_next();
+frame::current().legend(leg);
+plot(something_else);
+
+p.cd_next();
+frame::current().legend(leg);
+plot(something_else);
+</pre>	
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="mpad.h.html">mpad.h</a>
+   <a href="mpad.cc.html">mpad.cc</a>
+
+</pre><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="canvas-pad.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: canvas-pad.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="frame.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: frame.html">
+    </a> 
+
+</body>
+</html>

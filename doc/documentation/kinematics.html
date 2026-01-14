@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Kinematics (physics)</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="histograming.html">
+   <link rel="Next" href="units.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: histograming.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="units.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: units.html">
+    </a> <br>
+
+<center class=title><b>
+Kinematics (physics)
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+<pre>
+// Get the momentum of a 100 keV proton
+double momentum = kin(938*unit::MeVc2).Ekin(100*unit::keV).p();
+</pre>
+</div>
+<hr>
+
+<div class=description>
+<tt>blop::phys::kin</tt> is a utility class to calculate kinematic
+variables (momentum, energy, kinematic energy, velocity) from each
+other, given the particle's mass. See example above.
+</div>
+<hr>
+<pre class=implementation>
+Sources:
+   <a href="kinematics.h.html">kinematics.h</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: histograming.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="units.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: units.html">
+    </a> 
+
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Color</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="length.html">
+   <link rel="Next" href="object-hierarchy.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="length.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: length.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="object-hierarchy.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: object-hierarchy.html">
+    </a> <br>
+
+<center class=title><b>
+Color
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+You can define colors using the RGB values:
+<pre>
+color mycolor(0.2, 0.4, 0.9);
+</pre>
+There are some predefined colors such as <tt>red</tt>, <tt>green</tt>, <tt>blue</tt>, ....
+</div>
+<hr>
+
+<div class=description>
+Blop uses RGB color specifications, where the red, green and blue
+values can be in the range [0..1]. To define a color, use the
+constructor, which accepts these three values:
+<pre>
+   color mycolor(0.2, 0.3, 0.9);
+</pre>
+
+You  can access  or set  these  components with  the following  member
+functions (those  three functions, which set  the corresponding values
+[= accept a double argument] return a reference to the color object so
+that  other setting  functions can  be  called, according  the the  <a
+href="design-concepts.html#member_modification">general    concepts</a>
+of blop)
+
+<pre>
+   color &red(double);
+   double red() const;
+
+   color &green(double);
+   double green() const;
+
+   color &blue(double);
+   double blue() const;
+</pre>
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="color.h.html">color.h</a>
+   <a href="color.cc.html">color.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="length.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: length.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="object-hierarchy.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: object-hierarchy.html">
+    </a> 
+
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: length.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_LENGTH_H__
+<a name="__line1"></a>#define __BLOP_LENGTH_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;iostream&gt;
+<a name="__line5"></a>#include &lt;cstdlib&gt;
+<a name="__line6"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line7"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line8"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line9"></a>#include "<a href="tic.h.html">tic.h</a>"
+<a name="__line10"></a>
+<a name="__line11"></a>namespace blop
+<a name="__line12"></a>{
+<a name="__line13"></a>
+<a name="__line14"></a>    class axis;
+<a name="__line15"></a>    class length_temporary;
+<a name="__line16"></a>
+<a name="__line17"></a>    class length
+<a name="__line18"></a>	{
+<a name="__line19"></a>	    friend class length_temporary;
+<a name="__line20"></a><span class=public>	public:
+<a name="__line21"></a>#ifndef __MAKECINT__
+<a name="__line22"></a>	    class initializer
+<a name="__line23"></a>		{
+<a name="__line24"></a></span><span class=private>		private:
+<a name="__line25"></a>		    static int &amp;count();
+<a name="__line26"></a></span><span class=public>		public:
+<a name="__line27"></a>		    initializer();
+<a name="__line28"></a>		    ~initializer();
+<a name="__line29"></a>		};
+<a name="__line30"></a>#endif
+<a name="__line31"></a>
+<a name="__line32"></a>
+<a name="__line33"></a>	    class base_t
+<a name="__line34"></a>		{
+<a name="__line35"></a></span><span class=protected>		protected:
+<a name="__line36"></a>		    int termspecific_id_;
+<a name="__line37"></a>
+<a name="__line38"></a></span><span class=public>		public:
+<a name="__line39"></a>		    static int &amp;count();
+<a name="__line40"></a>
+<a name="__line41"></a>		    mutable int reference_count;
+<a name="__line42"></a>
+<a name="__line43"></a>		    base_t();
+<a name="__line44"></a>		    base_t(const base_t &amp;);
+<a name="__line45"></a>		    virtual ~base_t();
+<a name="__line46"></a>
+<a name="__line47"></a>		    virtual void reset();
+<a name="__line48"></a>		    virtual bool specialized() const;
+<a name="__line49"></a>		    virtual terminal::id  termspecific_id() const;
+<a name="__line50"></a>		    virtual void termspecific_id(int);
+<a name="__line51"></a>		    virtual bool specialize(terminal *) = 0;
+<a name="__line52"></a>
+<a name="__line53"></a>		    virtual base_t *clone(void *) const = 0;
+<a name="__line54"></a>
+<a name="__line55"></a>		    virtual void print(ostream &amp;) const = 0;
+<a name="__line56"></a>
+<a name="__line57"></a>		    virtual void dependencies
+<a name="__line58"></a>			(std::vector&lt;blop::length::base_t *&gt; *) const {};
+<a name="__line59"></a>
+<a name="__line60"></a>		    virtual void set_scale(length::base_t *) {}
+<a name="__line61"></a>
+<a name="__line62"></a>		    virtual bool depends_on(length::base_t *) const { return false; }
+<a name="__line63"></a>		};
+<a name="__line64"></a>
+<a name="__line65"></a>	    class base_unset_t : public base_t
+<a name="__line66"></a>		{
+<a name="__line67"></a></span><span class=public>		public:
+<a name="__line68"></a>		    virtual bool specialize(terminal *) { termspecific_id(terminal::ZERO); return true; }
+<a name="__line69"></a>		    virtual base_t *clone(void *ptr) const { return new(ptr) length::base_unset_t(); }
+<a name="__line70"></a>		    virtual void print(ostream &amp;out) const { out&lt;&lt;"unset"; }
+<a name="__line71"></a>		};
+<a name="__line72"></a>
+<a name="__line73"></a>	    class base_axis_t : public base_t
+<a name="__line74"></a>		{
+<a name="__line75"></a></span><span class=private>		private:
+<a name="__line76"></a>		    axis *axis_;
+<a name="__line77"></a>		    double value1_,value2_;
+<a name="__line78"></a></span><span class=public>		public:
+<a name="__line79"></a>		    base_axis_t(axis *, double, double);
+<a name="__line80"></a>		    ~base_axis_t() {}
+<a name="__line81"></a>
+<a name="__line82"></a>		    bool specialize(terminal *);
+<a name="__line83"></a>		    base_t *clone(void *) const;
+<a name="__line84"></a>		    void print (ostream &amp;) const;
+<a name="__line85"></a>		    void dependencies (std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line86"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line87"></a>		};
+<a name="__line88"></a>
+<a name="__line89"></a>	    class base_ref_t : public base_t
+<a name="__line90"></a>		{
+<a name="__line91"></a></span><span class=private>		private:
+<a name="__line92"></a>		    length::base_t *the_length_;
+<a name="__line93"></a></span><span class=public>		public:
+<a name="__line94"></a>		    base_ref_t(const base_ref_t &amp;);
+<a name="__line95"></a>		    base_ref_t(length::base_t *o);
+<a name="__line96"></a>		    ~base_ref_t();
+<a name="__line97"></a>
+<a name="__line98"></a>		    bool specialize(terminal *);
+<a name="__line99"></a>		    bool specialized() const;
+<a name="__line100"></a>		    terminal::id termspecific_id() const;
+<a name="__line101"></a>		    base_t *clone(void *) const;
+<a name="__line102"></a>		    void print(ostream &amp;) const;
+<a name="__line103"></a>
+<a name="__line104"></a>		    virtual void dependencies
+<a name="__line105"></a>			(std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line106"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line107"></a>
+<a name="__line108"></a>		};
+<a name="__line109"></a>
+<a name="__line110"></a>	    class base_id_t : public base_t
+<a name="__line111"></a>		{
+<a name="__line112"></a></span><span class=public>		public:
+<a name="__line113"></a>		    base_id_t(int i);
+<a name="__line114"></a>		    base_id_t(const base_id_t &amp;);
+<a name="__line115"></a>		    bool specialize(terminal *) {return true;}
+<a name="__line116"></a>		    base_t *clone(void *) const;
+<a name="__line117"></a>		    void reset() {}
+<a name="__line118"></a>		    void print(ostream &amp;)const ;
+<a name="__line119"></a>		};
+<a name="__line120"></a>
+<a name="__line121"></a>	    class base_max_t : public base_t
+<a name="__line122"></a>		{
+<a name="__line123"></a></span><span class=private>		private:
+<a name="__line124"></a>		    std::vector&lt;blop::length::base_t *&gt; lengths_;
+<a name="__line125"></a></span><span class=public>		public:
+<a name="__line126"></a>		    base_max_t(const std::vector&lt;blop::length::base_t *&gt; &amp;);
+<a name="__line127"></a>		    base_max_t(const base_max_t &amp;o);
+<a name="__line128"></a>		    ~base_max_t();
+<a name="__line129"></a>
+<a name="__line130"></a>		    bool specialize (terminal *);
+<a name="__line131"></a>		    base_t *clone(void *) const;
+<a name="__line132"></a>		    void print(ostream &amp;) const;
+<a name="__line133"></a>		    void dependencies(std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line134"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line135"></a>		};
+<a name="__line136"></a>
+<a name="__line137"></a>	    class base_min_t : public base_t
+<a name="__line138"></a>		{
+<a name="__line139"></a></span><span class=private>		private:
+<a name="__line140"></a>		    std::vector&lt;blop::length::base_t *&gt; lengths_;
+<a name="__line141"></a></span><span class=public>		public:
+<a name="__line142"></a>		    base_min_t(const std::vector&lt;blop::length::base_t *&gt; &amp;);
+<a name="__line143"></a>		    base_min_t(const base_min_t &amp;o);
+<a name="__line144"></a>		    ~base_min_t();
+<a name="__line145"></a>
+<a name="__line146"></a>		    bool specialize (terminal *);
+<a name="__line147"></a>		    base_t *clone(void *) const;
+<a name="__line148"></a>		    void print(ostream &amp;) const;
+<a name="__line149"></a>		    void dependencies(std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line150"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line151"></a>		};
+<a name="__line152"></a>
+<a name="__line153"></a>
+<a name="__line154"></a>	    class base_textsize_t : public base_t
+<a name="__line155"></a>		{
+<a name="__line156"></a></span><span class=protected>		protected:
+<a name="__line157"></a>		    double angle_;
+<a name="__line158"></a>		    string text_;
+<a name="__line159"></a>		    int    direction_;
+<a name="__line160"></a></span><span class=public>		public:
+<a name="__line161"></a>		    enum {horizontal,vertical};
+<a name="__line162"></a>
+<a name="__line163"></a>		    base_textsize_t(const base_textsize_t &amp;);
+<a name="__line164"></a>		    base_textsize_t(const string &amp;s = "",
+<a name="__line165"></a>				    int dir=horizontal,
+<a name="__line166"></a>				    double ang = 0);
+<a name="__line167"></a>		    bool specialize(terminal *);
+<a name="__line168"></a>
+<a name="__line169"></a>		    void text(const string &amp;s);
+<a name="__line170"></a>		    void angle(double);
+<a name="__line171"></a>	 
+<a name="__line172"></a>		    void print(ostream &amp;) const;
+<a name="__line173"></a>		};
+<a name="__line174"></a>
+<a name="__line175"></a>	    class base_textwidth_t : public base_textsize_t
+<a name="__line176"></a>		{
+<a name="__line177"></a></span><span class=public>		public:
+<a name="__line178"></a>		    base_textwidth_t(const string &amp;s = "",double angle=0);
+<a name="__line179"></a>		    length::base_t *clone(void *) const;
+<a name="__line180"></a>		};
+<a name="__line181"></a>
+<a name="__line182"></a>	    class base_textheight_t : public base_textsize_t
+<a name="__line183"></a>		{
+<a name="__line184"></a></span><span class=public>		public:
+<a name="__line185"></a>		    base_textheight_t(const string &amp;s = "",double angle=0);
+<a name="__line186"></a>		    length::base_t *clone(void *) const;
+<a name="__line187"></a>		};
+<a name="__line188"></a>
+<a name="__line189"></a>	    class base_max_textsize_t : public base_t
+<a name="__line190"></a>		{
+<a name="__line191"></a></span><span class=protected>		protected:
+<a name="__line192"></a>		    std::vector&lt;std::string&gt; texts_;
+<a name="__line193"></a></span><span class=public>		public:
+<a name="__line194"></a>		    base_max_textsize_t(const base_max_textsize_t &amp;);
+<a name="__line195"></a>		    base_max_textsize_t(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line196"></a>		    base_max_textsize_t() {}
+<a name="__line197"></a>		    void add(const string &amp;s);
+<a name="__line198"></a>		    void clear();
+<a name="__line199"></a>		};
+<a name="__line200"></a>
+<a name="__line201"></a>	    class base_max_textwidth_t : public base_max_textsize_t
+<a name="__line202"></a>		{
+<a name="__line203"></a></span><span class=public>		public:
+<a name="__line204"></a>		    base_max_textwidth_t();
+<a name="__line205"></a>		    base_max_textwidth_t(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line206"></a>		    base_max_textwidth_t(const base_max_textwidth_t &amp;);
+<a name="__line207"></a>		    bool specialize(terminal *);
+<a name="__line208"></a>		    length::base_t *clone(void *) const;
+<a name="__line209"></a>		    void print(ostream &amp;) const;
+<a name="__line210"></a>		};
+<a name="__line211"></a>
+<a name="__line212"></a>	    class base_max_textheight_t : public base_max_textsize_t
+<a name="__line213"></a>		{
+<a name="__line214"></a></span><span class=public>		public:
+<a name="__line215"></a>		    base_max_textheight_t();
+<a name="__line216"></a>		    base_max_textheight_t(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line217"></a>		    base_max_textheight_t(const base_max_textheight_t &amp;);
+<a name="__line218"></a>		    bool specialize(terminal *);
+<a name="__line219"></a>		    length::base_t *clone(void *) const;
+<a name="__line220"></a>		    void print(ostream &amp;) const;
+<a name="__line221"></a>		};
+<a name="__line222"></a>
+<a name="__line223"></a>	    class base_max_textlheight_t : public base_max_textsize_t
+<a name="__line224"></a>		{
+<a name="__line225"></a></span><span class=public>		public:
+<a name="__line226"></a>		    base_max_textlheight_t();
+<a name="__line227"></a>		    base_max_textlheight_t(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line228"></a>		    base_max_textlheight_t(const base_max_textlheight_t &amp;);
+<a name="__line229"></a>		    bool specialize(terminal *);
+<a name="__line230"></a>		    length::base_t *clone(void *) const;
+<a name="__line231"></a>		    void print(ostream &amp;) const;
+<a name="__line232"></a>		};
+<a name="__line233"></a>
+<a name="__line234"></a>	    class base_lincombi_t : public base_t
+<a name="__line235"></a>		{
+<a name="__line236"></a></span><span class=public>		public:
+<a name="__line237"></a>		    std::vector&lt;double&gt;                factors_;
+<a name="__line238"></a>		    std::vector&lt;blop::length::base_t*&gt; lengths_;
+<a name="__line239"></a>
+<a name="__line240"></a></span><span class=public>		public:
+<a name="__line241"></a>		    base_lincombi_t();
+<a name="__line242"></a>		    base_lincombi_t(const length::base_lincombi_t &amp;);
+<a name="__line243"></a>		    base_lincombi_t(double factor, length::base_t *b);
+<a name="__line244"></a>		    ~base_lincombi_t();
+<a name="__line245"></a>
+<a name="__line246"></a>		    bool specialize(terminal *);
+<a name="__line247"></a>		    void add     (double f,length::base_t     *l);
+<a name="__line248"></a>		    void multiply(double f);
+<a name="__line249"></a>		    length::base_t *clone(void *) const;
+<a name="__line250"></a>		    void print(ostream &amp;) const;
+<a name="__line251"></a>
+<a name="__line252"></a>		    virtual void dependencies
+<a name="__line253"></a>			(std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line254"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line255"></a>		    void set_scale(length::base_t *);
+<a name="__line256"></a>		};
+<a name="__line257"></a>
+<a name="__line258"></a>	    class base_scaleable_t : public base_t
+<a name="__line259"></a>		{
+<a name="__line260"></a></span><span class=public>		public:
+<a name="__line261"></a>		    base_t *the_length_;
+<a name="__line262"></a>		    double factor_;
+<a name="__line263"></a></span><span class=public>		public:
+<a name="__line264"></a>		    base_scaleable_t(double factor = 0);
+<a name="__line265"></a>		    base_scaleable_t(const base_scaleable_t &amp;);
+<a name="__line266"></a>		    ~base_scaleable_t();
+<a name="__line267"></a>
+<a name="__line268"></a>		    void set_scale(length::base_t *);
+<a name="__line269"></a>
+<a name="__line270"></a>		    bool specialize(terminal *);
+<a name="__line271"></a>		    base_t *clone(void *) const;
+<a name="__line272"></a>		    void print(ostream &amp;) const;
+<a name="__line273"></a>		    void dependencies(std::vector&lt;blop::length::base_t *&gt; *) const;
+<a name="__line274"></a>		    bool depends_on(length::base_t *) const;
+<a name="__line275"></a>		};
+<a name="__line276"></a>
+<a name="__line277"></a></span><span class=protected>	protected:
+<a name="__line278"></a>	    base_t *length_base_ptr_;
+<a name="__line279"></a>
+<a name="__line280"></a></span><span class=public>	public:
+<a name="__line281"></a>
+<a name="__line282"></a>
+<a name="__line283"></a>	    <span class=comment>// ---------- Constructors, destructor --------------------------------------------</span>
+<a name="__line284"></a>
+<a name="__line285"></a>	    length(const length &amp;l);          <span class=comment>// initialize from another length</span>
+<a name="__line286"></a>
+<a name="__line287"></a>            length(int factor);
+<a name="__line288"></a>	    length(double factor = 0);        <span class=comment>// If initialized from a double, this means a scaling factor.</span>
+<a name="__line289"></a>                                              <span class=comment>// The length will be 0, unless the 'set_scale' function is called on this</span>
+<a name="__line290"></a>                                              <span class=comment>// length later. In this case it will be 'factor' times the length</span>
+<a name="__line291"></a>                                              <span class=comment>// provided to 'set_scale'</span>
+<a name="__line292"></a>
+<a name="__line293"></a>	    length(const base_t &amp;);           <span class=comment>// copy the given base to it's own area</span>
+<a name="__line294"></a>
+<a name="__line295"></a>	    length(base_t *);                 <span class=comment>// don't copy. Assumes, that the pointer provided points to a place,</span>
+<a name="__line296"></a>                                              <span class=comment>// which has been allocated with length::allocate()</span>
+<a name="__line297"></a>
+<a name="__line298"></a>	    <span class=comment>//void init(const base_t &amp;); </span>
+<a name="__line299"></a>
+<a name="__line300"></a>	    explicit length(const char *); <span class=comment>// dummy initializer, does not make anything</span>
+<a name="__line301"></a>
+<a name="__line302"></a>	    virtual ~length();
+<a name="__line303"></a>
+<a name="__line304"></a>	    
+<a name="__line305"></a>
+<a name="__line306"></a>
+<a name="__line307"></a>	    <span class=comment>// ---------- Set a reference scale -----------------------------------------------</span>
+<a name="__line308"></a>	    <span class=comment>// The length can be initialized from a double (which means, that - depending on</span>
+<a name="__line309"></a>	    <span class=comment>// the context in which this length is used - this length should be a multiple</span>
+<a name="__line310"></a>	    <span class=comment>// of some scale). If this was initialized from a double indeed,</span>
+<a name="__line311"></a>	    <span class=comment>// set the scale</span>
+<a name="__line312"></a>	    
+<a name="__line313"></a>	    void set_scale(const length &amp;);
+<a name="__line314"></a>
+<a name="__line315"></a>
+<a name="__line316"></a>	    <span class=comment>// ---------- Assignment ----------------------------------------------------------</span>
+<a name="__line317"></a>
+<a name="__line318"></a>	    const length &amp;operator=(const length &amp;l);
+<a name="__line319"></a>	    const length &amp;operator=(double);
+<a name="__line320"></a>
+<a name="__line321"></a>
+<a name="__line322"></a>	    <span class=comment>// ---------- Arithmetic ----------------------------------------------------------</span>
+<a name="__line323"></a>
+<a name="__line324"></a>	    void operator+= (const length &amp;l);
+<a name="__line325"></a>	    void operator-= (const length &amp;l);
+<a name="__line326"></a>	    void operator*= (double f);
+<a name="__line327"></a>	    void operator/= (double f);
+<a name="__line328"></a>
+<a name="__line329"></a>	    <span class=comment>// ---------- not to be called by user --------------------------------------------</span>
+<a name="__line330"></a>
+<a name="__line331"></a>	    int  specialize(terminal *) const;
+<a name="__line332"></a>	    bool specialized() const;
+<a name="__line333"></a>	    terminal::id  termspecific_id() const;
+<a name="__line334"></a>
+<a name="__line335"></a>	    mutable bool locked_;
+<a name="__line336"></a>
+<a name="__line337"></a></span><span class=public>	public:
+<a name="__line338"></a>	    void print(ostream &amp;) const;
+<a name="__line339"></a>
+<a name="__line340"></a>	    static void         deallocate(const base_t *);
+<a name="__line341"></a>	    static void        *allocate();
+<a name="__line342"></a>
+<a name="__line343"></a>	    const length &amp;lock(bool f) const { locked_ = f; return *this; }
+<a name="__line344"></a>	    length       &amp;lock(bool f)       { locked_ = f; return *this; }
+<a name="__line345"></a>	    bool locked() const { return locked_; }
+<a name="__line346"></a>
+<a name="__line347"></a>	    length operator! () const;
+<a name="__line348"></a>
+<a name="__line349"></a>	    bool initialized() const;
+<a name="__line350"></a>
+<a name="__line351"></a>	    base_t *clone_base() const;
+<a name="__line352"></a>	    void register_me() const;
+<a name="__line353"></a>	    static void clear_regs();
+<a name="__line354"></a>	    static void specialize_regs(terminal *);
+<a name="__line355"></a>
+<a name="__line356"></a>	    bool depends_on(const length &amp;l) const;
+<a name="__line357"></a>
+<a name="__line358"></a>	    static length_temporary max(std::vector&lt;blop::length&gt; &amp;);
+<a name="__line359"></a>	    static length_temporary min(std::vector&lt;blop::length&gt; &amp;);
+<a name="__line360"></a>	    static length_temporary max(const length &amp;, const length &amp;);
+<a name="__line361"></a>	    static length_temporary min(const length &amp;, const length &amp;);
+<a name="__line362"></a>	    static length_temporary max(const length &amp;, const length &amp;, const length &amp;);
+<a name="__line363"></a>	    static length_temporary min(const length &amp;, const length &amp;, const length &amp;);
+<a name="__line364"></a>
+<a name="__line365"></a></span><span class=private>	private:
+<a name="__line366"></a>	    static std::vector&lt;blop::length::base_t *&gt; registered_entries_;
+<a name="__line367"></a>	    
+<a name="__line368"></a>	    static void detect_deadlock();
+<a name="__line369"></a>
+<a name="__line370"></a>	    friend class length::base_axis_t;
+<a name="__line371"></a>	    
+<a name="__line372"></a>	};
+<a name="__line373"></a>
+<a name="__line374"></a>    class length_temporary : public length
+<a name="__line375"></a>	{
+<a name="__line376"></a></span><span class=public>	public:
+<a name="__line377"></a>	    length_temporary (const length::base_t &amp;);
+<a name="__line378"></a>	    length_temporary (length::base_t *);
+<a name="__line379"></a>	    length_temporary (const length &amp;l);
+<a name="__line380"></a>	    base_t *clone_base() const;
+<a name="__line381"></a>	};
+<a name="__line382"></a>    
+<a name="__line383"></a>    length_temporary width(const var &amp;s,double angle=0);
+<a name="__line384"></a>    length_temporary height(const var &amp;s,double angle=0);
+<a name="__line385"></a>    length_temporary maxwidth (const std::vector&lt;blop::var&gt; &amp;);
+<a name="__line386"></a>    length_temporary maxwidth (const std::vector&lt;std::string&gt; &amp;);
+<a name="__line387"></a>    length_temporary maxwidth (const std::vector&lt;blop::tic&gt; &amp;);
+<a name="__line388"></a>    length_temporary maxheight(const std::vector&lt;blop::var&gt; &amp;);
+<a name="__line389"></a>    length_temporary maxlheight(const std::vector&lt;blop::var&gt; &amp;);
+<a name="__line390"></a>
+<a name="__line391"></a>    length_temporary operator+ (const length &amp;,const length &amp;);
+<a name="__line392"></a>    length_temporary operator- (const length &amp;,const length &amp;);
+<a name="__line393"></a>    length_temporary operator* (double        ,const length &amp;);
+<a name="__line394"></a>    length_temporary operator* (const length &amp;,double        );
+<a name="__line395"></a>    length_temporary operator/ (const length &amp;,double        );
+<a name="__line396"></a>    length_temporary operator- (const length &amp;);
+<a name="__line397"></a>
+<a name="__line398"></a>    extern  length ZERO, PW, PH, PS, LW, CM, MM, PT, EM, EX;
+<a name="__line399"></a>
+<a name="__line400"></a>
+<a name="__line401"></a>    ostream &amp;operator&lt;&lt; (ostream &amp;out, const length &amp;l);
+<a name="__line402"></a>    ostream &amp;operator&lt;&lt; (ostream &amp;out, const  length::base_t &amp;l); 
+<a name="__line403"></a>
+<a name="__line404"></a>
+<a name="__line405"></a>
+<a name="__line406"></a><span class=comment>// needed only because of cint, dummy functions</span>
+<a name="__line407"></a>
+<a name="__line408"></a>inline bool operator== (const blop::length &amp;, const blop::length)
+<a name="__line409"></a>    { std::cerr&lt;&lt;"You should not call operator==(length,length) !!!\n"; return false; }
+<a name="__line410"></a>inline bool operator&gt;  (const blop::length &amp;, const blop::length)
+<a name="__line411"></a>    { std::cerr&lt;&lt;"You should not call operator&gt; (length,length) !!!\n"; return false; }
+<a name="__line412"></a>inline bool operator&lt;  (const blop::length &amp;, const blop::length)
+<a name="__line413"></a>    { std::cerr&lt;&lt;"You should not call operator&lt; (length,length) !!!\n"; return false; }
+<a name="__line414"></a>
+<a name="__line415"></a>
+<a name="__line416"></a>length_temporary lincombi(double f,int id);
+<a name="__line417"></a>
+<a name="__line418"></a>}
+<a name="__line419"></a>
+<a name="__line420"></a>#ifndef __MAKECINT__
+<a name="__line421"></a>namespace {
+<a name="__line422"></a>    blop::length::initializer __blop_length_initializer;
+<a name="__line423"></a>}
+<a name="__line424"></a>#endif
+<a name="__line425"></a>
+<a name="__line426"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

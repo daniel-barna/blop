@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- The bmp terminal</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="jpg.html">
+   <link rel="Next" href="printer.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="jpg.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: jpg.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="printer.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: printer.html">
+    </a> <br>
+
+<center class=title><b>
+The bmp terminal
+</b></center>
+<hr>
+
+<pre class=prguide><u>Practical Guide:</u>
+
+plot("filename")....;   // plot something
+bmp::print("file.bmp","");
+    // print it to a bmp file named file.bmp
+    // the second argument is the options to beps2bmp
+</pre>
+<hr>
+
+<div class=description>
+
+This  is a  terminal derived  from blopeps:  first a  blopeps  file is
+created,  and then  it  is transformed  to  a bmp  file  using the  <a
+href="tools.html#beps2bmp">beps2bmp</a>  tool   of  blop.  The  static
+<tt>print(filename,opts)</tt>  function of  the  <tt>bmp</tt> terminal
+can be  used to print  the current canvas  to a file specified  by the
+first argument, the second argument  specifies the options to be given
+to <tt>beps2bmp</tt> (see <tt>beps2bmp --help</tt> for help)
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="bmp.h.html">bmp.h</a>
+   <a href="bmp.cc.html">bmp.cc</a>
+</pre>
+
+
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="jpg.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: jpg.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="printer.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: printer.html">
+    </a> 
+
+</body>
+</html>

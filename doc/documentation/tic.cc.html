@@ -1,0 +1,503 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: tic.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="tic.h.html">tic.h</a>"
+<a name="__line1"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line2"></a>#include &lt;utility&gt;
+<a name="__line3"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line4"></a>#include &lt;cmath&gt;
+<a name="__line5"></a>#include &lt;string.h&gt;
+<a name="__line6"></a>#include &lt;cstdio&gt;
+<a name="__line7"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line8"></a>#include "<a href="units.h.html">units.h</a>"
+<a name="__line9"></a>#include &lt;limits&gt;
+<a name="__line10"></a>
+<a name="__line11"></a>using namespace std;
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    tic::tic(const tic &amp;o)
+<a name="__line16"></a>    {
+<a name="__line17"></a>	value_ = o.value_;
+<a name="__line18"></a>	label_ = o.label_;
+<a name="__line19"></a>    }
+<a name="__line20"></a>
+<a name="__line21"></a>    bool tic::operator== (const tic &amp;o) const
+<a name="__line22"></a>    {
+<a name="__line23"></a>	return value_ == o.value_ &amp;&amp; label_ == o.label_;
+<a name="__line24"></a>    }
+<a name="__line25"></a>
+<a name="__line26"></a>
+<a name="__line27"></a>void calculate_tics(double &amp;minimum, const bool minfixed, 
+<a name="__line28"></a>		    double &amp;maximum, const bool maxfixed, 
+<a name="__line29"></a>		    double &amp;step, const bool stepfixed, 
+<a name="__line30"></a>		    double tic_min, double tic_max,       <span class=comment>// range for the tics, unset if not restricted</span>
+<a name="__line31"></a>		    blop::tic &amp;scale, 
+<a name="__line32"></a>		    double Unit,
+<a name="__line33"></a>		    const std::vector&lt; std::pair&lt;double,double&gt; &gt; &amp;cuts, 
+<a name="__line34"></a>		    const bool logscale, 
+<a name="__line35"></a>		    const int normalform_tics, 
+<a name="__line36"></a>		    const bool normalform_scale, 
+<a name="__line37"></a>		    std::vector&lt;blop::tic&gt; &amp;tics, 
+<a name="__line38"></a>		    const char *tic_format, 
+<a name="__line39"></a>                    const blop::function &amp;tic_format_func,
+<a name="__line40"></a>		    const char *scale_format, 
+<a name="__line41"></a>		    const int nmintics,
+<a name="__line42"></a>                    bool symmetric_range)
+<a name="__line43"></a>{
+<a name="__line44"></a>    if(global::debug&gt;0)
+<a name="__line45"></a>    {
+<a name="__line46"></a>	cout&lt;&lt;"[blop] [DEBUG] calculate_tics starts..."&lt;&lt;endl;
+<a name="__line47"></a>	cout&lt;&lt;"[blop] [DEBUG]   minimum  = "&lt;&lt;minimum&lt;&lt;endl;
+<a name="__line48"></a>	cout&lt;&lt;"[blop] [DEBUG]   minfixed = "&lt;&lt;minfixed&lt;&lt;endl;
+<a name="__line49"></a>	cout&lt;&lt;"[blop] [DEBUG]   maximum  = "&lt;&lt;maximum&lt;&lt;endl;
+<a name="__line50"></a>	cout&lt;&lt;"[blop] [DEBUG]   maxfixed = "&lt;&lt;maxfixed&lt;&lt;endl;
+<a name="__line51"></a>	cout&lt;&lt;"[blop] [DEBUG]   step     = "&lt;&lt;step&lt;&lt;endl;
+<a name="__line52"></a>	cout&lt;&lt;"[blop] [DEBUG]   stepfixed= "&lt;&lt;stepfixed&lt;&lt;endl;
+<a name="__line53"></a>	cout&lt;&lt;"[blop] [DEBUG]   tic_min  = "&lt;&lt;tic_min&lt;&lt;endl;
+<a name="__line54"></a>	cout&lt;&lt;"[blop] [DEBUG]   tic_max  = "&lt;&lt;tic_max&lt;&lt;endl;
+<a name="__line55"></a>	cout&lt;&lt;"[blop] [DEBUG]   ..."&lt;&lt;endl;
+<a name="__line56"></a>    }
+<a name="__line57"></a>
+<a name="__line58"></a>    const bool scaleingisused = (scale.value() != unset);
+<a name="__line59"></a>
+<a name="__line60"></a>    if(maximum!=unset &amp;&amp; minimum!=unset)
+<a name="__line61"></a>    {
+<a name="__line62"></a>	if (maximum&lt;minimum)
+<a name="__line63"></a>	{
+<a name="__line64"></a>	    warning::print("maximum&lt;minimum","calculate_tics");
+<a name="__line65"></a>	    return;
+<a name="__line66"></a>	}
+<a name="__line67"></a>	if(maximum==minimum)
+<a name="__line68"></a>	{
+<a name="__line69"></a>	    warning::print("Zero range","calculate_tics");
+<a name="__line70"></a>            if(::fabs(minimum)&gt;1)
+<a name="__line71"></a>            {
+<a name="__line72"></a>                const double tmp = minimum;
+<a name="__line73"></a>                minimum = tmp-::fabs(tmp)/10;
+<a name="__line74"></a>                maximum = tmp+::fabs(tmp)/10;
+<a name="__line75"></a>            }
+<a name="__line76"></a>            else
+<a name="__line77"></a>            {
+<a name="__line78"></a>                minimum = -1;
+<a name="__line79"></a>                maximum =  1;
+<a name="__line80"></a>            }
+<a name="__line81"></a>	}
+<a name="__line82"></a>    }
+<a name="__line83"></a>    
+<a name="__line84"></a>    if ( logscale==true &amp;&amp; !(minimum&gt;0.0) )
+<a name="__line85"></a>    {
+<a name="__line86"></a>	warning::print("minimum&lt;=0 with logscale", "calculate_tics");
+<a name="__line87"></a>	return;
+<a name="__line88"></a>    }
+<a name="__line89"></a>    if ( logscale==true &amp;&amp; !(maximum&gt;0.0) )
+<a name="__line90"></a>    {
+<a name="__line91"></a>	warning::print("maximum&lt;=0 with logscale", "calculate_tics");
+<a name="__line92"></a>	return;
+<a name="__line93"></a>    }
+<a name="__line94"></a>    if ( stepfixed==true &amp;&amp; !(step&gt;0.0) )
+<a name="__line95"></a>    {
+<a name="__line96"></a>	warning::print("ticstep&lt;=0", "calculate_tics");
+<a name="__line97"></a>	return;
+<a name="__line98"></a>    }
+<a name="__line99"></a>    if ( scaleingisused==true &amp;&amp; !(scale.value()&gt;0) )
+<a name="__line100"></a>    {
+<a name="__line101"></a>	warning::print("scale&lt;=0", "calculate_tics");
+<a name="__line102"></a>	return;
+<a name="__line103"></a>    }
+<a name="__line104"></a>    for ( unsigned int i=0 ; i&lt;cuts.size() ; ++i )
+<a name="__line105"></a>    {
+<a name="__line106"></a>	if ( ! (cuts[i].first&lt;cuts[i].second) )
+<a name="__line107"></a>	{
+<a name="__line108"></a>	    warning::print("The lower border of a cut domain should be"
+<a name="__line109"></a>			   " smaller than the higher border",
+<a name="__line110"></a>			   "calculate_tics");
+<a name="__line111"></a>	    return;
+<a name="__line112"></a>	}
+<a name="__line113"></a>	for ( unsigned int j=i+1 ; j&lt;cuts.size() ; ++j )
+<a name="__line114"></a>	{
+<a name="__line115"></a>	    if ( ( cuts[i].first&lt;=cuts[j].first &amp;&amp; cuts[j].first&lt;=cuts[i].second )
+<a name="__line116"></a>              || ( cuts[i].first&lt;=cuts[j].second &amp;&amp; cuts[j].second&lt;=cuts[i].second ) )
+<a name="__line117"></a>	    {
+<a name="__line118"></a>		warning::print("There is overlap in cut domains", "calculate_tics(...)");
+<a name="__line119"></a>		return;
+<a name="__line120"></a>	    }
+<a name="__line121"></a>	}
+<a name="__line122"></a>    }
+<a name="__line123"></a>    const int Nmin=nmintics-1;
+<a name="__line124"></a>    const int Nmax=Nmin*2+1;
+<a name="__line125"></a>    double Scale=scale.value();
+<a name="__line126"></a>    if ( !scaleingisused ) Scale=1.0;
+<a name="__line127"></a>
+<a name="__line128"></a>    tics.clear();
+<a name="__line129"></a>
+<a name="__line130"></a>    if ( logscale==true )
+<a name="__line131"></a>    {
+<a name="__line132"></a>	double diff=::log10(maximum/minimum);
+<a name="__line133"></a>	for ( unsigned int i=0 ; i&lt;cuts.size() ; ++i )
+<a name="__line134"></a>	{
+<a name="__line135"></a>	    if ( cuts[i].first&lt;minimum &amp;&amp; cuts[i].second&lt;minimum ) continue;
+<a name="__line136"></a>	    else if ( cuts[i].first&lt;minimum &amp;&amp; minimum&lt;cuts[i].second &amp;&amp; cuts[i].second&lt;maximum )
+<a name="__line137"></a>		diff-=(double)(::log10(cuts[i].second/minimum));
+<a name="__line138"></a>	    else if ( minimum&lt;cuts[i].first &amp;&amp; cuts[i].first&lt;maximum &amp;&amp; minimum&lt;cuts[i].second &amp;&amp; cuts[i].second&lt;maximum )
+<a name="__line139"></a>		diff-=(double)(::log10(cuts[i].second/cuts[i].first));
+<a name="__line140"></a>	    else if ( minimum&lt;cuts[i].first &amp;&amp; cuts[i].first&lt;maximum &amp;&amp; maximum&lt;cuts[i].second )
+<a name="__line141"></a>		diff-=(double)(::log10(maximum/cuts[i].first));
+<a name="__line142"></a>	    else continue;
+<a name="__line143"></a>	}
+<a name="__line144"></a>
+<a name="__line145"></a>	<span class=comment>// First calculate the stepsize (i.e. the factor tic[i+1]/tic[i])</span>
+<a name="__line146"></a>	<span class=comment>// This should be in normal cases 10^1 (i.e. tic[1]=1x10^1, tic[2]=1x10^2, etc)</span>
+<a name="__line147"></a>	<span class=comment>// but in those cases, where the axis range is very long, this would result in</span>
+<a name="__line148"></a>	<span class=comment>// too many tics, so the step should be increased to a higher power of 10, for example</span>
+<a name="__line149"></a>	<span class=comment>// 10^2.</span>
+<a name="__line150"></a>	if ( stepfixed==false )
+<a name="__line151"></a>	{
+<a name="__line152"></a>	    step=::pow(10.0, ::floor(::log10(diff)));
+<a name="__line153"></a>	    int Ntics=(int)(diff/step);
+<a name="__line154"></a>	    while ( Ntics&lt;Nmin || Ntics&gt;Nmax )
+<a name="__line155"></a>	    { 
+<a name="__line156"></a>		if ( Ntics&lt;Nmin ) step*=0.5;
+<a name="__line157"></a>		else if ( Ntics&gt;Nmax ) step*=2;
+<a name="__line158"></a>		Ntics=(int)(diff/step);
+<a name="__line159"></a>	    }
+<a name="__line160"></a>	    double stepExp=step;
+<a name="__line161"></a>	    double stepMant=::pow(10.0, stepExp-::floor(stepExp));
+<a name="__line162"></a>	    step=(stepExp&lt;1.0 ? 10.0 : 
+<a name="__line163"></a>		(stepMant&lt;5.0 ? 1.0 : 10.0)*::pow(10.0, ::floor(stepExp)));
+<a name="__line164"></a>	    if ( !(stepExp&lt;1.0) &amp;&amp; (int)(diff/step)&gt;Nmax ) step=::pow(10.0, ::floor(stepExp)+1.0);
+<a name="__line165"></a>	    else if ( !(stepExp&lt;1.0) &amp;&amp; (int)(diff/step)&lt;Nmin ) step=::pow(10.0, ::floor(stepExp));
+<a name="__line166"></a>	}
+<a name="__line167"></a>
+<a name="__line168"></a>	<span class=comment>// If minimum is not fixed, extend it downwards to be 1x10^n (n=integer)</span>
+<a name="__line169"></a>	double minimum_scaled=minimum/Scale/Unit;
+<a name="__line170"></a>	if ( minfixed==false )
+<a name="__line171"></a>	{
+<a name="__line172"></a>	    double minExp=::floor(::log10(minimum_scaled)/::log10(step))*::log10(step);
+<a name="__line173"></a>	    minimum_scaled=::pow(10.0, ::floor(minExp));
+<a name="__line174"></a>	    minimum=minimum_scaled*Scale*Unit;
+<a name="__line175"></a>	}
+<a name="__line176"></a>
+<a name="__line177"></a>	<span class=comment>// If maximum is not fixed, extend it upwards to be 1x10^n (n=integer)</span>
+<a name="__line178"></a>	double maximum_scaled=maximum/Scale/Unit;
+<a name="__line179"></a>	if ( maxfixed==false )
+<a name="__line180"></a>	{
+<a name="__line181"></a>	    double maxExp=::ceil(::log10(maximum_scaled)/::log10(step))*::log10(step);
+<a name="__line182"></a>	    maximum_scaled=::pow(10.0, ::floor(maxExp));
+<a name="__line183"></a>	    maximum=maximum_scaled*Scale*Unit;
+<a name="__line184"></a>	}
+<a name="__line185"></a>	var tic_string;
+<a name="__line186"></a>	if ( scaleingisused==true )
+<a name="__line187"></a>	{
+<a name="__line188"></a>	    if ( normalform_scale==true )
+<a name="__line189"></a>	    {
+<a name="__line190"></a>		double scaleexp=::log10(Scale);
+<a name="__line191"></a>		double scalemant=::pow(10.0, scaleexp-::floor(scaleexp));
+<a name="__line192"></a>		tic_string = var::sprintf(scale_format, scalemant);
+<a name="__line193"></a>		if ( tic_string == "1" ) tic_string = var::sprintf("$10^{%g}$", ::floor(scaleexp));
+<a name="__line194"></a>		else                     tic_string = var::sprintf(((const var)"$"&amp;scale_format&amp;"\\cdot10^{%g}$").c_str(), scalemant, ::floor(scaleexp));
+<a name="__line195"></a>	    }
+<a name="__line196"></a>	    else tic_string = var::sprintf(scale_format, Scale);
+<a name="__line197"></a>	    scale.label(tic_string);
+<a name="__line198"></a>	}
+<a name="__line199"></a>
+<a name="__line200"></a>	<span class=comment>// Start from the smallest 1x10^n value &gt;= than minimum</span>
+<a name="__line201"></a>	double mytic = ::pow(10.0,::ceil(::log10(minimum_scaled*0.9999)));
+<a name="__line202"></a>
+<a name="__line203"></a>	double epsilon=::pow(step, 0.1);
+<a name="__line204"></a>
+<a name="__line205"></a>        double min_tic = numeric_limits&lt;double&gt;::max(), max_tic = numeric_limits&lt;double&gt;::min();
+<a name="__line206"></a>        for(double t = ::pow(10.0,::ceil(::log10(minimum_scaled*0.9999))); t&lt;maximum_scaled*epsilon &amp;&amp; tics.size()&lt;50; t*=step)
+<a name="__line207"></a>        {
+<a name="__line208"></a>            if(t&lt;min_tic) min_tic = t;
+<a name="__line209"></a>            if(t&gt;max_tic) max_tic = t;
+<a name="__line210"></a>        }
+<a name="__line211"></a>
+<a name="__line212"></a>	while ( mytic&lt;maximum_scaled*epsilon &amp;&amp; tics.size()&lt;50 )
+<a name="__line213"></a>	{
+<a name="__line214"></a>	    bool cutflag=false;
+<a name="__line215"></a>	    for ( unsigned int i=0 ; i&lt;cuts.size() ; ++i )
+<a name="__line216"></a>	    {
+<a name="__line217"></a>		if ( cuts[i].first&lt;=mytic*Scale*Unit &amp;&amp; mytic*Scale*Unit&lt;=cuts[i].second )
+<a name="__line218"></a>		{
+<a name="__line219"></a>		    cutflag=true;
+<a name="__line220"></a>		    break;
+<a name="__line221"></a>		}
+<a name="__line222"></a>	    }
+<a name="__line223"></a>	    if ( !cutflag )
+<a name="__line224"></a>	    {
+<a name="__line225"></a>		if ( normalform_tics==1 || (normalform_tics==2 &amp;&amp; ( min_tic&lt;0.01 || 10&lt;max_tic) )  )
+<a name="__line226"></a>		{
+<a name="__line227"></a>		    double myticexp=::log10(mytic);
+<a name="__line228"></a>                    if(::abs(myticexp)&lt;1e-3) myticexp=0;
+<a name="__line229"></a>		    double myticmant=::pow(10.0, myticexp-::floor(myticexp));
+<a name="__line230"></a>                    if(tic_format_func.initialized())
+<a name="__line231"></a>                    {
+<a name="__line232"></a>                        tic_string = tic_format_func(mytic);
+<a name="__line233"></a>                    }
+<a name="__line234"></a>                    else
+<a name="__line235"></a>                    {
+<a name="__line236"></a>                        tic_string = var::sprintf(tic_format, myticmant);
+<a name="__line237"></a>                        if ( tic_string == "1" ) tic_string = var::sprintf("$10^{%g}$", ::floor(myticexp));
+<a name="__line238"></a>                        else                     tic_string = var::sprintf(((const var)"$"&amp;tic_format&amp;"\\cdot10^{%g}$").c_str(), myticmant, ::floor(myticexp));
+<a name="__line239"></a>                    }
+<a name="__line240"></a>		}
+<a name="__line241"></a>		else
+<a name="__line242"></a>                {
+<a name="__line243"></a>                    if(tic_format_func.initialized()) tic_string = tic_format_func(mytic);
+<a name="__line244"></a>                    else                              tic_string = var::sprintf(tic_format, mytic);
+<a name="__line245"></a>                }
+<a name="__line246"></a>
+<a name="__line247"></a>		if(mytic*Scale*Unit &gt; maximum)
+<a name="__line248"></a>		{
+<a name="__line249"></a>		    if(!maxfixed)
+<a name="__line250"></a>		    {
+<a name="__line251"></a>			maximum = mytic*Scale*Unit;
+<a name="__line252"></a>			tics.push_back(tic(mytic*Scale*Unit, tic_string));
+<a name="__line253"></a>		    }
+<a name="__line254"></a>		}
+<a name="__line255"></a>		else tics.push_back(tic(mytic*Scale*Unit, tic_string));
+<a name="__line256"></a>	    }
+<a name="__line257"></a>	    mytic*=step;
+<a name="__line258"></a>	}
+<a name="__line259"></a>    }
+<a name="__line260"></a>    else
+<a name="__line261"></a>    {
+<a name="__line262"></a>	double diff=maximum-minimum;
+<a name="__line263"></a>	for ( unsigned int i=0 ; i&lt;cuts.size() ; ++i )
+<a name="__line264"></a>	{
+<a name="__line265"></a>	    if ( cuts[i].first&lt;minimum &amp;&amp; cuts[i].second&lt;minimum ) continue;
+<a name="__line266"></a>	    else if ( cuts[i].first&lt;minimum &amp;&amp; minimum&lt;cuts[i].second &amp;&amp; cuts[i].second&lt;maximum ) diff-=cuts[i].second-minimum;
+<a name="__line267"></a>	    else if ( minimum&lt;cuts[i].first &amp;&amp; cuts[i].first&lt;maximum &amp;&amp; minimum&lt;cuts[i].second &amp;&amp; cuts[i].second&lt;maximum ) diff-=cuts[i].second-cuts[i].first;
+<a name="__line268"></a>	    else if ( minimum&lt;cuts[i].first &amp;&amp; cuts[i].first&lt;maximum &amp;&amp; maximum&lt;cuts[i].second ) diff-=maximum-cuts[i].first;
+<a name="__line269"></a>	    else continue;
+<a name="__line270"></a>	}
+<a name="__line271"></a>	diff/=(Scale*Unit);
+<a name="__line272"></a>	double step_scaled=step/(Scale*Unit);
+<a name="__line273"></a>	double minimum_scaled=minimum/(Scale*Unit);
+<a name="__line274"></a>	double maximum_scaled=maximum/(Scale*Unit);
+<a name="__line275"></a>
+<a name="__line276"></a>        <span class=comment>// If the maximum and minimum are symmetric, try to make a symmetric range, and symmetric tics (i.e. one being at 0)</span>
+<a name="__line277"></a>        if( (maximum*minimum&lt;0 &amp;&amp; ::fabs(::fabs(maximum)-::fabs(minimum))&lt;0.01*(maximum-minimum)) || symmetric_range )
+<a name="__line278"></a>        {
+<a name="__line279"></a>            double sym_max = ::max(::fabs(maximum),::fabs(minimum))/(Scale*Unit);
+<a name="__line280"></a>            if(tic_min!=unset) sym_max = ::max(sym_max,tic_min);
+<a name="__line281"></a>            if(tic_max!=unset) sym_max = ::max(sym_max,tic_max);
+<a name="__line282"></a>            
+<a name="__line283"></a>            if(stepfixed==false)
+<a name="__line284"></a>            {
+<a name="__line285"></a>                step_scaled=::pow(10.0, ::floor(::log10(sym_max)));
+<a name="__line286"></a>                int Ntics=(int)(sym_max/step_scaled*2-1);
+<a name="__line287"></a>                while ( Ntics&lt;Nmin || Ntics&gt;Nmax )
+<a name="__line288"></a>                {
+<a name="__line289"></a>                    if ( Ntics&lt;Nmin ) step_scaled*=0.5;
+<a name="__line290"></a>                    else if ( Ntics&gt;Nmax ) step_scaled*=2;
+<a name="__line291"></a>                    Ntics=(int)(sym_max/step_scaled*2-1);
+<a name="__line292"></a>                }
+<a name="__line293"></a>                step=step_scaled*Scale*Unit;
+<a name="__line294"></a>            }
+<a name="__line295"></a>
+<a name="__line296"></a>            sym_max = ::ceil(sym_max/step_scaled)*step_scaled;
+<a name="__line297"></a>
+<a name="__line298"></a>            if (!minfixed)
+<a name="__line299"></a>            {
+<a name="__line300"></a>                minimum_scaled = -sym_max;
+<a name="__line301"></a>                minimum=minimum_scaled*Scale*Unit;
+<a name="__line302"></a>                if(tic_min!=unset &amp;&amp; tic_min&lt;minimum)
+<a name="__line303"></a>                {
+<a name="__line304"></a>                    minimum=tic_min;
+<a name="__line305"></a>                    minimum_scaled=minimum/(Scale*Unit);
+<a name="__line306"></a>                }
+<a name="__line307"></a>            }
+<a name="__line308"></a>            if (!maxfixed)
+<a name="__line309"></a>            {
+<a name="__line310"></a>                maximum_scaled = sym_max;
+<a name="__line311"></a>                maximum=maximum_scaled*Scale*Unit;
+<a name="__line312"></a>                if(tic_max!=unset &amp;&amp; tic_max&gt;maximum)
+<a name="__line313"></a>                {
+<a name="__line314"></a>                    maximum=tic_max;
+<a name="__line315"></a>                    maximum_scaled=maximum/(Scale*Unit);
+<a name="__line316"></a>                }
+<a name="__line317"></a>            }
+<a name="__line318"></a>            if(tic_min==unset)
+<a name="__line319"></a>            {
+<a name="__line320"></a>                const int i = ::ceil(minimum/step);
+<a name="__line321"></a>                if(::fabs((i-1)*step-minimum)&lt;0.001*(maximum-minimum)) tic_min = (i-1)*step;
+<a name="__line322"></a>                else tic_min = i*step;
+<a name="__line323"></a>            }
+<a name="__line324"></a>            if(tic_max==unset) tic_max=maximum;
+<a name="__line325"></a>        }
+<a name="__line326"></a>        else
+<a name="__line327"></a>        {
+<a name="__line328"></a>            if ( stepfixed==false )
+<a name="__line329"></a>            {
+<a name="__line330"></a>                step_scaled=::pow(10.0, ::floor(::log10(diff)));
+<a name="__line331"></a>                int Ntics=(int)(diff/step_scaled);
+<a name="__line332"></a>                while ( Ntics&lt;Nmin || Ntics&gt;Nmax )
+<a name="__line333"></a>                {
+<a name="__line334"></a>                    if ( Ntics&lt;Nmin ) step_scaled*=0.5;
+<a name="__line335"></a>                    else if ( Ntics&gt;Nmax ) step_scaled*=2;
+<a name="__line336"></a>                    Ntics=(int)(diff/step_scaled);
+<a name="__line337"></a>                }
+<a name="__line338"></a>                step=step_scaled*Scale*Unit;
+<a name="__line339"></a>            }
+<a name="__line340"></a>
+<a name="__line341"></a>            if (!minfixed)
+<a name="__line342"></a>            {
+<a name="__line343"></a>                minimum_scaled=::floor(minimum_scaled/step_scaled)*step_scaled;
+<a name="__line344"></a>                minimum=minimum_scaled*Scale*Unit;
+<a name="__line345"></a>                if(tic_min!=unset &amp;&amp; tic_min&lt;minimum)
+<a name="__line346"></a>                {
+<a name="__line347"></a>                    minimum=tic_min;
+<a name="__line348"></a>                    minimum_scaled=minimum/(Scale*Unit);
+<a name="__line349"></a>                }
+<a name="__line350"></a>            }
+<a name="__line351"></a>
+<a name="__line352"></a>            if (!maxfixed)
+<a name="__line353"></a>            {
+<a name="__line354"></a>                maximum_scaled=::ceil(maximum_scaled/step_scaled)*step_scaled;
+<a name="__line355"></a>                maximum=maximum_scaled*Scale*Unit;
+<a name="__line356"></a>                if(tic_max!=unset &amp;&amp; tic_max&gt;maximum)
+<a name="__line357"></a>                {
+<a name="__line358"></a>                    maximum=tic_max;
+<a name="__line359"></a>                    maximum_scaled=maximum/(Scale*Unit);
+<a name="__line360"></a>                }
+<a name="__line361"></a>            }
+<a name="__line362"></a>            if(tic_min==unset)
+<a name="__line363"></a>            {
+<a name="__line364"></a>                const int i = ::ceil(minimum/step);
+<a name="__line365"></a>                if(::fabs((i-1)*step-minimum)&lt;0.001*(maximum-minimum)) tic_min = (i-1)*step;
+<a name="__line366"></a>                else tic_min = i*step;
+<a name="__line367"></a>            }
+<a name="__line368"></a>            if(tic_max==unset) tic_max = maximum;
+<a name="__line369"></a>
+<a name="__line370"></a>        }
+<a name="__line371"></a>
+<a name="__line372"></a>        var tic_string;
+<a name="__line373"></a>	if ( scaleingisused==true )
+<a name="__line374"></a>	{
+<a name="__line375"></a>	    if ( normalform_scale==true )
+<a name="__line376"></a>	    {
+<a name="__line377"></a>                double scaleexp=::log10(Scale);
+<a name="__line378"></a>                double scalemant=::pow(10.0, scaleexp-::floor(scaleexp));
+<a name="__line379"></a>                tic_string = var::sprintf(scale_format, scalemant);
+<a name="__line380"></a>                if ( tic_string == "1" ) tic_string = var::sprintf("$10^{%g}$", ::floor(scaleexp));
+<a name="__line381"></a>                else                     tic_string = var::sprintf(((const var)"$"&amp;scale_format&amp;"\\cdot10^{%g}$").c_str(), scalemant, ::floor(scaleexp));
+<a name="__line382"></a>	    }
+<a name="__line383"></a>	    else tic_string = var::sprintf(scale_format, Scale);
+<a name="__line384"></a>	    scale.label(tic_string);
+<a name="__line385"></a>	}
+<a name="__line386"></a>
+<a name="__line387"></a>	<span class=comment>// set the starting value for the tics.</span>
+<a name="__line388"></a><span class=comment>//	double mytic=minimum;</span>
+<a name="__line389"></a><span class=comment>//	if(tic_min!=unset) mytic = ::max(tic_min,minimum);</span>
+<a name="__line390"></a>        double mytic = tic_min;
+<a name="__line391"></a>	double epsilon=0.1*step;
+<a name="__line392"></a>	for (; mytic&lt;(tic_max!=unset?::min(tic_max,maximum):maximum)+epsilon &amp;&amp; tics.size()&lt;50;
+<a name="__line393"></a>	     mytic+=step)
+<a name="__line394"></a>	{
+<a name="__line395"></a>	    bool cutflag=false;
+<a name="__line396"></a>	    for ( unsigned int i=0 ; i&lt;cuts.size() ; ++i )
+<a name="__line397"></a>	    {
+<a name="__line398"></a>		if ( cuts[i].first&lt;=mytic &amp;&amp; mytic&lt;=cuts[i].second )
+<a name="__line399"></a>		{
+<a name="__line400"></a>		    cutflag=true;
+<a name="__line401"></a>		    break;
+<a name="__line402"></a>		}
+<a name="__line403"></a>	    }
+<a name="__line404"></a>	    if ( cutflag==false )
+<a name="__line405"></a>	    {
+<a name="__line406"></a>		if ( normalform_tics )
+<a name="__line407"></a>		{
+<a name="__line408"></a>		    if ( mytic==0.0 )
+<a name="__line409"></a>                    {
+<a name="__line410"></a>                        if(tic_format_func.initialized())
+<a name="__line411"></a>                        {
+<a name="__line412"></a>                            tic_string = tic_format_func(0.0);
+<a name="__line413"></a>                        }
+<a name="__line414"></a>                        else
+<a name="__line415"></a>                        {
+<a name="__line416"></a>                            tic_string = var::sprintf((var("$")&amp;tic_format&amp;"$").c_str(), 0.0);
+<a name="__line417"></a>                        }
+<a name="__line418"></a>                    }
+<a name="__line419"></a>		    else
+<a name="__line420"></a>		    {
+<a name="__line421"></a>                        if(tic_format_func.initialized())
+<a name="__line422"></a>                        {
+<a name="__line423"></a>                            tic_string = tic_format_func(mytic/Scale/Unit);
+<a name="__line424"></a>                        }
+<a name="__line425"></a>                        else
+<a name="__line426"></a>                        {
+<a name="__line427"></a>                            double myticexp=::log10(::fabs(mytic/Scale/Unit));
+<a name="__line428"></a>                            double myticmant=(mytic&lt;0.0 ? -1.0 : 1.0)* ::pow(10.0, myticexp-::floor(myticexp));
+<a name="__line429"></a>                            tic_string = var::sprintf(tic_format, myticmant);
+<a name="__line430"></a>                            
+<a name="__line431"></a>                            if      ( tic_string == "1" ) tic_string = var::sprintf("$10^{%g}$", ::floor(myticexp));
+<a name="__line432"></a>                            else if ( tic_string == "-1") tic_string = var::sprintf("$-10^{%g}$", ::floor(myticexp));
+<a name="__line433"></a>                            else                          tic_string = var::sprintf(((const var)"$"&amp;tic_format&amp;"\\cdot10^{%g}$").c_str(), myticmant, ::floor(myticexp));
+<a name="__line434"></a>                        }
+<a name="__line435"></a>		    }
+<a name="__line436"></a>		}
+<a name="__line437"></a>		else
+<a name="__line438"></a>		{
+<a name="__line439"></a>		    <span class=comment>// The value 0 is quite often written as 1.734e-18 due to</span>
+<a name="__line440"></a>		    <span class=comment>// floating point precision. Check this case</span>
+<a name="__line441"></a>                    if(tic_format_func.initialized())
+<a name="__line442"></a>                    {
+<a name="__line443"></a>                        tic_string = tic_format_func((::fabs(mytic/Scale/Unit)&lt;step_scaled*1e-14?0:mytic/Scale/Unit) );
+<a name="__line444"></a>                    }
+<a name="__line445"></a>                    else
+<a name="__line446"></a>                    {
+<a name="__line447"></a>                        tic_string = var::sprintf(tic_format, (::fabs(mytic/Scale/Unit)&lt;step_scaled*1e-14?0:mytic/Scale/Unit) );
+<a name="__line448"></a>                    }
+<a name="__line449"></a>		}
+<a name="__line450"></a>
+<a name="__line451"></a>		<span class=comment>// even if the tic position is strictly speaking out of the range</span>
+<a name="__line452"></a>		<span class=comment>// allow it if it is not 'too-much' out of range (floating-point</span>
+<a name="__line453"></a>		<span class=comment>// imprecisions)</span>
+<a name="__line454"></a>		if(mytic &gt; maximum + (maximum-minimum)*1e-5)
+<a name="__line455"></a>		{
+<a name="__line456"></a>		    if(!maxfixed)
+<a name="__line457"></a>		    {
+<a name="__line458"></a>			maximum = mytic;
+<a name="__line459"></a>			tics.push_back(tic(mytic, tic_string));
+<a name="__line460"></a>		    }
+<a name="__line461"></a>		}
+<a name="__line462"></a>		else tics.push_back(tic(mytic, tic_string));
+<a name="__line463"></a>	    }
+<a name="__line464"></a>	}
+<a name="__line465"></a>    }
+<a name="__line466"></a>    if(tics.size() &gt;= 50)
+<a name="__line467"></a>    {
+<a name="__line468"></a>	warning::print("Number of tics exceeded 50","calculate_tics(...)");
+<a name="__line469"></a>    }
+<a name="__line470"></a>    if(global::debug&gt;0) cout&lt;&lt;"[blop] [DEBUG] calculate_tics finished."&lt;&lt;endl;
+<a name="__line471"></a>
+<a name="__line472"></a>}
+<a name="__line473"></a>
+<a name="__line474"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Program  invocation </title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="design-concepts.html  ">
+   <link rel="Next" href="help.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="design-concepts.html  ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: design-concepts.html  ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="help.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: help.html">
+    </a> <br>
+
+<center class=title><b>
+Program  invocation 
+</b></center>
+<hr>
+
+<div class=description>
+
+<ul>  
+  <li><a href="#commandline">  Command line  arguments  </a> 
+  <li><a href="#modes">        Running modes            </a>
+  <li><a href="#initfiles">    Initialization  files    </a>  
+  <li><a href="#userincfiles"> User include files       </a>
+  <li><a href="#help">         Getting help             </a> 
+</ul>
+
+<! ============== Commandline =======================================>
+
+<p><div      class=sectiontitle><a      name="commandline">Commandline
+arguments</a></div>
+
+To run the progam, say at  your shell prompt: <br> <tt> blop [options]
+[files]</tt><br> Possible options: <br> 
+<dl>
+  <dt>-x cmd</dt>
+  <dd>Execute the command 'cmd'</dd>
+
+  <dt>-s variable=value</dt>
+  <dd>Create a global variable called 'variable', and set its value
+      to 'value. Equivalent to -x 'var variable="value";'</dd>
+
+  <dt><a name="watch">-w filename</a></dt>
+  <dd>The given file's status will be continuosly watched,
+      and if it changes, the whole command will be rerun.
+      This file will also be taken as a c++ script file to
+      be executed. For example, the command '<tt>blop -w file.C</tt>'
+      will execute '<tt>file.C</tt>' whenever it changes</dd>
+
+  <dt>-W filename</dt>
+  <dd>As -w filename, but the given file will not be taken
+      as a c++ script (useful to monitor the change of
+      datafiles) For example the command '<tt>blop -W data.dat script.C</tt>'
+      will execute the script '<tt>script.C</tt>' whenever the datafile
+      <tt>data.dat</tt> changes</dd>
+
+  <dt><a name="version">--version</a></dt>
+  <dd>Print version info (date of the last cvs commit)</dd>
+
+  <dt>-h topic<br>--help topic</dt>
+  <dd>Display help about topic</dd> 
+
+  <dt>-m</dt>
+  <dd> This argument is only useful when standard input is redirected.
+  In this case blop is by default in script
+  mode (see below... the input read from the standard input is interpreted as a
+  script file, that is, it can contain function definitions, and it must
+  contain a main function). The -m argument (with redirected input)
+  causes blop to switch to the interactive mode, when any input is
+  interpreted as if it was already within a main() { } function 
+  </dd>
+
+  <dt>--update</dt>
+  <dd>Check if there is a more recent version available. If yes,
+  download, compile and install it (via sudo)</dd> 
+
+  <dt>-c|--compile</dt>
+  <dd>If your code is very heavy, or CINT fails to interpret it (which
+  is often the case with long chained member functions, for example
+  <tt>plot("datafile").ds(cboxes().dx(1).dy(1).title("title").logscale(true));</tt>),
+  then you may want to compile your code. 
+  <p>With <tt>-c</tt> or <tt>--compile</tt> blop will compile and run
+  the given file. If blop.h is not included in your source, blop
+  automatically 
+  creates a wrapper source file, something like this:
+  <pre>#include "blop.h"
+using namespace blop;
+#include "/your/home/directory/.blop/bloprc.C" // if it #exists
+// some code here to run your BLOP_USER_INIT() function from bloprc.C
+#include "your_script_file.C"</pre>
+  The -s and -x command-line arguments do not work in this case.
+  </dd>
+
+</dl>
+
+Any other  command line arguments are interpreted  as filenames, which
+must be valid C++ scripts.  The interpreter will look for the function
+<tt>int main() {...}</tt>  in these files, and run  that function.  If
+no filenames  are given,  or none of  them contains  the <tt>main</tt>
+function, the interpreter will run interactively, and further commands
+(which may  call the functions  provided in these files)  are expected
+from the terminal.
+
+<p>The -x option can be used to communicate parameters to your scripts
+from the  command line. For example:  <br> <pre> //  ------ test.C int
+main() {
+   cout&lt;&lt;"This  is  the  parameter: "&lt;&lt;par&lt;&lt;endl;  }
+</pre> This script would not  run without errors, because the variable
+<tt>par</tt> is  not defined. But you  can define it  from the command
+line: <pre>  [host] ~/  &gt; blop -x  'var par="Hello  world";' test.C
+</pre>  or easier:  <pre> [host]  ~/  &gt; blop  -s par="Hello  world"
+test.C </pre>
+
+<! ============== Running modes ====== ==============================>
+
+<p><div      class=sectiontitle><a     name="modes">Running modes
+</a></div>
+
+There are 2 different modes of blop:
+<dl>
+ <dt>Script mode</dt>
+ <dd>If blop is given a C++ script file, it is in script mode: the
+ file can contain function declarations/definitions, or anything that
+ a valid C++ file can contain. It also MUST contain a main(){..}
+ function, which will be executed. <br>
+ By default, if no scriptfiles are provided on the command line, but
+ standard input is redirected, blop is also in script mode (unless
+ the -m option is given)
+ </dd>
+
+ <dt>Interactive mode</dt>
+ <dd>If no scriptfiles are provided on the command line, and the 
+ standard input is not redirected, blop is in
+ interactive mode: it expects commands from the terminal. These
+ commands are interpreted as if they were already within the 
+ <tt>main(){..}</tt> function.
+ </dd>
+</dl>
+
+
+<! ============== Initialization files ==============================>
+
+<p><div      class=sectiontitle><a     name="initfiles">Initialization
+files</a></div>
+
+Upon  startup, blop  first loads  the system-wide  initialization file
+<tt>init.C</tt> from  its installation directory (which  is by default
+/usr/local/blop,  unless changed  during the  installation).   Then it
+will look  for the  file <tt>$HOME/.blop/bloprc.C</tt>.  If  this file
+exists, this will also be  loaded before reading any other files.  The
+user may  provide handy  functions in this  file, which can  be called
+later.  If  the user provides a  function <a name="init_blop"><tt>void
+BLOP_USER_INIT();</tt></a> in  this file, this  will be called  automatically at
+this point; this  function can be used to set  default values, or make
+any  initializations.   After this  all  remaining  files provided  as
+command line arguments are processed.
+
+
+<! ============== User include files ================================>
+
+<p><div class=sectiontitle><a name="userincfiles">User include files</a></div>
+
+The directory <tt>$HOME/.blop/</tt> is the place, where frequently
+used include-files should be placed. This directory is automatically
+included into the search path, where blop looks for files, when it
+finds a<br>
+<pre>#include "filename.h"</pre><br>
+statement. (The bloprc.C file is also located in this directory)
+
+<! ============== help ==============================================>
+
+<p> <div class=sectiontitle><a name="help">Help</a></div>
+
+When looking  for help on a  specific topic, say at  your blop prompt:
+<tt>help("topic");</tt> (where "topic" should of course be replaced by
+what  you  are  looking  for.   It  can be  a  regular  expression  as
+well.). This command will browse  the documentation, and provide you a
+choice of  different sections, which contain  your keyword. (Currently
+you might get too many choices, since this command looks for all files
+in the documentation, which contain your keyword. This will improve in
+the  future,  and  specific   files  will  be  preferred  for  certain
+keywords). The help system is  HTML-based, the HTML browser to be used
+is figured out automatically,  unless you set the environment variable
+<tt>BLOP_HELPVIEWER</tt> to some program. The pattern '<tt>%f</tt>' is
+replaced by the filename in this string. Example:
+
+<p><pre>
+bash> export BLOP_HELPVIEWER="lynx %f"
+bash> blop
+</pre>
+
+<p>  You  often find  yourself  not  running  blop interactively,  but
+instead,  writing a script.  Thus, you  do not  have any  running blop
+process, but you would like to look for help. It is painful to start a
+blop process, type help("something");  and then terminate the process,
+etc. Therefore  the command  line option -h  is reserved to  make your
+life easier:  saying <br><tt>blop -h  topic</tt><br> will do  this job
+for your. 
+
+</div>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="design-concepts.html  ">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: design-concepts.html  ">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="help.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: help.html">
+    </a> 
+
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: units.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="units.h.html">units.h</a>"
+<a name="__line1"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line2"></a>#include &lt;map&gt;
+<a name="__line3"></a>#include &lt;sstream&gt;
+<a name="__line4"></a>#include &lt;cstdlib&gt;
+<a name="__line5"></a>using namespace std;
+<a name="__line6"></a>
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    class unit_cons_rep
+<a name="__line11"></a>    {
+<a name="__line12"></a><span class=public>    public:
+<a name="__line13"></a>        unit_cons_rep() {}
+<a name="__line14"></a>        unit_cons_rep(const string s, double v) : symbol(s), value(v) {}
+<a name="__line15"></a>        string symbol;
+<a name="__line16"></a>        double value;
+<a name="__line17"></a>    };
+<a name="__line18"></a>
+<a name="__line19"></a>
+<a name="__line20"></a>    namespace unit
+<a name="__line21"></a>    {
+<a name="__line22"></a>	string default_format_ = "[$%s$]";
+<a name="__line23"></a>	void default_format(const var &amp;f) { default_format_ = f.str(); }
+<a name="__line24"></a>	string default_format() { return default_format_; }
+<a name="__line25"></a>
+<a name="__line26"></a>        map&lt;string,unit_cons_rep&gt; all_units_;
+<a name="__line27"></a>
+<a name="__line28"></a>	void put(const string &amp;a, const string &amp;b, double v)
+<a name="__line29"></a>	{
+<a name="__line30"></a>	    all_units_[a] = unit_cons_rep(b,v);
+<a name="__line31"></a>	}
+<a name="__line32"></a>
+<a name="__line33"></a>        void register_all_units_()
+<a name="__line34"></a>        {
+<a name="__line35"></a>#define PUTU(a) all_units_[#a] = unit_cons_rep(#a,unit::a)
+<a name="__line36"></a>
+<a name="__line37"></a>            if(!all_units_.empty()) return;
+<a name="__line38"></a>
+<a name="__line39"></a>            put("%","\\%",percent);
+<a name="__line40"></a>            put("percent","\\%",unit::percent);
+<a name="__line41"></a>            put("permill","\\permill",unit::permill);
+<a name="__line42"></a>            put("permil","\\permill",unit::permill);
+<a name="__line43"></a>            PUTU(ppm);
+<a name="__line44"></a>
+<a name="__line45"></a>            put("kilogram","kg",unit::kg);
+<a name="__line46"></a>            PUTU(kg);
+<a name="__line47"></a>            PUTU(g);
+<a name="__line48"></a>            PUTU(amu);
+<a name="__line49"></a>
+<a name="__line50"></a>            put("second","s",unit::s);
+<a name="__line51"></a>            PUTU(s);
+<a name="__line52"></a>            PUTU(ms);
+<a name="__line53"></a>            put("mus","{\\textmu}s",unit::mus);
+<a name="__line54"></a>            PUTU(ns);
+<a name="__line55"></a>            PUTU(ps);
+<a name="__line56"></a>            put("minute","min",unit::minute);
+<a name="__line57"></a>            put("min","min",unit::minute);
+<a name="__line58"></a>            PUTU(hour);
+<a name="__line59"></a>            PUTU(h);
+<a name="__line60"></a>
+<a name="__line61"></a>            put("Hertz","Hz",unit::Hz);
+<a name="__line62"></a>            put("hertz","Hz",unit::Hz);
+<a name="__line63"></a>            PUTU(Hz);
+<a name="__line64"></a>            PUTU(kHz);
+<a name="__line65"></a>            PUTU(MHz);
+<a name="__line66"></a>            PUTU(GHz);
+<a name="__line67"></a>
+<a name="__line68"></a>            put("meter","m",unit::meter);
+<a name="__line69"></a>            PUTU(m);
+<a name="__line70"></a>            PUTU(cm);
+<a name="__line71"></a>            PUTU(mm);
+<a name="__line72"></a>            put("mum"   ,"{\\textmu}m",unit::mum);
+<a name="__line73"></a>            put("um"   ,"{\\textmu}m",unit::mum);
+<a name="__line74"></a>            put("micron","{\\textmu}m",unit::mum);
+<a name="__line75"></a>            PUTU(nm);
+<a name="__line76"></a>            PUTU(pm);
+<a name="__line77"></a>            PUTU(fm);
+<a name="__line78"></a>            put("fermi","fm",unit::fm);
+<a name="__line79"></a>            put("angstrom","$\\AA$",unit::angstrom);
+<a name="__line80"></a>            put("Angstrom","$\\AA$",unit::angstrom);
+<a name="__line81"></a>            PUTU(km);
+<a name="__line82"></a>            PUTU(mile);
+<a name="__line83"></a>            PUTU(inch);
+<a name="__line84"></a>            PUTU(foot);
+<a name="__line85"></a>            put("m3","m$^3$",unit::m3);
+<a name="__line86"></a>            put("m2","m$^2$",unit::m2);
+<a name="__line87"></a>            put("cm3","cm$^3$",unit::cm3);
+<a name="__line88"></a>            put("cm2","cm$^2$",unit::cm2);
+<a name="__line89"></a>            put("mm3","mm$^3$",unit::mm3);
+<a name="__line90"></a>            put("mm2","mm$^2$",unit::mm2);
+<a name="__line91"></a>
+<a name="__line92"></a>	 
+<a name="__line93"></a>            put("Joule","J",unit::J);
+<a name="__line94"></a>            put("joule","J",unit::J);
+<a name="__line95"></a>            PUTU(J);
+<a name="__line96"></a>            PUTU(mJ);
+<a name="__line97"></a>            PUTU(kJ);
+<a name="__line98"></a>            PUTU(MJ);
+<a name="__line99"></a>            PUTU(cal);
+<a name="__line100"></a>            PUTU(kcal);
+<a name="__line101"></a>
+<a name="__line102"></a>            put("Watt","W",unit::W);
+<a name="__line103"></a>            put("watt","W",unit::W);
+<a name="__line104"></a>            PUTU(W);
+<a name="__line105"></a>            PUTU(kW);
+<a name="__line106"></a>            PUTU(MW);
+<a name="__line107"></a>            PUTU(GW);
+<a name="__line108"></a>            PUTU(mW);
+<a name="__line109"></a>
+<a name="__line110"></a>            put("Coulomb","C",unit::C);
+<a name="__line111"></a>            put("coulomb","C",unit::C);
+<a name="__line112"></a>            PUTU(C);
+<a name="__line113"></a>
+<a name="__line114"></a>            put("Ampere","A",unit::A);
+<a name="__line115"></a>            put("ampere","A",unit::A);
+<a name="__line116"></a>            PUTU(A);
+<a name="__line117"></a>            PUTU(mA);
+<a name="__line118"></a>            put("muA","{\\textmu}A",unit::muA);
+<a name="__line119"></a>            PUTU(nA);
+<a name="__line120"></a>            PUTU(kA);
+<a name="__line121"></a>
+<a name="__line122"></a>            put("Newton","N",unit::N);
+<a name="__line123"></a>            put("newton","N",unit::N);
+<a name="__line124"></a>            PUTU(N);
+<a name="__line125"></a>            PUTU(kN);
+<a name="__line126"></a>
+<a name="__line127"></a>            put("Kelvin","K",unit::K);
+<a name="__line128"></a>            put("kelvin","K",unit::K);
+<a name="__line129"></a>            PUTU(K);
+<a name="__line130"></a>            PUTU(mK);
+<a name="__line131"></a>
+<a name="__line132"></a>            PUTU(mole);
+<a name="__line133"></a>            PUTU(mol);
+<a name="__line134"></a>
+<a name="__line135"></a>            put("candela","cd",unit::cd);
+<a name="__line136"></a>            PUTU(cd);
+<a name="__line137"></a>
+<a name="__line138"></a>            put("Volt","V",unit::V);
+<a name="__line139"></a>            put("volt","V",unit::V);
+<a name="__line140"></a>            PUTU(V);
+<a name="__line141"></a>            PUTU(mV);
+<a name="__line142"></a>            put("microVolt","{\\textmu}V",unit::uV);
+<a name="__line143"></a>            put("uV","{\\textmu}V",unit::uV);
+<a name="__line144"></a>            put("muV","{\\textmu}V",unit::uV);
+<a name="__line145"></a>            PUTU(kV);
+<a name="__line146"></a>            PUTU(MV);
+<a name="__line147"></a>
+<a name="__line148"></a>            put("Weber","Wb",unit::Wb);
+<a name="__line149"></a>            put("weber","Wb",unit::Wb);
+<a name="__line150"></a>            put("Wb","Wb",unit::Wb);
+<a name="__line151"></a>
+<a name="__line152"></a>            put("Tesla","T",unit::T);
+<a name="__line153"></a>            put("tesla","T",unit::T);
+<a name="__line154"></a>            PUTU(T);
+<a name="__line155"></a>            PUTU(mT);
+<a name="__line156"></a>            put("muT","{\\textmu}T",unit::muT);
+<a name="__line157"></a>            PUTU(nT);
+<a name="__line158"></a>            put("Gauss","G",unit::G);
+<a name="__line159"></a>            put("gauss","G",unit::G);
+<a name="__line160"></a>            put("mG","mG",unit::mG);
+<a name="__line161"></a>            put("mGauss","mG",unit::mG);
+<a name="__line162"></a>            put("kGauss","kG",unit::kG);
+<a name="__line163"></a>            put("kgauss","kG",unit::kG);
+<a name="__line164"></a>            PUTU(G);
+<a name="__line165"></a>            PUTU(kG);
+<a name="__line166"></a>
+<a name="__line167"></a>            PUTU(Debye);
+<a name="__line168"></a>
+<a name="__line169"></a>            put("Ohm","$\\Omega$",unit::Ohm);
+<a name="__line170"></a>            put("ohm","$\\Omega$",unit::Ohm);
+<a name="__line171"></a>            put("mOhm","m$\\Omega$",unit::mOhm);
+<a name="__line172"></a>            put("muOhm","\\textmu$\\Omega$",unit::muOhm);
+<a name="__line173"></a>            put("nOhm","n$\\Omega$",unit::nOhm);
+<a name="__line174"></a>            put("nanoOhm","n$\\Omega$",unit::nOhm);
+<a name="__line175"></a>            put("kOhm","k$\\Omega$",unit::kOhm);
+<a name="__line176"></a>            put("MOhm","M$\\Omega$",unit::MOhm);
+<a name="__line177"></a>
+<a name="__line178"></a>            put("Siemens","S",unit::S);
+<a name="__line179"></a>            put("siemens","S",unit::S);
+<a name="__line180"></a>            PUTU(S);
+<a name="__line181"></a>            PUTU(mS);
+<a name="__line182"></a>            put("muS","{\\textmu}S",unit::muS);
+<a name="__line183"></a>
+<a name="__line184"></a>            put("radian","rad",unit::rad);
+<a name="__line185"></a>            PUTU(rad);
+<a name="__line186"></a>            PUTU(mrad);
+<a name="__line187"></a>            put("degree","deg",unit::deg);
+<a name="__line188"></a>            PUTU(deg);
+<a name="__line189"></a>
+<a name="__line190"></a>            put("Farad","F",unit::F);
+<a name="__line191"></a>            put("farad","F",unit::F);
+<a name="__line192"></a>            PUTU(F);
+<a name="__line193"></a>            PUTU(mF);
+<a name="__line194"></a>            put("muF","{\\textmu}F",unit::muF);
+<a name="__line195"></a>            put("nanoFarad","nF",unit::nF);
+<a name="__line196"></a>            put("nanofarad","nF",unit::nF);
+<a name="__line197"></a>            put("picoFarad","pF",unit::pF);
+<a name="__line198"></a>            put("picofarad","pF",unit::pF);
+<a name="__line199"></a>            PUTU(nF);
+<a name="__line200"></a>            PUTU(pF);
+<a name="__line201"></a>
+<a name="__line202"></a>            put("Henry","H",unit::H);
+<a name="__line203"></a>            put("henry","H",unit::H);
+<a name="__line204"></a>            PUTU(H);
+<a name="__line205"></a>            PUTU(mH);
+<a name="__line206"></a>            put("muH","{\\textmu}H",unit::muH);
+<a name="__line207"></a>            PUTU(nH);
+<a name="__line208"></a>            PUTU(pH);
+<a name="__line209"></a>
+<a name="__line210"></a>            put("Pascal","Pa",unit::Pa);
+<a name="__line211"></a>            put("pascal","Pa",unit::Pa);
+<a name="__line212"></a>            PUTU(Pa);
+<a name="__line213"></a>            PUTU(kPa);
+<a name="__line214"></a>            PUTU(MPa);
+<a name="__line215"></a>            PUTU(GPa);
+<a name="__line216"></a>            PUTU(mPa);
+<a name="__line217"></a>            put("muPa","{\\textmu}Pa",unit::muPa);
+<a name="__line218"></a>            PUTU(Torr);
+<a name="__line219"></a>            PUTU(mTorr);
+<a name="__line220"></a>            PUTU(bar);
+<a name="__line221"></a>            PUTU(mbar);
+<a name="__line222"></a>            PUTU(atm);
+<a name="__line223"></a>
+<a name="__line224"></a>            put("atomic_mass","atomic\\_mass",unit::atomic_mass);
+<a name="__line225"></a>            put("atomic_charge","atomic\\_charge",unit::atomic_charge);
+<a name="__line226"></a>            put("atomic_length","atomic\\_length",unit::atomic_length);
+<a name="__line227"></a>            put("atomic_velocity","atomic\\_velocity",unit::atomic_velocity);
+<a name="__line228"></a>            put("atomic_time","atomic\\_time",unit::atomic_time);
+<a name="__line229"></a>            put("atomic_frequency","atomic\\_frequency",unit::atomic_frequency);
+<a name="__line230"></a>            put("atomic_energy","atomic\\_energy",unit::atomic_energy);
+<a name="__line231"></a>            put("atomic_dipole","atomic\\_dipole",unit::atomic_dipole);
+<a name="__line232"></a>            PUTU(hartree);
+<a name="__line233"></a>
+<a name="__line234"></a>            PUTU(eV);
+<a name="__line235"></a>            PUTU(keV);
+<a name="__line236"></a>            PUTU(MeV);
+<a name="__line237"></a>            PUTU(GeV);
+<a name="__line238"></a>            PUTU(TeV);
+<a name="__line239"></a>
+<a name="__line240"></a>            PUTU(Ry);
+<a name="__line241"></a>            put("Rydberg","Ry",Ry);
+<a name="__line242"></a>#undef PUTU
+<a name="__line243"></a>        }    
+<a name="__line244"></a>
+<a name="__line245"></a>    }
+<a name="__line246"></a>
+<a name="__line247"></a>    namespace cons
+<a name="__line248"></a>    {
+<a name="__line249"></a>        map&lt;string,unit_cons_rep&gt; all_cons_;
+<a name="__line250"></a>
+<a name="__line251"></a>	void put(const string &amp;a, const string &amp;b, double v)
+<a name="__line252"></a>	{
+<a name="__line253"></a>	    all_cons_[a] = unit_cons_rep(b,v);
+<a name="__line254"></a>	}
+<a name="__line255"></a>
+<a name="__line256"></a>        void register_all_cons_()
+<a name="__line257"></a>        {
+<a name="__line258"></a>#define PUT(a) all_cons_[#a] = unit_cons_rep(#a,a)
+<a name="__line259"></a>
+<a name="__line260"></a>            if(!all_cons_.empty()) return;
+<a name="__line261"></a>            PUT(c);  <span class=comment>// register the speed of light</span>
+<a name="__line262"></a>            PUT(e);  <span class=comment>// register the elementary charge</span>
+<a name="__line263"></a>            put("pi","$\\pi$",pi);
+<a name="__line264"></a>            put("hbar","$\\hbar$",hbar);
+<a name="__line265"></a>            put("kB","$k_B$",kB);
+<a name="__line266"></a>            PUT(g);
+<a name="__line267"></a>            put("epsilon0","$\\epsilon_0$",epsilon0);
+<a name="__line268"></a>            put("mu0","$\\mu_0$",mu0);
+<a name="__line269"></a>            put("m_electron","$M_e$",m_electron);
+<a name="__line270"></a>            put("m_proton","$M_p$",m_proton);
+<a name="__line271"></a>            put("m_muon","$M_\\mu$",m_muon);
+<a name="__line272"></a>            put("m_pion","$M_\\pi$",m_pion);
+<a name="__line273"></a>#undef PUT            
+<a name="__line274"></a>        }
+<a name="__line275"></a>    }
+<a name="__line276"></a>
+<a name="__line277"></a>
+<a name="__line278"></a>    bool find_unit_or_cons(const var &amp;n, double *value, string *symbol)
+<a name="__line279"></a>    {
+<a name="__line280"></a>        *value = 0;
+<a name="__line281"></a>        if(symbol) *symbol = "";
+<a name="__line282"></a>	    
+<a name="__line283"></a>        if(unit::all_units_.empty()) unit::register_all_units_();
+<a name="__line284"></a>        if(cons::all_cons_.empty() ) cons::register_all_cons_();
+<a name="__line285"></a>
+<a name="__line286"></a>        <span class=comment>// Replace the multiplication sign by a space</span>
+<a name="__line287"></a>        string name = replace(var("*"),var(" "),n).str();
+<a name="__line288"></a>
+<a name="__line289"></a>        <span class=comment>// Replace multiple spaces by one space</span>
+<a name="__line290"></a>        {
+<a name="__line291"></a>            string::size_type double_space;
+<a name="__line292"></a>            while((double_space=name.find("  ")) != string::npos)
+<a name="__line293"></a>            {
+<a name="__line294"></a>                name.replace(double_space,2," ");
+<a name="__line295"></a>            }
+<a name="__line296"></a>        }
+<a name="__line297"></a>        
+<a name="__line298"></a>
+<a name="__line299"></a>        <span class=comment>// find the border between nominator and denominator: a / followed by space of</span>
+<a name="__line300"></a>        <span class=comment>// a letter (i.e. a unit)</span>
+<a name="__line301"></a>	    
+<a name="__line302"></a>        string::size_type slash = string::npos;
+<a name="__line303"></a>        for(string::size_type i=0; i&lt;name.size()-1; ++i)
+<a name="__line304"></a>        {
+<a name="__line305"></a>            if(name[i] == '/' &amp;&amp; (name[i+1] == ' ' || isalpha(name[i+1])))
+<a name="__line306"></a>            {
+<a name="__line307"></a>                slash = i;
+<a name="__line308"></a>                break;
+<a name="__line309"></a>            }
+<a name="__line310"></a>        }
+<a name="__line311"></a>
+<a name="__line312"></a>        string ss[2];
+<a name="__line313"></a>        ss[0] = name;
+<a name="__line314"></a>        ss[1] = "";
+<a name="__line315"></a>        if(slash != string::npos)
+<a name="__line316"></a>        {
+<a name="__line317"></a>            ss[0] = name.substr(0,slash);
+<a name="__line318"></a>            ss[1] = name.substr(slash+1,string::npos);
+<a name="__line319"></a>        }
+<a name="__line320"></a>        <span class=comment>// now: ss[0] is the nominator, ss[1] is the denominator</span>
+<a name="__line321"></a>
+<a name="__line322"></a>        *value = 1;
+<a name="__line323"></a>        string symbol_local  = "";
+<a name="__line324"></a>        for(int i=0; i&lt;=1; ++i) <span class=comment>// take both the nominator and the denominator</span>
+<a name="__line325"></a>        {
+<a name="__line326"></a>            if(i==1 &amp;&amp; symbol_local == "")
+<a name="__line327"></a>            {
+<a name="__line328"></a>                warning::print("Error in the unit: " &amp; n);
+<a name="__line329"></a>                *value = 0;
+<a name="__line330"></a>                if(symbol) *symbol = "";
+<a name="__line331"></a>                return false;
+<a name="__line332"></a>            }
+<a name="__line333"></a>            if(ss[i] == "") continue;
+<a name="__line334"></a>            if(i==1) symbol_local += '/';
+<a name="__line335"></a>            string e;
+<a name="__line336"></a>            istringstream str(ss[i]);
+<a name="__line337"></a>            while(str&gt;&gt;e)
+<a name="__line338"></a>            {
+<a name="__line339"></a>                string unit_symbol = "";
+<a name="__line340"></a>                double unit_value = 0;
+<a name="__line341"></a>                string power_symbol = "";
+<a name="__line342"></a>                double power_value  = 1;
+<a name="__line343"></a>
+<a name="__line344"></a>                if(isdigit(e[0]))
+<a name="__line345"></a>                {
+<a name="__line346"></a>                    char *endptr = 0;
+<a name="__line347"></a>            
+<a name="__line348"></a>                    string::size_type powpos = e.find("^");
+<a name="__line349"></a>                    if(powpos != string::npos)
+<a name="__line350"></a>                    {
+<a name="__line351"></a>                        unit_symbol = e.substr(0,powpos);
+<a name="__line352"></a>                        unit_value = strtod(unit_symbol.c_str(),&amp;endptr);
+<a name="__line353"></a>                        power_symbol = e.substr(powpos+1,string::npos);
+<a name="__line354"></a>                        power_value  = strtod(power_symbol.c_str(),&amp;endptr);
+<a name="__line355"></a>                    }
+<a name="__line356"></a>                    else
+<a name="__line357"></a>                    {
+<a name="__line358"></a>                        unit_symbol = e;
+<a name="__line359"></a>                        unit_value = strtod(unit_symbol.c_str(),&amp;endptr);
+<a name="__line360"></a>                        power_symbol = "";
+<a name="__line361"></a>                        power_value = 1;
+<a name="__line362"></a>                    }
+<a name="__line363"></a>                }
+<a name="__line364"></a>                else
+<a name="__line365"></a>                {
+<a name="__line366"></a>                    string unitname  = e;  <span class=comment>// unit name</span>
+<a name="__line367"></a>                    power_symbol = ""; <span class=comment>// power</span>
+<a name="__line368"></a>                    string::size_type powpos = e.find("^");
+<a name="__line369"></a>                    if(powpos != string::npos)
+<a name="__line370"></a>                    {
+<a name="__line371"></a>                        unitname = e.substr(0,powpos);
+<a name="__line372"></a>                        power_symbol = e.substr(powpos+1,string::npos);
+<a name="__line373"></a>                    }
+<a name="__line374"></a>
+<a name="__line375"></a>                    map&lt;string,unit_cons_rep&gt;::iterator ui = unit::all_units_.find(unitname);
+<a name="__line376"></a>                    map&lt;string,unit_cons_rep&gt;::iterator ci = cons::all_cons_.find(unitname);
+<a name="__line377"></a>
+<a name="__line378"></a>                    <span class=comment>// If this is not identified neither as a unit, nor as a constant, issue warning and return</span>
+<a name="__line379"></a>                    if(ui == unit::all_units_.end() &amp;&amp; ci == cons::all_cons_.end())
+<a name="__line380"></a>                    {
+<a name="__line381"></a>                        warning::print(string("Unit '") + unitname + string("' not found"));
+<a name="__line382"></a>                        *value = 0;
+<a name="__line383"></a>                        if(symbol) *symbol = "";
+<a name="__line384"></a>                        return false;
+<a name="__line385"></a>                    }
+<a name="__line386"></a>
+<a name="__line387"></a>                    if(ui != unit::all_units_.end())
+<a name="__line388"></a>                    {
+<a name="__line389"></a>                        if(ci != cons::all_cons_.end())
+<a name="__line390"></a>                        {
+<a name="__line391"></a>                            warning::print(var("The symbol '") &amp; unitname &amp; "' is ambiguous (it can refer to a unit or a constant). Using the unit!",
+<a name="__line392"></a>                                           "find_unit_or_cons(\"" &amp; n &amp; "\", ...)");
+<a name="__line393"></a>                        }
+<a name="__line394"></a>                        unit_symbol = (*ui).second.symbol;
+<a name="__line395"></a>                        unit_value  = (*ui).second.value;
+<a name="__line396"></a>                    }
+<a name="__line397"></a>                    else
+<a name="__line398"></a>                    {
+<a name="__line399"></a>                        unit_symbol = (*ci).second.symbol;
+<a name="__line400"></a>                        unit_value  = (*ci).second.value;
+<a name="__line401"></a>                    }
+<a name="__line402"></a>
+<a name="__line403"></a>
+<a name="__line404"></a>                    power_value = 1;
+<a name="__line405"></a>                    if(power_symbol != "")
+<a name="__line406"></a>                    {
+<a name="__line407"></a>                        string::size_type powslash = power_symbol.find('/');
+<a name="__line408"></a>                        if(powslash == string::npos) 
+<a name="__line409"></a>                        {
+<a name="__line410"></a>                            <span class=comment>// no slash found, so simply convert it to double</span>
+<a name="__line411"></a>                            power_value = strtod(power_symbol.c_str(),0);
+<a name="__line412"></a>                        }
+<a name="__line413"></a>                        else
+<a name="__line414"></a>                        {
+<a name="__line415"></a>                            <span class=comment>// a slash found, so convert the nominator and denominator to double</span>
+<a name="__line416"></a>                            <span class=comment>// separately, and divide them</span>
+<a name="__line417"></a>                            string p1 = power_symbol.substr(0,powslash);
+<a name="__line418"></a>                            string p2 = power_symbol.substr(powslash+1,string::npos);
+<a name="__line419"></a>                            power_value = strtod(p1.c_str(),0)/strtod(p2.c_str(),0);
+<a name="__line420"></a>                        }
+<a name="__line421"></a>                    }
+<a name="__line422"></a>                }
+<a name="__line423"></a>                *value *= ::pow( unit_value, (i==0?1:-1)*power_value);
+<a name="__line424"></a>                if(symbol_local != "" &amp;&amp; symbol_local[symbol_local.size()-1] != '/') symbol_local += "\\,";
+<a name="__line425"></a>                symbol_local += "\\mbox{" + unit_symbol + "}";
+<a name="__line426"></a>                if(power_symbol != "") symbol_local += "^{" + power_symbol + "}";
+<a name="__line427"></a>            }
+<a name="__line428"></a>        }
+<a name="__line429"></a>        if(symbol) *symbol = symbol_local;
+<a name="__line430"></a>        return true;
+<a name="__line431"></a>    }
+<a name="__line432"></a>
+<a name="__line433"></a>    std::string symbol_of_unit_or_cons(const var &amp;name)
+<a name="__line434"></a>    {
+<a name="__line435"></a>        string sym="";
+<a name="__line436"></a>        double val=0;
+<a name="__line437"></a>        find_unit_or_cons(name,&amp;val,&amp;sym);
+<a name="__line438"></a>        return sym;
+<a name="__line439"></a>    }
+<a name="__line440"></a>    double value_of_unit_or_cons(const var &amp;name)
+<a name="__line441"></a>    {
+<a name="__line442"></a>        double val=0;
+<a name="__line443"></a>        find_unit_or_cons(name,&amp;val);
+<a name="__line444"></a>        return val;
+<a name="__line445"></a>    }
+<a name="__line446"></a>
+<a name="__line447"></a>}
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

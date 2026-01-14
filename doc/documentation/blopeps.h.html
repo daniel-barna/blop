@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blopeps.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_BLOPEPS_H__
+<a name="__line1"></a>#define __BLOP_BLOPEPS_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line4"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line5"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line6"></a>#include &lt;fstream&gt;
+<a name="__line7"></a>#include &lt;stack&gt;
+<a name="__line8"></a>
+<a name="__line9"></a>namespace blop
+<a name="__line10"></a>{
+<a name="__line11"></a>    class blopeps : public terminal
+<a name="__line12"></a>	{
+<a name="__line13"></a><span class=private>	private:
+<a name="__line14"></a>	    <span class=comment>// to minimize output file size, write out some definitions only</span>
+<a name="__line15"></a>	    <span class=comment>// if they are used. These flags keep track if definitions were written</span>
+<a name="__line16"></a>	    bool Ra_written_, Rt_written_, Sc_written_, Sr_written_;
+<a name="__line17"></a>
+<a name="__line18"></a>	    int current_transformation_;
+<a name="__line19"></a>	    enum { rotation_=1, translation_=2, scaling_=4 };
+<a name="__line20"></a>
+<a name="__line21"></a>	    int width_,height_;
+<a name="__line22"></a>
+<a name="__line23"></a>	    sym::linestyle   current_linestyle_;
+<a name="__line24"></a>	    color current_color_;
+<a name="__line25"></a>	    int   current_linewidth_;
+<a name="__line26"></a>
+<a name="__line27"></a>	    int  n_texts_;
+<a name="__line28"></a>	    void convertstr(const std::string &amp;s,int n,std::string &amp;);
+<a name="__line29"></a>
+<a name="__line30"></a>	    int max_length_index_;
+<a name="__line31"></a>	    std::string i2length(int i);
+<a name="__line32"></a>
+<a name="__line33"></a>	    string preferred_width_, preferred_height_;
+<a name="__line34"></a>
+<a name="__line35"></a></span><span class=private>	private:
+<a name="__line36"></a>	    std::stack&lt;std::string&gt; coordsys_x,coordsys_y,coordsys_w,coordsys_h;
+<a name="__line37"></a>
+<a name="__line38"></a>	    void draw_arc_base(const terminal::coord &amp;center,
+<a name="__line39"></a>			       const terminal::id &amp;r,
+<a name="__line40"></a>			       double ang1, double ang2);
+<a name="__line41"></a>
+<a name="__line42"></a>	    <span class=comment>// write out a length into the file</span>
+<a name="__line43"></a>	    void write(const terminal::id &amp;, ostream *out = 0);
+<a name="__line44"></a>	    
+<a name="__line45"></a>	    <span class=comment>// write out a coordinate, together with all its transformations</span>
+<a name="__line46"></a>	    void write(const terminal::coord &amp;);
+<a name="__line47"></a>
+<a name="__line48"></a>	    blopeps(const blopeps &amp;o);
+<a name="__line49"></a>
+<a name="__line50"></a></span><span class=protected>	protected:
+<a name="__line51"></a>	    std::ofstream file_;
+<a name="__line52"></a>	    std::ofstream file_tmp_;
+<a name="__line53"></a>	    std::string tmpfilename_;
+<a name="__line54"></a>	    std::string filename_;
+<a name="__line55"></a>
+<a name="__line56"></a></span><span class=public>	public:
+<a name="__line57"></a>
+<a name="__line58"></a>	    <span class=comment>// ---------- Constructor, Dtor, assignment ---------------------------------------</span>
+<a name="__line59"></a>	    blopeps(const var &amp;filename,int w=300,int h=200);
+<a name="__line60"></a>	    const blopeps &amp;operator= (const blopeps &amp;o);
+<a name="__line61"></a>	    ~blopeps();
+<a name="__line62"></a>
+<a name="__line63"></a>
+<a name="__line64"></a>	    <span class=comment>// ---------- return the output filename ------------------------------------------</span>
+<a name="__line65"></a>	    
+<a name="__line66"></a>	    const string &amp;filename() const { return filename_; }
+<a name="__line67"></a>
+<a name="__line68"></a>
+<a name="__line69"></a>	    blopeps &amp;preferred_width(const var &amp;v) { preferred_width_ = v.str(); return *this; }
+<a name="__line70"></a>	    blopeps &amp;preferred_height(const var &amp;v) { preferred_height_ = v.str(); return *this; }
+<a name="__line71"></a>
+<a name="__line72"></a>	    <span class=comment>// ---------- layers --------------------------------------------------------------</span>
+<a name="__line73"></a>
+<a name="__line74"></a>	    void open_layer(const var &amp;);
+<a name="__line75"></a>	    void close_layer(const var &amp;);
+<a name="__line76"></a>
+<a name="__line77"></a>	    
+<a name="__line78"></a>	    <span class=comment>// ---------- Print current canvas to a file --------------------------------------</span>
+<a name="__line79"></a>	    <span class=comment>// The optional 2nd and 3rd args can be used to specify a default width/height</span>
+<a name="__line80"></a>	    <span class=comment>// (to be used by 'beps2eps', if not overwritten by command line arguments)</span>
+<a name="__line81"></a>
+<a name="__line82"></a>	    static void print(const var &amp;filename, const var &amp;pref_width="", const var &amp;pref_height="");
+<a name="__line83"></a>
+<a name="__line84"></a>
+<a name="__line85"></a>	    <span class=comment>// ---------- Following functions are not supposed to be called by user -----------</span>
+<a name="__line86"></a>
+<a name="__line87"></a>	    int atan(const terminal::id &amp;x, const terminal::id &amp;y);
+<a name="__line88"></a>	    int add_dbl(const terminal::double_id &amp;, const terminal::double_id  &amp;);
+<a name="__line89"></a>	    int sin_dbl(int);
+<a name="__line90"></a>	    int cos_dbl(int);
+<a name="__line91"></a>	    int neg_dbl(int);
+<a name="__line92"></a>
+<a name="__line93"></a>	    bool clip(const terminal::coord &amp;lower_left,
+<a name="__line94"></a>		      const terminal::coord &amp;upper_right);
+<a name="__line95"></a>
+<a name="__line96"></a>	    void noclip();
+<a name="__line97"></a>
+<a name="__line98"></a>
+<a name="__line99"></a>	    void comment(const string &amp;);
+<a name="__line100"></a>
+<a name="__line101"></a>	    int newlength();
+<a name="__line102"></a>	    int overwrite(int id,double f1,const terminal::id &amp;i1);
+<a name="__line103"></a>	    int overwrite(int id,
+<a name="__line104"></a>			  double f1,const terminal::id &amp;i1,
+<a name="__line105"></a>			  double f2,const terminal::id &amp;i2);
+<a name="__line106"></a>
+<a name="__line107"></a>	    int lincombi(terminal::double_id f,const terminal::id &amp;i);
+<a name="__line108"></a>	    int lincombi(terminal::double_id f1, const terminal::id &amp;i1,
+<a name="__line109"></a>			 terminal::double_id f2, const terminal::id &amp;i2);
+<a name="__line110"></a>	    int lincombi(const std::vector&lt;double&gt; &amp;f,
+<a name="__line111"></a>			 const std::vector&lt;blop::terminal::id&gt; &amp;ids);
+<a name="__line112"></a>
+<a name="__line113"></a>	    int maxlength(const std::vector&lt;blop::terminal::id&gt; &amp;ids);
+<a name="__line114"></a>	    int minlength(const std::vector&lt;blop::terminal::id&gt; &amp;ids);
+<a name="__line115"></a>
+<a name="__line116"></a>	    int textwidth(const string &amp;,double angle=0);
+<a name="__line117"></a>	    int textheight(const string &amp;,double angle=0);
+<a name="__line118"></a>	    int textlheight(const string &amp;,double angle=0);
+<a name="__line119"></a>	    int textsize(const string &amp;,double angle=0);
+<a name="__line120"></a>	    
+<a name="__line121"></a>	    int max_textwidth(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line122"></a>	    int max_textheight(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line123"></a>	    int max_textlheight(const std::vector&lt;std::string&gt; &amp;);
+<a name="__line124"></a>
+<a name="__line125"></a>	    void picture_begin();
+<a name="__line126"></a>	    void picture_end();
+<a name="__line127"></a>
+<a name="__line128"></a>	    void subpicture_begin(const terminal::coord &amp;lower_left,
+<a name="__line129"></a>				  const terminal::coord &amp;upper_right);
+<a name="__line130"></a>	    void subpicture_end();
+<a name="__line131"></a>
+<a name="__line132"></a>	    void draw_dot(const terminal::coord &amp;pos);
+<a name="__line133"></a>
+<a name="__line134"></a>	    void draw_text(const terminal::coord &amp;pos,
+<a name="__line135"></a>			   const string &amp;,
+<a name="__line136"></a>			   int xalign,int yalign,
+<a name="__line137"></a>			   const blop::terminal::id &amp;dx,
+<a name="__line138"></a>			   const blop::terminal::id &amp;dy,
+<a name="__line139"></a>			   bool rotatedsystem=true);
+<a name="__line140"></a>
+<a name="__line141"></a>	    void draw_arc(const terminal::coord &amp;center,
+<a name="__line142"></a>			  const terminal::id &amp;r,
+<a name="__line143"></a>			  double ang1, double ang2);
+<a name="__line144"></a>	    void fill_arc(const terminal::coord &amp;center,
+<a name="__line145"></a>			  const terminal::id &amp;r,
+<a name="__line146"></a>			  double ang1, double ang2);
+<a name="__line147"></a>
+<a name="__line148"></a>	    void draw_line(const terminal::coord &amp;c1,
+<a name="__line149"></a>			   const terminal::coord &amp;c2);
+<a name="__line150"></a>	    void draw_lines_base(const std::vector&lt;blop::terminal::coord&gt; &amp;c);
+<a name="__line151"></a>	    void draw_lines     (const std::vector&lt;blop::terminal::coord&gt; &amp;c);
+<a name="__line152"></a>	    void fill_polygon   (const std::vector&lt;blop::terminal::coord&gt; &amp;c);
+<a name="__line153"></a>	    void draw_rlines(const blop::terminal::coord &amp;start,
+<a name="__line154"></a>			     const std::vector&lt;blop::terminal::id&gt; &amp;dx,
+<a name="__line155"></a>			     const std::vector&lt;blop::terminal::id&gt; &amp;dy);
+<a name="__line156"></a>
+<a name="__line157"></a>	    void reset_transformation();
+<a name="__line158"></a>	    void translate(const id &amp;, const id &amp;);
+<a name="__line159"></a>	    void rotate   (double angle);
+<a name="__line160"></a>	    void rotate   (const id &amp;, const id &amp;);
+<a name="__line161"></a>	    void scale    (double s);
+<a name="__line162"></a>	    void scale    (double xscale, double yscale);
+<a name="__line163"></a>	    void scale    (const id &amp;xfrom, const id &amp;xto,
+<a name="__line164"></a>			   const id &amp;yfrom, const id &amp;yto);
+<a name="__line165"></a>
+<a name="__line166"></a>	    <span class=comment>//void move_origin(const terminal::id &amp;,const terminal::id &amp;);</span>
+<a name="__line167"></a>
+<a name="__line168"></a>	    void set_color(const color &amp;c);
+<a name="__line169"></a>	    void set_linewidth(const terminal::id &amp;);
+<a name="__line170"></a>	    void set_linestyle(sym::linestyle);
+<a name="__line171"></a>
+<a name="__line172"></a>            static std::string filename_extension() { return ".beps"; }
+<a name="__line173"></a>	};
+<a name="__line174"></a>
+<a name="__line175"></a>    typedef blopeps beps;
+<a name="__line176"></a>
+<a name="__line177"></a>
+<a name="__line178"></a>}
+<a name="__line179"></a>
+<a name="__line180"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

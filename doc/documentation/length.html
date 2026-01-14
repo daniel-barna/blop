@@ -1,0 +1,307 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Length</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="interpolation.html">
+   <link rel="Next" href="color.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="interpolation.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: interpolation.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="color.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: color.html">
+    </a> <br>
+
+<center class=title><b>
+Length
+</b></center>
+<hr>
+
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+length l1 = 2*CM + width("some text");   // lengths can be linear-combined
+length l2 = 2 * !l1 + 3*MM;              // l2 holds a reference (!) to l1...
+l1 = LW;                                 // so if l1 changes (here to the LW unit -- linewidth) ..
+cerr&lt;&lt;l2&lt;&lt;endl;                          // then l2 also changes. to debug lengths, use the &lt;&lt; operator
+</pre>
+</div>
+<hr>
+
+<div  class=description>  Lengths are  the  most  important things  in
+blop. When designing this class, the following goals were considered:
+
+<ul>
+
+<li> The  class should provide a user-friendly  interface (addition of
+two lengths, multiplication  by a number, etc), using  the familiar *,
++, - operators
+
+<li> The natural units used in  LaTeX should be available (cm, mm, pt,
+ex, em)
+
+<li> They should  be able to hold lengths  characteristic to terminals
+(for  example different  terminals might  typeset text  with different
+characters, so the width of a text is not an a priori known quantity)
+
+</ul>
+
+<p>  To satisfy  these considerations,  this class  has  become rather
+abstract. It  does not hold a  specific numerical value  (like 2.34 of
+some units),  but for example it  can be set  to be "the width  of the
+string  'temperature'".  How much  this  is  exactly,  depends on  the
+terminal (for  example, a <a  href="blopeps.html">blopeps</a> terminal
+typesets text  with the current font  of the LaTeX  document, where it
+<b>will be</b> included, so at this point it is principally impossible
+to know, how much this width  is). From this follows, that two lengths
+can not be compared (unfortunately). So you can not write: <br>
+
+<pre>
+length l1 = width("some text");
+length l2 = 2*CM + EX;
+if(l1 < l2) { .... }
+else        { .... }
+</pre>
+
+<p> The following ways exist to create lengths:
+
+<ul>
+
+<li><u><a name="units">Units:</a></u> There are several predefined
+lengths (units), which can be used in your blop script. See the later
+parts how to use them. These are: 
+
+<dl>
+
+<dt>CM, MM, PT, EM, EX</td>
+<dd>These are the well-known units used in TeX as well. I trust your
+imagination to figure out, what the first two are. The third one, PT
+is the point unit in TeX, EM and EX are TeX's <tt>ex</tt> and
+<tt>em</tt> dimens, which are the height of an 'x', and the width of
+an 'M' in the current font, respectively. </dd>
+
+<dt>PW, PH</dt>
+<dd> The width (PictureWidth) and height (PictureHeight) of the
+figure. (This unit can not be known at the time your blop-script runs,
+since - when using the <a href="blopeps.html">blopeps</a> terminal,
+the size of the included figure can be specified at the time of its
+inclusion into the LaTeX document). But still, you can use these units
+to access the (future) dimensions of your figure</dd>
+
+<dt>PS, LW</dt> 
+<dd> PS  stands for PointSize, LW  stands for LineWidth,  and they are
+the default size of the symbols (when drawing a graph), or the default
+width of all lines in your  figure. When using a blopeps terminal (the
+native one of blop), you can customize these dimensions at the time of
+inclusion  of   your  figure  into   your  LaTeX  document   using  <a
+href="blopeps.html#ps">macro options</a> </dd>
+
+</dl>
+
+You can  not change these  units in your  blop script. You  can change
+them (for example  in the case of the blopeps  terminal) in your LaTeX
+document, which includes  your figure.  (You can not  change of course
+the CM, MM and PT units. The EX and EM units are changed by the change
+of  the fontsize  in  the LaTeX  document,  the PW  and  PH units  are
+determined by the size of your figure,  and the PS and LW units can be
+changed  explicitely  in the  LaTeX  document  with  arguments to  the
+<tt>\blopeps</tt>   macro  --  see   <a  href="blopeps.html#macro">the
+description of the <tt>\blopeps</tt> macro</a>)
+
+<li> <u><a name="textsize">Text size:</a></u> To measure the width or
+height of a string (in its final appearance in your document), use the
+<br> 
+<pre>
+width(const var &text, double angle=0);
+height(const var &text, double angle=0);
+</pre>
+functions. They return lengths, which are exactly the desired values. 
+
+<li> <u><a name="lincombi">Linear combination:</a></u> You can add two
+lengths, or multiply lengths by numbers using the +,- and * operators. 
+
+<li> <u>Lengths in terms of some unit:</u> You can specify lengths as
+simple floating point number, for example:
+<pre>
+length x_pos = 0.5;
+</pre>
+In this case the length <tt>x_pos</tt> will be interpreted as 0.5
+times some unit. The choice of the unit is decided by the object,
+which uses this length (as its dimension, position, or whatever). 
+What's more, the objects can choose different units in the x and y
+directions. 
+There are two ways, how the graphical objects (<a
+href="grob.html">grob</a>s) choose these units.
+
+<ul>
+<li> The unit is a fix length, for example 1.5*CM. This can be
+selected by calling the <tt>x_unit(length)</tt> or
+<tt>y_unit(length)</tt> function of grobs (or any derived objet), or
+simply <tt>unit(length)</tt> to set both x and y units:
+<pre>
+line::pdraw(0,0)(1,0)(1,1)(2,1)(2,2).unit(1.5*CM);
+</pre>
+In this example the unit was set to 1.5*CM for this single
+object. It can be globally set as well:
+<pre>
+grob::default_x_unit(2*CM);  
+grob::default_y_unit(2*CM);   
+// or grob::default_unit(2*CM);
+
+   // now all objects created after the above two lines will
+   // use 2*CM as their x and y units
+
+line::pdraw(0,0)(1,0)(1,1)(2,1)(2,2);  // this line as well.
+</pre>
+
+<li>The x and y units used by an object can be the width and height of
+its parent container (this is the default). This behaviour can be
+chosen with the following code:
+<pre>
+// globally: all objects created after these statements will use
+// their parent's width and height as x and y units
+grob::default_x_unit(grob::use_parent);
+grob::default_y_unit(grob::use_parent);
+grob::default_unit(grob::use_parent);   // set both units
+
+// or set it to a single object:
+// this statement draws a line from the lower left to the 
+// upper right corner of its parent
+line::pdraw(0,0)(1,1).unit(grob::use_parent);
+</pre>
+
+For example to create a pad in your canvas, in the upper right quarter
+of it, say:
+<pre>
+pad::mknew(0.5,0.5,1,1).unit(grob::use_parent);
+</pre>
+(Since this behaviour is the default, you can omit the
+<tt>unit(grob::use_parent)</tt> actually).
+
+</ul>
+
+
+<li> <u><a name="references">References:</a></u> If you create a lengths as the linear
+combination of other lengths, they current values are copied, and 
+the newly created linear combination will hold these values. 
+That is, later changes to those lengths don't influence the
+value of this linear combination. For example, in the following
+example the final value of <tt>b</tt> is 4 mm, and not 2 cm:<br>
+<pre>
+length a = 2*MM;
+length b = 2*a;
+a = CM;          // the value of 'b' is 4 mm, regardless of the change of 'a'
+</pre><br>
+However, the opposite behaviour is often desirable. For example, if
+you put a text label somewhere in  your plot, and want to draw an
+arrow from the upper right corner of this label, then it is easier if
+the starting coordinates of the arrow automatically reflect changes in
+the label's position, so that if you reposition your label, you don't
+have to reposition the arrow. There are many more examples, most of
+them occur in the implementation of the objects (axis ticslabels,
+titles, etc). 
+
+<p>The <tt>!</tt> operator is provided to solve this problem. By
+preceding the length with a <tt>!</tt>, one can create a reference to
+that length. Using this you can create other lengths which
+depend on the previous one. For example, in the following example the
+final value of <tt>c</tt> is 4mm + 3cm (note that <tt>b</tt> was not
+preceded by a <tt>!</tt>). <br>
+<pre>
+length a = 2*MM;
+length b = 3*CM;
+length c = !a + b;
+a = 4*MM;
+b = 6:CM;
+</pre>
+
+<p> When lengths are copied (using the = operator), the left hand side
+of = will hold a copy of the rhs. This means, that if the rhs is a
+reference to another lengths, then the lhs will also be a reference to
+that lengths. 
+
+<li><u>Axis-values</u>: When objects are positioned in <a
+href="container.html">containers</a>, their positions are specified as
+length-pairs, which mean the distance from the container's origin (the
+lower left corner). This holds also for objects being positioned into <a
+href="frame.html">frames</a>: their positions must be specified as
+distances from the frame's origin (its lower left corner). However,
+one often wants to position objects to a specific value along the
+horizontal or vertical axis. To solve this, the <tt>x1len(double
+a,double b)</tt> (and <tt>y1len</tt>, <tt>x2len</tt>, <tt>y2len</tt>)
+functions are provided, which do the following:
+<ul>
+<li> If called with one argument, they return a length, which is the
+distance between the origin of the x1 axis (y1,x2 or y2), and the
+position of the provided value along the axis of the current
+frame. This is exactly the length you desire for positioning your
+object, since the origin of the axis coincides with the origin of the
+frame. 
+<li> If called with two arguments, they return the distance between
+the two provided values along the x1 (y1, x2 or y2) axis of the
+current frame.
+</ul>
+
+</ul>
+
+
+</div>
+<hr>
+
+<div class=implementation>
+<p> <a name="specialize">Lengths</a> are thus rather abstract objects,
+and they  have to be  <i>specialized</i> for a given  terminal, before
+they can be used  in this terminal. This is not done  by the user, and
+he  never  has  to worry  about  this,  but  it  also belongs  to  the
+picture. Skip  this part if you don't  want to go too  deeply into the
+details.   Lengths are  specialized  when  a canvas  is  printed to  a
+terminal (see examples elsewhere), and what this process means, can be
+best  explained with  an example:  let <tt>a</tt>  be a  length, which
+<i>is  the width  of the  string "hello"</i>.   As stated  above, this
+object (when created), does not  hold any more information, just this:
+<i>I am the  width of the strig "hello"</i>.  The  width of the string
+"hello",  however,  can  be  different  in  different  terminals,  and
+specializing this  lengths means asking the terminal  to calculate (in
+its  own, hidden way)  the width  of this  string.  The  terminal will
+store this information privately, and return an integer (a length ID),
+which  refers  to  this   piece  of  information.   When  lengths  are
+specialized  (calling  their  <tt>length::specialize(terminal  *)</tt>
+member function),  they store  this ID returned  by the  terminal, and
+later all graphical  manipulations (drawing a line from  this point to
+that point, drawing  a text at this or that  coordinate) will use this
+ID to refer to the given length. 
+
+
+<pre>
+Source files:
+   <a href="length.h.html">length.h</a>
+   <a href="length.cc.html">length.cc</a>
+</pre>
+</div><hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="interpolation.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: interpolation.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="color.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: color.html">
+    </a> 
+
+</body>
+</html>

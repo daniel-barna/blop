@@ -1,0 +1,243 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: fitopt.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_FITOPT_H__
+<a name="__line1"></a>#define __BLOP_FITOPT_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line6"></a>#include &lt;vector&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    <span class=comment>/*
+<a name="__line11"></a>      fitopt is a class to hold many (all) options/specifications of a fitting procedure
+<a name="__line12"></a>      (such as which column of the input data should be interpreted as x/y values or errors,
+<a name="__line13"></a>      what is the convergence criteria, verbosity, fixed parameters, max number of steps,
+<a name="__line14"></a>      etc
+<a name="__line15"></a>    */</span>
+<a name="__line16"></a>
+<a name="__line17"></a>    class fitopt
+<a name="__line18"></a>    {
+<a name="__line19"></a><span class=public>    public:
+<a name="__line20"></a>	typedef int (*cfuncptr)(double,double,
+<a name="__line21"></a>				const std::vector&lt;blop::var&gt; &amp;,
+<a name="__line22"></a>				const std::vector&lt;blop::var&gt; &amp;,
+<a name="__line23"></a>				int);
+<a name="__line24"></a></span><span class=private>    private:
+<a name="__line25"></a>	function x_, y_, sigma_x_, sigma_y_;
+<a name="__line26"></a>	static function default_x_, default_y_, default_sigma_x_, default_sigma_y_;
+<a name="__line27"></a>	std::vector&lt;int&gt; fixed_pars_;
+<a name="__line28"></a>	int verbose_;
+<a name="__line29"></a>	static int default_verbose_;
+<a name="__line30"></a>	int maxsteps_;
+<a name="__line31"></a>	static int default_maxsteps_;
+<a name="__line32"></a>
+<a name="__line33"></a>        <span class=comment>// if 0 (default), take the whole dataset. If &gt;0, take that block of the dataset</span>
+<a name="__line34"></a>        <span class=comment>// (blocks are continuous subsets, separated by 'unset' values)</span>
+<a name="__line35"></a>        int block_; 
+<a name="__line36"></a>
+<a name="__line37"></a>	void *convergence_void_;
+<a name="__line38"></a>	cfuncptr convergence_;
+<a name="__line39"></a>	static void *default_convergence_void_;
+<a name="__line40"></a>	static cfuncptr default_convergence_;
+<a name="__line41"></a>
+<a name="__line42"></a>	function x_condition_, y_condition_, condition_;
+<a name="__line43"></a>	static function default_x_condition_, default_y_condition_, default_condition_;
+<a name="__line44"></a>
+<a name="__line45"></a></span><span class=public>    public:
+<a name="__line46"></a>
+<a name="__line47"></a>	fitopt();
+<a name="__line48"></a>
+<a name="__line49"></a>	const function &amp;x() const { return x_; }
+<a name="__line50"></a>	const function &amp;y() const { return y_; }
+<a name="__line51"></a>	const function &amp;sigma_x() const { return sigma_x_; }
+<a name="__line52"></a>	const function &amp;sigma_y() const { return sigma_y_; }
+<a name="__line53"></a>
+<a name="__line54"></a>	static void default_x(const function &amp;f);
+<a name="__line55"></a>	static void default_x(const function &amp;f1, const function &amp;f2);
+<a name="__line56"></a>	static void default_x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line57"></a>
+<a name="__line58"></a>	static void default_y(const function &amp;f);
+<a name="__line59"></a>	static void default_y(const function &amp;f1, const function &amp;f2);
+<a name="__line60"></a>	static void default_y(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line61"></a>
+<a name="__line62"></a>	static void default_sigma_x(const function &amp;f);
+<a name="__line63"></a>	static void default_sigma_x(const function &amp;f1, const function &amp;f2);
+<a name="__line64"></a>	static void default_sigma_x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line65"></a>
+<a name="__line66"></a>	static void default_sigma_y(const function &amp;f);
+<a name="__line67"></a>	static void default_sigma_y(const function &amp;f1, const function &amp;f2);
+<a name="__line68"></a>	static void default_sigma_y(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line69"></a>
+<a name="__line70"></a>	static void default_convergence(void *f) { default_convergence_void_ = f; }
+<a name="__line71"></a>	static void default_convergence(cfuncptr f) { default_convergence_ = f; }
+<a name="__line72"></a>
+<a name="__line73"></a>
+<a name="__line74"></a>	<span class=comment>// ---------- Specify colums for x,y,sigmax,sigmay --------------------------------</span>
+<a name="__line75"></a>
+<a name="__line76"></a>	fitopt &amp;x(const function &amp;f);
+<a name="__line77"></a>	fitopt &amp;x(const function &amp;f1, const function &amp;f2);
+<a name="__line78"></a>	fitopt &amp;x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line79"></a>	fitopt &amp;x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4);
+<a name="__line80"></a>	fitopt &amp;x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5);
+<a name="__line81"></a>	fitopt &amp;x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5, const function &amp;f6);
+<a name="__line82"></a>
+<a name="__line83"></a>	fitopt &amp;y(const function &amp;f);
+<a name="__line84"></a>	fitopt &amp;y(const function &amp;f1, const function &amp;f2);
+<a name="__line85"></a>	fitopt &amp;y(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line86"></a>	fitopt &amp;y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4);
+<a name="__line87"></a>	fitopt &amp;y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5);
+<a name="__line88"></a>	fitopt &amp;y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5, const function &amp;f6);
+<a name="__line89"></a>
+<a name="__line90"></a>	fitopt &amp;sigma_x(const function &amp;f);
+<a name="__line91"></a>	fitopt &amp;sigma_x(const function &amp;f1, const function &amp;f2);
+<a name="__line92"></a>	fitopt &amp;sigma_x(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line93"></a>	fitopt &amp;sigma_x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4);
+<a name="__line94"></a>	fitopt &amp;sigma_x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5);
+<a name="__line95"></a>	fitopt &amp;sigma_x(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5, const function &amp;f6);
+<a name="__line96"></a>
+<a name="__line97"></a>	fitopt &amp;sigma_y(const function &amp;f);
+<a name="__line98"></a>	fitopt &amp;sigma_y(const function &amp;f1, const function &amp;f2);
+<a name="__line99"></a>	fitopt &amp;sigma_y(const function &amp;f1, const function &amp;f2, const function &amp;f3);
+<a name="__line100"></a>	fitopt &amp;sigma_y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4);
+<a name="__line101"></a>	fitopt &amp;sigma_y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5);
+<a name="__line102"></a>	fitopt &amp;sigma_y(const function &amp;f1, const function &amp;f2, const function &amp;f3, const function &amp;f4, const function &amp;f5, const function &amp;f6);
+<a name="__line103"></a>
+<a name="__line104"></a>
+<a name="__line105"></a>	<span class=comment>// ---------- Specify data block --------------------------------------------------</span>
+<a name="__line106"></a>
+<a name="__line107"></a>        fitopt &amp;block(int b);
+<a name="__line108"></a>        int     block() const { return block_; }
+<a name="__line109"></a>
+<a name="__line110"></a>	<span class=comment>// ---------- Specify convergence criteria ----------------------------------------</span>
+<a name="__line111"></a>
+<a name="__line112"></a>	fitopt &amp;convergence(void *f) { convergence_void_ = f; return *this; }
+<a name="__line113"></a>	fitopt &amp;convergence(cfuncptr f) { convergence_ = f; return *this; }
+<a name="__line114"></a>	cfuncptr convergence() const { return convergence_; }
+<a name="__line115"></a>	void     *convergence_void() const { return convergence_void_; }
+<a name="__line116"></a>
+<a name="__line117"></a>
+<a name="__line118"></a>	<span class=comment>// ---------- fix a parameter -----------------------------------------------------</span>
+<a name="__line119"></a>
+<a name="__line120"></a>	fitopt &amp;fix(int i, bool fixit = true);
+<a name="__line121"></a>	bool    fixed(int i); 
+<a name="__line122"></a>	const std::vector&lt;int&gt; &amp;fixed() const { return fixed_pars_; }
+<a name="__line123"></a>
+<a name="__line124"></a>
+<a name="__line125"></a>	<span class=comment>// ---------- Set verbosity -------------------------------------------------------</span>
+<a name="__line126"></a>
+<a name="__line127"></a>	static void default_verbose(int i) { default_verbose_ = i; }
+<a name="__line128"></a>	fitopt &amp;verbose(int i) { verbose_ = i; return *this; }
+<a name="__line129"></a>	int     verbose() const { return verbose_; }
+<a name="__line130"></a>
+<a name="__line131"></a>
+<a name="__line132"></a>	<span class=comment>// ---------- Specify max number of iteration steps -------------------------------</span>
+<a name="__line133"></a>
+<a name="__line134"></a>	static void default_maxsteps(int i) { default_maxsteps_ = i; }
+<a name="__line135"></a>	fitopt &amp;maxsteps(int i) { maxsteps_ = i; return *this; }
+<a name="__line136"></a>	int     maxsteps() const { return maxsteps_; }
+<a name="__line137"></a>
+<a name="__line138"></a>
+<a name="__line139"></a>	<span class=comment>// ---------- Specify conditions --------------------------------------------------</span>
+<a name="__line140"></a>	<span class=comment>// Specify conditions, which data points from the input should</span>
+<a name="__line141"></a>	<span class=comment>// be used for the fitting</span>
+<a name="__line142"></a>	<span class=comment>// the functions 'x_condition' and 'y_condition' are evaluated on each</span>
+<a name="__line143"></a>	<span class=comment>// data point pairs, and if they both return non-0, the point is used for the fit</span>
+<a name="__line144"></a>
+<a name="__line145"></a>	static void default_x_condition(const function &amp;f) { default_x_condition_ = f; }
+<a name="__line146"></a>	static void default_y_condition(const function &amp;f) { default_y_condition_ = f; }
+<a name="__line147"></a>	static void default_condition  (const function &amp;f) { default_condition_ = f; }
+<a name="__line148"></a>	fitopt &amp;x_condition(const function &amp;f) { x_condition_ = f; return *this; }
+<a name="__line149"></a>	fitopt &amp;y_condition(const function &amp;f) { y_condition_ = f; return *this; }
+<a name="__line150"></a>	fitopt &amp;condition  (const function &amp;f) { condition_ = f; return *this; }
+<a name="__line151"></a>	const function &amp;x_condition() const { return x_condition_; }
+<a name="__line152"></a>	const function &amp;y_condition() const { return y_condition_; }
+<a name="__line153"></a>	const function condition()    const { return condition_; }
+<a name="__line154"></a>
+<a name="__line155"></a>	<span class=comment>// ---------- Specify fitting x-range ---------------------------------------------</span>
+<a name="__line156"></a>	<span class=comment>// Only (x,y) value pairs where x falls into the given range will be used</span>
+<a name="__line157"></a>	<span class=comment>// in the fitting. It is implemented by specifying a condition (see above),</span>
+<a name="__line158"></a>	<span class=comment>// so do not try to specify a fitting range and another condition simultaneously.</span>
+<a name="__line159"></a>
+<a name="__line160"></a>	fitopt &amp;xrange(double x1, double x2)
+<a name="__line161"></a>	    {
+<a name="__line162"></a>		if(x1 == unset &amp;&amp; x2 == unset) x_condition_ = unset;
+<a name="__line163"></a>		if(x1 != unset &amp;&amp; x2 != unset) x_condition_ = (x1&lt;_1) &amp;&amp; (_1&lt;x2);
+<a name="__line164"></a>		if(x1 == unset &amp;&amp; x2 != unset) x_condition_ = (_1&lt;x2);
+<a name="__line165"></a>		if(x1 != unset &amp;&amp; x2 == unset) x_condition_ = (x1&lt;_1);
+<a name="__line166"></a>		return *this;
+<a name="__line167"></a>	    }
+<a name="__line168"></a>	fitopt &amp;xmin(double x)
+<a name="__line169"></a>	    {
+<a name="__line170"></a>		if(x != unset) x_condition_ = (x&lt;_1);
+<a name="__line171"></a>		else x_condition_ = unset;
+<a name="__line172"></a>		return *this;
+<a name="__line173"></a>	    }
+<a name="__line174"></a>	fitopt &amp;xmax(double x)
+<a name="__line175"></a>	    {
+<a name="__line176"></a>		if(x != unset) x_condition_ = (_1&lt;x);
+<a name="__line177"></a>		else x_condition_ = unset;
+<a name="__line178"></a>		return *this;
+<a name="__line179"></a>	    }
+<a name="__line180"></a>
+<a name="__line181"></a>	<span class=comment>// ---------- Specify fitting y-range ---------------------------------------------</span>
+<a name="__line182"></a>	<span class=comment>// Only (x,y) value pairs where y falls into the given range will be used</span>
+<a name="__line183"></a>	<span class=comment>// in the fitting. It is implemented by specifying a condition (see above),</span>
+<a name="__line184"></a>	<span class=comment>// so do not try to specify a fitting range and another condition simultaneously.</span>
+<a name="__line185"></a>
+<a name="__line186"></a>	fitopt &amp;yrange(double x1, double x2)
+<a name="__line187"></a>	    {
+<a name="__line188"></a>		if(x1 == unset &amp;&amp; x2 == unset) y_condition_ = unset;
+<a name="__line189"></a>		if(x1 != unset &amp;&amp; x2 != unset) y_condition_ = (x1&lt;_1) &amp;&amp; (_1&lt;x2);
+<a name="__line190"></a>		if(x1 == unset &amp;&amp; x2 != unset) y_condition_ = (_1&lt;x2);
+<a name="__line191"></a>		if(x1 != unset &amp;&amp; x2 == unset) y_condition_ = (x1&lt;_1);
+<a name="__line192"></a>		return *this;
+<a name="__line193"></a>	    }
+<a name="__line194"></a>	fitopt &amp;ymin(double x)
+<a name="__line195"></a>	    {
+<a name="__line196"></a>		if(x != unset) y_condition_ = (x&lt;_1);
+<a name="__line197"></a>		else y_condition_ = unset;
+<a name="__line198"></a>		return *this;
+<a name="__line199"></a>	    }
+<a name="__line200"></a>	fitopt &amp;ymax(double x)
+<a name="__line201"></a>	    {
+<a name="__line202"></a>		if(x != unset) y_condition_ = (_1&lt;x);
+<a name="__line203"></a>		else y_condition_ = unset;
+<a name="__line204"></a>		return *this;
+<a name="__line205"></a>	    }
+<a name="__line206"></a>
+<a name="__line207"></a>
+<a name="__line208"></a>    };
+<a name="__line209"></a>
+<a name="__line210"></a>}
+<a name="__line211"></a>
+<a name="__line212"></a>#endif
+<a name="__line213"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

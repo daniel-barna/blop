@@ -1,0 +1,1502 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: dgraph.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="dgraph.h.html">dgraph.h</a>"
+<a name="__line1"></a>#include &lt;fstream&gt;
+<a name="__line2"></a>#include &lt;sstream&gt;
+<a name="__line3"></a>#include &lt;cstdio&gt;
+<a name="__line4"></a>#include &lt;algorithm&gt;
+<a name="__line5"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line6"></a>#include "<a href="pstream.h.html">pstream.h</a>"
+<a name="__line7"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line8"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line9"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line10"></a>
+<a name="__line11"></a>namespace blop
+<a name="__line12"></a>{
+<a name="__line13"></a><span class=comment>/*
+<a name="__line14"></a>    the indexing of data points should be changed everywyere. 
+<a name="__line15"></a>    also in the graph_drawer at a few places
+<a name="__line16"></a>*/</span>
+<a name="__line17"></a>
+<a name="__line18"></a>    dgraph &amp;dgraph::dup()
+<a name="__line19"></a>    {
+<a name="__line20"></a>	dgraph *result = new dgraph(*this);
+<a name="__line21"></a>	if(parent_) parent_-&gt;add(result);
+<a name="__line22"></a>	return *result;
+<a name="__line23"></a>    }
+<a name="__line24"></a>
+<a name="__line25"></a>    dgraph &amp;dgraph::columns(int ncols)
+<a name="__line26"></a>    {
+<a name="__line27"></a>	columns_ = ncols;
+<a name="__line28"></a>	for(unsigned int i=0; i&lt;data_.size(); ++i) data_[i].resize(ncols);
+<a name="__line29"></a>	return *this;
+<a name="__line30"></a>    }
+<a name="__line31"></a>    dgraph &amp;dgraph::resize(int newsize)
+<a name="__line32"></a>    {
+<a name="__line33"></a>	if(columns_ &lt;= 0)
+<a name="__line34"></a>	{
+<a name="__line35"></a>	    warning::print("Do not know the number of columns yet. It is set now to 2",
+<a name="__line36"></a>			   "dgraph::resize(int newsize)");
+<a name="__line37"></a>	    columns_ = 2;
+<a name="__line38"></a>	    if(!data_.empty())
+<a name="__line39"></a>	    {
+<a name="__line40"></a>		warning::print("Strange, this should not happen...",
+<a name="__line41"></a>			       "dgraph::resize(int)");
+<a name="__line42"></a>		for(unsigned int i=0; i&lt;data_.size(); ++i) data_[i].resize(2);
+<a name="__line43"></a>	    }
+<a name="__line44"></a>	}
+<a name="__line45"></a>	data_.resize(newsize,datapoint(columns_));
+<a name="__line46"></a>	return *this;
+<a name="__line47"></a>    }
+<a name="__line48"></a>
+<a name="__line49"></a>    datapoint &amp;dgraph::operator[](int i)
+<a name="__line50"></a>    {
+<a name="__line51"></a>	if(i&lt;0)
+<a name="__line52"></a>	{
+<a name="__line53"></a>	    static datapoint dummy;
+<a name="__line54"></a>	    warning::print("Negative index","graph::operator[](int)");
+<a name="__line55"></a>	    return dummy;
+<a name="__line56"></a>	}
+<a name="__line57"></a>	if(i&gt;=(int)data_.size())
+<a name="__line58"></a>	{
+<a name="__line59"></a>	    data_.resize(i+1,datapoint(columns()));
+<a name="__line60"></a>	}
+<a name="__line61"></a>	return data_[i];
+<a name="__line62"></a>    }
+<a name="__line63"></a>    const datapoint &amp;dgraph::operator[](int i) const
+<a name="__line64"></a>    {
+<a name="__line65"></a>	if(i&lt;0 || (int)data_.size()&lt;=i)
+<a name="__line66"></a>	{
+<a name="__line67"></a>	    static datapoint dummy;
+<a name="__line68"></a>	    warning::print("Index out of range","graph::operator[](int) const");
+<a name="__line69"></a>	    return dummy;
+<a name="__line70"></a>	}
+<a name="__line71"></a>	return data_[i];
+<a name="__line72"></a>    }
+<a name="__line73"></a>
+<a name="__line74"></a>
+<a name="__line75"></a>    dgraph::dgraph(int npoints, int cols)
+<a name="__line76"></a>    {
+<a name="__line77"></a>	data_.resize(npoints, datapoint(columns_ = cols));
+<a name="__line78"></a>	init_defaults();
+<a name="__line79"></a>    }
+<a name="__line80"></a>
+<a name="__line81"></a>    dgraph::dgraph(const dgraph &amp;o) : graph(o)
+<a name="__line82"></a>    {
+<a name="__line83"></a>	columns_ = o.columns_;
+<a name="__line84"></a>    }
+<a name="__line85"></a>    const dgraph &amp;dgraph::operator=(const dgraph &amp;o)
+<a name="__line86"></a>    {
+<a name="__line87"></a>	graph::operator=(o);
+<a name="__line88"></a>	columns_ = o.columns_;
+<a name="__line89"></a>	return o;
+<a name="__line90"></a>    }
+<a name="__line91"></a>
+<a name="__line92"></a>    dgraph::dgraph(const var &amp;filename,
+<a name="__line93"></a>                   function f1,
+<a name="__line94"></a>                   function f2,
+<a name="__line95"></a>                   function f3,
+<a name="__line96"></a>                   function f4,
+<a name="__line97"></a>                   function f5)
+<a name="__line98"></a>    {
+<a name="__line99"></a>        read(filename,f1,f2,f3,f4,f5);
+<a name="__line100"></a>    }
+<a name="__line101"></a>
+<a name="__line102"></a>    std::string dgraph::default_comment_chars_ = "#%";
+<a name="__line103"></a>    bool dgraph::default_autotitles_ = true;
+<a name="__line104"></a>    length dgraph::default_pointsize_ = PS; <span class=comment>//(new length::base_id_t(terminal::PS));</span>
+<a name="__line105"></a>    point_drawer *dgraph::default_point_drawer_ = new autopoint;
+<a name="__line106"></a>    color dgraph::default_pointcolor_(0,0,0);
+<a name="__line107"></a>    color dgraph::default_linecolor_(0,0,0);
+<a name="__line108"></a>    length dgraph::default_linewidth_ = LW; <span class=comment>//(new length::base_id_t(terminal::LW));</span>
+<a name="__line109"></a>    sym::linestyle dgraph::default_linestyle_ = sym::solid;
+<a name="__line110"></a>    color dgraph::default_fillcolor_(0,0,0);
+<a name="__line111"></a>    bool dgraph::default_fill_ = false;
+<a name="__line112"></a>    color dgraph::default_legendcolor_(0,0,0);
+<a name="__line113"></a>    bool dgraph::falsecondition_break_ = true;
+<a name="__line114"></a>
+<a name="__line115"></a>    graph_drawer* &amp;dgraph::default_graph_drawer_()
+<a name="__line116"></a>    {
+<a name="__line117"></a>	static graph_drawer *d = new points;
+<a name="__line118"></a>	return d;
+<a name="__line119"></a>    }
+<a name="__line120"></a>    var dgraph::default_legend_ = "%f %C";
+<a name="__line121"></a>
+<a name="__line122"></a>    void dgraph::default_comment_chars(const std::string &amp;s) { default_comment_chars_ = s; }
+<a name="__line123"></a>    void dgraph::default_pointsize(length l) { default_pointsize_ = l; }
+<a name="__line124"></a>    void dgraph::default_pointtype(const point_drawer &amp;p)
+<a name="__line125"></a>    {
+<a name="__line126"></a>	delete default_point_drawer_;
+<a name="__line127"></a>	if(dynamic_cast&lt;const autopoint *&gt;(&amp;p)) default_point_drawer_ = new autopoint();
+<a name="__line128"></a>	else default_point_drawer_ = p.clone();
+<a name="__line129"></a>    }
+<a name="__line130"></a>    void dgraph::default_pointcolor(const color &amp;c) { default_pointcolor_ = c; }
+<a name="__line131"></a>    void dgraph::default_linecolor(const color &amp;c) { default_linecolor_ = c; }
+<a name="__line132"></a>    void dgraph::default_linewidth(length l) { default_linewidth_ = l; }
+<a name="__line133"></a>    void dgraph::default_linestyle(sym::linestyle i) { default_linestyle_ = i; }
+<a name="__line134"></a>    void dgraph::default_fillcolor(const color &amp;c) { default_fillcolor_ = c; }
+<a name="__line135"></a>    void dgraph::default_fill(bool f) { default_fill_ = f; }
+<a name="__line136"></a>    void dgraph::default_legendcolor(const color &amp;c) { default_legendcolor_ = c; }
+<a name="__line137"></a>    void dgraph::default_drawstyle(const graph_drawer &amp;d)
+<a name="__line138"></a>    {
+<a name="__line139"></a>	delete default_graph_drawer_();
+<a name="__line140"></a>	default_graph_drawer_() = d.clone();
+<a name="__line141"></a>    }
+<a name="__line142"></a>    void dgraph::default_legend(const var &amp;l) { default_legend_ = l.str(); }
+<a name="__line143"></a>
+<a name="__line144"></a>    graph &amp;dgraph::smooth(int col_index, double weight1, double weight2, double weight3)
+<a name="__line145"></a>    {
+<a name="__line146"></a>	--col_index;
+<a name="__line147"></a>	double *v  = new double[size()];
+<a name="__line148"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line149"></a>	{
+<a name="__line150"></a>	    double n=0,d=0;
+<a name="__line151"></a>	    if(i-1 &gt;= 0)
+<a name="__line152"></a>	    {
+<a name="__line153"></a>		n += data_[i-1][col_index].dbl();
+<a name="__line154"></a>		d += weight1;
+<a name="__line155"></a>	    }
+<a name="__line156"></a>	    n += data_[i][col_index].dbl();
+<a name="__line157"></a>	    d += weight2;
+<a name="__line158"></a>	    if(i+1 &lt; size())
+<a name="__line159"></a>	    {
+<a name="__line160"></a>		n += data_[i+1][col_index].dbl();
+<a name="__line161"></a>		d += weight3;
+<a name="__line162"></a>	    }
+<a name="__line163"></a>	    v[i] = n/d;
+<a name="__line164"></a>	}
+<a name="__line165"></a>	for(size_type i=0; i&lt;size(); ++i) data_[i][col_index] = v[i];
+<a name="__line166"></a>	delete [] v;
+<a name="__line167"></a>	return *this;
+<a name="__line168"></a>    }
+<a name="__line169"></a>    graph &amp;dgraph::smooth_range(int col_index_x, double from, double to,
+<a name="__line170"></a>				int col_index, double weight1, double weight2, double weight3)
+<a name="__line171"></a>    {
+<a name="__line172"></a>	--col_index;
+<a name="__line173"></a>	--col_index_x;
+<a name="__line174"></a>	double *v = new double[size()];
+<a name="__line175"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line176"></a>	{
+<a name="__line177"></a>	    if(from &lt;= data_[i][col_index_x].dbl() &amp;&amp; data_[i][col_index_x].dbl() &lt;= to)
+<a name="__line178"></a>	    {
+<a name="__line179"></a>		double n=0,d=0;
+<a name="__line180"></a>		if(i-1 &gt;= 0)
+<a name="__line181"></a>		{
+<a name="__line182"></a>		    n += data_[i-1][col_index].dbl();
+<a name="__line183"></a>		    d += weight1;
+<a name="__line184"></a>		}
+<a name="__line185"></a>		n += data_[i][col_index].dbl();
+<a name="__line186"></a>		d += weight2;
+<a name="__line187"></a>		if(i+1 &lt; size())
+<a name="__line188"></a>		{
+<a name="__line189"></a>		    n += data_[i+1][col_index].dbl();
+<a name="__line190"></a>		    d += weight3;
+<a name="__line191"></a>		}
+<a name="__line192"></a>		v[i] = n/d;
+<a name="__line193"></a>	    }
+<a name="__line194"></a>	    else
+<a name="__line195"></a>	    {
+<a name="__line196"></a>		v[i] = data_[i][col_index];
+<a name="__line197"></a>	    }
+<a name="__line198"></a>	}
+<a name="__line199"></a>	for(size_type i=0; i&lt;size(); ++i) data_[i][col_index] = v[i];
+<a name="__line200"></a>	delete [] v;
+<a name="__line201"></a>	return *this;
+<a name="__line202"></a>    }
+<a name="__line203"></a>
+<a name="__line204"></a>   
+<a name="__line205"></a>    dgraph &amp;dgraph::comment_chars(const std::string &amp;s) { comment_chars_ = s; return *this; }
+<a name="__line206"></a>
+<a name="__line207"></a>    void dgraph::init_defaults()
+<a name="__line208"></a>    {
+<a name="__line209"></a>	autotitles_ = default_autotitles_;
+<a name="__line210"></a>	title_hints_latex_ = false;
+<a name="__line211"></a>	pointsize(default_pointsize_);
+<a name="__line212"></a>	pointtype(*default_point_drawer_);
+<a name="__line213"></a>	pointcolor(default_pointcolor_);
+<a name="__line214"></a>	linecolor(default_linecolor_);
+<a name="__line215"></a>	linewidth(default_linewidth_);
+<a name="__line216"></a>	linestyle(default_linestyle_);
+<a name="__line217"></a>	fillcolor(default_fillcolor_);
+<a name="__line218"></a>	fill(default_fill_);
+<a name="__line219"></a>	legendcolor(default_legendcolor_);
+<a name="__line220"></a>	drawstyle(*default_graph_drawer_());
+<a name="__line221"></a>        comment_chars_ = default_comment_chars_;
+<a name="__line222"></a>    }
+<a name="__line223"></a>
+<a name="__line224"></a>    dgraph::dgraph()
+<a name="__line225"></a>	: columns_(0)
+<a name="__line226"></a>    {
+<a name="__line227"></a>	init_defaults();
+<a name="__line228"></a>    }
+<a name="__line229"></a>
+<a name="__line230"></a>    dgraph::dgraph(int n,const double x[],const double y[]) : columns_(2)
+<a name="__line231"></a>    {
+<a name="__line232"></a>	init_defaults();
+<a name="__line233"></a>	legend("");
+<a name="__line234"></a>	data_.reserve(n);
+<a name="__line235"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line236"></a>	{
+<a name="__line237"></a>	    datapoint p(columns_);
+<a name="__line238"></a>	    p[0] = x[i];
+<a name="__line239"></a>	    p[1] = y[i];
+<a name="__line240"></a>	    data_.push_back(p);
+<a name="__line241"></a>	}
+<a name="__line242"></a>    }
+<a name="__line243"></a>    dgraph::dgraph(int n,const double x[],const double y[],const double z[]) : columns_(3)
+<a name="__line244"></a>    {
+<a name="__line245"></a>	init_defaults();
+<a name="__line246"></a>	legend("");
+<a name="__line247"></a>	data_.reserve(n);
+<a name="__line248"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line249"></a>	{
+<a name="__line250"></a>	    datapoint p(columns_);
+<a name="__line251"></a>	    p[0] = x[i];
+<a name="__line252"></a>	    p[1] = y[i];
+<a name="__line253"></a>	    p[2] = z[i];
+<a name="__line254"></a>	    data_.push_back(p);
+<a name="__line255"></a>	}
+<a name="__line256"></a>    }
+<a name="__line257"></a>    dgraph::dgraph(int n,const double x[],const double y[],const double z[],const double w[]) : columns_(4)
+<a name="__line258"></a>    {
+<a name="__line259"></a>	init_defaults();
+<a name="__line260"></a>	legend("");
+<a name="__line261"></a>	data_.reserve(n);
+<a name="__line262"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line263"></a>	{
+<a name="__line264"></a>	    datapoint p(columns_);
+<a name="__line265"></a>	    p[0] = x[i];
+<a name="__line266"></a>	    p[1] = y[i];
+<a name="__line267"></a>	    p[2] = z[i];
+<a name="__line268"></a>	    p[3] = w[i];
+<a name="__line269"></a>	    data_.push_back(p);
+<a name="__line270"></a>	}
+<a name="__line271"></a>    }
+<a name="__line272"></a>
+<a name="__line273"></a>
+<a name="__line274"></a>    dgraph::dgraph(int n,const var x[],const var y[]) : columns_(2)
+<a name="__line275"></a>    {
+<a name="__line276"></a>	init_defaults();
+<a name="__line277"></a>	legend("");
+<a name="__line278"></a>	data_.reserve(n);
+<a name="__line279"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line280"></a>	{
+<a name="__line281"></a>	    datapoint p(columns_);
+<a name="__line282"></a>	    p[0] = x[i];
+<a name="__line283"></a>	    p[1] = y[i];
+<a name="__line284"></a>	    data_.push_back(p);
+<a name="__line285"></a>	}
+<a name="__line286"></a>    }
+<a name="__line287"></a>
+<a name="__line288"></a>    dgraph::dgraph(int n,const var x[],const var y[],const var z[]) : columns_(3)
+<a name="__line289"></a>    {
+<a name="__line290"></a>	init_defaults();
+<a name="__line291"></a>	legend("");
+<a name="__line292"></a>	data_.reserve(n);
+<a name="__line293"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line294"></a>	{
+<a name="__line295"></a>	    datapoint p(columns_);
+<a name="__line296"></a>	    p[0] = x[i];
+<a name="__line297"></a>	    p[1] = y[i];
+<a name="__line298"></a>	    p[2] = z[i];
+<a name="__line299"></a>	    data_.push_back(p);
+<a name="__line300"></a>	}
+<a name="__line301"></a>    }
+<a name="__line302"></a>
+<a name="__line303"></a>    dgraph::dgraph(int n,const var x[],const var y[],const var z[],const var w[]) : columns_(4)
+<a name="__line304"></a>    {
+<a name="__line305"></a>	init_defaults();
+<a name="__line306"></a>	legend("");
+<a name="__line307"></a>	data_.reserve(n);
+<a name="__line308"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line309"></a>	{
+<a name="__line310"></a>	    datapoint p(columns_);
+<a name="__line311"></a>	    p[0] = x[i];
+<a name="__line312"></a>	    p[1] = y[i];
+<a name="__line313"></a>	    p[2] = z[i];
+<a name="__line314"></a>	    p[3] = w[i];
+<a name="__line315"></a>	    data_.push_back(p);
+<a name="__line316"></a>	}
+<a name="__line317"></a>    }
+<a name="__line318"></a>
+<a name="__line319"></a>
+<a name="__line320"></a>    dgraph::dgraph(const vector&lt;var&gt; &amp;x, const vector&lt;var&gt; &amp;y) : columns_(2)
+<a name="__line321"></a>    {
+<a name="__line322"></a>	init_defaults();
+<a name="__line323"></a>	legend("");
+<a name="__line324"></a>	int n = std::min(x.size(),y.size());
+<a name="__line325"></a>	data_.reserve(n);
+<a name="__line326"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line327"></a>	{
+<a name="__line328"></a>	    datapoint p(columns_);
+<a name="__line329"></a>	    p[0] = x[i];
+<a name="__line330"></a>	    p[1] = y[i];
+<a name="__line331"></a>	    data_.push_back(p);
+<a name="__line332"></a>	}
+<a name="__line333"></a>    }
+<a name="__line334"></a>
+<a name="__line335"></a>
+<a name="__line336"></a>    dgraph::dgraph(const vector&lt;var&gt; &amp;x, const vector&lt;var&gt; &amp;y, const vector&lt;var&gt; &amp;z) : columns_(3)
+<a name="__line337"></a>    {
+<a name="__line338"></a>	init_defaults();
+<a name="__line339"></a>	legend("");
+<a name="__line340"></a>	int n = std::min(x.size(),y.size());
+<a name="__line341"></a>	n = std::min((int)n,(int)z.size());
+<a name="__line342"></a>	data_.reserve(n);
+<a name="__line343"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line344"></a>	{
+<a name="__line345"></a>	    datapoint p(columns_);
+<a name="__line346"></a>	    p[0] = x[i];
+<a name="__line347"></a>	    p[1] = y[i];
+<a name="__line348"></a>	    p[2] = z[i];
+<a name="__line349"></a>	    data_.push_back(p);
+<a name="__line350"></a>	}
+<a name="__line351"></a>    }
+<a name="__line352"></a>
+<a name="__line353"></a>
+<a name="__line354"></a>    dgraph::dgraph(const vector&lt;var&gt; &amp;x, const vector&lt;var&gt; &amp;y, const vector&lt;var&gt; &amp;z, const vector&lt;var&gt; &amp;w) : columns_(4)
+<a name="__line355"></a>    {
+<a name="__line356"></a>	init_defaults();
+<a name="__line357"></a>	legend("");
+<a name="__line358"></a>	int n = std::min(x.size(),y.size());
+<a name="__line359"></a>	n = std::min((int)n,(int)z.size());
+<a name="__line360"></a>	n = std::min((int)n,(int)w.size());
+<a name="__line361"></a>	data_.reserve(n);
+<a name="__line362"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line363"></a>	{
+<a name="__line364"></a>	    datapoint p(columns_);
+<a name="__line365"></a>	    p[0] = x[i];
+<a name="__line366"></a>	    p[1] = y[i];
+<a name="__line367"></a>	    p[2] = z[i];
+<a name="__line368"></a>	    p[3] = w[i];
+<a name="__line369"></a>	    data_.push_back(p);
+<a name="__line370"></a>	}
+<a name="__line371"></a>    }
+<a name="__line372"></a>
+<a name="__line373"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line374"></a>    dgraph::dgraph(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y) : columns_(2)
+<a name="__line375"></a>    {
+<a name="__line376"></a>	init_defaults();
+<a name="__line377"></a>	legend("");
+<a name="__line378"></a>	int n = std::min(x.size(),y.size());
+<a name="__line379"></a>	data_.reserve(n);
+<a name="__line380"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line381"></a>	{
+<a name="__line382"></a>	    datapoint p(columns_);
+<a name="__line383"></a>	    p[0] = x[i];
+<a name="__line384"></a>	    p[1] = y[i];
+<a name="__line385"></a>	    data_.push_back(p);
+<a name="__line386"></a>	}
+<a name="__line387"></a>    }
+<a name="__line388"></a>
+<a name="__line389"></a>    dgraph::dgraph(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y, const vector&lt;double&gt; &amp;z) : columns_(3)
+<a name="__line390"></a>    {
+<a name="__line391"></a>	init_defaults();
+<a name="__line392"></a>	legend("");
+<a name="__line393"></a>	int n = std::min(x.size(),y.size());
+<a name="__line394"></a>	n = std::min((int)n,(int)z.size());
+<a name="__line395"></a>	data_.reserve(n);
+<a name="__line396"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line397"></a>	{
+<a name="__line398"></a>	    datapoint p(columns_);
+<a name="__line399"></a>	    p[0] = x[i];
+<a name="__line400"></a>	    p[1] = y[i];
+<a name="__line401"></a>	    p[2] = z[i];
+<a name="__line402"></a>	    data_.push_back(p);
+<a name="__line403"></a>	}
+<a name="__line404"></a>    }
+<a name="__line405"></a>
+<a name="__line406"></a>    dgraph::dgraph(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y,
+<a name="__line407"></a>		   const vector&lt;double&gt; &amp;z, const vector&lt;double&gt; &amp;w) : columns_(4)
+<a name="__line408"></a>    {
+<a name="__line409"></a>	init_defaults();
+<a name="__line410"></a>	legend("");
+<a name="__line411"></a>	int n = std::min(x.size(),y.size());
+<a name="__line412"></a>	n = std::min((int)n,(int)z.size());
+<a name="__line413"></a>	n = std::min((int)n,(int)w.size());
+<a name="__line414"></a>	data_.reserve(n);
+<a name="__line415"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line416"></a>	{
+<a name="__line417"></a>	    datapoint p(columns_);
+<a name="__line418"></a>	    p[0] = x[i];
+<a name="__line419"></a>	    p[1] = y[i];
+<a name="__line420"></a>	    p[2] = z[i];
+<a name="__line421"></a>	    p[3] = w[i];
+<a name="__line422"></a>	    data_.push_back(p);
+<a name="__line423"></a>	}
+<a name="__line424"></a>    }
+<a name="__line425"></a>
+<a name="__line426"></a>
+<a name="__line427"></a>   
+<a name="__line428"></a>    <span class=comment>/*
+<a name="__line429"></a>      The real read function, which all other read functions call.
+<a name="__line430"></a>      
+<a name="__line431"></a>     */</span>
+<a name="__line432"></a>
+<a name="__line433"></a>    dgraph &amp;dgraph::read_if(istream &amp;file, const function &amp;condition,
+<a name="__line434"></a>			    function f1, function f2, function f3, function f4, function f5)
+<a name="__line435"></a>    {
+<a name="__line436"></a>	<span class=comment>// Collect all the four filter function f1, f2, etc into one single object</span>
+<a name="__line437"></a>	function filter = unset;
+<a name="__line438"></a>	if(f1.initialized()) filter.append(f1);
+<a name="__line439"></a>	if(f2.initialized()) filter.append(f2);
+<a name="__line440"></a>	if(f3.initialized()) filter.append(f3);
+<a name="__line441"></a>	if(f4.initialized()) filter.append(f4);
+<a name="__line442"></a>	if(f5.initialized()) filter.append(f5);
+<a name="__line443"></a>
+<a name="__line444"></a>	clear();
+<a name="__line445"></a>
+<a name="__line446"></a>        <span class=comment>// We have created the filter function here, so it will have no 'history' of previous calls. We start safely...</span>
+<a name="__line447"></a>
+<a name="__line448"></a>	datapoint point1, point2;
+<a name="__line449"></a>	datapoint *point_cur=&amp;point1, *point_prev=0;
+<a name="__line450"></a>
+<a name="__line451"></a>	<span class=comment>// If the filter function is provided, this will define the number</span>
+<a name="__line452"></a>	<span class=comment>// of data columns in the dgraph. Otherwise set it to 0 at the moment,</span>
+<a name="__line453"></a>	<span class=comment>// and determine at the first valid line read.</span>
+<a name="__line454"></a>	if(filter.initialized())
+<a name="__line455"></a>	{
+<a name="__line456"></a>	    columns_ = filter.components();
+<a name="__line457"></a>	    point1.resize(columns_);
+<a name="__line458"></a>	    point2.resize(columns_);
+<a name="__line459"></a>	}
+<a name="__line460"></a>	else columns_ = 0;
+<a name="__line461"></a>
+<a name="__line462"></a>	string line;
+<a name="__line463"></a>	vector&lt;var&gt; col;
+<a name="__line464"></a>
+<a name="__line465"></a>	title_hints_.clear();
+<a name="__line466"></a>
+<a name="__line467"></a>	string blockname = "";
+<a name="__line468"></a>        int blockno = 0, Blockno = 0;
+<a name="__line469"></a>        bool last_line_empty = false;
+<a name="__line470"></a>        bool last2_line_empty = false;
+<a name="__line471"></a>
+<a name="__line472"></a>
+<a name="__line473"></a>	<span class=comment>// Loop over all lines of the data file</span>
+<a name="__line474"></a>	for(int lineno=0; getline(file,line); ++lineno)
+<a name="__line475"></a>	{
+<a name="__line476"></a>            <span class=comment>// Remove trailing \r for dos-files (\n has already been removed by getline itself)</span>
+<a name="__line477"></a>            if(!line.empty() &amp;&amp; *line.rbegin() == '\r') line.erase( line.length()-1, 1);
+<a name="__line478"></a>
+<a name="__line479"></a>	    if(data_.size() == data_.capacity()) data_.reserve(size() + 100);
+<a name="__line480"></a>	    
+<a name="__line481"></a>	    split_quoted(line,col);
+<a name="__line482"></a>
+<a name="__line483"></a>            if(last_line_empty &amp;&amp; !col.empty()) ++blockno;
+<a name="__line484"></a>            if(last_line_empty &amp;&amp; last2_line_empty &amp;&amp; !col.empty()) ++Blockno;
+<a name="__line485"></a>            last2_line_empty = last_line_empty;
+<a name="__line486"></a>            last_line_empty = col.empty();
+<a name="__line487"></a>
+<a name="__line488"></a>            function::clear_named_params();
+<a name="__line489"></a>	    function::named_param("linenumber",lineno);
+<a name="__line490"></a>	    function::named_param("blocknumber",blockno);
+<a name="__line491"></a>	    function::named_param("Blocknumber",Blockno);
+<a name="__line492"></a>
+<a name="__line493"></a>	    <span class=comment>// First: check for special instructions in the datafile</span>
+<a name="__line494"></a>	    if(line.find("##LEGEND:") == 0) make_latex_legend(line.substr(9));
+<a name="__line495"></a>	    else if(line.find("##TITLES:") == 0 || line.find("##LTITLES:") == 0)
+<a name="__line496"></a>	    {
+<a name="__line497"></a>		vector&lt;var&gt; titles;
+<a name="__line498"></a>		if(line.find("##TITLES:") == 0) split_quoted(line.substr(10),titles);
+<a name="__line499"></a>		else                            split_quoted(line.substr(11),titles);
+<a name="__line500"></a>
+<a name="__line501"></a>		if(!filter.initialized()) title_hints_ = titles;
+<a name="__line502"></a>		else
+<a name="__line503"></a>		{
+<a name="__line504"></a>		    for(int i=0; i&lt;filter.components(); ++i)
+<a name="__line505"></a>		    {
+<a name="__line506"></a>			string t = filter[i].sprint().str();
+<a name="__line507"></a>			for(unsigned int c=0; c&lt;t.size(); ++c)
+<a name="__line508"></a>			{
+<a name="__line509"></a>			    <span class=comment>// only do something if underscore found</span>
+<a name="__line510"></a>			    if(t[c] != '_') continue;
+<a name="__line511"></a>
+<a name="__line512"></a>			    <span class=comment>// find the end of a _xxx sequence, where x is a digit</span>
+<a name="__line513"></a>			    unsigned int end = c+1;
+<a name="__line514"></a>			    for(; end&lt;t.size() &amp;&amp; isdigit(t[end]); ++end);
+<a name="__line515"></a>
+<a name="__line516"></a>			    <span class=comment>// if no digits found after the underscore, do nothing</span>
+<a name="__line517"></a>			    if(end&lt;=c+1) continue;
+<a name="__line518"></a>
+<a name="__line519"></a>			    int argindex = atoi(t.substr(c+1,end-c-1).c_str());
+<a name="__line520"></a>
+<a name="__line521"></a>			    if(argindex == 0)
+<a name="__line522"></a>			    {
+<a name="__line523"></a>				t.replace(c,2,"LINENO");
+<a name="__line524"></a>				c += 5;
+<a name="__line525"></a>			    }
+<a name="__line526"></a>			    else if(argindex &lt;= (int)titles.size())
+<a name="__line527"></a>			    {
+<a name="__line528"></a>				t.replace(c,end-c,titles[argindex-1].str());
+<a name="__line529"></a>				c += titles[argindex-1].size()-1;
+<a name="__line530"></a>			    }
+<a name="__line531"></a>			}
+<a name="__line532"></a>			title_hints_.push_back(t);
+<a name="__line533"></a>		    }
+<a name="__line534"></a>		}
+<a name="__line535"></a>		if(line.find("##TITLES:")== 0) title_hints_latex_ = false;
+<a name="__line536"></a>		else title_hints_latex_ = true;
+<a name="__line537"></a>	    }
+<a name="__line538"></a>	    else if(line.find("##XRANGE:") == 0)
+<a name="__line539"></a>	    {
+<a name="__line540"></a>		if(col.size()&gt;=3) xrange(col[1],col[2]);
+<a name="__line541"></a>	    }
+<a name="__line542"></a>	    else if(line.find("##YRANGE:") == 0)
+<a name="__line543"></a>	    {
+<a name="__line544"></a>		if(col.size()&gt;=3) yrange(col[1],col[2]);
+<a name="__line545"></a>	    }
+<a name="__line546"></a>	    else if(line.find("##BLOCK:") == 0)
+<a name="__line547"></a>	    {
+<a name="__line548"></a>		string::size_type i = 8;
+<a name="__line549"></a>		for(;line[i] == ' '; ++i);
+<a name="__line550"></a>		blockname = line.substr(i);
+<a name="__line551"></a>	    }
+<a name="__line552"></a>
+<a name="__line553"></a>	    bool skip_this_point = false;
+<a name="__line554"></a>
+<a name="__line555"></a>            <span class=comment>// Check the condition first. Some conditions (such as 'between_lines') must be called also on</span>
+<a name="__line556"></a>            <span class=comment>// comment-lines, etc</span>
+<a name="__line557"></a>	    if(!skip_this_point)
+<a name="__line558"></a>	    {
+<a name="__line559"></a>		<span class=comment>// if a condition was given, </span>
+<a name="__line560"></a>		if(condition.initialized())
+<a name="__line561"></a>		{
+<a name="__line562"></a>		    <span class=comment>// insufficient data to execute condition. skip this line</span>
+<a name="__line563"></a>		    if(condition.nargs() &gt; (int)col.size()) skip_this_point = true;
+<a name="__line564"></a>		    
+<a name="__line565"></a>		    <span class=comment>// if condition not fulfilled, skip this line</span>
+<a name="__line566"></a>		    else
+<a name="__line567"></a>                    {
+<a name="__line568"></a>                        std::vector&lt;blop::var&gt; condition_result;
+<a name="__line569"></a>                        condition.meval(col,condition_result);
+<a name="__line570"></a>
+<a name="__line571"></a>                        <span class=comment>// If the first returned condition value is zero (false), skip this point</span>
+<a name="__line572"></a>                        if(condition_result.size()&gt;0 &amp;&amp; condition_result[0].dbl()==0) skip_this_point = true;
+<a name="__line573"></a>                        
+<a name="__line574"></a>                        <span class=comment>// In case the condition function returns two values, and the second value is false, stop reading the file</span>
+<a name="__line575"></a>                        if(condition_result.size()&gt;1 &amp;&amp; condition_result[1].dbl()==0) return *this;
+<a name="__line576"></a>                    }
+<a name="__line577"></a>		}
+<a name="__line578"></a>	    }
+<a name="__line579"></a>
+<a name="__line580"></a>            
+<a name="__line581"></a>	    <span class=comment>// skip lines where the first non-ws char is #</span>
+<a name="__line582"></a>	    <span class=comment>// and also skip empty lines</span>
+<a name="__line583"></a>	    if((!col.empty() &amp;&amp; comment_chars_.find(col[0][0])!=string::npos) || col.empty()) skip_this_point = true;
+<a name="__line584"></a>
+<a name="__line585"></a>	    <span class=comment>// skip also those lines, where there is insufficient data (number of cols)</span>
+<a name="__line586"></a>	    <span class=comment>// to evaluate the filter function (if given)</span>
+<a name="__line587"></a>	    if(filter.initialized() &amp;&amp; filter.nargs()&gt;(int)col.size()) skip_this_point = true;
+<a name="__line588"></a>
+<a name="__line589"></a>	    <span class=comment>// If so far this line is not marked for skipping, make a further check:</span>
+<a name="__line590"></a>	    <span class=comment>// skip those lines which contain data in the ignore pattern.</span>
+<a name="__line591"></a>	    <span class=comment>// If a filter function was used, only check those columns, which will</span>
+<a name="__line592"></a>	    <span class=comment>// be used by the filter function</span>
+<a name="__line593"></a>	    if(!skip_this_point)
+<a name="__line594"></a>	    {
+<a name="__line595"></a>		for(unsigned int j=0; j&lt;col.size(); ++j)
+<a name="__line596"></a>		{
+<a name="__line597"></a>		    if(filter.initialized())
+<a name="__line598"></a>		    {
+<a name="__line599"></a>			if(filter.uses_arg(j+1) &amp;&amp; ignore::it(col[j]))
+<a name="__line600"></a>			{
+<a name="__line601"></a>			    skip_this_point=true;
+<a name="__line602"></a>			    break;
+<a name="__line603"></a>			}
+<a name="__line604"></a>		    }
+<a name="__line605"></a>		    else
+<a name="__line606"></a>		    {
+<a name="__line607"></a>			if(ignore::it(col[j]))
+<a name="__line608"></a>			{
+<a name="__line609"></a>			    skip_this_point=true;
+<a name="__line610"></a>			    break;
+<a name="__line611"></a>			}
+<a name="__line612"></a>		    }
+<a name="__line613"></a>		}
+<a name="__line614"></a>	    }
+<a name="__line615"></a>
+<a name="__line616"></a>            <span class=comment>// This was the position where the condition was checked before</span>
+<a name="__line617"></a>
+<a name="__line618"></a>
+<a name="__line619"></a>            <span class=comment>// By here we have evaluated if the current line should be skipped based on the</span>
+<a name="__line620"></a>            <span class=comment>// original data from the file.</span>
+<a name="__line621"></a>            <span class=comment>// Now evaluate the filter function (even if the point should be skipped), so that it stores</span>
+<a name="__line622"></a>            <span class=comment>// the previous value internally.</span>
+<a name="__line623"></a>
+<a name="__line624"></a>            <span class=comment>// if filter functions were given, evaluate them, check result.</span>
+<a name="__line625"></a>            <span class=comment>// No need to set columns_, it has been set earlier already,</span>
+<a name="__line626"></a>            <span class=comment>// in this case</span>
+<a name="__line627"></a>            if(filter.initialized())
+<a name="__line628"></a>            {
+<a name="__line629"></a>                filter.meval(col, *point_cur);
+<a name="__line630"></a>                for(unsigned int i=0; i&lt;point_cur-&gt;size(); ++i)
+<a name="__line631"></a>                {
+<a name="__line632"></a>                    if(ignore::it((*point_cur)[i]))
+<a name="__line633"></a>                    {
+<a name="__line634"></a>                        skip_this_point = true;
+<a name="__line635"></a>                        break;
+<a name="__line636"></a>                    }
+<a name="__line637"></a>                }
+<a name="__line638"></a>            }
+<a name="__line639"></a>
+<a name="__line640"></a>
+<a name="__line641"></a>	    <span class=comment>// If this line is still not marked for skipping, then</span>
+<a name="__line642"></a>            <span class=comment>// If we use this point, and no filter was given, simply copy it to point_cur</span>
+<a name="__line643"></a>	    if(!skip_this_point &amp;&amp; !filter.initialized())
+<a name="__line644"></a>	    {
+<a name="__line645"></a>
+<a name="__line646"></a>                <span class=comment>// This seems to be the first usable line, since columns_ is 0</span>
+<a name="__line647"></a>                <span class=comment>// so set it now, resize point_cur, etc</span>
+<a name="__line648"></a>                if(columns_ == 0)
+<a name="__line649"></a>                {
+<a name="__line650"></a>                    columns_ = col.size();
+<a name="__line651"></a>                    ordered_ = columns_;
+<a name="__line652"></a>                    point1.resize(columns_);
+<a name="__line653"></a>                    point2.resize(columns_);
+<a name="__line654"></a>                }
+<a name="__line655"></a>                for(int i=0; i&lt;columns_; ++i) (*point_cur)[i] = col[i];
+<a name="__line656"></a>	    }
+<a name="__line657"></a>
+<a name="__line658"></a>	    <span class=comment>// if this line is to be skipped, break the data stream with</span>
+<a name="__line659"></a>	    <span class=comment>// an unset point (if the flag is set), and continue to next line</span>
+<a name="__line660"></a>	    if(skip_this_point)
+<a name="__line661"></a>	    {
+<a name="__line662"></a>		<span class=comment>// break the data with an unset point, if the flag is set</span>
+<a name="__line663"></a>		if(!empty() &amp;&amp; falsecondition_break_)
+<a name="__line664"></a>		{
+<a name="__line665"></a>		    if(columns_ &lt;= 0)
+<a name="__line666"></a>		    {
+<a name="__line667"></a>			warning::print("This can not happen 2",
+<a name="__line668"></a>				       "dgraph::read_if(...)");
+<a name="__line669"></a>			exit(1);
+<a name="__line670"></a>		    }
+<a name="__line671"></a>		    datapoint point(columns_);
+<a name="__line672"></a>		    for(int i=0; i&lt;columns_; ++i) point[i] = unset;
+<a name="__line673"></a>		    data_.push_back(point);
+<a name="__line674"></a>		}
+<a name="__line675"></a>		continue;
+<a name="__line676"></a>	    }
+<a name="__line677"></a>	    
+<a name="__line678"></a>	    data_.push_back(*point_cur);
+<a name="__line679"></a>
+<a name="__line680"></a>	    if(point_prev)
+<a name="__line681"></a>	    {
+<a name="__line682"></a>		for(int i=0; i&lt;(int)(point_cur-&gt;size()); ++i)
+<a name="__line683"></a>		{
+<a name="__line684"></a>		    <span class=comment>// any element of this array can only be smaller than the</span>
+<a name="__line685"></a>		    <span class=comment>// previous one, if other elements with smaller index</span>
+<a name="__line686"></a>		    <span class=comment>// are larger</span>
+<a name="__line687"></a>		    if((*point_cur)[i].dbl() &lt; (*point_prev)[i].dbl())
+<a name="__line688"></a>		    {
+<a name="__line689"></a>			bool ok = false;
+<a name="__line690"></a>			for(int j=0; j&lt;i; ++j)
+<a name="__line691"></a>			{
+<a name="__line692"></a>			    if((*point_cur)[j].dbl() &gt; (*point_prev)[j].dbl())
+<a name="__line693"></a>			    {
+<a name="__line694"></a>				ok = true;
+<a name="__line695"></a>				break;
+<a name="__line696"></a>			    }
+<a name="__line697"></a>			}
+<a name="__line698"></a>			if(!ok) ordered_ = std::min(ordered_, i);
+<a name="__line699"></a>		    }
+<a name="__line700"></a>		}
+<a name="__line701"></a>	    }
+<a name="__line702"></a>	    if(point_prev == 0) point_prev = &amp;point2;
+<a name="__line703"></a>	    swap(point_cur,point_prev);
+<a name="__line704"></a>	}
+<a name="__line705"></a>        function::clear_named_params();
+<a name="__line706"></a>
+<a name="__line707"></a>	<span class=comment>// remove the unset points from the end (resulting from empty lines</span>
+<a name="__line708"></a>	<span class=comment>// at the end of the file)</span>
+<a name="__line709"></a>	while(!empty() &amp;&amp; data_.back()[0].dbl() == unset) data_.erase(data_.end()-1);
+<a name="__line710"></a>
+<a name="__line711"></a>	if(empty()) warning::print("File '" &amp; filename_ &amp; "' did not contain any data");
+<a name="__line712"></a>
+<a name="__line713"></a>
+<a name="__line714"></a>	return *this;
+<a name="__line715"></a>    }
+<a name="__line716"></a>    dgraph &amp;dgraph::read_if_static(istream &amp;file, const function &amp;condition,
+<a name="__line717"></a>                                   function f1, function f2, function f3, function f4, function f5)
+<a name="__line718"></a>    {
+<a name="__line719"></a>        dgraph *result = new dgraph;
+<a name="__line720"></a>        result-&gt;read_if(file,condition,f1,f2,f3,f4,f5);
+<a name="__line721"></a>        return *result;
+<a name="__line722"></a>    }
+<a name="__line723"></a>
+<a name="__line724"></a>
+<a name="__line725"></a>    void dgraph::read_groups_if(const var &amp;filename, const function &amp;grouping_value,
+<a name="__line726"></a>				const function &amp;condition,
+<a name="__line727"></a>				const function &amp;filter, plottables *out)
+<a name="__line728"></a>    {
+<a name="__line729"></a>	istream *file = openin(filename);
+<a name="__line730"></a>	if(!file) return;
+<a name="__line731"></a>	read_groups_if(*file, grouping_value, condition, filter, out);
+<a name="__line732"></a>	delete file;
+<a name="__line733"></a>    }
+<a name="__line734"></a>
+<a name="__line735"></a>    color sequential_color(var i)
+<a name="__line736"></a>    {
+<a name="__line737"></a>	if(i.str() == "red") return red;
+<a name="__line738"></a>	if(i.str() == "black") return black;
+<a name="__line739"></a>	if(i.str() == "blue") return blue;
+<a name="__line740"></a>	if(i.str() == "green") return green;
+<a name="__line741"></a>	if(i.str() == "magenta") return magenta;
+<a name="__line742"></a>	if(i.str() == "yellow") return yellow;
+<a name="__line743"></a>	if(i.str() == "cyan") return cyan;
+<a name="__line744"></a>	if(i.str() == "orange") return orange;
+<a name="__line745"></a>
+<a name="__line746"></a>	int index = (int)(i.dbl()+0.1);
+<a name="__line747"></a>
+<a name="__line748"></a>	color colors[7] = {black, red, blue, green, magenta, cyan, orange};
+<a name="__line749"></a>
+<a name="__line750"></a>	return colors[index%7];
+<a name="__line751"></a>    }
+<a name="__line752"></a>
+<a name="__line753"></a>    point_drawer *sequential_point(var p, bool all = true)
+<a name="__line754"></a>    {
+<a name="__line755"></a>	const char *names_all[14] = {"circle","fcircle",
+<a name="__line756"></a>				     "square","fsquare",
+<a name="__line757"></a>				     "triangle","ftriangle",
+<a name="__line758"></a>				     "triangledown","ftriangledown",
+<a name="__line759"></a>				     "diamond","fdiamond",
+<a name="__line760"></a>				     "star4","fstar4",
+<a name="__line761"></a>				     "cross","plus"};
+<a name="__line762"></a>	const char *names_empty[8] = {"circle",
+<a name="__line763"></a>				      "square",
+<a name="__line764"></a>				      "triangle",
+<a name="__line765"></a>				      "triangledown",
+<a name="__line766"></a>				      "diamond",
+<a name="__line767"></a>				      "star4",
+<a name="__line768"></a>				      "cross",
+<a name="__line769"></a>				      "plus"};
+<a name="__line770"></a>	if(p.is_int() || p.is_dbl())
+<a name="__line771"></a>	{
+<a name="__line772"></a>	    int index = (int)(p.dbl()+1.0);
+<a name="__line773"></a>	    p = (all?names_all[index%14]:names_empty[index%8]);
+<a name="__line774"></a>	}
+<a name="__line775"></a>	if(p.str() == "circle") return new circle;
+<a name="__line776"></a>	if(p.str() == "fcircle") return new fcircle;
+<a name="__line777"></a>	if(p.str() == "square") return new square;
+<a name="__line778"></a>	if(p.str() == "fsquare") return new fsquare;
+<a name="__line779"></a>	if(p.str() == "triangle") return new triangle;
+<a name="__line780"></a>	if(p.str() == "ftriangle") return new ftriangle;
+<a name="__line781"></a>	if(p.str() == "triangledown") return new triangledown;
+<a name="__line782"></a>	if(p.str() == "ftriangledown") return new ftriangledown;
+<a name="__line783"></a>	if(p.str() == "diamond") return new diamond;
+<a name="__line784"></a>	if(p.str() == "fdiamond") return new fdiamond;
+<a name="__line785"></a>	if(p.str() == "star4") return new star4;
+<a name="__line786"></a>	if(p.str() == "fstar4") return new fstar4;
+<a name="__line787"></a>	if(p.str() == "cross") return new cross;
+<a name="__line788"></a>	if(p.str() == "plus") return new blop::plus;
+<a name="__line789"></a>	cerr&lt;&lt;"This should never happen!"&lt;&lt;endl;
+<a name="__line790"></a>	return new circle;
+<a name="__line791"></a>    }
+<a name="__line792"></a>
+<a name="__line793"></a>    void dgraph::prepare_for_draw(axis *xaxis,axis *yaxis, frame *f, int count)
+<a name="__line794"></a>    {
+<a name="__line795"></a>	graph::prepare_for_draw(xaxis,yaxis,f, count);
+<a name="__line796"></a>
+<a name="__line797"></a>	if(count != 1) return;
+<a name="__line798"></a>
+<a name="__line799"></a>	if(!autotitles_ || title_hints_.empty())
+<a name="__line800"></a>	{
+<a name="__line801"></a>	    return;
+<a name="__line802"></a>	}
+<a name="__line803"></a>
+<a name="__line804"></a>	const function x = graph_drawer_-&gt;get_x(this);
+<a name="__line805"></a>	const function y = graph_drawer_-&gt;get_y(this);
+<a name="__line806"></a>	var xtitle = x.sprint();
+<a name="__line807"></a>	var ytitle = y.sprint();
+<a name="__line808"></a>	for(unsigned int i=std::min(20,(int)title_hints_.size()); i&gt;0; --i)
+<a name="__line809"></a>	{
+<a name="__line810"></a>	    xtitle.replace(var("_") &amp; var(i), title_hints_[i-1]);
+<a name="__line811"></a>	    ytitle.replace(var("_") &amp; var(i), title_hints_[i-1]);
+<a name="__line812"></a>	}
+<a name="__line813"></a>	if(!title_hints_latex_)
+<a name="__line814"></a>	{
+<a name="__line815"></a>	    xtitle = tolatex(xtitle);
+<a name="__line816"></a>	    ytitle = tolatex(ytitle);
+<a name="__line817"></a>	}
+<a name="__line818"></a>	if(xaxis-&gt;title().text().str() == "" || xaxis-&gt;title_autoset()==true) xaxis-&gt;title(xtitle,true);
+<a name="__line819"></a>	if(yaxis-&gt;title().text().str() == "" || yaxis-&gt;title_autoset()==true) yaxis-&gt;title(ytitle,true);
+<a name="__line820"></a>    }
+<a name="__line821"></a>
+<a name="__line822"></a>
+<a name="__line823"></a>
+<a name="__line824"></a>    void dgraph::read_groups_if(istream &amp;file, const function &amp;grouping_value,
+<a name="__line825"></a>				const function &amp;condition,
+<a name="__line826"></a>				const function &amp;filter,
+<a name="__line827"></a>				plottables *out)
+<a name="__line828"></a>    {
+<a name="__line829"></a>	out-&gt;clear();
+<a name="__line830"></a>	map&lt;string,dgraph*&gt; the_map;
+<a name="__line831"></a>        map&lt;string,map&lt;string,var&gt;&gt; named_params_map;
+<a name="__line832"></a>
+<a name="__line833"></a>	string line;
+<a name="__line834"></a>	vector&lt;var&gt; col;
+<a name="__line835"></a>
+<a name="__line836"></a>	int index = 0;
+<a name="__line837"></a>
+<a name="__line838"></a>        int blockno = 0, Blockno = 0;
+<a name="__line839"></a>        bool last_line_empty = false;
+<a name="__line840"></a>        bool last2_line_empty = false;
+<a name="__line841"></a>
+<a name="__line842"></a>	for(int lineno=1; getline(file,line); ++lineno)
+<a name="__line843"></a>	{
+<a name="__line844"></a>            <span class=comment>// Remove trailing \r for dos-files (\n has already been removed by getline itself)</span>
+<a name="__line845"></a>            if(!line.empty() &amp;&amp; *line.rbegin() == '\r') line.erase(line.length()-1, 1);
+<a name="__line846"></a>
+<a name="__line847"></a>	    split_quoted(line,col);
+<a name="__line848"></a>
+<a name="__line849"></a>            if(last_line_empty &amp;&amp; !col.empty()) ++blockno;
+<a name="__line850"></a>            if(last_line_empty &amp;&amp; last2_line_empty &amp;&amp; !col.empty()) ++Blockno;
+<a name="__line851"></a>            last2_line_empty = last_line_empty;
+<a name="__line852"></a>            last_line_empty = col.empty();
+<a name="__line853"></a>            
+<a name="__line854"></a>            function::clear_named_params();
+<a name="__line855"></a>	    function::named_param("linenumber",lineno);
+<a name="__line856"></a>	    function::named_param("blocknumber",blockno);
+<a name="__line857"></a>	    function::named_param("Blocknumber",Blockno);
+<a name="__line858"></a>
+<a name="__line859"></a>	    if(col.empty() || default_comment_chars_.find(col[0][0])!=string::npos) continue;
+<a name="__line860"></a>
+<a name="__line861"></a>	    <span class=comment>// skip lines where the first non-ws char is #</span>
+<a name="__line862"></a>	    if(!col.empty() &amp;&amp; col[0][0] == '#') continue;
+<a name="__line863"></a>
+<a name="__line864"></a>	    <span class=comment>// check if any of the fields is a pattern contained in the ignore_</span>
+<a name="__line865"></a>	    <span class=comment>// array. in this case skip this line</span>
+<a name="__line866"></a>	    for(unsigned int j=0; j&lt;col.size(); ++j)
+<a name="__line867"></a>	    {
+<a name="__line868"></a>		if(ignore::it(col[j])) { col.clear(); break; }
+<a name="__line869"></a>	    }
+<a name="__line870"></a>
+<a name="__line871"></a>	    var the_grouping_value = grouping_value.eval(col);
+<a name="__line872"></a>            function::named_param("groupingvalue",the_grouping_value);
+<a name="__line873"></a>
+<a name="__line874"></a>	    if(condition.initialized() &amp;&amp; condition.eval(col).dbl() == 0.0) continue;
+<a name="__line875"></a>
+<a name="__line876"></a>	    dgraph *the_graph = the_map[the_grouping_value.str()];
+<a name="__line877"></a>            named_params_map[the_grouping_value.str()] = {{"groupingvalue",the_grouping_value}};
+<a name="__line878"></a>	    if(the_graph == 0)
+<a name="__line879"></a>	    {
+<a name="__line880"></a>		the_graph = the_map[the_grouping_value.str()] = new dgraph;
+<a name="__line881"></a>		the_graph-&gt;legend(the_grouping_value);
+<a name="__line882"></a>		point_drawer *pt = sequential_point(index);
+<a name="__line883"></a>		the_graph-&gt;pointtype(*pt);
+<a name="__line884"></a>		delete pt;
+<a name="__line885"></a>		the_graph-&gt;allcolor(sequential_color(index));
+<a name="__line886"></a>		++index;
+<a name="__line887"></a>	    }
+<a name="__line888"></a>
+<a name="__line889"></a>	    if(!col.empty())
+<a name="__line890"></a>	    {
+<a name="__line891"></a>		<span class=comment>// if the graph has not been filled yet</span>
+<a name="__line892"></a>		if(the_graph-&gt;columns() == 0)
+<a name="__line893"></a>		{
+<a name="__line894"></a>		    if(filter.initialized()) the_graph-&gt;columns(filter.components());
+<a name="__line895"></a>		    else the_graph-&gt;columns(col.size());
+<a name="__line896"></a>		}
+<a name="__line897"></a>		datapoint point(the_graph-&gt;columns());
+<a name="__line898"></a>
+<a name="__line899"></a>		<span class=comment>// if filter functions were given, call them, otherwise simply copy all</span>
+<a name="__line900"></a>		<span class=comment>// fields from the line</span>
+<a name="__line901"></a>		if(filter.initialized()) filter.meval(col, point);
+<a name="__line902"></a>		else for(int i=0; i&lt;the_graph-&gt;columns(); ++i) point[i] = col[i];
+<a name="__line903"></a>
+<a name="__line904"></a>		the_graph-&gt;add(point);
+<a name="__line905"></a>	    }
+<a name="__line906"></a>	    else
+<a name="__line907"></a>	    {
+<a name="__line908"></a>		<span class=comment>// Do not store unset lines at the beginning. 'unset' lines are used</span>
+<a name="__line909"></a>		<span class=comment>// to separate data blocks in the file, at the beginning they make no sense</span>
+<a name="__line910"></a>		if(the_graph-&gt;empty()) continue;
+<a name="__line911"></a>
+<a name="__line912"></a>		if(the_graph-&gt;columns() &lt;= 0)
+<a name="__line913"></a>		{
+<a name="__line914"></a>		    warning::print("This can not happen 3",
+<a name="__line915"></a>				   "dgraph::read_if(...)");
+<a name="__line916"></a>		    exit(1);
+<a name="__line917"></a>		}
+<a name="__line918"></a>
+<a name="__line919"></a>		datapoint point(the_graph-&gt;columns());
+<a name="__line920"></a>
+<a name="__line921"></a>		<span class=comment>// an empty line separating data blocks. store a data point consisting of</span>
+<a name="__line922"></a>		<span class=comment>// 'unset' values. The drawstyles should interpret these lines correctly</span>
+<a name="__line923"></a>		for(int i=0; i&lt;the_graph-&gt;columns(); ++i) point[i] = unset;
+<a name="__line924"></a>
+<a name="__line925"></a>		the_graph-&gt;add(point);
+<a name="__line926"></a>	    }
+<a name="__line927"></a>
+<a name="__line928"></a>	}
+<a name="__line929"></a>        function::clear_named_params();
+<a name="__line930"></a>
+<a name="__line931"></a>	<span class=comment>// remove the unset points from the end (resulting from empty lines</span>
+<a name="__line932"></a>	<span class=comment>// at the end of the file)</span>
+<a name="__line933"></a>	for(map&lt;string,dgraph*&gt;::iterator i=the_map.begin();
+<a name="__line934"></a>	    i != the_map.end(); ++i)
+<a name="__line935"></a>	{
+<a name="__line936"></a>	    dgraph *g = (*i).second;
+<a name="__line937"></a>	    while(!g-&gt;empty() &amp;&amp; g-&gt;data_.back()[0].dbl() == unset) g-&gt;data_.erase(g-&gt;data_.end()-1);
+<a name="__line938"></a>	    if(g-&gt;empty()) warning::print("Empty graph in graph::read_many");
+<a name="__line939"></a>	    out-&gt;add(g,named_params_map[(*i).first]);
+<a name="__line940"></a>	}
+<a name="__line941"></a>    }
+<a name="__line942"></a>
+<a name="__line943"></a>    dgraph &amp;dgraph::read    (istream &amp;input, function f1, function f2, function f3, function f4, function f5)
+<a name="__line944"></a>    {
+<a name="__line945"></a>	function condition = unset;
+<a name="__line946"></a>	read_if(input, condition, f1, f2, f3, f4, f5);
+<a name="__line947"></a>	return *this;
+<a name="__line948"></a>    }
+<a name="__line949"></a>    dgraph &amp;dgraph::read_static    (istream &amp;input, function f1, function f2, function f3, function f4, function f5)
+<a name="__line950"></a>    {
+<a name="__line951"></a>        dgraph *result = new dgraph;
+<a name="__line952"></a>        result-&gt;read(input,f1,f2,f3,f4,f5);
+<a name="__line953"></a>        return *result;
+<a name="__line954"></a>    }
+<a name="__line955"></a>
+<a name="__line956"></a>    dgraph &amp;dgraph::read(const var &amp;filename,function f1, function f2, function f3, function f4, function f5)
+<a name="__line957"></a>    TRY
+<a name="__line958"></a>    {
+<a name="__line959"></a>	filename_ = filename;
+<a name="__line960"></a>	istream *file = openin(filename);
+<a name="__line961"></a>	if(!file) return *this;
+<a name="__line962"></a>	var legend = default_legend_;
+<a name="__line963"></a>	legend.replace("%f",filename);
+<a name="__line964"></a>
+<a name="__line965"></a>	<span class=comment>// there was no condition set, so replaces %C with an</span>
+<a name="__line966"></a>	<span class=comment>// empty string</span>
+<a name="__line967"></a>	legend.replace(" %C","");
+<a name="__line968"></a>	legend.replace("%C","");
+<a name="__line969"></a>	make_latex_legend(legend);
+<a name="__line970"></a>	read(*file, f1, f2, f3, f4, f5);
+<a name="__line971"></a>	delete file;
+<a name="__line972"></a>	return *this;
+<a name="__line973"></a>    }
+<a name="__line974"></a>    CATCH("dgraph::read(const var &amp;,function, function, function, function)")
+<a name="__line975"></a>
+<a name="__line976"></a>    dgraph &amp;dgraph::read_static(const var &amp;filename,function f1, function f2, function f3, function f4, function f5)
+<a name="__line977"></a>    {
+<a name="__line978"></a>        dgraph *result = new dgraph;
+<a name="__line979"></a>        result-&gt;read(filename,f1,f2,f3,f4,f5);
+<a name="__line980"></a>        return *result;
+<a name="__line981"></a>    }
+<a name="__line982"></a>    
+<a name="__line983"></a>
+<a name="__line984"></a>    dgraph &amp;dgraph::read_if_static(const var &amp;filename, const function &amp;condition,
+<a name="__line985"></a>			    function f1, function f2, function f3, function f4, function f5)
+<a name="__line986"></a>    {
+<a name="__line987"></a>        dgraph *result = new dgraph;
+<a name="__line988"></a>        result-&gt;read_if(filename,condition,f1,f2,f3,f4,f5);
+<a name="__line989"></a>        return *result;
+<a name="__line990"></a>    }
+<a name="__line991"></a>    
+<a name="__line992"></a>    dgraph &amp;dgraph::read_if(const var &amp;filename, const function &amp;condition,
+<a name="__line993"></a>			    function f1, function f2, function f3, function f4, function f5)
+<a name="__line994"></a>    {
+<a name="__line995"></a>	filename_ = filename;
+<a name="__line996"></a>	istream *file = openin(filename);
+<a name="__line997"></a>	if(!file)
+<a name="__line998"></a>	{
+<a name="__line999"></a>	    warning::print(var("Could not open file ") &amp; filename,
+<a name="__line1000"></a>			   "dgraph::read_if(const var &amp;filename, ...)");
+<a name="__line1001"></a>	    return *this;
+<a name="__line1002"></a>	}
+<a name="__line1003"></a>	var legend = default_legend_;
+<a name="__line1004"></a>	legend.replace("%f",filename);
+<a name="__line1005"></a>	if(condition.initialized())
+<a name="__line1006"></a>	{
+<a name="__line1007"></a>	    legend.replace("%C", var("{") &amp; condition.sprint() &amp; var("}"));
+<a name="__line1008"></a>	}
+<a name="__line1009"></a>	else
+<a name="__line1010"></a>	{
+<a name="__line1011"></a>	    legend.replace(" %C","");
+<a name="__line1012"></a>	    legend.replace("%C","");
+<a name="__line1013"></a>	}
+<a name="__line1014"></a>	make_latex_legend(legend);
+<a name="__line1015"></a>	read_if(*file, condition, f1, f2, f3, f4, f5);
+<a name="__line1016"></a>	delete file;
+<a name="__line1017"></a>	return *this;
+<a name="__line1018"></a>    }
+<a name="__line1019"></a>
+<a name="__line1020"></a>    dgraph &amp;dgraph::remove_unset()
+<a name="__line1021"></a>    {
+<a name="__line1022"></a>        for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line1023"></a>        {
+<a name="__line1024"></a>            for(unsigned int j=0; j&lt;data_[i].size(); ++j)
+<a name="__line1025"></a>            {
+<a name="__line1026"></a>                if(data_[i][j].dbl() == unset || isnan(data_[i][j].dbl()) || isinf(data_[i][j].dbl()))
+<a name="__line1027"></a>                {
+<a name="__line1028"></a>                    data_.erase(data_.begin()+i);
+<a name="__line1029"></a>                    --i;
+<a name="__line1030"></a>                    break;
+<a name="__line1031"></a>                }
+<a name="__line1032"></a>            }
+<a name="__line1033"></a>        }
+<a name="__line1034"></a>        return *this; 
+<a name="__line1035"></a>    }
+<a name="__line1036"></a>
+<a name="__line1037"></a>    dgraph &amp;dgraph::add(const datapoint &amp;p)
+<a name="__line1038"></a>    {
+<a name="__line1039"></a>	if(columns_ != 0 &amp;&amp; columns_ != (int)p.size())
+<a name="__line1040"></a>	{
+<a name="__line1041"></a>	    warning::print("Could not add point, size mismatch","dgraph::add(datapoint)");
+<a name="__line1042"></a>	    return *this;
+<a name="__line1043"></a>	}
+<a name="__line1044"></a>	if(columns_ == 0) columns_ = (int)p.size();
+<a name="__line1045"></a>	data_.push_back(p);
+<a name="__line1046"></a>	return *this;
+<a name="__line1047"></a>    }
+<a name="__line1048"></a>
+<a name="__line1049"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2)
+<a name="__line1050"></a>    {
+<a name="__line1051"></a>	if(columns_ != 0 &amp;&amp; columns_ != 2)
+<a name="__line1052"></a>	{
+<a name="__line1053"></a>	    warning::print("Can not add points (" &amp; x1 &amp; "," &amp; x2
+<a name="__line1054"></a>			   &amp; ") to dgraph, this graph has " &amp; columns_ &amp; " columns",
+<a name="__line1055"></a>			   "dgraph::add(var,var)");
+<a name="__line1056"></a>	    return *this;
+<a name="__line1057"></a>	}
+<a name="__line1058"></a>	if(columns_ == 0) columns_ = 2;
+<a name="__line1059"></a>	datapoint p(columns_);
+<a name="__line1060"></a>	p[0] = x1;
+<a name="__line1061"></a>	p[1] = x2;
+<a name="__line1062"></a>	data_.push_back(p);
+<a name="__line1063"></a>	return *this;
+<a name="__line1064"></a>    }
+<a name="__line1065"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3)
+<a name="__line1066"></a>    {
+<a name="__line1067"></a>	if(columns_ != 0 &amp;&amp; columns_ != 3)
+<a name="__line1068"></a>	{
+<a name="__line1069"></a>	    warning::print("Can't add points (" &amp; x1 &amp; "," &amp; x2 &amp; "," &amp; x3 &amp;
+<a name="__line1070"></a>			   ") to dgraph, this graph has " &amp; columns_ &amp; " columns",
+<a name="__line1071"></a>			   "dgraph::add(var,var,var)");
+<a name="__line1072"></a>	    return *this;
+<a name="__line1073"></a>	}
+<a name="__line1074"></a>	if(columns_ == 0) columns_ = 3;
+<a name="__line1075"></a>	datapoint p(columns_);
+<a name="__line1076"></a>	p[0] = x1;
+<a name="__line1077"></a>	p[1] = x2;
+<a name="__line1078"></a>	p[2] = x3;
+<a name="__line1079"></a>	data_.push_back(p);
+<a name="__line1080"></a>	return *this;
+<a name="__line1081"></a>    }
+<a name="__line1082"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4)
+<a name="__line1083"></a>    {
+<a name="__line1084"></a>	if(columns_ != 0 &amp;&amp; columns_ != 4)
+<a name="__line1085"></a>	{
+<a name="__line1086"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1087"></a>			   &amp; x1 &amp; var(",") &amp; x2 &amp; var(",")
+<a name="__line1088"></a>			   &amp; x3 &amp; var(",") &amp; x4
+<a name="__line1089"></a>			   &amp; var(") to dgraph, this graph has ") &amp; var(columns_) &amp;
+<a name="__line1090"></a>			   var(" columns"),
+<a name="__line1091"></a>			   "dgraph::add(var,var,var,var)");
+<a name="__line1092"></a>	    return *this;
+<a name="__line1093"></a>	}
+<a name="__line1094"></a>	if(columns_ == 0) columns_ = 4;
+<a name="__line1095"></a>	datapoint p(columns_);
+<a name="__line1096"></a>	p[0] = x1;
+<a name="__line1097"></a>	p[1] = x2;
+<a name="__line1098"></a>	p[2] = x3;
+<a name="__line1099"></a>	p[3] = x4;
+<a name="__line1100"></a>	data_.push_back(p);
+<a name="__line1101"></a>	return *this;
+<a name="__line1102"></a>    }
+<a name="__line1103"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5)
+<a name="__line1104"></a>    {
+<a name="__line1105"></a>	if(columns_ != 0 &amp;&amp; columns_ != 5)
+<a name="__line1106"></a>	{
+<a name="__line1107"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1108"></a>			   &amp; x1 &amp; var(",") &amp; x2 &amp; var(",")
+<a name="__line1109"></a>			   &amp; x3 &amp; var(",") &amp; x4 &amp; var(",") &amp; x5
+<a name="__line1110"></a>			   &amp; var(") to dgraph, this graph has ") &amp; columns_ &amp; var(" columns"),
+<a name="__line1111"></a>			   "dgraph::add(var,var,var,var,var)");
+<a name="__line1112"></a>	    return *this;
+<a name="__line1113"></a>	}
+<a name="__line1114"></a>	if(columns_ == 0) columns_ = 5;
+<a name="__line1115"></a>	datapoint p(columns_);
+<a name="__line1116"></a>	p[0] = x1;
+<a name="__line1117"></a>	p[1] = x2;
+<a name="__line1118"></a>	p[2] = x3;
+<a name="__line1119"></a>	p[3] = x4;
+<a name="__line1120"></a>	p[4] = x5;
+<a name="__line1121"></a>	data_.push_back(p);
+<a name="__line1122"></a>	return *this;
+<a name="__line1123"></a>    }
+<a name="__line1124"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6)
+<a name="__line1125"></a>    {
+<a name="__line1126"></a>	if(columns_ != 0 &amp;&amp; columns_ != 6)
+<a name="__line1127"></a>	{
+<a name="__line1128"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1129"></a>			   &amp; x1 &amp; var(",") &amp; x2 &amp; var(",")
+<a name="__line1130"></a>			   &amp; x3 &amp; var(",") &amp; x4 &amp; var(",") &amp; x5 &amp;
+<a name="__line1131"></a>			   var(",") &amp; x6 &amp;
+<a name="__line1132"></a>			   var(") to dgraph, this graph has ") &amp; columns_ &amp; var(" columns"),
+<a name="__line1133"></a>			   "dgraph::add(var,var,var,var,var,var)");
+<a name="__line1134"></a>	    return *this;
+<a name="__line1135"></a>	}
+<a name="__line1136"></a>	if(columns_ == 0) columns_ = 6;
+<a name="__line1137"></a>	datapoint p(columns_);
+<a name="__line1138"></a>	p[0] = x1;
+<a name="__line1139"></a>	p[1] = x2;
+<a name="__line1140"></a>	p[2] = x3;
+<a name="__line1141"></a>	p[3] = x4;
+<a name="__line1142"></a>	p[4] = x5;
+<a name="__line1143"></a>	p[5] = x6;
+<a name="__line1144"></a>	data_.push_back(p);
+<a name="__line1145"></a>	return *this;
+<a name="__line1146"></a>    }
+<a name="__line1147"></a>
+<a name="__line1148"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7)
+<a name="__line1149"></a>    {
+<a name="__line1150"></a>	if(columns_ != 0 &amp;&amp; columns_ != 7)
+<a name="__line1151"></a>	{
+<a name="__line1152"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1153"></a>			   &amp; x1 &amp; var(",")
+<a name="__line1154"></a>			   &amp; x2 &amp; var(",")
+<a name="__line1155"></a>			   &amp; x3 &amp; var(",")
+<a name="__line1156"></a>			   &amp; x4 &amp; var(",")
+<a name="__line1157"></a>			   &amp; x5 &amp; var(",")
+<a name="__line1158"></a>			   &amp; x6 &amp; var(",")
+<a name="__line1159"></a>			   &amp; x7 &amp; var(") to dgraph, this graph has ")
+<a name="__line1160"></a>			   &amp; columns_ &amp; var(" columns"),
+<a name="__line1161"></a>			   "dgraph::add(var,var,var,var,var,var)");
+<a name="__line1162"></a>	    return *this;
+<a name="__line1163"></a>	}
+<a name="__line1164"></a>	if(columns_ == 0) columns_ = 7;
+<a name="__line1165"></a>	datapoint p(columns_);
+<a name="__line1166"></a>	p[0] = x1;
+<a name="__line1167"></a>	p[1] = x2;
+<a name="__line1168"></a>	p[2] = x3;
+<a name="__line1169"></a>	p[3] = x4;
+<a name="__line1170"></a>	p[4] = x5;
+<a name="__line1171"></a>	p[5] = x6;
+<a name="__line1172"></a>	p[6] = x7;
+<a name="__line1173"></a>	data_.push_back(p);
+<a name="__line1174"></a>	return *this;
+<a name="__line1175"></a>    }
+<a name="__line1176"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8)
+<a name="__line1177"></a>    {
+<a name="__line1178"></a>	if(columns_ != 0 &amp;&amp; columns_ != 8)
+<a name="__line1179"></a>	{
+<a name="__line1180"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1181"></a>			   &amp; x1 &amp; var(",")
+<a name="__line1182"></a>			   &amp; x2 &amp; var(",")
+<a name="__line1183"></a>			   &amp; x3 &amp; var(",")
+<a name="__line1184"></a>			   &amp; x4 &amp; var(",")
+<a name="__line1185"></a>			   &amp; x5 &amp; var(",")
+<a name="__line1186"></a>			   &amp; x6 &amp; var(",")
+<a name="__line1187"></a>			   &amp; x7 &amp; var(",")
+<a name="__line1188"></a>			   &amp; x8 &amp; var(") to dgraph, this graph has ")
+<a name="__line1189"></a>			   &amp; columns_ &amp; var(" columns"),
+<a name="__line1190"></a>			   "dgraph::add(var,var,var,var,var,var)");
+<a name="__line1191"></a>	    return *this;
+<a name="__line1192"></a>	}
+<a name="__line1193"></a>	if(columns_ == 0) columns_ = 8;
+<a name="__line1194"></a>	datapoint p(columns_);
+<a name="__line1195"></a>	p[0] = x1;
+<a name="__line1196"></a>	p[1] = x2;
+<a name="__line1197"></a>	p[2] = x3;
+<a name="__line1198"></a>	p[3] = x4;
+<a name="__line1199"></a>	p[4] = x5;
+<a name="__line1200"></a>	p[5] = x6;
+<a name="__line1201"></a>	p[6] = x7;
+<a name="__line1202"></a>	p[7] = x8;
+<a name="__line1203"></a>	data_.push_back(p);
+<a name="__line1204"></a>	return *this;
+<a name="__line1205"></a>    }
+<a name="__line1206"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8, const var &amp;x9)
+<a name="__line1207"></a>    {
+<a name="__line1208"></a>	if(columns_ != 0 &amp;&amp; columns_ != 9)
+<a name="__line1209"></a>	{
+<a name="__line1210"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1211"></a>			   &amp; x1 &amp; var(",")
+<a name="__line1212"></a>			   &amp; x2 &amp; var(",")
+<a name="__line1213"></a>			   &amp; x3 &amp; var(",")
+<a name="__line1214"></a>			   &amp; x4 &amp; var(",")
+<a name="__line1215"></a>			   &amp; x5 &amp; var(",")
+<a name="__line1216"></a>			   &amp; x6 &amp; var(",")
+<a name="__line1217"></a>			   &amp; x7 &amp; var(",")
+<a name="__line1218"></a>			   &amp; x8 &amp; var(",")
+<a name="__line1219"></a>			   &amp; x9 &amp; var(") to dgraph, this graph has ")
+<a name="__line1220"></a>			   &amp; columns_ &amp; var(" columns"),
+<a name="__line1221"></a>			   "dgraph::add(var,...)");
+<a name="__line1222"></a>	    return *this;
+<a name="__line1223"></a>	}
+<a name="__line1224"></a>	if(columns_ == 0) columns_ = 9;
+<a name="__line1225"></a>	datapoint p(columns_);
+<a name="__line1226"></a>	p[0] = x1;
+<a name="__line1227"></a>	p[1] = x2;
+<a name="__line1228"></a>	p[2] = x3;
+<a name="__line1229"></a>	p[3] = x4;
+<a name="__line1230"></a>	p[4] = x5;
+<a name="__line1231"></a>	p[5] = x6;
+<a name="__line1232"></a>	p[6] = x7;
+<a name="__line1233"></a>	p[7] = x8;
+<a name="__line1234"></a>	p[8] = x9;
+<a name="__line1235"></a>	data_.push_back(p);
+<a name="__line1236"></a>	return *this;
+<a name="__line1237"></a>    }
+<a name="__line1238"></a>    dgraph &amp;dgraph::add(const var &amp;x1, const var &amp;x2, const var &amp;x3, const var &amp;x4, const var &amp;x5, const var &amp;x6, const var &amp;x7, const var &amp;x8, const var &amp;x9, const var &amp;x10)
+<a name="__line1239"></a>    {
+<a name="__line1240"></a>	if(columns_ != 0 &amp;&amp; columns_ != 10)
+<a name="__line1241"></a>	{
+<a name="__line1242"></a>	    warning::print(var("Can not add points (") 
+<a name="__line1243"></a>			   &amp; x1 &amp; var(",")
+<a name="__line1244"></a>			   &amp; x2 &amp; var(",")
+<a name="__line1245"></a>			   &amp; x3 &amp; var(",")
+<a name="__line1246"></a>			   &amp; x4 &amp; var(",")
+<a name="__line1247"></a>			   &amp; x5 &amp; var(",")
+<a name="__line1248"></a>			   &amp; x6 &amp; var(",")
+<a name="__line1249"></a>			   &amp; x7 &amp; var(",")
+<a name="__line1250"></a>			   &amp; x8 &amp; var(",")
+<a name="__line1251"></a>			   &amp; x9 &amp; var(",")
+<a name="__line1252"></a>			   &amp; x10 &amp; var(") to dgraph, this graph has ")
+<a name="__line1253"></a>			   &amp; columns_ &amp; var(" columns"),
+<a name="__line1254"></a>			   "dgraph::add(var,...)");
+<a name="__line1255"></a>	    return *this;
+<a name="__line1256"></a>	}
+<a name="__line1257"></a>	if(columns_ == 0) columns_ = 10;
+<a name="__line1258"></a>	datapoint p(columns_);
+<a name="__line1259"></a>	p[0] = x1;
+<a name="__line1260"></a>	p[1] = x2;
+<a name="__line1261"></a>	p[2] = x3;
+<a name="__line1262"></a>	p[3] = x4;
+<a name="__line1263"></a>	p[4] = x5;
+<a name="__line1264"></a>	p[5] = x6;
+<a name="__line1265"></a>	p[6] = x7;
+<a name="__line1266"></a>	p[7] = x8;
+<a name="__line1267"></a>	p[8] = x9;
+<a name="__line1268"></a>	p[9] = x10;
+<a name="__line1269"></a>	data_.push_back(p);
+<a name="__line1270"></a>	return *this;
+<a name="__line1271"></a>    }
+<a name="__line1272"></a>
+<a name="__line1273"></a>    dgraph &amp;dgraph::add(int n, double val[])
+<a name="__line1274"></a>    {
+<a name="__line1275"></a>        if(columns_!=0  &amp;&amp; columns_!=n)
+<a name="__line1276"></a>        {
+<a name="__line1277"></a>            warning::print(var("Can not add point, number of components do not agree"));
+<a name="__line1278"></a>            return *this;
+<a name="__line1279"></a>        }
+<a name="__line1280"></a>        columns_ = n;
+<a name="__line1281"></a>        datapoint p(n);
+<a name="__line1282"></a>        for(int i=0; i&lt;n; ++i) p[i] = val[i];
+<a name="__line1283"></a>        data_.push_back(p);
+<a name="__line1284"></a>        return *this;
+<a name="__line1285"></a>    }
+<a name="__line1286"></a>
+<a name="__line1287"></a>
+<a name="__line1288"></a>    double dgraph::min(int n, int m, double low, double high)
+<a name="__line1289"></a>    {
+<a name="__line1290"></a>        if(n&lt;1 || columns_&lt;n) return unset;
+<a name="__line1291"></a>        if(m&lt;1 || columns_&lt;m) return unset;
+<a name="__line1292"></a>	--n;
+<a name="__line1293"></a>	--m;
+<a name="__line1294"></a>        if(empty()) return unset;
+<a name="__line1295"></a>        double result = unset;
+<a name="__line1296"></a>        for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1297"></a>        {
+<a name="__line1298"></a>            if(data_[i][n].dbl() == unset || data_[i][m].dbl() == unset) continue;
+<a name="__line1299"></a>            if(low&lt;=data_[i][m].dbl() &amp;&amp; data_[i][m].dbl() &lt;= high)
+<a name="__line1300"></a>            {
+<a name="__line1301"></a>                if(data_[i][n].dbl() &lt; result || result == unset) result = data_[i][n].dbl();
+<a name="__line1302"></a>            }
+<a name="__line1303"></a>        }
+<a name="__line1304"></a>        return result;
+<a name="__line1305"></a>    }
+<a name="__line1306"></a>
+<a name="__line1307"></a>
+<a name="__line1308"></a>    double dgraph::max(int n, int m, double low, double high)
+<a name="__line1309"></a>    {
+<a name="__line1310"></a>	if(n&lt;1 || columns_&lt;n) return unset;
+<a name="__line1311"></a>	if(m&lt;1 || columns_&lt;m) return unset;
+<a name="__line1312"></a>	--n;
+<a name="__line1313"></a>	--m;
+<a name="__line1314"></a>	if(empty()) return unset;
+<a name="__line1315"></a>	double result = unset;
+<a name="__line1316"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1317"></a>	{
+<a name="__line1318"></a>	    if(data_[i][n].dbl() == unset || data_[i][m].dbl() == unset) continue;
+<a name="__line1319"></a>	    if(low&lt;=data_[i][m].dbl() &amp;&amp; data_[i][m].dbl() &lt;= high)
+<a name="__line1320"></a>	    {
+<a name="__line1321"></a>		if(data_[i][n].dbl() &gt; result || result == unset) result = data_[i][n].dbl();
+<a name="__line1322"></a>	    }
+<a name="__line1323"></a>	}
+<a name="__line1324"></a>	return result;
+<a name="__line1325"></a>    }
+<a name="__line1326"></a>
+<a name="__line1327"></a>    double dgraph::average(blop::function &amp;f)
+<a name="__line1328"></a>    {
+<a name="__line1329"></a>        if(empty()) return unset;
+<a name="__line1330"></a>        double sum = 0;
+<a name="__line1331"></a>        int num = 0;
+<a name="__line1332"></a>        for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1333"></a>        {
+<a name="__line1334"></a>            sum += f.eval_dbl(data_[i]);
+<a name="__line1335"></a>            ++num;
+<a name="__line1336"></a>        }
+<a name="__line1337"></a>        return sum/num;
+<a name="__line1338"></a>    }
+<a name="__line1339"></a>
+<a name="__line1340"></a>    double dgraph::average(int n, int m, double low, double high)
+<a name="__line1341"></a>    {
+<a name="__line1342"></a>        if(n&lt;1 || columns_&lt;n) return unset;
+<a name="__line1343"></a>        if(m&lt;1 || columns_&lt;m) return unset;
+<a name="__line1344"></a>	--n;
+<a name="__line1345"></a>	--m;
+<a name="__line1346"></a>        if(empty()) return unset;
+<a name="__line1347"></a>
+<a name="__line1348"></a>        double sum = 0;
+<a name="__line1349"></a>        int num = 0;
+<a name="__line1350"></a>        for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1351"></a>        {
+<a name="__line1352"></a>            if(data_[i][n].dbl() == unset || data_[i][m].dbl() == unset) continue;
+<a name="__line1353"></a>            if(low&lt;=data_[i][m].dbl() &amp;&amp; data_[i][m].dbl() &lt;= high)
+<a name="__line1354"></a>            {
+<a name="__line1355"></a>                sum += data_[i][n].dbl();
+<a name="__line1356"></a>                ++num;
+<a name="__line1357"></a>            }
+<a name="__line1358"></a>        }
+<a name="__line1359"></a>        return sum/num;
+<a name="__line1360"></a>    }
+<a name="__line1361"></a>
+<a name="__line1362"></a>    
+<a name="__line1363"></a>    dgraph &amp;dgraph::transform(const function &amp;f)
+<a name="__line1364"></a>    {
+<a name="__line1365"></a>        std::vector&lt;blop::var&gt; transformed(f.components());
+<a name="__line1366"></a>        for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line1367"></a>        {
+<a name="__line1368"></a>            function::clear_named_params();
+<a name="__line1369"></a>            function::named_param("linenumber",i);
+<a name="__line1370"></a>            f.meval(data_[i],transformed);
+<a name="__line1371"></a>            data_[i] = transformed;
+<a name="__line1372"></a>        }
+<a name="__line1373"></a>        function::clear_named_params();
+<a name="__line1374"></a>        return *this;
+<a name="__line1375"></a>    }
+<a name="__line1376"></a>
+<a name="__line1377"></a>    dgraph &amp;dgraph::transform_column(int col, function f)
+<a name="__line1378"></a>    {
+<a name="__line1379"></a>	if(col&lt;1 || columns_&lt;col)
+<a name="__line1380"></a>	{
+<a name="__line1381"></a>	    warning::print("Column index out of range",
+<a name="__line1382"></a>			   var("dgraph::transform_column(") &amp; col &amp; var(",function"));
+<a name="__line1383"></a>	    return *this;
+<a name="__line1384"></a>	}
+<a name="__line1385"></a>	--col;
+<a name="__line1386"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1387"></a>	{
+<a name="__line1388"></a>	    array v;
+<a name="__line1389"></a>	    for(int a=0; a&lt;columns_; ++a) v.push_back(data_[i][a]);
+<a name="__line1390"></a>	    data_[i][col] = f.eval(v);
+<a name="__line1391"></a>	}
+<a name="__line1392"></a>	return *this;
+<a name="__line1393"></a>    }
+<a name="__line1394"></a>
+<a name="__line1395"></a>
+<a name="__line1396"></a>    graph &amp;dgraph::block(int index)
+<a name="__line1397"></a>    {
+<a name="__line1398"></a>	if(index&lt;=0)
+<a name="__line1399"></a>	{
+<a name="__line1400"></a>	    warning::print(var("Bad block index: ") &amp; index,"dgraph::block(int i)");
+<a name="__line1401"></a>	    return *this;
+<a name="__line1402"></a>	}
+<a name="__line1403"></a>	int first=-1, last=-1;
+<a name="__line1404"></a>	int block_index = 0;
+<a name="__line1405"></a>	for(size_type i=0; i&lt;size(); ++i)
+<a name="__line1406"></a>	{
+<a name="__line1407"></a>	    if(data_[i][0].dbl() != unset)
+<a name="__line1408"></a>	    {
+<a name="__line1409"></a>		if(block_index == 0) block_index = 1;
+<a name="__line1410"></a>		else if(block_index &lt; 0) block_index = -block_index+1;
+<a name="__line1411"></a>
+<a name="__line1412"></a>		if(block_index == index &amp;&amp; first&lt;0) first = i;
+<a name="__line1413"></a>	    }
+<a name="__line1414"></a>	    else
+<a name="__line1415"></a>	    {
+<a name="__line1416"></a>		if(block_index == index) last = i;
+<a name="__line1417"></a>		block_index = -::abs(block_index);
+<a name="__line1418"></a>	    }
+<a name="__line1419"></a>	}
+<a name="__line1420"></a>
+<a name="__line1421"></a>	if(last &gt;=0 &amp;&amp; last  &lt; (int)size()) data_.erase(data_.begin()+last, data_.end());
+<a name="__line1422"></a>	if(first &gt; 0) data_.erase(data_.begin(), data_.begin()+first);
+<a name="__line1423"></a>
+<a name="__line1424"></a>	return *this;
+<a name="__line1425"></a>    }
+<a name="__line1426"></a>
+<a name="__line1427"></a>    dgraph &amp;dgraph::sort(const blop::function &amp;key)
+<a name="__line1428"></a>    {
+<a name="__line1429"></a>        std::vector&lt;double&gt; keys;
+<a name="__line1430"></a>        for(unsigned int i=0; i&lt;data_.size(); ++i) keys.push_back(key.eval(data_[i]).dbl());
+<a name="__line1431"></a>        parallel_sort(keys,data_);
+<a name="__line1432"></a>        return *this;
+<a name="__line1433"></a>    }
+<a name="__line1434"></a>
+<a name="__line1435"></a>    dgraph *dgraph::filter(const blop::function &amp;filt)
+<a name="__line1436"></a>    {
+<a name="__line1437"></a>        dgraph *result = new dgraph;
+<a name="__line1438"></a>        for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line1439"></a>        {
+<a name="__line1440"></a>            if(filt.eval((*this)[i])) result-&gt;add((*this)[i]);
+<a name="__line1441"></a>        }
+<a name="__line1442"></a>        return result;
+<a name="__line1443"></a>    }
+<a name="__line1444"></a>    dgraph *dgraph::filter(const blop::function &amp;filt, const blop::function &amp;trans)
+<a name="__line1445"></a>    {
+<a name="__line1446"></a>        dgraph *result = new dgraph;
+<a name="__line1447"></a>        std::vector&lt;var&gt; out;
+<a name="__line1448"></a>        for(unsigned int i=0; i&lt;size(); ++i)
+<a name="__line1449"></a>        {
+<a name="__line1450"></a>            if(filt.eval((*this)[i]))
+<a name="__line1451"></a>            {
+<a name="__line1452"></a>                trans.meval((*this)[i],out);
+<a name="__line1453"></a>                result-&gt;add(out);
+<a name="__line1454"></a>            }
+<a name="__line1455"></a>        }
+<a name="__line1456"></a>        return result;
+<a name="__line1457"></a>    }
+<a name="__line1458"></a>
+<a name="__line1459"></a>}
+<a name="__line1460"></a>
+<a name="__line1461"></a>
+<a name="__line1462"></a>std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const blop::dgraph &amp;g)
+<a name="__line1463"></a>{
+<a name="__line1464"></a>    for(unsigned int i=0; i&lt;g.size(); ++i)
+<a name="__line1465"></a>    {
+<a name="__line1466"></a>        for(int c=0; c&lt;g.columns(); ++c)
+<a name="__line1467"></a>        {
+<a name="__line1468"></a>            out&lt;&lt;(*(g.get(i)))[c]&lt;&lt;" ";
+<a name="__line1469"></a>        }
+<a name="__line1470"></a>        out&lt;&lt;std::endl;
+<a name="__line1471"></a>    }
+<a name="__line1472"></a>    return out;
+<a name="__line1473"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

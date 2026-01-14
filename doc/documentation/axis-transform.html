@@ -1,0 +1,78 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Let an axis show transformed values of another one</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="axis-cut.html">
+   <link rel="Next" href="axis-pos.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-cut.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-cut.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-pos.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-pos.html">
+    </a> <br>
+
+<center class=title><b>
+Let an axis show transformed values of another one
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+double g = 10; // gravitational constant
+
+set::xtitle("Time [s]");
+set::y1title("Velocity [m/s]");
+set::y2title("Length of fall [m]");
+
+// v = g*t, this is plotted on the y1 axis with plot(_1,g*_1)
+// the length of fall, s = v*v/2/g, v = sqrt(2*g*s)
+// this is the general form:
+frame::current().y2axis()->transform(frame::current().y1axis(), _1*_1/2/g, sqrt(2*g*_1));
+
+// The short-hand version:
+set::y2transform(_1*_1/2/g,sqrt(2*g*_1));
+
+plot(_1,g*_1).legend("Velocity and distance of falling object");
+
+</pre>
+</div>
+
+<hr>
+<div class=description>
+.... under development
+</div>
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="axis.h.html">axis.h</a>
+   <a href="axis.cc.html">axis.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-cut.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-cut.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="axis-pos.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: axis-pos.html">
+    </a> 
+
+</body>
+</html>

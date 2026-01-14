@@ -1,0 +1,376 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: plottable.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_PLOTTABLE_H__
+<a name="__line1"></a>#define __BLOP_PLOTTABLE_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line4"></a>#include "<a href="point_drawer.h.html">point_drawer.h</a>"
+<a name="__line5"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line6"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line7"></a>#include &lt;vector&gt;
+<a name="__line8"></a>
+<a name="__line9"></a>#ifndef __MAKECINT__
+<a name="__line10"></a>#include &lt;functional&gt;
+<a name="__line11"></a>#endif
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    typedef std::vector&lt;blop::var&gt; datapoint;
+<a name="__line16"></a>    class frame;
+<a name="__line17"></a>
+<a name="__line18"></a>    class plottable
+<a name="__line19"></a>    {
+<a name="__line20"></a><span class=protected>        protected:
+<a name="__line21"></a>            int level_;
+<a name="__line22"></a>
+<a name="__line23"></a>	    bool permanent_;
+<a name="__line24"></a>
+<a name="__line25"></a>	    bool autodel_;
+<a name="__line26"></a>
+<a name="__line27"></a>	    int ordered_;
+<a name="__line28"></a>
+<a name="__line29"></a>	    frame *parent_;
+<a name="__line30"></a>	    
+<a name="__line31"></a>	    double xmin_,xmax_,ymin_,ymax_;
+<a name="__line32"></a>	    
+<a name="__line33"></a>	    <span class=comment>// point properties</span>
+<a name="__line34"></a>	    length        pointsize_;
+<a name="__line35"></a>	    point_drawer *point_drawer_;
+<a name="__line36"></a>	    color         pointcolor_;
+<a name="__line37"></a>	
+<a name="__line38"></a>	    <span class=comment>// line properties</span>
+<a name="__line39"></a>	    color         linecolor_;
+<a name="__line40"></a>	    length        linewidth_;
+<a name="__line41"></a>	    sym::linestyle linestyle_;
+<a name="__line42"></a>
+<a name="__line43"></a>	    <span class=comment>// fill properties</span>
+<a name="__line44"></a>	    color         fillcolor_;
+<a name="__line45"></a>	    bool          fill_;
+<a name="__line46"></a>
+<a name="__line47"></a>	    <span class=comment>// legend properties</span>
+<a name="__line48"></a>	    color         legendcolor_;
+<a name="__line49"></a>
+<a name="__line50"></a>	    mutable graph_drawer *graph_drawer_;
+<a name="__line51"></a>
+<a name="__line52"></a>	    int xaxis_,yaxis_;
+<a name="__line53"></a>
+<a name="__line54"></a>	    mutable var legend_;
+<a name="__line55"></a>
+<a name="__line56"></a>	    bool modified_;
+<a name="__line57"></a>
+<a name="__line58"></a>	    void copy(const plottable &amp;);
+<a name="__line59"></a>
+<a name="__line60"></a>	    var layer_;
+<a name="__line61"></a>    
+<a name="__line62"></a>            std::function&lt;void()&gt; plot_setup_function_;
+<a name="__line63"></a>
+<a name="__line64"></a></span><span class=public>    public:
+<a name="__line65"></a>	    plottable();
+<a name="__line66"></a>	    plottable(const plottable &amp;);
+<a name="__line67"></a>	    virtual ~plottable();
+<a name="__line68"></a>	    const plottable &amp;operator=(const plottable &amp;);
+<a name="__line69"></a>
+<a name="__line70"></a>	    virtual plottable &amp;layer(const var &amp; i) { layer_ = i; return *this; }
+<a name="__line71"></a>	    virtual const var &amp;layer() const { return layer_; }
+<a name="__line72"></a>
+<a name="__line73"></a>	    void copy_style(const plottable &amp;);
+<a name="__line74"></a>
+<a name="__line75"></a>	    void parent(frame *f) { parent_ = f; }
+<a name="__line76"></a>
+<a name="autodel"> </a>
+<a name="__line78"></a>	    plottable &amp;autodel(bool b) { autodel_ = b; return *this; }
+<a name="__line79"></a>	    bool autodel() const { return autodel_; }
+<a name="__line80"></a>	    plottable &amp;permanent(bool b) { permanent_ = b; return *this; }
+<a name="__line81"></a>	    bool permanent() const { return permanent_; }
+<a name="__line82"></a>	    plottable &amp;level(int l) { level_ = l; modified_ = true; return *this; }
+<a name="__line83"></a>	    int level() const { return level_; }
+<a name="__line84"></a>
+<a name="__line85"></a>	    plottable &amp;ordered(int f) { ordered_ = f; return *this; }
+<a name="__line86"></a>	    int        ordered() const { return ordered_; }
+<a name="__line87"></a>
+<a name="__line88"></a>	    plottable &amp;xmin(double d) {xmin_ = d; return *this;}
+<a name="__line89"></a>	    plottable &amp;xmax(double d) {xmax_ = d; return *this;}
+<a name="__line90"></a>	    plottable &amp;xrange(double d1,double d2)
+<a name="__line91"></a>		{xmin_ = d1; xmax_ = d2; return *this;}
+<a name="__line92"></a>	    plottable &amp;ymin(double d) {ymin_ = d; return *this;}
+<a name="__line93"></a>	    plottable &amp;ymax(double d) {ymax_ = d; return *this;}
+<a name="__line94"></a>	    plottable &amp;yrange(double d1,double d2) {ymin_ = d1; ymax_ = d2; return *this;}
+<a name="__line95"></a>
+<a name="__line96"></a>
+<a name="__line97"></a>	    double xmin()  const {return xmin_;}
+<a name="__line98"></a>	    double xmax()  const {return xmax_;}
+<a name="__line99"></a>	    double ymin()  const {return ymin_;}
+<a name="__line100"></a>	    double ymax()  const {return ymax_;}
+<a name="__line101"></a>
+<a name="__line102"></a>
+<a name="__line103"></a>	    plottable     &amp;legend(const var &amp;s) { legend_ = s; modified_ = true; return *this;}
+<a name="__line104"></a>	    const var  &amp;legend() const      { return legend_; }
+<a name="__line105"></a>
+<a name="__line106"></a>	    plottable   &amp;legendcolor(const color &amp;c)
+<a name="__line107"></a>		{legendcolor_ = c; modified_ = true; return *this;}
+<a name="__line108"></a>	    plottable   &amp;legendcolor(double r, double g, double b)
+<a name="__line109"></a>		{ return legendcolor(color(r,g,b)); }
+<a name="__line110"></a>	    const color  &amp;legendcolor() const    {return legendcolor_;}
+<a name="__line111"></a>
+<a name="__line112"></a>	    <span class=comment>// ---------- fill properties  ----------------------------------------------------</span>
+<a name="__line113"></a>
+<a name="__line114"></a>	    plottable        &amp;fillcolor(const color &amp;c)
+<a name="__line115"></a>		{
+<a name="__line116"></a>		    fillcolor_ = c; legendcolor_ = c; fill_ = true;
+<a name="__line117"></a>		    modified_ = true; 
+<a name="__line118"></a>		    return *this;
+<a name="__line119"></a>		}
+<a name="__line120"></a>	    plottable        &amp;fc(const color &amp;c)        {return fillcolor(c);}
+<a name="__line121"></a>	    plottable        &amp;fillcolor(double red, double green, double blue) { return fillcolor(color(red,green,blue)); }
+<a name="__line122"></a>	    plottable        &amp;fc(double red, double green, double blue) { return fillcolor(color(red,green,blue)); }
+<a name="__line123"></a>	    const color  &amp;fillcolor() const         {return fillcolor_;}
+<a name="__line124"></a>
+<a name="__line125"></a>	    plottable        &amp;fill(bool b) {fill_ = b; modified_ = true; return *this;}
+<a name="__line126"></a>	    bool          fill() const              {return fill_;}
+<a name="__line127"></a>
+<a name="__line128"></a>	    <span class=comment>// ---------- line properties   ---------------------------------------------------</span>
+<a name="__line129"></a>
+<a name="__line130"></a>	    plottable   &amp;linecolor(const color &amp;c)
+<a name="__line131"></a>		{
+<a name="__line132"></a>		    linecolor_ = c;
+<a name="__line133"></a>		    legendcolor_ = c;
+<a name="__line134"></a>		    modified_ = true; 
+<a name="__line135"></a>		    return *this;
+<a name="__line136"></a>		}
+<a name="__line137"></a>	    plottable   &amp;lc       (const color &amp;c) {return linecolor(c);}
+<a name="__line138"></a>	    plottable   &amp;linecolor(double r, double g, double b) { return linecolor(color(r,g,b)); }
+<a name="__line139"></a>	    plottable   &amp;lc       (double r, double g, double b) { return linecolor(color(r,g,b)); }
+<a name="__line140"></a>	    const color  &amp;linecolor() const    {return linecolor_;}
+<a name="__line141"></a>
+<a name="__line142"></a>	    plottable    &amp;linewidth(const length &amp;d)
+<a name="__line143"></a>		{linewidth_ = d; modified_=true;return *this;}
+<a name="__line144"></a>	    plottable    &amp;lw       (const length &amp;d) {return linewidth(d);}
+<a name="__line145"></a>	    const length  &amp;linewidth() const     {return linewidth_;}
+<a name="__line146"></a>
+<a name="__line147"></a>	    plottable   &amp;linestyle(sym::linestyle s) {linestyle_ = s; modified_=true; return *this;}
+<a name="__line148"></a>	    plottable   &amp;ls       (sym::linestyle s) {return linestyle(s);}
+<a name="__line149"></a>	    sym::linestyle           linestyle() const {return linestyle_; }
+<a name="__line150"></a>
+<a name="__line151"></a>	    plottable &amp;linetype(sym::linestyle s) { return linestyle(s); }  <span class=comment>// alias for linestyle, for confused users</span>
+<a name="__line152"></a>	    plottable &amp;lt      (sym::linestyle s) { return linestyle(s); }  <span class=comment>// shorthand for linetype</span>
+<a name="__line153"></a>
+<a name="__line154"></a>	    <span class=comment>// ---------- point properties  ---------------------------------------------------</span>
+<a name="__line155"></a>	    plottable   &amp;pointtype(const point_drawer &amp;d); 
+<a name="__line156"></a>	    plottable   &amp;pt       (const point_drawer &amp;d) {return pointtype(d);}
+<a name="__line157"></a>	    point_drawer *pointtype() const           {return point_drawer_;}
+<a name="__line158"></a>	    
+<a name="__line159"></a>	    plottable   &amp;pointsize(const length &amp;d) {pointsize_ = d; modified_=true; return *this;}
+<a name="__line160"></a>	    plottable   &amp;ps       (const length &amp;d) {return pointsize(d);}
+<a name="__line161"></a>	    const length &amp;pointsize() const     {return pointsize_;}
+<a name="__line162"></a>
+<a name="__line163"></a>	    plottable   &amp;pointcolor(const color &amp;c) {pointcolor_ = c; legendcolor_ = c; modified_ = true; return *this;}
+<a name="__line164"></a>	    plottable   &amp;pc        (const color &amp;c) {return pointcolor(c);}
+<a name="__line165"></a>	    plottable   &amp;pointcolor(double r, double g, double b) { return pointcolor(color(r,g,b)); }
+<a name="__line166"></a>	    plottable   &amp;pc        (double r, double g, double b) { return pointcolor(color(r,g,b)); }
+<a name="__line167"></a>	    const color  &amp;pointcolor() const    {return pointcolor_;}
+<a name="__line168"></a>
+<a name="__line169"></a>	    plottable   &amp;allcolor(const color &amp;c)
+<a name="__line170"></a>		{
+<a name="__line171"></a>		    modified_ = true;
+<a name="__line172"></a>		    pointcolor_ = c;
+<a name="__line173"></a>		    linecolor_ = c;
+<a name="__line174"></a>		    legendcolor_ = c;
+<a name="__line175"></a>		    fillcolor_ = c;
+<a name="__line176"></a>		    return *this;
+<a name="__line177"></a>		}
+<a name="__line178"></a>	    plottable   &amp;ac(const color &amp;c) {return allcolor(c);}
+<a name="__line179"></a>	    plottable   &amp;allcolor(double r, double g, double b) { return allcolor(color(r,g,b)); }
+<a name="__line180"></a>	    plottable   &amp;ac(double r, double g, double b) { return allcolor(color(r,g,b)); }
+<a name="__line181"></a>
+<a name="__line182"></a>	    plottable   &amp;drawstyle(const graph_drawer &amp;d);
+<a name="__line183"></a>	    plottable   &amp;ds       (const graph_drawer &amp;d) {return drawstyle(d);}
+<a name="__line184"></a>	    graph_drawer *drawstyle() const { return graph_drawer_;}
+<a name="__line185"></a>
+<a name="__line186"></a>	    plottable   &amp;xaxis(int i) {xaxis_ = i; return *this;}
+<a name="__line187"></a>	    int           xaxis() const {return xaxis_;}
+<a name="__line188"></a>	    plottable   &amp;yaxis(int i) {yaxis_ = i; return *this;}
+<a name="__line189"></a>	    int           yaxis() const {return yaxis_;}
+<a name="__line190"></a>
+<a name="__line191"></a>
+<a name="__line192"></a>	    <span class=comment>// duplicate the thing</span>
+<a name="__line193"></a>	    virtual plottable &amp;dup() = 0;
+<a name="__line194"></a>
+<a name="__line195"></a>	    <span class=comment>// virtual dummy functions for parameter setting. overwritten in fgraph</span>
+<a name="__line196"></a>	    virtual plottable &amp;p1min(double d) { return *this;}
+<a name="__line197"></a>	    virtual plottable &amp;p1max(double d) { return *this;}
+<a name="__line198"></a>	    virtual plottable &amp;p2min(double d) { return *this;}
+<a name="__line199"></a>	    virtual plottable &amp;p2max(double d) { return *this;}
+<a name="__line200"></a>	    virtual plottable &amp;p1range(double a,double b,int n=0) { return *this;}
+<a name="__line201"></a>	    virtual plottable &amp;p2range(double a,double b,int n=0) { return *this;}
+<a name="__line202"></a>	    virtual plottable &amp;p1log(bool) { return *this; }
+<a name="__line203"></a>	    virtual plottable &amp;p2log(bool) { return *this; }
+<a name="__line204"></a>	    virtual plottable &amp;nsamples1(int n) { return *this; }
+<a name="__line205"></a>	    virtual plottable &amp;nsamples2(int n) { return *this; }
+<a name="__line206"></a>	    virtual plottable &amp;nsamples(int n) { return *this; }
+<a name="__line207"></a>            virtual plottable &amp;dsamples1(double d) { return *this; }
+<a name="__line208"></a>            virtual plottable &amp;dsamples2(double d) { return *this; }
+<a name="__line209"></a>            virtual plottable &amp;dsamples(double d) { return *this; }
+<a name="__line210"></a>
+<a name="__line211"></a>	    <span class=comment>// virtual functions, overwritten in fgraph</span>
+<a name="__line212"></a>	    virtual double p1min() const {return 0; }
+<a name="__line213"></a>	    virtual double p1max() const {return 0; }
+<a name="__line214"></a>	    virtual double p2min() const {return 0; }
+<a name="__line215"></a>	    virtual double p2max() const {return 0; }
+<a name="__line216"></a>
+<a name="__line217"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line218"></a>	    <span class=comment>// pick a block (continous set of data in a file/stream,</span>
+<a name="__line219"></a>	    <span class=comment>// between empty lines)</span>
+<a name="__line220"></a>	    <span class=comment>// i=1 corresponds to the first block</span>
+<a name="__line221"></a>
+<a name="__line222"></a>	    virtual plottable &amp;block(int i) {return *this;}
+<a name="__line223"></a>
+<a name="__line224"></a>
+<a name="__line225"></a>	    <span class=comment>// ---------- hints  --------------------------------------------------------------</span>
+<a name="__line226"></a>	    virtual function x_hint() const { return unset; }
+<a name="__line227"></a>	    virtual function y_hint() const { return unset; }
+<a name="__line228"></a>	    virtual function z_hint() const { return unset; }
+<a name="__line229"></a>	    virtual function dx_hint() const { return unset; }
+<a name="__line230"></a>	    virtual function x1_hint() const { return unset; }
+<a name="__line231"></a>	    virtual function x2_hint() const { return unset; }
+<a name="__line232"></a>	    virtual function dy_hint() const { return unset; }
+<a name="__line233"></a>	    virtual function y1_hint() const { return unset; }
+<a name="__line234"></a>	    virtual function y2_hint() const { return unset; }
+<a name="__line235"></a>	    virtual function dz_hint() const { return unset; }
+<a name="__line236"></a>	    virtual function z1_hint() const { return unset; }
+<a name="__line237"></a>	    virtual function z2_hint() const { return unset; }
+<a name="__line238"></a>	    
+<a name="__line239"></a>	    typedef unsigned int size_type;
+<a name="__line240"></a>	    virtual const datapoint* get(int index) const = 0;
+<a name="__line241"></a>	    virtual size_type size() const = 0;
+<a name="__line242"></a>	    bool empty() const { return size() &lt;= 0; }
+<a name="__line243"></a>	    virtual var max(const function &amp;fmax, function fret=unset) const = 0;
+<a name="__line244"></a>	    virtual var min(const function &amp;fmin, function fret=unset) const = 0;
+<a name="__line245"></a>	    virtual int columns() const = 0;
+<a name="__line246"></a>
+<a name="__line247"></a>	    virtual void prepare_for_draw(axis *,axis *, frame *, int count) = 0;
+<a name="__line248"></a>
+<a name="__line249"></a>	    virtual bool modified() const { return modified_; }
+<a name="__line250"></a>	    virtual void modified(bool f) { modified_ = f; }
+<a name="__line251"></a>
+<a name="__line252"></a>            virtual plottable &amp;esample(double) { return *this; }
+<a name="__line253"></a>
+<a name="__line254"></a>            virtual plottable &amp;sort(const blop::function &amp;key) {return *this;};
+<a name="__line255"></a>
+<a name="__line256"></a>            const std::function&lt;void()&gt; &amp;plot_setup_function() const { return plot_setup_function_; }
+<a name="__line257"></a>            plottable &amp;plot_setup_function(const std::function&lt;void()&gt; &amp;f) { plot_setup_function_ = f; return *this; }
+<a name="__line258"></a>
+<a name="__line259"></a>    };
+<a name="__line260"></a>
+<a name="__line261"></a>    class plottables
+<a name="__line262"></a>    {
+<a name="__line263"></a></span><span class=private>    private:
+<a name="__line264"></a>	std::vector&lt;blop::plottable*&gt; plottables_;
+<a name="__line265"></a>        std::vector&lt;std::map&lt;std::string,blop::var&gt;&gt; named_params_;
+<a name="__line266"></a></span><span class=public>    public:
+<a name="__line267"></a>#ifndef __MAKECINT__
+<a name="__line268"></a>        plottables(const std::initializer_list&lt;plottable*&gt; &amp;p);
+<a name="__line269"></a>#endif
+<a name="__line270"></a>        plottables() {}
+<a name="__line271"></a>	plottables &amp;add(plottable *p, const std::map&lt;std::string,blop::var&gt; &amp;np = std::map&lt;std::string,blop::var&gt;());
+<a name="__line272"></a>	plottables &amp;clear();
+<a name="__line273"></a>	unsigned int size() const;
+<a name="__line274"></a>	plottable* operator[](unsigned int);
+<a name="__line275"></a>        std::vector&lt;blop::plottable*&gt;::iterator begin() { return plottables_.begin(); }
+<a name="__line276"></a>        std::vector&lt;blop::plottable*&gt;::iterator end() { return plottables_.end(); }
+<a name="__line277"></a>
+<a name="__line278"></a>	plottables &amp;fillcolor(const color &amp;c);
+<a name="__line279"></a>	plottables &amp;fc(const color &amp;c) { fillcolor(c); return *this; }
+<a name="__line280"></a>        plottables &amp;fillcolor(const std::vector&lt;blop::color&gt; &amp;c); 
+<a name="__line281"></a>        plottables &amp;fc(const std::vector&lt;blop::color&gt; &amp;c) { return fillcolor(c); }
+<a name="__line282"></a>	    
+<a name="__line283"></a>	plottables &amp;linecolor(const color &amp;c);
+<a name="__line284"></a>	plottables &amp;lc(const color &amp;c) { linecolor(c); return *this; }
+<a name="__line285"></a>        plottables &amp;linecolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line286"></a>        plottables &amp;lc(const std::vector&lt;blop::color&gt; &amp;c) { return linecolor(c); }
+<a name="__line287"></a>
+<a name="__line288"></a>	plottables &amp;pointcolor(const color &amp;c);
+<a name="__line289"></a>	plottables &amp;pc(const color &amp;c) { pointcolor(c); return *this; }
+<a name="__line290"></a>        plottables &amp;pointcolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line291"></a>        plottables &amp;pc(const std::vector&lt;blop::color&gt; &amp;c) { return pointcolor(c); }
+<a name="__line292"></a>
+<a name="__line293"></a>	plottables &amp;allcolor(const color &amp;c);
+<a name="__line294"></a>	plottables &amp;ac(const color &amp;c) { allcolor(c); return *this; }
+<a name="__line295"></a>        plottables &amp;allcolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line296"></a>        plottables ac(const std::vector&lt;blop::color&gt; &amp;c) { return allcolor(c); }
+<a name="__line297"></a>
+<a name="__line298"></a>	plottables &amp;drawstyle(const graph_drawer &amp;d);
+<a name="__line299"></a>	plottables &amp;ds(const graph_drawer &amp;d) { drawstyle(d); return *this; }
+<a name="__line300"></a>#ifndef __MAKECINT__
+<a name="__line301"></a>        plottables &amp;drawstyle(const std::vector&lt;blop::graph_drawers&gt; &amp;d);
+<a name="__line302"></a>        plottables &amp;ds(const std::vector&lt;blop::graph_drawers&gt; &amp;d) { return drawstyle(d); }
+<a name="__line303"></a>#endif
+<a name="__line304"></a>
+<a name="__line305"></a>	plottables &amp;pointtype(const point_drawer &amp;d);
+<a name="__line306"></a>	plottables &amp;pt(const point_drawer &amp;d) { pointtype(d); return *this; }
+<a name="__line307"></a>#ifndef __MAKECINT__
+<a name="__line308"></a>        plottables &amp;pointtype(const std::vector&lt;blop::point_drawers&gt; &amp;d);
+<a name="__line309"></a>        plottables &amp;pt(const std::vector&lt;blop::point_drawers&gt; &amp;d) { return pointtype(d); }
+<a name="__line310"></a>#endif        
+<a name="__line311"></a>
+<a name="__line312"></a>	plottables &amp;pointsize(const length &amp;d);
+<a name="__line313"></a>	plottables &amp;ps(const length &amp;d) { pointsize(d); return *this; }
+<a name="__line314"></a>        plottables &amp;pointsize(const std::vector&lt;blop::length&gt; &amp;d);
+<a name="__line315"></a>        plottables &amp;ps(const std::vector&lt;blop::length&gt; &amp;d) { return pointsize(d); }
+<a name="__line316"></a>
+<a name="__line317"></a>	plottables &amp;linestyle(sym::linestyle s);
+<a name="__line318"></a>	plottables &amp;ls(sym::linestyle s) { linestyle(s); return *this; }
+<a name="__line319"></a>        plottables &amp;linestyle(const std::vector&lt;blop::sym::linestyle&gt; &amp;s);
+<a name="__line320"></a>        plottables &amp;ls(const std::vector&lt;blop::sym::linestyle&gt; &amp;s) { return linestyle(s); }
+<a name="__line321"></a>
+<a name="__line322"></a>	plottables &amp;linewidth(const length &amp;w);
+<a name="__line323"></a>	plottables &amp;lw(const length &amp;w) { linewidth(w); return *this; }
+<a name="__line324"></a>        plottables &amp;linewidth(const std::vector&lt;blop::length&gt; &amp;w);
+<a name="__line325"></a>        plottables &amp;lw(const std::vector&lt;blop::length&gt; &amp;w) { return linewidth(w); }
+<a name="__line326"></a>
+<a name="__line327"></a>        <span class=comment>// Set the legend of all plottables within the collection. The string %l is replaced by</span>
+<a name="__line328"></a>        <span class=comment>// the original legend of the individual plottables</span>
+<a name="__line329"></a>        plottables &amp;legend(const var &amp;leg);
+<a name="__line330"></a>        plottables &amp;legend(const char *leg) { return legend(var(leg)); }
+<a name="__line331"></a>        plottables &amp;legend(const string &amp;leg) { return legend(var(leg)); }
+<a name="__line332"></a>        plottables &amp;autodel(bool b);
+<a name="__line333"></a>        plottables &amp;legend(const std::vector&lt;blop::var&gt; &amp;l);
+<a name="__line334"></a>        plottables &amp;legend(blop::function f);
+<a name="__line335"></a>#ifndef __MAKECINT__
+<a name="__line336"></a>        plottables &amp;legend(std::function&lt;blop::var(int)&gt; f);
+<a name="__line337"></a>#endif        
+<a name="__line338"></a>    };
+<a name="__line339"></a>    
+<a name="__line340"></a>
+<a name="__line341"></a>
+<a name="__line342"></a>}
+<a name="__line343"></a>
+<a name="__line344"></a>
+<a name="__line345"></a>
+<a name="__line346"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

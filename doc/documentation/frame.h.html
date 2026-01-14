@@ -1,0 +1,488 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: frame.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_FRAME_H__
+<a name="__line1"></a>#define __BLOP_FRAME_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="axis.h.html">axis.h</a>"
+<a name="__line4"></a>#include "<a href="box.h.html">box.h</a>"
+<a name="__line5"></a>#include "<a href="plottable.h.html">plottable.h</a>"
+<a name="__line6"></a>#include "<a href="dgraph.h.html">dgraph.h</a>"
+<a name="__line7"></a>#include "<a href="fgraph.h.html">fgraph.h</a>"
+<a name="__line8"></a>#include "<a href="grob.h.html">grob.h</a>"
+<a name="__line9"></a>#include "<a href="legendbox.h.html">legendbox.h</a>"
+<a name="__line10"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line11"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line12"></a>
+<a name="__line13"></a><span class=comment>/*
+<a name="__line14"></a>  A frame is the place, within which graphs are displayed. It has
+<a name="__line15"></a>  - axes (4 axes: x1 and x2 are the horizontal axes, y1 and y2 the vert. ones)
+<a name="__line16"></a>  - legendbox (the explantion of the graphs)
+<a name="__line17"></a>*/</span>
+<a name="__line18"></a>
+<a name="__line19"></a>namespace blop
+<a name="__line20"></a>{
+<a name="__line21"></a>    class canvas;
+<a name="__line22"></a>    class epad;
+<a name="__line23"></a>
+<a name="__line24"></a>    class frame : public container
+<a name="__line25"></a>	{
+<a name="__line26"></a><span class=private>	private:
+<a name="__line27"></a>#ifndef __MAKECINT__
+<a name="__line28"></a>	    class grob_plottable
+<a name="__line29"></a>	    {
+<a name="__line30"></a></span><span class=public>	    public:
+<a name="__line31"></a>		grob      *grob_;
+<a name="__line32"></a>		plottable *plottable_;
+<a name="__line33"></a>	        grob_plottable(grob *gg, plottable *pp) : grob_(gg), plottable_(pp) {}
+<a name="__line34"></a>	    };
+<a name="__line35"></a>	    vector&lt;grob_plottable&gt; ordering_;
+<a name="__line36"></a>#endif
+<a name="__line37"></a></span><span class=private>	private:
+<a name="__line38"></a>	    void draw_grid(terminal *);
+<a name="__line39"></a>
+<a name="__line40"></a>	    friend class canvas;
+<a name="__line41"></a>
+<a name="__line42"></a>	    static sym::position default_legend_xalign_, default_legend_yalign_;
+<a name="__line43"></a>	    sym::position legend_xalign_, legend_yalign_;
+<a name="__line44"></a>            bool show_legend_;
+<a name="__line45"></a>            static bool default_show_legend_;
+<a name="__line46"></a>
+<a name="__line47"></a>	    int draw_frame_;
+<a name="__line48"></a>	    int draw_axes_;
+<a name="__line49"></a>	    static int default_draw_frame_;
+<a name="__line50"></a>	    static int  default_draw_axes_;
+<a name="__line51"></a>
+<a name="__line52"></a>	    int    grid_;
+<a name="__line53"></a>            int    grid_at_minor_tics_;
+<a name="__line54"></a>	    static int    default_grid_, default_grid_at_minor_tics_;
+<a name="__line55"></a>
+<a name="__line56"></a>            <span class=comment>// Function for a parametric grid. </span>
+<a name="__line57"></a>            function pgrid_func_;
+<a name="__line58"></a>            double pgrid_1_from_, pgrid_1_to_, pgrid_2_from_, pgrid_2_to_;
+<a name="__line59"></a>            int pgrid_1_n_, pgrid_2_n_;
+<a name="__line60"></a>
+<a name="__line61"></a>	    color  gridcolor_, minor_gridcolor_;
+<a name="__line62"></a>            static color default_gridcolor_, default_minor_gridcolor_;
+<a name="__line63"></a>
+<a name="__line64"></a>	    sym::linestyle    gridstyle_, minor_gridstyle_;
+<a name="__line65"></a>            static sym::linestyle    default_gridstyle_, default_minor_gridstyle_;
+<a name="__line66"></a>
+<a name="__line67"></a>	    length gridwidth_, minor_gridwidth_;
+<a name="__line68"></a>            static length default_gridwidth_, default_minor_gridwidth_;
+<a name="__line69"></a>
+<a name="__line70"></a>            length gridcut_;
+<a name="__line71"></a>	    length linewidth_;
+<a name="__line72"></a>
+<a name="__line73"></a>	    static length default_linewidth_, default_gridcut_;
+<a name="__line74"></a>
+<a name="__line75"></a>	    bool foreground_;
+<a name="__line76"></a>	    static bool default_foreground_;
+<a name="__line77"></a>
+<a name="__line78"></a>	    bool grid_foreground_;
+<a name="__line79"></a>	    static bool default_grid_foreground_;
+<a name="__line80"></a>
+<a name="__line81"></a>	    color framecolor_;
+<a name="__line82"></a>	    static color default_framecolor_;
+<a name="__line83"></a>
+<a name="__line84"></a>	    friend class pad;
+<a name="__line85"></a>
+<a name="__line86"></a>	    bool owns_x1axis_,owns_x2axis_,owns_y1axis_,owns_y2axis_;
+<a name="__line87"></a>	    axis *x1axis_, *x2axis_, *y1axis_, *y2axis_;
+<a name="__line88"></a>
+<a name="__line89"></a>	    std::vector&lt;blop::plottable*&gt; graphs_;
+<a name="__line90"></a>
+<a name="__line91"></a>	    length parent_width_, parent_height_;
+<a name="__line92"></a>
+<a name="__line93"></a>	    static frame *current_;
+<a name="__line94"></a>
+<a name="__line95"></a>	    legendbox *legendbox_;
+<a name="__line96"></a>	    bool       owns_legendbox_;
+<a name="__line97"></a>
+<a name="__line98"></a>	    bool mirror_x1_, mirror_x2_, mirror_y1_, mirror_y2_;
+<a name="__line99"></a>
+<a name="__line100"></a>	    void draw_axes(terminal *);
+<a name="__line101"></a>	    void draw_frame(terminal *);
+<a name="__line102"></a>
+<a name="__line103"></a>	    <span class=comment>// separation of the margin object</span>
+<a name="__line104"></a>	    length marginobjectsep_;
+<a name="__line105"></a>	    static length default_marginobjectsep_;
+<a name="__line106"></a>
+<a name="__line107"></a>	    frame(const frame &amp;);
+<a name="__line108"></a>	    void operator= (const frame &amp;);
+<a name="__line109"></a>
+<a name="__line110"></a>	    enum {Left=0, Right=1, Bottom=2, Top=3};
+<a name="__line111"></a>	    epad *marginboxes_[4];
+<a name="__line112"></a>	    bool owns_marginboxes_[4];
+<a name="__line113"></a>
+<a name="__line114"></a>	    label *title_;
+<a name="__line115"></a>
+<a name="__line116"></a>	    void print_graph_(plottable *, terminal *);
+<a name="__line117"></a>
+<a name="__line118"></a>	    bool nodistort_;
+<a name="__line119"></a>
+<a name="__line120"></a></span><span class=public>	public:
+<a name="__line121"></a>
+<a name="__line122"></a>
+<a name="__line123"></a>	    <span class=comment>// ---------- Create a new frame --------------------------------------------------</span>
+<a name="__line124"></a>	    <span class=comment>// Creation of a new frame with all the necessary administration:</span>
+<a name="__line125"></a>	    <span class=comment>// creates a new frame within the given container (by default the current pad),</span>
+<a name="__line126"></a>	    <span class=comment>// autodel of the new frame is set to 'true'</span>
+<a name="__line127"></a>
+<a name="__line128"></a>	    static frame &amp;mknew(container &amp;parent = pad::current());
+<a name="__line129"></a>
+<a name="__line130"></a>	    <span class=comment>// ---------- Get a pointer to the legendbox used by this frame  ------------------</span>
+<a name="__line131"></a>
+<a name="__line132"></a>	    legendbox *legend() {return legendbox_;}
+<a name="__line133"></a>
+<a name="__line134"></a>
+<a name="__line135"></a>	    <span class=comment>// ---------- Specify legend position (such as sym::left, sym::bottom, etc) -------</span>
+<a name="__line136"></a>
+<a name="__line137"></a>	    frame &amp;legendpos(sym::position xalign,sym::position yalign);
+<a name="__line138"></a>	    static void default_legendpos(sym::position xalign, sym::position  yalign);
+<a name="__line139"></a>
+<a name="__line140"></a>
+<a name="__line141"></a>	    <span class=comment>// ---------- Set an outer legendbox ----------------------------------------------</span>
+<a name="__line142"></a>	    <span class=comment>// Set an outer legendbox (possibly to be shared by several frames)</span>
+<a name="__line143"></a>	    <span class=comment>// With this function you can set an outer legendbox</span>
+<a name="__line144"></a>	    <span class=comment>// to be used by this frame. This can be used for example</span>
+<a name="__line145"></a>	    <span class=comment>// to let several frames share a single legendbox. </span>
+<a name="__line146"></a>	    <span class=comment>// This procedure does not work 100%-ly yet, there might</span>
+<a name="__line147"></a>	    <span class=comment>// be unexpected results, but most likely it will work.</span>
+<a name="__line148"></a>	    <span class=comment>// Try it!</span>
+<a name="__line149"></a>
+<a name="__line150"></a>            frame &amp;legend(legendbox *l);
+<a name="__line151"></a>	    frame &amp;legend(legendbox &amp;l);
+<a name="__line152"></a>
+<a name="__line153"></a>	    
+<a name="__line154"></a>	    <span class=comment>// ---------- Change back to own legendbox ----------------------------------------</span>
+<a name="__line155"></a>
+<a name="__line156"></a>	    frame &amp;own_legend();
+<a name="__line157"></a>
+<a name="__line158"></a>            <span class=comment>// ---------- Switch off/on the legendbox -----------------------------------------</span>
+<a name="__line159"></a>
+<a name="__line160"></a>            frame &amp;show_legend(bool f = true) { show_legend_ = f; return *this; }
+<a name="__line161"></a>            static void default_show_legend(bool f) { default_show_legend_ = f; }
+<a name="__line162"></a>
+<a name="__line163"></a>	    <span class=comment>// ---------- return reference to the current frame -------------------------------</span>
+<a name="__line164"></a>	    <span class=comment>// Returns a reference to the current frame. If there is no</span>
+<a name="__line165"></a>	    <span class=comment>// current frame (for example a new pad has recently been created,</span>
+<a name="__line166"></a>	    <span class=comment>// and no frame has been created in it yet), it creates a new one,</span>
+<a name="__line167"></a>	    <span class=comment>// and makes it to be the current, and returns a reference to that.</span>
+<a name="__line168"></a>
+<a name="__line169"></a>	    static frame &amp;current();
+<a name="__line170"></a>
+<a name="__line171"></a>            <span class=comment>// ---------- check the current frame, without creating a new one -----------------</span>
+<a name="__line172"></a>            
+<a name="__line173"></a>	    static frame *check_current() { return current_; }
+<a name="__line174"></a>
+<a name="__line175"></a>	    bool parent(container *);
+<a name="__line176"></a>            const container *parent() const { return grob::parent(); }
+<a name="__line177"></a>            container       *parent()       { return grob::parent(); }
+<a name="__line178"></a>
+<a name="__line179"></a>	    frame &amp;add(plottable *);
+<a name="__line180"></a>	    frame &amp;remove(plottable *);
+<a name="__line181"></a>
+<a name="__line182"></a>	    
+<a name="__line183"></a>	    <span class=comment>// ---------- Add any grob (GRaphical OBject) into this frame  --------------------</span>
+<a name="__line184"></a>
+<a name="__line185"></a>	    void add(grob *g);
+<a name="__line186"></a>	    bool remove(grob *g);
+<a name="__line187"></a>
+<a name="__line188"></a>	    <span class=comment>// ---------- Clear  --------------------------------------------------------------</span>
+<a name="__line189"></a>	    <span class=comment>// Clear all content.  Objects with the 'autodel' flag set to </span>
+<a name="__line190"></a>	    <span class=comment>// 'true' will also be deleted, not only removed from this frame</span>
+<a name="__line191"></a>
+<a name="__line192"></a>	    void clear();
+<a name="__line193"></a>
+<a name="__line194"></a>	    
+<a name="__line195"></a>	    <span class=comment>// ---------- Clear all graphs, but not other contents ----------------------------</span>
+<a name="__line196"></a>
+<a name="__line197"></a>	    frame &amp;clear_graphs(bool all = false);
+<a name="__line198"></a>	    frame &amp;clear_graphs_and_autosettings(bool all = false);
+<a name="__line199"></a>
+<a name="__line200"></a>
+<a name="__line201"></a>	    <span class=comment>// ---------- Frame title ---------------------------------------------------------</span>
+<a name="__line202"></a>	    <span class=comment>// Specify frame title. If the argument is an empty string,</span>
+<a name="__line203"></a>	    <span class=comment>// clear the title, and reset the topmargin to the default value</span>
+<a name="__line204"></a>
+<a name="__line205"></a>	    frame &amp;title(const var &amp;t);
+<a name="__line206"></a>
+<a name="__line207"></a>	    <span class=comment>// ---------- Separation of the marginobject  -------------------------------------</span>
+<a name="__line208"></a>
+<a name="__line209"></a>	    frame &amp;marginobjectsep(const length &amp;l) { marginobjectsep_ = l; return *this; }
+<a name="__line210"></a>	    const length &amp;marginobjectsep() const { return marginobjectsep_; }
+<a name="__line211"></a>	    static void default_marginobjectsep(const length &amp;l) {default_marginobjectsep_ = l;}
+<a name="__line212"></a>
+<a name="__line213"></a>	    frame &amp;lmarginbox(epad *);
+<a name="__line214"></a>	    frame &amp;rmarginbox(epad *);
+<a name="__line215"></a>	    frame &amp;bmarginbox(epad *);
+<a name="__line216"></a>	    frame &amp;tmarginbox(epad *);
+<a name="__line217"></a>
+<a name="__line218"></a>	    epad *lmarginbox() const;
+<a name="__line219"></a>	    epad *rmarginbox() const;
+<a name="__line220"></a>	    epad *bmarginbox() const;
+<a name="__line221"></a>	    epad *tmarginbox() const;
+<a name="__line222"></a>	    
+<a name="__line223"></a>	    frame &amp;lmarginobject(box *);
+<a name="__line224"></a>	    frame &amp;rmarginobject(box *);
+<a name="__line225"></a>	    frame &amp;bmarginobject(box *);
+<a name="__line226"></a>	    frame &amp;tmarginobject(box *);
+<a name="__line227"></a>
+<a name="__line228"></a>	    <span class=comment>// ---------- Switch off/on mirroring of axis tics --------------------------------</span>
+<a name="__line229"></a>
+<a name="__line230"></a>	    frame &amp;mirror_x1(bool i) {mirror_x1_ = i; return *this;}
+<a name="__line231"></a>	    frame &amp;mirror_x2(bool i) {mirror_x2_ = i; return *this;}
+<a name="__line232"></a>	    frame &amp;mirror_y1(bool i) {mirror_y1_ = i; return *this;}
+<a name="__line233"></a>	    frame &amp;mirror_y2(bool i) {mirror_y2_ = i; return *this;}
+<a name="__line234"></a>
+<a name="__line235"></a>            <span class=comment>// ---------- Switch off/on the tics of the axes ----------------------------------</span>
+<a name="__line236"></a>
+<a name="__line237"></a>            frame &amp;draw_tics(bool f);
+<a name="__line238"></a>
+<a name="__line239"></a>	    <span class=comment>// ---------- override container:: and box:: dimension functions ------------------</span>
+<a name="__line240"></a>	    <span class=comment>// so that they return a frame&amp; instead of container&amp; or box&amp;</span>
+<a name="__line241"></a>
+<a name="__line242"></a>	    frame &amp;cleft(const length &amp;l)   { container::cleft(l); return *this; }
+<a name="__line243"></a>	    frame &amp;cright(const length &amp;l)  { container::cright(l); return *this; }
+<a name="__line244"></a>	    frame &amp;cwidth(const length &amp;l)  { container::cwidth(l); return *this; }
+<a name="__line245"></a>	    frame &amp;cbottom(const length &amp;l) { container::cbottom(l); return *this; }
+<a name="__line246"></a>	    frame &amp;ctop(const length &amp;l)    { container::ctop(l); return *this; }
+<a name="__line247"></a>	    frame &amp;cheight(const length &amp;l) { container::cheight(l); return *this; }
+<a name="__line248"></a>
+<a name="__line249"></a>	    const length &amp;cleft  () const { return container::cleft  (); }
+<a name="__line250"></a>	    const length &amp;cright () const { return container::cright (); }
+<a name="__line251"></a>	    const length &amp;cwidth () const { return container::cwidth (); }
+<a name="__line252"></a>	    const length &amp;cbottom() const { return container::cbottom(); }
+<a name="__line253"></a>	    const length &amp;ctop   () const { return container::ctop   (); }
+<a name="__line254"></a>	    const length &amp;cheight() const { return container::cheight(); }
+<a name="__line255"></a>
+<a name="__line256"></a>	    frame &amp;lmargin(const length &amp;l) { container::lmargin(l); return *this; }
+<a name="__line257"></a>	    frame &amp;rmargin(const length &amp;l) { container::rmargin(l); return *this; }
+<a name="__line258"></a>	    frame &amp;bmargin(const length &amp;l) { container::bmargin(l); return *this; }
+<a name="__line259"></a>	    frame &amp;tmargin(const length &amp;l) { container::tmargin(l); return *this; }
+<a name="__line260"></a>	    const length &amp;lmargin() const { return container::lmargin(); }
+<a name="__line261"></a>	    const length &amp;rmargin() const { return container::rmargin(); }
+<a name="__line262"></a>	    const length &amp;bmargin() const { return container::bmargin(); }
+<a name="__line263"></a>	    const length &amp;tmargin() const { return container::tmargin(); }
+<a name="__line264"></a>
+<a name="__line265"></a>	    frame &amp;left(const length &amp;l) { box::left(l); return *this; }
+<a name="__line266"></a>	    frame &amp;right(const length &amp;l) { box::right(l); return *this; }
+<a name="__line267"></a>	    frame &amp;width(const length &amp;l) { box::width(l); return *this; }
+<a name="__line268"></a>	    frame &amp;bottom(const length &amp;l) { box::bottom(l); return *this; }
+<a name="__line269"></a>	    frame &amp;top(const length &amp;l) { box::top(l); return *this; }
+<a name="__line270"></a>	    frame &amp;height(const length &amp;l) { box::height(l); return *this; }
+<a name="__line271"></a>
+<a name="__line272"></a>	    const length &amp;left() const { return box::left(); }
+<a name="__line273"></a>	    const length &amp;right() const { return box::right(); }
+<a name="__line274"></a>	    const length &amp;width() const { return box::width(); }
+<a name="__line275"></a>	    const length &amp;bottom() const { return box::bottom(); }
+<a name="__line276"></a>	    const length &amp;top() const { return box::top(); }
+<a name="__line277"></a>	    const length &amp;height() const { return box::height(); }
+<a name="__line278"></a>
+<a name="__line279"></a>	    frame &amp;loffset(const length &amp;);
+<a name="__line280"></a>	    frame &amp;roffset(const length &amp;);
+<a name="__line281"></a>	    frame &amp;toffset(const length &amp;);
+<a name="__line282"></a>	    frame &amp;boffset(const length &amp;);
+<a name="__line283"></a>	    frame &amp;offsets(const length &amp;);
+<a name="__line284"></a>
+<a name="__line285"></a>	    frame &amp;caspect(double s);
+<a name="__line286"></a>	    frame &amp;cxlock(sym::position a);
+<a name="__line287"></a>	    frame &amp;cylock(sym::position a);
+<a name="__line288"></a>
+<a name="__line289"></a>	    frame &amp;nodistort(bool f);
+<a name="__line290"></a>	    bool   nodistort() const { return nodistort_; }
+<a name="__line291"></a>
+<a name="__line292"></a>	    frame();
+<a name="__line293"></a>	    virtual ~frame();
+<a name="__line294"></a>
+<a name="__line295"></a>	    static void default_gridwidth(const length &amp;l) { default_gridwidth_ = l; }
+<a name="__line296"></a>	    frame &amp;gridwidth(const length &amp;);
+<a name="__line297"></a>	    const length &amp;gridwidth() const { return gridwidth_; }
+<a name="__line298"></a>
+<a name="__line299"></a>            static void default_minor_gridwidth(const length &amp;l) { default_minor_gridwidth_ = l; }
+<a name="__line300"></a>            frame &amp;minor_gridwidth(const length &amp;);
+<a name="__line301"></a>            const length &amp;minor_gridwidth() const { return minor_gridwidth_; }
+<a name="__line302"></a>
+<a name="__line303"></a>	    static void default_gridcut(const length &amp;l) { default_gridcut_ = l; }
+<a name="__line304"></a>	    frame &amp;gridcut(const length &amp;);
+<a name="__line305"></a>	    const length &amp;gridcut() const;
+<a name="__line306"></a>
+<a name="__line307"></a>	    static void default_linewidth(const length &amp;l) { default_linewidth_ = l; }
+<a name="__line308"></a>	    frame &amp;linewidth(const length &amp;l);
+<a name="__line309"></a>	    const length &amp;linewidth() const;
+<a name="__line310"></a>
+<a name="__line311"></a>            frame &amp;ticlength      (const length &amp;l);
+<a name="__line312"></a>            frame &amp;minor_ticlength(const length &amp;l);
+<a name="__line313"></a>
+<a name="__line314"></a>	    <span class=comment>// ---------- Set grid ------------------------------------------------------------</span>
+<a name="__line315"></a>	    <span class=comment>// what = axis::x1, axis::x2, axis::y1, axis::y2 or</span>
+<a name="__line316"></a>	    <span class=comment>// a bitwise or (|) of them</span>
+<a name="__line317"></a>
+<a name="__line318"></a>	    frame &amp;grid(int what);
+<a name="__line319"></a>            frame &amp;grid(bool i);
+<a name="__line320"></a>	    int  grid() const { return grid_; }
+<a name="__line321"></a>            frame &amp;grid_at_minor_tics(int what);
+<a name="__line322"></a>            int    grid_at_minor_tics() const { return grid_at_minor_tics_; }
+<a name="__line323"></a>	    static void default_grid(int);
+<a name="__line324"></a>	    static void default_grid(bool);
+<a name="__line325"></a>            static void default_grid_at_minor_tics(int);
+<a name="__line326"></a>            static void default_grid_at_minor_tics(bool);
+<a name="__line327"></a>
+<a name="__line328"></a>            <span class=comment>// define a parametric grid</span>
+<a name="__line329"></a>            frame &amp;grid(const function &amp;f, double p1from, double p1to, int n1, double p2from, double p2to, int n2);
+<a name="__line330"></a>            frame &amp;grid(const function &amp;fx, const function &amp;fy, double p1from, double p1to, int n1, double p2from, double p2to, int n2)
+<a name="__line331"></a>            {
+<a name="__line332"></a>                return grid(function(fx,fy),p1from,p1to,n1,p2from,p2to,n2);
+<a name="__line333"></a>            }
+<a name="__line334"></a>
+<a name="__line335"></a>	    <span class=comment>// ---------- Set or get the color of the grid    ---------------------------------</span>
+<a name="__line336"></a>
+<a name="__line337"></a>	    frame &amp;gridcolor(const color &amp;);
+<a name="__line338"></a>            frame &amp;gridcolor(double r, double g, double b) { return gridcolor(color(r,g,b)); }
+<a name="__line339"></a>	    const color &amp;gridcolor() const { return gridcolor_; }
+<a name="__line340"></a>            static void default_gridcolor(const color &amp;c) { default_gridcolor_ = c; }
+<a name="__line341"></a>            static void default_gridcolor(double r, double g, double b) { default_gridcolor(color(r,g,b)); }
+<a name="__line342"></a>
+<a name="__line343"></a>            frame &amp;minor_gridcolor(const color &amp;);
+<a name="__line344"></a>            frame &amp;minor_gridcolor(double r, double g, double b) { return minor_gridcolor(color(r,g,b)); }
+<a name="__line345"></a>            const color &amp;minor_gridcolor() const { return minor_gridcolor_; }
+<a name="__line346"></a>            static void default_minor_gridcolor(const color &amp;c) { default_minor_gridcolor_ = c; }
+<a name="__line347"></a>            static void default_minor_gridcolor(double r, double g, double b) { default_minor_gridcolor(color(r,g,b)); }
+<a name="__line348"></a>            
+<a name="__line349"></a>
+<a name="__line350"></a>	    <span class=comment>// ---------- Set or get the color of the frame  ----------------------------------</span>
+<a name="__line351"></a>
+<a name="__line352"></a>	    frame &amp;framecolor(const color &amp;);
+<a name="__line353"></a>            frame &amp;framecolor(double r, double g, double b) { return framecolor(color(r,g,b)); }
+<a name="__line354"></a>	    const color &amp;framecolor() const;
+<a name="__line355"></a>	    static void default_framecolor(const color &amp;);
+<a name="__line356"></a>            static void default_framecolor(double r, double g, double b) { default_framecolor(color(r,g,b)); }
+<a name="__line357"></a>
+<a name="__line358"></a>
+<a name="__line359"></a>	    <span class=comment>// ---------- Set or get linestyle of grid ----------------------------------------</span>
+<a name="__line360"></a>	    <span class=comment>// which can be 'solid', 'dashed', 'dotted'</span>
+<a name="__line361"></a>
+<a name="__line362"></a>	    frame&amp; gridstyle(sym::linestyle);
+<a name="__line363"></a>	    sym::linestyle gridstyle() const { return gridstyle_; }
+<a name="__line364"></a>            static void default_gridstyle(sym::linestyle s) { default_gridstyle_ = s; }
+<a name="__line365"></a>
+<a name="__line366"></a>            frame &amp;minor_gridstyle(sym::linestyle);
+<a name="__line367"></a>            sym::linestyle minor_gridstyle() const { return minor_gridstyle_; }
+<a name="__line368"></a>            static void default_minor_gridstyle(sym::linestyle s) { default_minor_gridstyle_ = s; }
+<a name="__line369"></a>
+<a name="__line370"></a>
+<a name="__line371"></a>	    <span class=comment>// ---------- Get the number of graphs, and the 'n'th graph (0-based) -------------</span>
+<a name="__line372"></a>
+<a name="__line373"></a>	    int    ngraphs() const { return graphs_.size(); }
+<a name="__line374"></a>	    plottable *get_graph(int n);
+<a name="__line375"></a>	    dgraph *lastd();
+<a name="__line376"></a>	    fgraph *lastf();
+<a name="__line377"></a>	    plottable *last();
+<a name="__line378"></a>
+<a name="__line379"></a>	    <span class=comment>// ---------- Get pointer to the axes ---------------------------------------------</span>
+<a name="__line380"></a>
+<a name="__line381"></a>	    axis *x1axis() {return x1axis_;}
+<a name="__line382"></a>	    axis *x2axis() {return x2axis_;}
+<a name="__line383"></a>	    axis *y1axis() {return y1axis_;}
+<a name="__line384"></a>	    axis *y2axis() {return y2axis_;}
+<a name="__line385"></a>
+<a name="__line386"></a>
+<a name="__line387"></a>	    <span class=comment>// ---------- Specify an external axis to be used ---------------------------------</span>
+<a name="__line388"></a>
+<a name="__line389"></a>	    frame &amp;x1axis(axis *a) { x1axis_ = a; owns_x1axis_ = false; return *this;}
+<a name="__line390"></a>	    frame &amp;x2axis(axis *a) { x2axis_ = a; owns_x2axis_ = false; return *this;}
+<a name="__line391"></a>	    frame &amp;y1axis(axis *a) { y1axis_ = a; owns_y1axis_ = false; return *this;}
+<a name="__line392"></a>	    frame &amp;y2axis(axis *a) { y2axis_ = a; owns_y2axis_ = false; return *this;}
+<a name="__line393"></a>
+<a name="__line394"></a>
+<a name="__line395"></a>	    <span class=comment>// ---------- Draw in foreground? -------------------------------------------------</span>
+<a name="__line396"></a>	    <span class=comment>// specify if the frame (axes) or the grid should be drawn in the</span>
+<a name="__line397"></a>	    <span class=comment>// foreground (that is, over the graphs and all contents of the frame)</span>
+<a name="__line398"></a>
+<a name="__line399"></a>	    frame &amp;foreground(bool);
+<a name="__line400"></a>	    bool foreground() const;
+<a name="__line401"></a>	    static void default_foreground(bool);
+<a name="__line402"></a>
+<a name="__line403"></a>	    frame &amp;grid_foreground(bool b) { grid_foreground_ = b; return *this; }
+<a name="__line404"></a>	    bool grid_foreground() const { return grid_foreground_; }
+<a name="__line405"></a>	    static void default_grid_foreground(bool b) { default_grid_foreground_ = b; }
+<a name="__line406"></a>
+<a name="__line407"></a>
+<a name="__line408"></a>	    <span class=comment>// ---------- switch on/off drawing the frame -------------------------------------</span>
+<a name="__line409"></a>
+<a name="__line410"></a>	    frame &amp;draw_frame(int b) {draw_frame_ = b; return *this;}
+<a name="__line411"></a>	    int    draw_frame() const { return draw_frame_; }
+<a name="__line412"></a>	    static void default_draw_frame(int b) { default_draw_frame_ = b; }
+<a name="__line413"></a>
+<a name="__line414"></a>	    <span class=comment>// ---------- switch on/off drawing the axes --------------------------------------</span>
+<a name="__line415"></a>	    frame &amp;draw_axes(int b) { draw_axes_ = b; return *this; }
+<a name="__line416"></a>	    frame &amp;draw_axes(bool b)
+<a name="__line417"></a>	    {
+<a name="__line418"></a>		if(b) draw_axes_ = axis::x1|axis::x2|axis::y1|axis::y2;
+<a name="__line419"></a>		else draw_axes_ = 0;
+<a name="__line420"></a>		return *this;
+<a name="__line421"></a>	    }
+<a name="__line422"></a>	    bool   draw_axes() const { return draw_axes_; }
+<a name="__line423"></a>	    static void default_draw_axes(int b) { default_draw_axes_ = b; }
+<a name="__line424"></a>	    static void default_draw_axes(bool b)
+<a name="__line425"></a>	    {
+<a name="__line426"></a>		if(b) default_draw_axes_ = axis::x1|axis::x2|axis::y1|axis::y2;
+<a name="__line427"></a>		else default_draw_axes_ = 0;
+<a name="__line428"></a>	    }
+<a name="__line429"></a>
+<a name="__line430"></a>
+<a name="__line431"></a>	    bool modified() const;
+<a name="__line432"></a>	    void modified(bool f);
+<a name="__line433"></a>
+<a name="__line434"></a>	    void cd_specific();
+<a name="__line435"></a>
+<a name="__line436"></a>	    <span class=comment>// inherited from 'grob' </span>
+<a name="__line437"></a>	    void print(terminal *);
+<a name="__line438"></a>	    void prepare_for_draw();
+<a name="__line439"></a>
+<a name="__line440"></a>	    <span class=comment>// a static vector, which keeps the pointers of</span>
+<a name="__line441"></a>	    <span class=comment>// all existing frames</span>
+<a name="__line442"></a>	    static std::vector&lt;blop::frame*&gt; &amp;all();
+<a name="__line443"></a>
+<a name="__line444"></a>	    <span class=comment>// remove a given plottable from all existing frames</span>
+<a name="__line445"></a>	    static void remove_from_all(plottable *);
+<a name="__line446"></a>
+<a name="__line447"></a>	    frame &amp;layer(const var &amp; l) { grob::layer(l); return *this; }
+<a name="__line448"></a>
+<a name="__line449"></a>	};
+<a name="__line450"></a>
+<a name="__line451"></a>}
+<a name="__line452"></a>
+<a name="__line453"></a>#ifdef __MAKECINT__
+<a name="__line454"></a>#pragma link off function blop::frame::prepare_for_draw();
+<a name="__line455"></a>#endif
+<a name="__line456"></a>
+<a name="__line457"></a>
+<a name="__line458"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

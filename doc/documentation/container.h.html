@@ -1,0 +1,203 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: container.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_CONTAINER_H__
+<a name="__line1"></a>#define __BLOP_CONTAINER_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="box.h.html">box.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>
+<a name="__line8"></a>    <span class=comment>/************************************************************
+<a name="__line9"></a>
+<a name="__line10"></a>    A container is used to store grobs (or other containers).
+<a name="__line11"></a>    It always stores a reference to the objects, and does not
+<a name="__line12"></a>    copy them. 
+<a name="__line13"></a>
+<a name="__line14"></a>    */</span>
+<a name="__line15"></a>
+<a name="__line16"></a>
+<a name="__line17"></a>    class container : public box
+<a name="__line18"></a>    {
+<a name="__line19"></a><span class=public>    public:
+<a name="__line20"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line21"></a>	<span class=comment>// a static vector, keeping the pointers of all existing containers</span>
+<a name="__line22"></a>	static std::vector&lt;blop::container *&gt; &amp;all();
+<a name="__line23"></a>
+<a name="__line24"></a></span><span class=protected>    protected:
+<a name="__line25"></a>	std::vector&lt;blop::grob*&gt; content_;
+<a name="__line26"></a>
+<a name="__line27"></a></span><span class=private>    private:
+<a name="__line28"></a>	length cleft_  ,cright_,cwidth_ ,cxcenter_,
+<a name="__line29"></a>	       cbottom_,ctop_  ,cheight_,cycenter_;
+<a name="__line30"></a>	length lmargin_, rmargin_, bmargin_, tmargin_;
+<a name="__line31"></a>
+<a name="__line32"></a>	box::history_values cxhistory_[2], cyhistory_[2];
+<a name="__line33"></a>	enum lmargin_history_values {Left, Lmargin, Cleft} lmargin_history_[2];
+<a name="__line34"></a>	enum rmargin_history_values {Right, Rmargin, Cright} rmargin_history_[2];
+<a name="__line35"></a>	enum bmargin_history_values {Bottom, Bmargin, Cbottom} bmargin_history_[2];
+<a name="__line36"></a>	enum tmargin_history_values {Top, Tmargin, Ctop} tmargin_history_[2];
+<a name="__line37"></a>
+<a name="__line38"></a>	void update_c_x_(bool left_modified, bool right_modified);
+<a name="__line39"></a>	void update_c_y_(bool left_modified, bool right_modified);
+<a name="__line40"></a>	void update_x_(bool cleft_modified, bool cright_modified);
+<a name="__line41"></a>	void update_y_(bool cleft_modified, bool cright_modified);
+<a name="__line42"></a>
+<a name="__line43"></a>	void set_cleft_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line44"></a>	void set_cright_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line45"></a>	void set_cwidth_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line46"></a>	void set_cxcenter_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line47"></a>	void set_cbottom_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line48"></a>	void set_ctop_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line49"></a>	void set_cheight_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line50"></a>	void set_cycenter_(const length &amp;, bool&amp;, bool&amp;);
+<a name="__line51"></a>
+<a name="__line52"></a>	void set_lmargin_(const length &amp;l);
+<a name="__line53"></a>	void set_rmargin_(const length &amp;l);
+<a name="__line54"></a>	void set_bmargin_(const length &amp;l);
+<a name="__line55"></a>	void set_tmargin_(const length &amp;l);
+<a name="__line56"></a>
+<a name="__line57"></a>	sym::position cx_lock_, cy_lock_;
+<a name="__line58"></a>	double caspect_;
+<a name="__line59"></a></span><span class=public>    public:
+<a name="__line60"></a>
+<a name="__line61"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line62"></a>	<span class=comment>// Containers define their own coordinate system, and the</span>
+<a name="__line63"></a>	<span class=comment>// placement of the contents of the containers is relative</span>
+<a name="__line64"></a>	<span class=comment>// to this coordinate system. </span>
+<a name="__line65"></a>	<span class=comment>// These member functions return the edges (and width,height)</span>
+<a name="__line66"></a>	<span class=comment>// of this own coordinate system, relative to the coord.sys.</span>
+<a name="__line67"></a>	<span class=comment>// of the parent of this container.</span>
+<a name="__line68"></a>
+<a name="__line69"></a>	virtual const length &amp;cleft() const;
+<a name="__line70"></a>	virtual const length &amp;cright() const;
+<a name="__line71"></a>	virtual const length &amp;cwidth() const;
+<a name="__line72"></a>	virtual const length &amp;cxcenter() const;
+<a name="__line73"></a>	virtual const length &amp;cbottom() const;
+<a name="__line74"></a>	virtual const length &amp;ctop() const;
+<a name="__line75"></a>	virtual const length &amp;cheight() const;
+<a name="__line76"></a>	virtual const length &amp;cycenter() const;
+<a name="__line77"></a>
+<a name="__line78"></a>	virtual const length &amp;lmargin() const { return lmargin_; }
+<a name="__line79"></a>	virtual const length &amp;rmargin() const { return rmargin_; }
+<a name="__line80"></a>	virtual const length &amp;bmargin() const { return bmargin_; }
+<a name="__line81"></a>	virtual const length &amp;tmargin() const { return tmargin_; }
+<a name="__line82"></a>
+<a name="__line83"></a>	virtual container &amp;cleft(const length &amp;);
+<a name="__line84"></a>	virtual container &amp;cright(const length &amp;);
+<a name="__line85"></a>	virtual container &amp;cwidth(const length &amp;);
+<a name="__line86"></a>	virtual container &amp;cxcenter(const length &amp;);
+<a name="__line87"></a>	virtual container &amp;cbottom(const length &amp;);
+<a name="__line88"></a>	virtual container &amp;ctop(const length &amp;);
+<a name="__line89"></a>	virtual container &amp;cheight(const length &amp;);
+<a name="__line90"></a>	virtual container &amp;cycenter(const length &amp;);
+<a name="__line91"></a>
+<a name="__line92"></a>	virtual container &amp;lmargin(const length &amp;);
+<a name="__line93"></a>	virtual container &amp;rmargin(const length &amp;);
+<a name="__line94"></a>	virtual container &amp;bmargin(const length &amp;);
+<a name="__line95"></a>	virtual container &amp;tmargin(const length &amp;);
+<a name="__line96"></a>	virtual container &amp;margins(const length &amp;);
+<a name="__line97"></a>
+<a name="__line98"></a>	<span class=comment>// inherited from box, but overwritten here to return a container&amp; and not a box&amp;</span>
+<a name="__line99"></a>	container &amp;left(const length &amp;);
+<a name="__line100"></a>	container &amp;right(const length &amp;);
+<a name="__line101"></a>	container &amp;width(const length &amp;);
+<a name="__line102"></a>	container &amp;xcenter(const length &amp;);
+<a name="__line103"></a>	container &amp;bottom(const length &amp;);
+<a name="__line104"></a>	container &amp;top(const length &amp;);
+<a name="__line105"></a>	container &amp;height(const length  &amp;);
+<a name="__line106"></a>	container &amp;ycenter(const length &amp;);
+<a name="__line107"></a>
+<a name="__line108"></a>	virtual container &amp;caspect(double r);
+<a name="__line109"></a>	virtual container &amp;cxlock(sym::position);
+<a name="__line110"></a>	virtual container &amp;cylock(sym::position);
+<a name="__line111"></a>	virtual sym::position cxlock() const { return cx_lock_; }
+<a name="__line112"></a>	virtual sym::position cylock() const { return cy_lock_; }
+<a name="__line113"></a>
+<a name="__line114"></a>	void prepare_for_draw();
+<a name="__line115"></a>
+<a name="__line116"></a>	void print(terminal *);
+<a name="__line117"></a>
+<a name="__line118"></a>	container();
+<a name="__line119"></a>	virtual ~container();
+<a name="__line120"></a>
+<a name="__line121"></a>	<span class=comment>// ---------- Remove the given grob from all existing containers ------------------</span>
+<a name="__line122"></a>	static void remove_from_all (grob *);
+<a name="__line123"></a>
+<a name="__line124"></a>
+<a name="__line125"></a>	<span class=comment>// ---------- Remove the given grob from a container ------------------------------</span>
+<a name="__line126"></a>	<span class=comment>// return true if the object was contained in this container</span>
+<a name="__line127"></a>	<span class=comment>// false otherwise</span>
+<a name="__line128"></a>	virtual bool remove(grob *);
+<a name="__line129"></a>
+<a name="__line130"></a>
+<a name="__line131"></a>	<span class=comment>// ---------- Clear this container (remove all contents) --------------------------</span>
+<a name="__line132"></a>	virtual void clear();
+<a name="__line133"></a>
+<a name="__line134"></a>
+<a name="__line135"></a>	<span class=comment>// ---------- Add a grob into this container --------------------------------------</span>
+<a name="__line136"></a>	virtual void add(grob *g);
+<a name="__line137"></a>
+<a name="__line138"></a>	<span class=comment>// ---------- Find an item by name ------------------------------------------------</span>
+<a name="__line139"></a>	virtual grob* find(const var &amp;name);
+<a name="__line140"></a>
+<a name="__line141"></a>        <span class=comment>// ---------- Find if an item is within this container  ---------------------------</span>
+<a name="__line142"></a>        bool find(const grob *p);
+<a name="__line143"></a>
+<a name="__line144"></a>
+<a name="__line145"></a>	bool modified() const;
+<a name="__line146"></a>	void modified(bool f);
+<a name="__line147"></a>
+<a name="__line148"></a>	void cd();
+<a name="__line149"></a>	virtual void cd_specific() = 0;
+<a name="__line150"></a>
+<a name="__line151"></a>	void print_hierarchy(int i=0);
+<a name="__line152"></a>
+<a name="__line153"></a>	bool empty() const;
+<a name="__line154"></a>
+<a name="__line155"></a>
+<a name="__line156"></a>        template &lt;typename T&gt;
+<a name="__line157"></a>        T *get_last() const
+<a name="__line158"></a>        {
+<a name="__line159"></a>            for(int i=content_.size()-1; i&gt;=0; --i)
+<a name="__line160"></a>            {
+<a name="__line161"></a>                if(T *t = dynamic_cast&lt;T*&gt;(content_[i])) return t;
+<a name="__line162"></a>            }
+<a name="__line163"></a>            return 0;
+<a name="__line164"></a>        }
+<a name="__line165"></a>    };
+<a name="__line166"></a>
+<a name="__line167"></a>}
+<a name="__line168"></a>
+<a name="__line169"></a>#ifdef __MAKECINT__
+<a name="__line170"></a>#pragma link off function blop::container::prepare_for_draw();
+<a name="__line171"></a>#endif
+<a name="__line172"></a>
+<a name="__line173"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

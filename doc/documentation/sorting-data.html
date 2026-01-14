@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Sorting data</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="fft.html">
+   <link rel="Next" href="streams.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="fft.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: fft.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="streams.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: streams.html">
+    </a> <br>
+
+<center class=title><b>
+Sorting data
+</b></center>
+<hr>
+
+<div class='prguide'><u>Practical Guide:</u>
+<pre>
+// plot a data, sorted, from a file, which is unsorted (or not sorted in the way it is plotted)
+// Plot 3rd column as the function of the product of the first two columns. Sort the points by this product
+// (i.e. _1 in the argument of sort(...) refers to the data graph (which contains the product of the first
+// two columns of the file) in its first value
+plot("unsorted-data.dat",_1*_2,_3).sort(_1).ds(lines());
+</pre>
+</div>
+<hr>
+
+The member function <tt>sort(const function &amp;)</tt> of the <tt>dgraph</tt> class sorts the data points as a function of the given expression. Since actual plotting and export into whichever output file format occurs when for example <tt>pdf::print("filename.pdf");</tt> is executed, calling <tt>sort</tt> "after" the <tt>plot</tt> command still has an effect.<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="fft.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: fft.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="streams.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: streams.html">
+    </a> 
+
+</body>
+</html>

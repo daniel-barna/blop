@@ -1,0 +1,511 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: bloputils.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line1"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line2"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line3"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line4"></a>#include "<a href="pstream.h.html">pstream.h</a>"
+<a name="__line5"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line6"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>#include &lt;fstream&gt;
+<a name="__line9"></a>#include &lt;sstream&gt;
+<a name="__line10"></a>#include &lt;sys/types.h&gt;
+<a name="__line11"></a>#include &lt;sys/stat.h&gt;
+<a name="__line12"></a>#include &lt;cstdlib&gt;
+<a name="__line13"></a>#include &lt;map&gt;
+<a name="__line14"></a>#include &lt;cmath&gt;
+<a name="__line15"></a>#include &lt;unistd.h&gt;
+<a name="__line16"></a>
+<a name="__line17"></a>namespace blop
+<a name="__line18"></a>{
+<a name="__line19"></a>    using namespace std;
+<a name="__line20"></a>
+<a name="__line21"></a>    bool isfinite(double v) { return std::isfinite(v); }
+<a name="__line22"></a>    bool isnan(double v)    { return std::isnan(v); }
+<a name="__line23"></a>    bool isinf(double v)    { return std::isinf(v); }
+<a name="__line24"></a>    bool isnormal(double v) { return std::isnormal(v); }
+<a name="__line25"></a>
+<a name="__line26"></a>    length axislength(axis *a, double from, double to)
+<a name="__line27"></a>    {
+<a name="__line28"></a>	return length::base_axis_t(a,from,to);
+<a name="__line29"></a>    }
+<a name="__line30"></a>
+<a name="__line31"></a>    length x1len(double a,double b)
+<a name="__line32"></a>    {
+<a name="__line33"></a>	return length::base_axis_t(frame::current().x1axis(),a,b);
+<a name="__line34"></a>    }
+<a name="__line35"></a>    length x2len(double a,double b)
+<a name="__line36"></a>    {
+<a name="__line37"></a>	return length::base_axis_t(frame::current().x2axis(),a,b);
+<a name="__line38"></a>    }
+<a name="__line39"></a>    length y1len(double a,double b)
+<a name="__line40"></a>    {
+<a name="__line41"></a>	return length::base_axis_t(frame::current().y1axis(),a,b);
+<a name="__line42"></a>    }
+<a name="__line43"></a>    length y2len(double a,double b)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	return length::base_axis_t(frame::current().y2axis(),a,b);
+<a name="__line46"></a>    }
+<a name="__line47"></a>
+<a name="__line48"></a>    std::istream *openin(const var &amp;filename)
+<a name="__line49"></a>    {
+<a name="__line50"></a>	if(filename.length() == 0)
+<a name="__line51"></a>	{
+<a name="__line52"></a>	    warning::print("empty string","openin(const var &amp;filename)");
+<a name="__line53"></a>	    return 0;
+<a name="__line54"></a>	}
+<a name="__line55"></a>	istream *file = 0;
+<a name="__line56"></a>
+<a name="__line57"></a>	<span class=comment>// filename beginning with &lt;&lt; is interpreted as here-document (istringstream)</span>
+<a name="__line58"></a>	if(filename.size()&gt;2 &amp;&amp; filename[0] == '&lt;' &amp;&amp; filename[1] == '&lt;')
+<a name="__line59"></a>	{
+<a name="__line60"></a>	    file = new istringstream(filename.c_str()+2);
+<a name="__line61"></a>	}
+<a name="__line62"></a>	else if(filename[filename.length()-1]=='|')
+<a name="__line63"></a>	{
+<a name="__line64"></a>	    file = new ipstream(filename.str().substr(0,filename.length()-1).c_str());
+<a name="__line65"></a>	}
+<a name="__line66"></a>	else if(filename.find("scp:<span class=comment>//") == 0)</span>
+<a name="__line67"></a>	{
+<a name="__line68"></a>	    file = new iscpstream(filename.str().substr(6,string::npos).c_str());
+<a name="__line69"></a>	}
+<a name="__line70"></a>	else if(filename.find("http:<span class=comment>//") == 0)</span>
+<a name="__line71"></a>	{
+<a name="__line72"></a>	    file = new ihttpstream(filename.str().c_str());
+<a name="__line73"></a>	}
+<a name="__line74"></a>	<span class=comment>// everything else is a normal file</span>
+<a name="__line75"></a>	else
+<a name="__line76"></a>	{
+<a name="__line77"></a>	    file = new ifstream(filename.str().c_str());
+<a name="__line78"></a>	}
+<a name="__line79"></a>
+<a name="__line80"></a>	if(file-&gt;fail())
+<a name="__line81"></a>	{
+<a name="__line82"></a>	    warning::print("Can't open file: " &amp; filename);
+<a name="__line83"></a>	    delete file;
+<a name="__line84"></a>	    return 0;
+<a name="__line85"></a>	}
+<a name="__line86"></a>	
+<a name="__line87"></a>	return file;
+<a name="__line88"></a>    }
+<a name="__line89"></a>
+<a name="__line90"></a>    std::ostream *openout(const var &amp;filename)
+<a name="__line91"></a>    {
+<a name="__line92"></a>	if(filename.length() == 0)
+<a name="__line93"></a>	{
+<a name="__line94"></a>	    warning::print("empty string","openout(const var &amp;filename)");
+<a name="__line95"></a>	    return 0;
+<a name="__line96"></a>	}
+<a name="__line97"></a>	ostream *file = 0;
+<a name="__line98"></a>
+<a name="__line99"></a>	<span class=comment>// filename beginning with &lt;&lt; is interpreted as here-document (istringstream)</span>
+<a name="__line100"></a>	if(filename[0] == '&gt;' &amp;&amp; filename[1] == '&gt;')
+<a name="__line101"></a>	{
+<a name="__line102"></a>	    file = new ofstream(filename.str().substr(2).c_str(),ios::app);
+<a name="__line103"></a>	}
+<a name="__line104"></a>	<span class=comment>// ignore &gt; at the beginning, open as normal file</span>
+<a name="__line105"></a>	else if(filename[0] == '&gt;')
+<a name="__line106"></a>	{
+<a name="__line107"></a>	    file = new ofstream(filename.str().substr(1).c_str());
+<a name="__line108"></a>	}
+<a name="__line109"></a>	<span class=comment>// filename beginning with | is an output pipe</span>
+<a name="__line110"></a>	else if(filename[0] == '|')
+<a name="__line111"></a>	{
+<a name="__line112"></a>	    file = new opstream(filename.str().substr(1).c_str());
+<a name="__line113"></a>	}
+<a name="__line114"></a>	else if(filename.find("scp:<span class=comment>//") == 0)</span>
+<a name="__line115"></a>	{
+<a name="__line116"></a>	    file = new oscpstream(filename.str().substr(6,string::npos).c_str());
+<a name="__line117"></a>	}
+<a name="__line118"></a>	<span class=comment>// everything else is a normal file</span>
+<a name="__line119"></a>	else
+<a name="__line120"></a>	{
+<a name="__line121"></a>	    file = new ofstream(filename.str().c_str());
+<a name="__line122"></a>	}
+<a name="__line123"></a>
+<a name="__line124"></a>	if(file-&gt;fail())
+<a name="__line125"></a>	{
+<a name="__line126"></a>	    warning::print("Can't open file: " &amp; filename);
+<a name="__line127"></a>	    delete file;
+<a name="__line128"></a>	    return 0;
+<a name="__line129"></a>	}
+<a name="__line130"></a>	
+<a name="__line131"></a>	return file;
+<a name="__line132"></a>    }
+<a name="__line133"></a>
+<a name="__line134"></a>
+<a name="__line135"></a>
+<a name="__line136"></a>    void print(terminal *t)
+<a name="__line137"></a>	TRY
+<a name="__line138"></a>    {
+<a name="__line139"></a>	canvas::current().print(t);
+<a name="__line140"></a>    }
+<a name="__line141"></a>    CATCH("print(terminal *)")
+<a name="__line142"></a>
+<a name="__line143"></a>    int system(const var &amp;cmd)
+<a name="__line144"></a>    {
+<a name="__line145"></a>	return ::system(cmd.str().c_str());
+<a name="__line146"></a>    }
+<a name="__line147"></a>
+<a name="__line148"></a>    int system_bg(const var &amp;cmd)
+<a name="__line149"></a>    {
+<a name="__line150"></a>	int pid = fork();
+<a name="__line151"></a>	if(pid == 0)
+<a name="__line152"></a>	{
+<a name="__line153"></a>	    const char *shell = "/bin/bash";
+<a name="__line154"></a>	    struct stat buf;
+<a name="__line155"></a>	    if(stat(shell,&amp;buf) != 0) shell = "/bin/sh";
+<a name="__line156"></a>	    execl(shell, "sh", "-c", cmd.c_str(), NULL);
+<a name="__line157"></a>	}
+<a name="__line158"></a>	else
+<a name="__line159"></a>	{
+<a name="__line160"></a>	    blop_bookkeeper::register_pid(pid);
+<a name="__line161"></a>	}
+<a name="__line162"></a>	return pid;
+<a name="__line163"></a>    }
+<a name="__line164"></a>
+<a name="__line165"></a>    void shell(const var &amp;cmd)
+<a name="__line166"></a>    {
+<a name="__line167"></a>	static opstream shellstr("/bin/sh");
+<a name="__line168"></a>	shellstr&lt;&lt;cmd.str()&lt;&lt;endl;
+<a name="__line169"></a>    }
+<a name="__line170"></a>
+<a name="__line171"></a>
+<a name="__line172"></a>    var readcmd(const var &amp;cmd_orig,int *rc)
+<a name="__line173"></a>    {
+<a name="__line174"></a>	string resultstr;
+<a name="__line175"></a>	var cmd = cmd_orig;
+<a name="__line176"></a>	if(cmd[0] == '&lt;')
+<a name="__line177"></a>	{
+<a name="__line178"></a>	    cmd = cmd.str().substr(1);
+<a name="__line179"></a>	}
+<a name="__line180"></a>	ipstream cmdstr(cmd);
+<a name="__line181"></a>	int lineno = 0;
+<a name="__line182"></a>	char c;
+<a name="__line183"></a>	while(cmdstr.get(c))
+<a name="__line184"></a>	{
+<a name="__line185"></a>	    resultstr += c;
+<a name="__line186"></a>	    if(c == '\n') ++lineno;
+<a name="__line187"></a>	}
+<a name="__line188"></a>	if(lineno == 1 &amp;&amp; resultstr[resultstr.size()-1] == '\n')
+<a name="__line189"></a>	{
+<a name="__line190"></a>	    resultstr.erase(resultstr.size()-1);
+<a name="__line191"></a>	}
+<a name="__line192"></a>	if(rc) *rc = cmdstr.close();
+<a name="__line193"></a>	return resultstr;
+<a name="__line194"></a>    }
+<a name="__line195"></a>
+<a name="__line196"></a>    int readcmd(const var &amp;cmd, array &amp;out, const var &amp;separator, int *rc)
+<a name="__line197"></a>    {
+<a name="__line198"></a>	var f = readcmd(cmd, rc);
+<a name="__line199"></a>	out = split(f,separator);
+<a name="__line200"></a>	return out.size();
+<a name="__line201"></a>    }
+<a name="__line202"></a>    int readcmd(const var &amp;cmd, std::vector&lt;std::string&gt; &amp;out, const var &amp;separator, int *rc)
+<a name="__line203"></a>    {
+<a name="__line204"></a>        var f = readcmd(cmd, rc);
+<a name="__line205"></a>        split(f, separator, out);
+<a name="__line206"></a>        return out.size();
+<a name="__line207"></a>    }
+<a name="__line208"></a>     
+<a name="__line209"></a>    var readfile(const var &amp;filename)
+<a name="__line210"></a>    {
+<a name="__line211"></a>	var result;
+<a name="__line212"></a>	char c;
+<a name="__line213"></a>	ifstream file(filename.str().c_str());
+<a name="__line214"></a>	while(file.get(c)) result &amp;= c;
+<a name="__line215"></a>	return result;
+<a name="__line216"></a>    }
+<a name="__line217"></a>
+<a name="__line218"></a>    text &amp;fdraw_file_content(const var &amp;filename)
+<a name="__line219"></a>    {
+<a name="__line220"></a>        return text::fdraw(tolatex(readfile(filename))).verbatim(true);
+<a name="__line221"></a>    }
+<a name="__line222"></a>    text &amp;pdraw_file_content(const var &amp;filename)
+<a name="__line223"></a>    {
+<a name="__line224"></a>        return text::pdraw(tolatex(readfile(filename))).verbatim(true);
+<a name="__line225"></a>    }
+<a name="__line226"></a>    text &amp;cdraw_file_content(const var &amp;filename)
+<a name="__line227"></a>    {
+<a name="__line228"></a>        return text::cdraw(tolatex(readfile(filename))).verbatim(true);
+<a name="__line229"></a>    }
+<a name="__line230"></a>
+<a name="__line231"></a>    int readfile(const var &amp;filename, array &amp;out, const var &amp;separator)
+<a name="__line232"></a>    {
+<a name="__line233"></a>	var f = readfile(filename);
+<a name="__line234"></a>	out = split(f,separator);
+<a name="__line235"></a>	return out.size();
+<a name="__line236"></a>    }
+<a name="__line237"></a>
+<a name="__line238"></a>
+<a name="__line239"></a>    var join(const array &amp;a, const var &amp;sep)
+<a name="__line240"></a>    {
+<a name="__line241"></a>	if(a.empty()) return "";
+<a name="__line242"></a>	var result = a[0];
+<a name="__line243"></a>	for(unsigned int i=1; i&lt;a.size(); ++i)
+<a name="__line244"></a>	{
+<a name="__line245"></a>	    result &amp;= sep;
+<a name="__line246"></a>	    result &amp;= a[i];
+<a name="__line247"></a>	}
+<a name="__line248"></a>	return result;
+<a name="__line249"></a>    }
+<a name="__line250"></a>
+<a name="__line251"></a>    var join(const std::vector&lt;double&gt; &amp;a, const var &amp;sep)
+<a name="__line252"></a>    {
+<a name="__line253"></a>	if(a.empty()) return "";
+<a name="__line254"></a>	var result = a[0];
+<a name="__line255"></a>	for(unsigned int i=1; i&lt;a.size(); ++i)
+<a name="__line256"></a>	{
+<a name="__line257"></a>	    result &amp;= sep;
+<a name="__line258"></a>	    result &amp;= a[i];
+<a name="__line259"></a>	}
+<a name="__line260"></a>	return result;
+<a name="__line261"></a>    }
+<a name="__line262"></a>    var join(const std::vector&lt;std::string&gt; &amp;a, const var &amp;sep)
+<a name="__line263"></a>    {
+<a name="__line264"></a>	if(a.empty()) return "";
+<a name="__line265"></a>	var result = a[0];
+<a name="__line266"></a>	for(unsigned int i=1; i&lt;a.size(); ++i)
+<a name="__line267"></a>	{
+<a name="__line268"></a>	    result &amp;= sep;
+<a name="__line269"></a>	    result &amp;= a[i];
+<a name="__line270"></a>	}
+<a name="__line271"></a>	return result;
+<a name="__line272"></a>    }
+<a name="__line273"></a>
+<a name="__line274"></a>    array sequence(var start, var stop, var step)
+<a name="__line275"></a>    {
+<a name="__line276"></a>	array out;
+<a name="__line277"></a>	for(double v = start.dbl(); v&lt;=stop.dbl(); v+=step.dbl())
+<a name="__line278"></a>	{
+<a name="__line279"></a>	    out.push_back(var(v));
+<a name="__line280"></a>	}
+<a name="__line281"></a>	return out;
+<a name="__line282"></a>    }
+<a name="__line283"></a>
+<a name="__line284"></a>    string read_word_from_string(const string &amp;line,std::string::size_type &amp;index,const string &amp;delimiter)
+<a name="__line285"></a>    {
+<a name="__line286"></a>	string result;
+<a name="__line287"></a>	for(; index &lt; line.size() &amp;&amp; delimiter.find(line[index]) == string::npos; ++index)
+<a name="__line288"></a>	{
+<a name="__line289"></a>	    result += line[index];
+<a name="__line290"></a>	}
+<a name="__line291"></a>	return result;
+<a name="__line292"></a>    }
+<a name="__line293"></a>
+<a name="__line294"></a>    void split_quoted(string line, vector&lt;var&gt; &amp;fields)
+<a name="__line295"></a>    {
+<a name="__line296"></a>	line += ' ';
+<a name="__line297"></a>	fields.clear();
+<a name="__line298"></a>	string s;
+<a name="__line299"></a>	for(string::size_type i=0; i&lt;line.size(); ++i)
+<a name="__line300"></a>	{
+<a name="__line301"></a>	    <span class=comment>// skip whitespaces</span>
+<a name="__line302"></a>	    for(; i&lt;line.size() &amp;&amp; ( line[i] == ' ' || line[i] == '\t') ; ++i);
+<a name="__line303"></a>	    if(i &gt;= line.size()) break;
+<a name="__line304"></a>
+<a name="__line305"></a>	    if(line[i] == '\'')
+<a name="__line306"></a>	    {
+<a name="__line307"></a>		s = read_word_from_string(line,++i,"'");
+<a name="__line308"></a>		<span class=comment>//if(s != "")</span>
+<a name="__line309"></a>		fields.push_back(s);
+<a name="__line310"></a>	    }
+<a name="__line311"></a>	    else if(line[i] == '"')
+<a name="__line312"></a>	    {
+<a name="__line313"></a>		s = read_word_from_string(line,++i,"\"");
+<a name="__line314"></a>		<span class=comment>//if(s != "")</span>
+<a name="__line315"></a>		fields.push_back(s);
+<a name="__line316"></a>	    }
+<a name="__line317"></a>	    else
+<a name="__line318"></a>	    {
+<a name="__line319"></a>		s = read_word_from_string(line,i," \t");
+<a name="__line320"></a>		if(s != "") fields.push_back(s);
+<a name="__line321"></a>	    }
+<a name="__line322"></a>	}
+<a name="__line323"></a>    }
+<a name="__line324"></a>
+<a name="__line325"></a>    bool split_contains(const var &amp;haystack, const var &amp;separator, const var &amp;needle)
+<a name="__line326"></a>    {
+<a name="__line327"></a>        array a = split(haystack, separator);
+<a name="__line328"></a>        for(unsigned int i=0; i&lt;a.size(); ++i) if(a[i].str()==needle.str()) return true;
+<a name="__line329"></a>        return false;
+<a name="__line330"></a>    }
+<a name="__line331"></a>
+<a name="__line332"></a>    array split(const var &amp;ss,const var &amp;sep)
+<a name="__line333"></a>    {
+<a name="__line334"></a>	array out;
+<a name="__line335"></a>
+<a name="__line336"></a>	string separator = sep.str();
+<a name="__line337"></a>	string s = ss.str();
+<a name="__line338"></a>
+<a name="__line339"></a>	string w;
+<a name="__line340"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line341"></a>	{
+<a name="__line342"></a>	    if(separator.find(s[i]) != string::npos)
+<a name="__line343"></a>	    {
+<a name="__line344"></a>		if(w != "") out.push_back(w);
+<a name="__line345"></a>		w = "";
+<a name="__line346"></a>	    }
+<a name="__line347"></a>	    else
+<a name="__line348"></a>	    {
+<a name="__line349"></a>		w += s[i];
+<a name="__line350"></a>	    }
+<a name="__line351"></a>	}
+<a name="__line352"></a>	if(w != "") out.push_back(w);
+<a name="__line353"></a>	return out;
+<a name="__line354"></a>    }
+<a name="__line355"></a>
+<a name="__line356"></a>    int split(const string &amp;s,const string &amp;separator, std::vector&lt;std::string&gt; &amp;out)
+<a name="__line357"></a>    {
+<a name="__line358"></a>	out.clear();
+<a name="__line359"></a>
+<a name="__line360"></a>	string w;
+<a name="__line361"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line362"></a>	{
+<a name="__line363"></a>	    if(separator.find(s[i]) != string::npos)
+<a name="__line364"></a>	    {
+<a name="__line365"></a>		if(w != "") out.push_back(w);
+<a name="__line366"></a>		w = "";
+<a name="__line367"></a>	    }
+<a name="__line368"></a>	    else
+<a name="__line369"></a>	    {
+<a name="__line370"></a>		w += s[i];
+<a name="__line371"></a>	    }
+<a name="__line372"></a>	}
+<a name="__line373"></a>	if(w != "") out.push_back(w);
+<a name="__line374"></a>	return out.size();
+<a name="__line375"></a>    }
+<a name="__line376"></a>
+<a name="__line377"></a>    istream &amp;getline(istream &amp;in, var &amp;line, const var &amp;line_separator)
+<a name="__line378"></a>    {
+<a name="__line379"></a>	string s;
+<a name="__line380"></a>	std::getline(in,s,line_separator[0]);
+<a name="__line381"></a>	line = s;
+<a name="__line382"></a>	return in;
+<a name="__line383"></a>    }
+<a name="__line384"></a>
+<a name="__line385"></a>    istream &amp;getline(istream &amp;in, array &amp;line, const var &amp;line_separator, const var &amp;field_separator)
+<a name="__line386"></a>    {
+<a name="__line387"></a>	line.clear();
+<a name="__line388"></a>	string s;
+<a name="__line389"></a>	std::getline(in,s,line_separator[0]);
+<a name="__line390"></a>	line = split(s,field_separator);
+<a name="__line391"></a>	return in;
+<a name="__line392"></a>    }
+<a name="__line393"></a>
+<a name="__line394"></a>    istream &amp;getline(istream &amp;in, std::vector&lt;std::string&gt; &amp;line, const std::string &amp;line_separator, const std::string &amp;field_separator)
+<a name="__line395"></a>    {
+<a name="__line396"></a>	line.clear();
+<a name="__line397"></a>	string s;
+<a name="__line398"></a>	std::getline(in,s,line_separator[0]);
+<a name="__line399"></a>	split(s,field_separator,line);
+<a name="__line400"></a>	return in;
+<a name="__line401"></a>    }
+<a name="__line402"></a>
+<a name="__line403"></a>
+<a name="__line404"></a>    var getfield(const var &amp;s, unsigned int i, const var &amp;separator)
+<a name="__line405"></a>    {
+<a name="__line406"></a>	vector&lt;var&gt; out = split(s,separator);
+<a name="__line407"></a>        
+<a name="__line408"></a>	if(i &gt;= out.size()) return "";
+<a name="__line409"></a>	if(i &lt; 0) return "";
+<a name="__line410"></a>	return out[i];
+<a name="__line411"></a>    }
+<a name="__line412"></a>
+<a name="__line413"></a>    var tolatex(const var &amp;input)
+<a name="__line414"></a>    {
+<a name="__line415"></a>	string fn = input.str();
+<a name="__line416"></a>	string result;
+<a name="__line417"></a>	for(unsigned int i=0; i&lt;fn.size(); ++i)
+<a name="__line418"></a>	{
+<a name="__line419"></a>	    switch(fn[i])
+<a name="__line420"></a>	    {
+<a name="__line421"></a>	    case '&lt;': result += "$&lt;$"; break;
+<a name="__line422"></a>	    case '&gt;': result += "$&gt;$"; break;
+<a name="__line423"></a>	    case '_': result += "\\_"; break;
+<a name="__line424"></a>            case '^': result += "\\^"; break;
+<a name="__line425"></a>	    case '%': result += "\\%"; break;
+<a name="__line426"></a>	    case '@': result += "\\@"; break;
+<a name="__line427"></a>	    case '{': result += "$\\{$"; break;
+<a name="__line428"></a>	    case '}': result += "$\\}$"; break;
+<a name="__line429"></a>	    case '$': result += "\\$"; break;
+<a name="__line430"></a>	    case '&amp;': result += "\\&amp;"; break;
+<a name="__line431"></a>	    default: result += fn[i];
+<a name="__line432"></a>	    }
+<a name="__line433"></a>	}
+<a name="__line434"></a>	return result;
+<a name="__line435"></a>    }
+<a name="__line436"></a>
+<a name="__line437"></a>    <span class=comment>// ---------- parallel_sort -------------------------------------------------------</span>
+<a name="__line438"></a>    void parallel_sort(std::vector&lt;double&gt; &amp;x, std::vector&lt;double&gt; &amp;y,bool unique)
+<a name="__line439"></a>    {
+<a name="__line440"></a>	parallel_sort&lt;std::vector&lt;double&gt;,std::vector&lt;double&gt; &gt;(x,y,unique);
+<a name="__line441"></a>    }
+<a name="__line442"></a>    void parallel_sort(std::vector&lt;blop::var&gt; &amp;x, std::vector&lt;blop::var&gt; &amp;y, bool unique)
+<a name="__line443"></a>    {
+<a name="__line444"></a>	parallel_sort&lt;std::vector&lt;blop::var&gt;,std::vector&lt;blop::var&gt; &gt;(x,y,unique);
+<a name="__line445"></a>    }
+<a name="__line446"></a>    void parallel_sort(array &amp;x, array &amp;y,bool unique)
+<a name="__line447"></a>    {
+<a name="__line448"></a>	parallel_sort&lt;array,array&gt;(x,y,unique);
+<a name="__line449"></a>    }
+<a name="__line450"></a>
+<a name="__line451"></a>    
+<a name="__line452"></a>    int find_crossings(const dgraph &amp;g, const std::vector&lt;double&gt; &amp;values, std::vector&lt;double&gt; &amp;crosspoints, const function &amp;x, const function &amp;y)
+<a name="__line453"></a>    {
+<a name="__line454"></a>        crosspoints.clear();
+<a name="__line455"></a>        const int n = g.size();
+<a name="__line456"></a>        double X_prev = 0;
+<a name="__line457"></a>        double Y_prev = 0;
+<a name="__line458"></a>        for(int i=0; i&lt;n; ++i)
+<a name="__line459"></a>        {
+<a name="__line460"></a>            const datapoint &amp;d = (*g.get(i));
+<a name="__line461"></a>            double X = x.eval(d).dbl();
+<a name="__line462"></a>            double Y = y.eval(d).dbl();
+<a name="__line463"></a>            if(i&gt;0)
+<a name="__line464"></a>            {
+<a name="__line465"></a>                for(int j=0; j&lt;(int)values.size(); ++j)
+<a name="__line466"></a>                {
+<a name="__line467"></a>                    if((values[j]-Y)*(values[j]-Y_prev)&lt;0)
+<a name="__line468"></a>                    {
+<a name="__line469"></a>                        const double C = X_prev + (values[j]-Y_prev)/(Y-Y_prev)*(X-X_prev);
+<a name="__line470"></a>                        crosspoints.push_back(C);
+<a name="__line471"></a>                    }
+<a name="__line472"></a>                }
+<a name="__line473"></a>            }
+<a name="__line474"></a>            X_prev = X;
+<a name="__line475"></a>            Y_prev = Y;
+<a name="__line476"></a>        }
+<a name="__line477"></a>        return (int)crosspoints.size(); 
+<a name="__line478"></a>    }
+<a name="__line479"></a>
+<a name="__line480"></a>}
+<a name="__line481"></a>
+<a name="__line482"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

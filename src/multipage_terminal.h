@@ -42,8 +42,8 @@ namespace blop
             if(opt.str() == "") opt = print_option_;
             char filename[300];
             sprintf(filename,"%s/page_%i",tmpdir_.c_str(),pagecounter_++);
-            if(opt.str() == "") T::print(filename);
-            else T::print(filename,opt);
+            if(opt.str() == "") T::print(var(filename));
+            else T::print(var(filename),opt);
             page_filenames_.push_back(filename);
             if(pagecounter_%flush_frequency_==0)
             {

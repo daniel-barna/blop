@@ -1,0 +1,1320 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: graph_drawer.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_GRAPH_DRAWER_H__
+<a name="__line1"></a>#define __BLOP_GRAPH_DRAWER_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line4"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line5"></a>#include "<a href="axis.h.html">axis.h</a>"
+<a name="__line6"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line7"></a>#include "<a href="arrowhead.h.html">arrowhead.h</a>"
+<a name="__line8"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line9"></a>#ifndef __MAKECINT__
+<a name="__line10"></a>#include &lt;variant&gt;
+<a name="__line11"></a>#endif
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    
+<a name="__line16"></a>
+<a name="__line17"></a>    class point_drawer;
+<a name="__line18"></a>    class terminal;
+<a name="__line19"></a>    class graph;
+<a name="__line20"></a>    class frame;
+<a name="__line21"></a>    class axis;
+<a name="__line22"></a>    class plottable;
+<a name="__line23"></a>
+<a name="__line24"></a>    class color_mapping_base
+<a name="__line25"></a>    {
+<a name="__line26"></a><span class=public>    public:
+<a name="__line27"></a>        <span class=comment>// Return the mapped color corresponding to 'val', in the range defined by mini..maxi</span>
+<a name="__line28"></a>        virtual color map(double val, double mini, double maxi, bool logscale=false) const = 0;
+<a name="__line29"></a>        virtual color_mapping_base *clone() const = 0;
+<a name="__line30"></a>        virtual ~color_mapping_base() {}
+<a name="__line31"></a>    };
+<a name="__line32"></a>
+<a name="__line33"></a>    class color_mapping_interpolated : public color_mapping_base
+<a name="__line34"></a>    {
+<a name="__line35"></a></span><span class=private>    private:
+<a name="__line36"></a>        std::vector&lt;double&gt;      values_; <span class=comment>// the list of values in the range 0..1, 0 meaning the minimum, 1 meaning the maximum, or absolute values.</span>
+<a name="__line37"></a>        bool values_normalized_; <span class=comment>// flag indicating whether the stored values are 0..1 (normalized), or absolute values</span>
+<a name="__line38"></a>        std::vector&lt;blop::color&gt; colors_;
+<a name="__line39"></a>        
+<a name="__line40"></a></span><span class=public>    public:
+<a name="__line41"></a>        color_mapping_base *clone() const
+<a name="__line42"></a>            {
+<a name="__line43"></a>                return new color_mapping_interpolated(*this);
+<a name="__line44"></a>            }
+<a name="__line45"></a>
+<a name="__line46"></a>        color_mapping_interpolated(const std::vector&lt;blop::color&gt; &amp;c) :  values_normalized_(true), colors_(c)
+<a name="__line47"></a>            { 
+<a name="__line48"></a>                const double d = 1.0/(c.size()-1);
+<a name="__line49"></a>                for(unsigned int i=0; i&lt;c.size(); ++i) values_.push_back(d*i);
+<a name="__line50"></a>            }
+<a name="__line51"></a>
+<a name="__line52"></a>        color_mapping_interpolated(const std::vector&lt;blop::color&gt; &amp;colors, 
+<a name="__line53"></a>                                   const std::vector&lt;double&gt; &amp;values, 
+<a name="__line54"></a>                                   bool values_normalized=true) : values_normalized_(values_normalized)
+<a name="__line55"></a>            { 
+<a name="__line56"></a>                auto size = std::min(colors.size(), values.size());
+<a name="__line57"></a>                for(unsigned int i=0; i&lt;size; ++i)
+<a name="__line58"></a>                {
+<a name="__line59"></a>                    colors_.push_back(colors[i]);
+<a name="__line60"></a>                    values_.push_back(values[i]);
+<a name="__line61"></a>                }
+<a name="__line62"></a>            }
+<a name="__line63"></a>        
+<a name="__line64"></a>
+<a name="__line65"></a>        color map(double val, double mini, double maxi, bool logscale=false) const;
+<a name="__line66"></a>    };
+<a name="__line67"></a>
+<a name="__line68"></a>    class color_mapping_function : public color_mapping_base
+<a name="__line69"></a>    {
+<a name="__line70"></a></span><span class=private>    private:
+<a name="__line71"></a>	void *p2f_cint_;
+<a name="__line72"></a>	color (*p2f_)(double,double,double);
+<a name="__line73"></a>	string fname_;
+<a name="__line74"></a>	color map_interpreted(double,double,double) const; <span class=comment>// defined in blop_cint.cc/blop_nocint.cc</span>
+<a name="__line75"></a>
+<a name="__line76"></a>#ifdef __MAKECINT__
+<a name="__line77"></a>        static blop::color the_color_;
+<a name="__line78"></a>#endif        
+<a name="__line79"></a>
+<a name="__line80"></a></span><span class=public>    public:
+<a name="__line81"></a>        color_mapping_function();
+<a name="__line82"></a>
+<a name="__line83"></a>        color_mapping_base *clone() const 
+<a name="__line84"></a>            {
+<a name="__line85"></a>                return new color_mapping_function(*this);
+<a name="__line86"></a>            }
+<a name="__line87"></a>
+<a name="__line88"></a>	<span class=comment>// The default color-mapping function</span>
+<a name="__line89"></a>	static color def(double value, double mini, double maxi);
+<a name="__line90"></a>	static color cold_warm(double value, double mini, double maxi);  <span class=comment>// http://www.kennethmoreland.com/color-maps/</span>
+<a name="__line91"></a>
+<a name="__line92"></a>	color map(double val, double mini, double maxi, bool logscale=false) const;
+<a name="__line93"></a>
+<a name="__line94"></a>	color_mapping_function(color (*p)(double,double,double)) :  p2f_cint_(0), p2f_(p), fname_("this_should_not_happen") {}
+<a name="__line95"></a>	color_mapping_function(void *p);  <span class=comment>// defined in blop_cint.cc or blop_nocint.cc</span>
+<a name="__line96"></a>    };
+<a name="__line97"></a>
+<a name="__line98"></a>    class color_legend;
+<a name="__line99"></a>
+<a name="__line100"></a>    class graph_drawer
+<a name="__line101"></a>	{
+<a name="__line102"></a></span><span class=public>	public:
+<a name="__line103"></a>	    <span class=comment>// These two member-functions return the blop-function, which</span>
+<a name="__line104"></a>	    <span class=comment>// calculates the values to be used as x- or y- coordinates</span>
+<a name="__line105"></a>
+<a name="__line106"></a>	    virtual function get_x(const plottable *) const;
+<a name="__line107"></a>	    virtual function get_y(const plottable *) const;
+<a name="__line108"></a>
+<a name="__line109"></a>	    virtual void set_ranges(plottable *g,axis *x,axis *y) = 0;
+<a name="__line110"></a>	    virtual void draw(plottable *g,frame *f,terminal *t) = 0;
+<a name="__line111"></a>	    virtual void draw_sample(const length &amp;x,
+<a name="__line112"></a>				     const length &amp;y,
+<a name="__line113"></a>				     const length &amp;size,
+<a name="__line114"></a>				     const plottable *style,
+<a name="__line115"></a>				     terminal *) {}
+<a name="__line116"></a>	    virtual bool draws_sample() const {return true;}
+<a name="__line117"></a>	    virtual graph_drawer *clone() const = 0;
+<a name="__line118"></a>	    virtual void prepare_for_draw(plottable *,frame *, int count) = 0;
+<a name="__line119"></a>	    virtual ~graph_drawer() {}
+<a name="__line120"></a>	    
+<a name="__line121"></a>	    virtual int req_components() const = 0;
+<a name="__line122"></a>
+<a name="__line123"></a>	    <span class=comment>// A function which will be called at the moment when the</span>
+<a name="__line124"></a>	    <span class=comment>// graph is added to a frame</span>
+<a name="__line125"></a>	    virtual void setup_when_added(plottable *p, frame *f) {}
+<a name="__line126"></a>
+<a name="__line127"></a>	    virtual bool uses_linecolor() const { return true; }
+<a name="__line128"></a>            virtual bool uses_linestyle() const { return true; }
+<a name="__line129"></a>            virtual bool uses_linewidth() const { return true; }
+<a name="__line130"></a>            virtual bool uses_pointcolor() const { return true; }
+<a name="__line131"></a>            virtual bool uses_pointsize() const { return true; }
+<a name="__line132"></a>            virtual bool uses_fillcolor() const { return true; }
+<a name="__line133"></a>
+<a name="__line134"></a>	    virtual bool draws_points() const { return true; }
+<a name="__line135"></a>	};
+<a name="__line136"></a>
+<a name="__line137"></a>
+<a name="__line138"></a>    <span class=comment>// A base class for all graph-drawers, which use a color-scale</span>
+<a name="__line139"></a>    <span class=comment>// to indicate some value</span>
+<a name="__line140"></a>    class graphd_colorscale : public graph_drawer
+<a name="__line141"></a>    {
+<a name="__line142"></a></span><span class=protected>    protected:
+<a name="__line143"></a>	friend class color_legend;
+<a name="__line144"></a>	color_legend *colorlegend_;
+<a name="__line145"></a>	double color_min_, color_max_;
+<a name="__line146"></a>	bool color_logscale_;
+<a name="__line147"></a>	bool color_min_fixed_, color_max_fixed_;
+<a name="__line148"></a>	int color_samples_;
+<a name="__line149"></a>	color_mapping_base* color_mapping_;
+<a name="__line150"></a>        <span class=comment>// Future version...</span>
+<a name="__line151"></a>        <span class=comment>//std::function&lt;blop::color(double, double, double, bool)&gt; color_mapping_;</span>
+<a name="__line152"></a>	color underflow_color_, overflow_color_;
+<a name="__line153"></a>	var color_title_;
+<a name="__line154"></a>	int draw_colorlegend_;    <span class=comment>// 0 - do not create any colorlegend. 1 - create colorlegend but do not draw. 2 - create and draw.</span>
+<a name="__line155"></a>	std::string legendname_;
+<a name="__line156"></a>
+<a name="__line157"></a></span><span class=public>    public:
+<a name="__line158"></a>	graphd_colorscale();
+<a name="__line159"></a>	graphd_colorscale(const graphd_colorscale &amp;o);
+<a name="__line160"></a>	void copy(const graphd_colorscale &amp;rhs);
+<a name="__line161"></a>	virtual ~graphd_colorscale();
+<a name="__line162"></a>
+<a name="__line163"></a>	virtual graphd_colorscale &amp;color_min(double v);
+<a name="__line164"></a>	virtual double             color_min() const { return color_min_; }
+<a name="__line165"></a>	virtual graphd_colorscale &amp;color_max(double v);
+<a name="__line166"></a>	virtual double             color_max() const { return color_max_; }
+<a name="__line167"></a>
+<a name="__line168"></a>	virtual graphd_colorscale &amp;color_range(double min, double max);
+<a name="__line169"></a>	virtual graphd_colorscale &amp;color_range(const color &amp;startcolor, const color &amp;endcolor);
+<a name="__line170"></a>
+<a name="__line171"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line172"></a>	<span class=comment>// set/get the number of samples used by the colorlegend bar.</span>
+<a name="__line173"></a>
+<a name="__line174"></a>	virtual int                color_samples() const { return color_samples_; }
+<a name="__line175"></a>	virtual graphd_colorscale &amp;color_samples(int n)  { color_samples_ = n; return *this; }
+<a name="__line176"></a>
+<a name="__line177"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line178"></a>	<span class=comment>// set/get wether the colorscale uses logscale</span>
+<a name="__line179"></a>	
+<a name="__line180"></a>	virtual bool               color_logscale() const { return color_logscale_; }
+<a name="__line181"></a>	virtual graphd_colorscale &amp;color_logscale(bool f) { color_logscale_ = f; return *this; }
+<a name="__line182"></a>	
+<a name="__line183"></a>	<span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line184"></a>	<span class=comment>// set/get the title of the color-legendbar</span>
+<a name="__line185"></a>
+<a name="__line186"></a>	virtual var                color_title() const       { return color_title_; }
+<a name="__line187"></a>	virtual graphd_colorscale &amp;color_title(const var &amp;t) { color_title_ = t;  return *this; }
+<a name="__line188"></a>
+<a name="__line189"></a>	virtual bool   color_min_fixed() const { return color_min_fixed_; }
+<a name="__line190"></a>	virtual bool   color_max_fixed() const { return color_max_fixed_; }
+<a name="__line191"></a>
+<a name="__line192"></a>	virtual graphd_colorscale &amp;underflow_color(const color &amp;c) { underflow_color_ = c; return *this; }
+<a name="__line193"></a>	virtual graphd_colorscale &amp;overflow_color(const color &amp;c) { overflow_color_ = c; return *this; }
+<a name="__line194"></a>
+<a name="__line195"></a>	virtual graphd_colorscale &amp;draw_colorlegend(bool f);
+<a name="__line196"></a>
+<a name="__line197"></a>	virtual color map_color(double val, double mini, double maxi) const;
+<a name="__line198"></a>
+<a name="__line199"></a>        graphd_colorscale &amp;color_mapping(void *p)
+<a name="__line200"></a>            {
+<a name="__line201"></a>                if(color_mapping_) delete color_mapping_;
+<a name="__line202"></a>                color_mapping_ = new color_mapping_function(p);
+<a name="__line203"></a>                return *this;
+<a name="__line204"></a>            }
+<a name="__line205"></a>
+<a name="__line206"></a>        graphd_colorscale &amp;color_mapping(color(*p)(double,double,double))
+<a name="__line207"></a>            {
+<a name="__line208"></a>                if(color_mapping_) delete color_mapping_;
+<a name="__line209"></a>                color_mapping_ = new color_mapping_function(p);
+<a name="__line210"></a>                return *this;
+<a name="__line211"></a>            }
+<a name="__line212"></a>        graphd_colorscale &amp;color_mapping(const std::vector&lt;blop::color&gt; &amp;colors, const std::vector&lt;double&gt; &amp;values, bool values_normalized=true)
+<a name="__line213"></a>            {
+<a name="__line214"></a>                if(color_mapping_) delete color_mapping_;
+<a name="__line215"></a>                color_mapping_ = new color_mapping_interpolated(colors,values,values_normalized);
+<a name="__line216"></a>                return *this;
+<a name="__line217"></a>            }
+<a name="__line218"></a>        graphd_colorscale &amp;color_mapping(const std::vector&lt;blop::color&gt; &amp;colors)
+<a name="__line219"></a>            {
+<a name="__line220"></a>                if(color_mapping_) delete color_mapping_;
+<a name="__line221"></a>                color_mapping_ = new color_mapping_interpolated(colors);
+<a name="__line222"></a>                return *this;
+<a name="__line223"></a>            }
+<a name="__line224"></a>
+<a name="__line225"></a>
+<a name="__line226"></a>
+<a name="__line227"></a>	virtual void setup_when_added(plottable *p, frame *f);
+<a name="__line228"></a>
+<a name="__line229"></a>	virtual void set_colorlegend(color_legend *);
+<a name="__line230"></a>        virtual color_legend *get_colorlegend() { return colorlegend_; }
+<a name="__line231"></a>
+<a name="__line232"></a>    };
+<a name="__line233"></a>
+<a name="__line234"></a>
+<a name="__line235"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line236"></a>
+<a name="__line237"></a>    class dots : public graph_drawer
+<a name="__line238"></a>	{
+<a name="__line239"></a></span><span class=public>	public:
+<a name="__line240"></a>
+<a name="__line241"></a>	    void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line242"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line243"></a>	    virtual void draw_sample(const length &amp;x,
+<a name="__line244"></a>				     const length &amp;y,
+<a name="__line245"></a>				     const length &amp;size,
+<a name="__line246"></a>				     const plottable *style,
+<a name="__line247"></a>				     terminal *);
+<a name="__line248"></a>	    bool draws_sample() const {return true;}
+<a name="__line249"></a>	    graph_drawer *clone() const;
+<a name="__line250"></a>	    void prepare_for_draw(plottable *, frame *, int) {};
+<a name="__line251"></a>	    virtual int req_components() const {return 2;}
+<a name="__line252"></a>
+<a name="__line253"></a>	    bool draws_points() const { return false; }
+<a name="__line254"></a>
+<a name="__line255"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line256"></a>            bool uses_linestyle() const { return false; }
+<a name="__line257"></a>            bool uses_linewidth() const { return false; }
+<a name="__line258"></a>            bool uses_pointsize() const { return false; }
+<a name="__line259"></a>            bool uses_fillcolor() const { return false; }
+<a name="__line260"></a>	};
+<a name="__line261"></a>
+<a name="__line262"></a>
+<a name="__line263"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line264"></a>
+<a name="__line265"></a>    class lines : public graph_drawer
+<a name="__line266"></a>	{
+<a name="__line267"></a></span><span class=private>        private:
+<a name="__line268"></a>            bool break_line_; <span class=comment>// break the line at empty datalines</span>
+<a name="__line269"></a></span><span class=public>	public:
+<a name="__line270"></a>
+<a name="__line271"></a>            lines() : break_line_(true) {}
+<a name="__line272"></a>
+<a name="__line273"></a>            virtual lines &amp;break_line(bool f) { break_line_ = f; return *this; }
+<a name="__line274"></a>
+<a name="__line275"></a>	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line276"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line277"></a>	    void draw_sample(const length &amp;x,
+<a name="__line278"></a>			     const length &amp;y,
+<a name="__line279"></a>			     const length &amp;size,
+<a name="__line280"></a>			     const plottable *style,
+<a name="__line281"></a>			     terminal *);
+<a name="__line282"></a>	    graph_drawer *clone() const;
+<a name="__line283"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line284"></a>	    int req_components() const {return 2;}
+<a name="__line285"></a>	    bool draws_points() const { return false; }
+<a name="__line286"></a>
+<a name="__line287"></a>            virtual bool uses_pointcolor() const { return false; }
+<a name="__line288"></a>            virtual bool uses_pointsize() const { return false; }
+<a name="__line289"></a>	};
+<a name="__line290"></a>
+<a name="__line291"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line292"></a>
+<a name="__line293"></a>    class splines : public lines
+<a name="__line294"></a>	{
+<a name="__line295"></a></span><span class=public>	public:
+<a name="__line296"></a>	    graph_drawer *clone() const;
+<a name="__line297"></a>	    void draw(plottable *g,frame *f,terminal *t);	    
+<a name="__line298"></a>	    void draw_sample(const length &amp;x, const length &amp;y,
+<a name="__line299"></a>			     const length &amp;samplen, const plottable *s, terminal *t);
+<a name="__line300"></a>            virtual bool uses_pointcolor() const { return false; }
+<a name="__line301"></a>            virtual bool uses_pointsize() const { return false; }
+<a name="__line302"></a>	};
+<a name="__line303"></a>
+<a name="__line304"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line305"></a>
+<a name="__line306"></a>    class histo : public lines
+<a name="__line307"></a>	{
+<a name="__line308"></a></span><span class=private>	private:
+<a name="__line309"></a>	    bool fill_;
+<a name="__line310"></a></span><span class=public>	public:
+<a name="__line311"></a>	    void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line312"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line313"></a>	    graph_drawer *clone() const;
+<a name="__line314"></a>	    int req_components() const {return 2;}
+<a name="__line315"></a>	    bool draws_points() const { return false; }
+<a name="__line316"></a>            virtual bool uses_pointcolor() const { return false; }
+<a name="__line317"></a>            virtual bool uses_pointsize() const { return false; }
+<a name="__line318"></a>	};
+<a name="__line319"></a>
+<a name="__line320"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line321"></a>
+<a name="__line322"></a>    class points : public graph_drawer
+<a name="__line323"></a>    {
+<a name="__line324"></a></span><span class=protected>	protected:
+<a name="__line325"></a>	    point_drawer *point_drawer_;
+<a name="__line326"></a>
+<a name="__line327"></a></span><span class=public>	public:
+<a name="__line328"></a>	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line329"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line330"></a>	    void draw_sample(const length &amp;x,const length &amp;y,
+<a name="__line331"></a>			     const length &amp;size,
+<a name="__line332"></a>			     const plottable *s,
+<a name="__line333"></a>			     terminal *t);
+<a name="__line334"></a>	    graph_drawer *clone() const;
+<a name="__line335"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line336"></a>	    int req_components() const {return 2;}
+<a name="__line337"></a>
+<a name="__line338"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line339"></a>            bool uses_linestyle() const { return false; }
+<a name="__line340"></a>            bool uses_linewidth() const { return false; }
+<a name="__line341"></a>    };
+<a name="__line342"></a>
+<a name="__line343"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line344"></a>
+<a name="__line345"></a>    class linespoints : public graph_drawer
+<a name="__line346"></a>    {
+<a name="__line347"></a></span><span class=protected>	protected:
+<a name="__line348"></a>	    point_drawer *point_drawer_;
+<a name="__line349"></a>            bool break_line_ = true;
+<a name="__line350"></a>
+<a name="__line351"></a></span><span class=public>	public:
+<a name="__line352"></a>            linespoints &amp;break_line(bool b) { break_line_ = b; return *this; }
+<a name="__line353"></a>	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line354"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line355"></a>	    void draw_sample(const length &amp;x,const length &amp;y,
+<a name="__line356"></a>			     const length &amp;size,
+<a name="__line357"></a>			     const plottable *s,
+<a name="__line358"></a>			     terminal *t);
+<a name="__line359"></a>	    graph_drawer *clone() const;
+<a name="__line360"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line361"></a>	    int req_components() const {return 2;}
+<a name="__line362"></a>    };
+<a name="__line363"></a>
+<a name="__line364"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line365"></a>
+<a name="__line366"></a>    class spoints : public points
+<a name="__line367"></a>    {
+<a name="__line368"></a></span><span class=public>	public:
+<a name="__line369"></a>	    int req_components() const {return 3;}
+<a name="__line370"></a>	    graph_drawer *clone() const;
+<a name="__line371"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line372"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line373"></a>            bool uses_linestyle() const { return false; }
+<a name="__line374"></a>            bool uses_linewidth() const { return false; }
+<a name="__line375"></a>    };
+<a name="__line376"></a>
+<a name="__line377"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line378"></a>
+<a name="__line379"></a>    class cpoints : public points
+<a name="__line380"></a>    {
+<a name="__line381"></a></span><span class=public>	public:
+<a name="__line382"></a>	    int req_components() const {return 5;}
+<a name="__line383"></a>	    graph_drawer *clone() const;
+<a name="__line384"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line385"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line386"></a>            bool uses_linestyle() const { return false; }
+<a name="__line387"></a>            bool uses_linewidth() const { return false; }
+<a name="__line388"></a>    };
+<a name="__line389"></a>
+<a name="__line390"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line391"></a>
+<a name="__line392"></a>    class bars : public graph_drawer
+<a name="__line393"></a>    {
+<a name="__line394"></a></span><span class=private>	private:
+<a name="__line395"></a>	    length l1_,l2_;
+<a name="__line396"></a>            sym::horizontal_vertical dir_;
+<a name="__line397"></a>            function      from_value_;
+<a name="__line398"></a>            sym::position from_side_;
+<a name="__line399"></a>
+<a name="__line400"></a></span><span class=public>	public:
+<a name="__line401"></a>
+<a name="__line402"></a>	    <span class=comment>//bars();</span>
+<a name="__line403"></a>	    bars(const length &amp;width=4*blop::MM, const length &amp;offset=0.0);
+<a name="__line404"></a>	    bars &amp;operator() (const length &amp;width,const length &amp;offset);
+<a name="__line405"></a>
+<a name="__line406"></a>	    void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line407"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line408"></a>	    void draw_sample(const length &amp;x,
+<a name="__line409"></a>			     const length &amp;y,
+<a name="__line410"></a>			     const length &amp;size,
+<a name="__line411"></a>			     const plottable *style,
+<a name="__line412"></a>			     terminal *);
+<a name="__line413"></a>	    graph_drawer *clone() const;
+<a name="__line414"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line415"></a>	    int req_components() const {return 2;}
+<a name="__line416"></a>	    bool draws_points() const { return false; }
+<a name="__line417"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line418"></a>            bool uses_linestyle() const { return false; }
+<a name="__line419"></a>            bool uses_linewidth() const { return false; }
+<a name="__line420"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line421"></a>            bool uses_pointsize() const { return false; }
+<a name="__line422"></a>    };
+<a name="__line423"></a>
+<a name="__line424"></a>
+<a name="__line425"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line426"></a>
+<a name="__line427"></a>    class labels : public graph_drawer
+<a name="__line428"></a>    {
+<a name="__line429"></a></span><span class=private>	private:
+<a name="__line430"></a>	    length x_offset_,y_offset_;
+<a name="__line431"></a>	    sym::position xalign_,yalign_;
+<a name="__line432"></a>	    double angle_;
+<a name="__line433"></a></span><span class=public>	public:
+<a name="__line434"></a>
+<a name="__line435"></a>	    labels &amp;operator() (sym::position xal = sym::left,
+<a name="__line436"></a>				sym::position yal = sym::bottom,
+<a name="__line437"></a>				double angle = 0,
+<a name="__line438"></a>				const length &amp;xoff = length(),
+<a name="__line439"></a>				const length &amp;yoff = length());
+<a name="__line440"></a>
+<a name="__line441"></a>	    labels &amp;xalign(sym::position a);
+<a name="__line442"></a>	    labels &amp;yalign(sym::position a);
+<a name="__line443"></a>	    labels &amp;align(sym::position xa, sym::position ya);
+<a name="__line444"></a>	    labels &amp;angle(double a);
+<a name="__line445"></a>	    labels &amp;xoffset(const length &amp;xoff);
+<a name="__line446"></a>	    labels &amp;yoffset(const length &amp;yoff);
+<a name="__line447"></a>	    labels &amp;offset(const length &amp;xoff, const length &amp;yoff);
+<a name="__line448"></a>
+<a name="__line449"></a>	    bool draws_sample() const {return false;}
+<a name="__line450"></a>	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line451"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line452"></a>	    void draw_sample(const length &amp;x,
+<a name="__line453"></a>			     const length &amp;y,
+<a name="__line454"></a>			     const length &amp;size,
+<a name="__line455"></a>			     const plottable *style,
+<a name="__line456"></a>			     terminal *);
+<a name="__line457"></a>	    graph_drawer *clone() const;
+<a name="__line458"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line459"></a>
+<a name="__line460"></a>	    labels(sym::position xal=sym::center, sym::position yal = sym::center, double ang=0,
+<a name="__line461"></a>			  const length &amp;xoff = length(), const length &amp;yoff = length());
+<a name="__line462"></a>	    int req_components() const {return 3;}
+<a name="__line463"></a>	    bool draws_points() const { return false; }
+<a name="__line464"></a>
+<a name="__line465"></a>            bool uses_linestyle() const { return false; }
+<a name="__line466"></a>            bool uses_linewidth() const { return false; }
+<a name="__line467"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line468"></a>            bool uses_pointsize() const { return false; }
+<a name="__line469"></a>            bool uses_fillcolor() const { return false; }
+<a name="__line470"></a>            
+<a name="__line471"></a>    };
+<a name="__line472"></a>
+<a name="__line473"></a>
+<a name="__line474"></a>    <span class=comment>// ================================================================================</span>
+<a name="__line475"></a>
+<a name="__line476"></a>    class errorbars : public graph_drawer
+<a name="__line477"></a>    {
+<a name="__line478"></a></span><span class=private>    private:
+<a name="__line479"></a>	bool x_,y_,symmetric_x_,symmetric_y_;
+<a name="__line480"></a>	static bool default_clip_errorbars_, default_clip_points_;
+<a name="__line481"></a>	bool clip_errorbars_, clip_points_;
+<a name="__line482"></a>	void get_functions(const plottable *g,
+<a name="__line483"></a>			   function &amp;x, function &amp;x1, function &amp;x2,
+<a name="__line484"></a>			   function &amp;y, function &amp;y1, function &amp;y2);
+<a name="__line485"></a>	length endmarker_size_;
+<a name="__line486"></a>        static length &amp;default_endmarker_size_();
+<a name="__line487"></a>
+<a name="__line488"></a></span><span class=public>    public:
+<a name="__line489"></a>	
+<a name="__line490"></a>	static void default_clip_errorbars(bool f) { default_clip_errorbars_ = f; }
+<a name="__line491"></a>	static void default_clip_points   (bool f) { default_clip_points_   = f; }
+<a name="__line492"></a>        static void default_endmarker_size(const length &amp;l) { default_endmarker_size_() = l; }
+<a name="__line493"></a>	errorbars &amp;clip_errorbars(bool);
+<a name="__line494"></a>	errorbars &amp;clip_points   (bool);
+<a name="__line495"></a>	errorbars &amp;endmarker_size(const length &amp;l);
+<a name="__line496"></a>
+<a name="__line497"></a>	errorbars(bool x=false,bool sx=false,bool y=true,bool sy=true);
+<a name="__line498"></a>	errorbars(const errorbars &amp;);
+<a name="__line499"></a>	void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line500"></a>	void draw(plottable *g,frame *f,terminal *t);
+<a name="__line501"></a>	void draw_sample(const length &amp;x,
+<a name="__line502"></a>			 const length &amp;y,
+<a name="__line503"></a>			 const length &amp;size,
+<a name="__line504"></a>			 const plottable *style,
+<a name="__line505"></a>			 terminal *);
+<a name="__line506"></a>	graph_drawer *clone() const;
+<a name="__line507"></a>	void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line508"></a>	
+<a name="__line509"></a>	int req_components() const;
+<a name="__line510"></a>        bool uses_fillcolor() const { return false; }
+<a name="__line511"></a>    };
+<a name="__line512"></a>
+<a name="__line513"></a>    <span class=comment>// draws errorbars on y, columns 3 and 4 specify the</span>
+<a name="__line514"></a>    <span class=comment>// lower and upper ends of the errorbars</span>
+<a name="__line515"></a>    class yerrorbars : public errorbars
+<a name="__line516"></a>    {public: yerrorbars() : errorbars(false,false,true,false) {}};
+<a name="__line517"></a>
+<a name="__line518"></a>    <span class=comment>// draws symmetric (==&gt;s) errorbars on y, the 3rd column</span>
+<a name="__line519"></a>    <span class=comment>// specifies the error (which is +- -ed to the 2nd column)</span>
+<a name="__line520"></a>    class syerrorbars : public errorbars
+<a name="__line521"></a>    {public: syerrorbars() : errorbars(false,false,true,true) {}};
+<a name="__line522"></a>
+<a name="__line523"></a>    <span class=comment>// the same as yerrorbars and syerrorbars, but in the x direction</span>
+<a name="__line524"></a>    class xerrorbars : public errorbars
+<a name="__line525"></a>    {public: xerrorbars() : errorbars(true,false,false,false) {}};
+<a name="__line526"></a>    class sxerrorbars : public errorbars
+<a name="__line527"></a>    {public: sxerrorbars() : errorbars(true,true,false,false) {}};
+<a name="__line528"></a>
+<a name="__line529"></a>    <span class=comment>// errorbars in both x and y</span>
+<a name="__line530"></a>    class xyerrorbars : public errorbars
+<a name="__line531"></a>    {public: xyerrorbars() : errorbars(true,false,true,false) {}};
+<a name="__line532"></a>    class sxyerrorbars : public errorbars
+<a name="__line533"></a>    {public: sxyerrorbars() : errorbars(true,true,true,true) {}};
+<a name="__line534"></a>
+<a name="__line535"></a>    <span class=comment>// ---------- graphd_ticlabels ----------------------------------------------------</span>
+<a name="__line536"></a>    <span class=comment>// graphd_ticlabels</span>
+<a name="__line537"></a>    <span class=comment>// This is a wrapper class: besides calling another graph_drawer,</span>
+<a name="__line538"></a>    <span class=comment>// this class additionally puts labels to the x axis (xticlabels),</span>
+<a name="__line539"></a>    <span class=comment>// to the y axis (yticlabels), or both (xyticlabels).</span>
+<a name="__line540"></a>    <span class=comment>// You can specify the real draw-style in parentheses, for example:</span>
+<a name="__line541"></a>    <span class=comment>// plot("datafile",_1,_2,_3).ds(xticlabels(lines));</span>
+<a name="__line542"></a>    <span class=comment>// This command will plot the 2nd column vs. the 1st columns of the</span>
+<a name="__line543"></a>    <span class=comment>// file 'datafile' with 'lines' draw-style, and instead of the automatic</span>
+<a name="__line544"></a>    <span class=comment>// tics it will put ticlabels to the x coordinates (1st column) of the</span>
+<a name="__line545"></a>    <span class=comment>// data, as specified in the 3rd column. For xticlabels and yticlabels</span>
+<a name="__line546"></a>    <span class=comment>// you have to specify 1 more component in the plot(...) command (which</span>
+<a name="__line547"></a>    <span class=comment>// is the label to be displayed), for xyticlabels you need two more</span>
+<a name="__line548"></a>
+<a name="__line549"></a>    class ticlabels : public graph_drawer
+<a name="__line550"></a>    {
+<a name="__line551"></a></span><span class=private>    private:
+<a name="__line552"></a>	bool x_,y_;
+<a name="__line553"></a>	graph_drawer *drawer_;
+<a name="__line554"></a></span><span class=public>    public:
+<a name="__line555"></a>	function get_x(const plottable *g) const { return drawer_-&gt;get_x(g); }
+<a name="__line556"></a>	function get_y(const plottable *g) const { return drawer_-&gt;get_y(g); }
+<a name="__line557"></a>	
+<a name="__line558"></a>	ticlabels(bool x,bool y,const graph_drawer &amp; = blop::points());
+<a name="__line559"></a>	ticlabels(const ticlabels &amp;);
+<a name="__line560"></a>	ticlabels operator() (const graph_drawer &amp;);
+<a name="__line561"></a>	void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line562"></a>	void draw(plottable *g,frame *f,terminal *t);
+<a name="__line563"></a>	void draw_sample(const length &amp;x,
+<a name="__line564"></a>			 const length &amp;y,
+<a name="__line565"></a>			 const length &amp;size,
+<a name="__line566"></a>			 const plottable *style,
+<a name="__line567"></a>			 terminal *);
+<a name="__line568"></a>	graph_drawer *clone() const;
+<a name="__line569"></a>	void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line570"></a>	
+<a name="__line571"></a>	int req_components() const;
+<a name="__line572"></a>	bool draws_points() const { return (drawer_?drawer_-&gt;draws_points():false); }
+<a name="__line573"></a>
+<a name="__line574"></a>        bool uses_linecolor() const { return drawer_ &amp;&amp; drawer_-&gt;uses_linecolor(); }
+<a name="__line575"></a>        bool uses_linestyle() const { return drawer_ &amp;&amp; drawer_-&gt;uses_linestyle(); }
+<a name="__line576"></a>        bool uses_linewidth() const { return drawer_ &amp;&amp; drawer_-&gt;uses_linewidth(); }
+<a name="__line577"></a>        bool uses_pointcolor() const { return drawer_ &amp;&amp; drawer_-&gt;uses_pointcolor(); }
+<a name="__line578"></a>        bool uses_pointsize() const { return drawer_ &amp;&amp; drawer_-&gt;uses_pointsize(); }
+<a name="__line579"></a>        bool uses_fillcolor() const { return drawer_ &amp;&amp; drawer_-&gt;uses_fillcolor(); }
+<a name="__line580"></a>        
+<a name="__line581"></a>    };
+<a name="__line582"></a>    
+<a name="__line583"></a>    class xticlabels : public ticlabels
+<a name="__line584"></a>    {
+<a name="__line585"></a></span><span class=public>    public:
+<a name="__line586"></a>        xticlabels() : ticlabels(true,false) {}
+<a name="__line587"></a>        xticlabels(const graph_drawer &amp;d) : ticlabels(true,false,d) {}
+<a name="__line588"></a>    };
+<a name="__line589"></a>    class yticlabels : public ticlabels
+<a name="__line590"></a>    {
+<a name="__line591"></a></span><span class=public>    public:
+<a name="__line592"></a>        yticlabels() : ticlabels(false,true) {}
+<a name="__line593"></a>        yticlabels(const graph_drawer &amp;d) : ticlabels(false,true,d) {}
+<a name="__line594"></a>    };
+<a name="__line595"></a>    class xyticlabels : public ticlabels
+<a name="__line596"></a>    {
+<a name="__line597"></a></span><span class=public>    public:
+<a name="__line598"></a>        xyticlabels() : ticlabels(true,true) {}
+<a name="__line599"></a>        xyticlabels(const graph_drawer &amp;d) : ticlabels(true,true,d) {}
+<a name="__line600"></a>    };
+<a name="__line601"></a>
+<a name="__line602"></a>    <span class=comment>// ---------- cbox_base -----------------------------------------------------------</span>
+<a name="__line603"></a>    
+<a name="__line604"></a>    class cbox_base : public virtual graphd_colorscale
+<a name="__line605"></a>    {
+<a name="__line606"></a></span><span class=private>    private:
+<a name="__line607"></a>	friend class color_legend;
+<a name="__line608"></a>	void init_lengths();
+<a name="__line609"></a>	
+<a name="__line610"></a></span><span class=protected>    protected:
+<a name="__line611"></a>	std::vector&lt;double&gt; labelpositions_;
+<a name="__line612"></a>
+<a name="__line613"></a></span><span class=public>    public:
+<a name="__line614"></a>	
+<a name="__line615"></a>	cbox_base(const cbox_base &amp;);
+<a name="__line616"></a>	cbox_base(void *cmapfunc);
+<a name="__line617"></a>	cbox_base(color (*p)(double,double,double));
+<a name="__line618"></a>	cbox_base(double mini, double maxi);
+<a name="__line619"></a>	cbox_base(const color &amp;start, const color &amp;end);
+<a name="__line620"></a>	cbox_base();
+<a name="__line621"></a>	~cbox_base();
+<a name="__line622"></a>
+<a name="__line623"></a>	void draw_sample(const length &amp;x,
+<a name="__line624"></a>			 const length &amp;y,
+<a name="__line625"></a>			 const length &amp;size,
+<a name="__line626"></a>			 const plottable *style,
+<a name="__line627"></a>			 terminal *);
+<a name="__line628"></a>	
+<a name="__line629"></a>	
+<a name="__line630"></a>	double min() const { return color_min_; }
+<a name="__line631"></a>	double max() const { return color_max_; }
+<a name="__line632"></a>
+<a name="__line633"></a>	bool draws_points() const { return false; }
+<a name="__line634"></a>        bool uses_pointsize() const { return false; }
+<a name="__line635"></a>        bool uses_pointcolor() const { return false; }
+<a name="__line636"></a>
+<a name="__line637"></a>    };
+<a name="__line638"></a>
+<a name="__line639"></a>
+<a name="__line640"></a>    <span class=comment>// ---------- cbox ----------------------------------------------------------------</span>
+<a name="__line641"></a>
+<a name="__line642"></a><span class=comment>/*
+<a name="__line643"></a>    class cboxes : public cbox_base
+<a name="__line644"></a>	{
+<a name="__line645"></a>	private:
+<a name="__line646"></a>	    double dx_,dy_;
+<a name="__line647"></a>	    void calc(plottable *g,axis *,axis *);
+<a name="__line648"></a>
+<a name="__line649"></a>	    static bool default_frame_foreground_;
+<a name="__line650"></a>	    static bool default_grid_foreground_;
+<a name="__line651"></a>	    bool frame_foreground_, grid_foreground_;
+<a name="__line652"></a>	    bool skip_outrange_;
+<a name="__line653"></a>
+<a name="__line654"></a>	public:
+<a name="__line655"></a>
+<a name="__line656"></a>	    cboxes();
+<a name="__line657"></a>	    cboxes(double mini, double maxi);             // give z-range
+<a name="__line658"></a>	    cboxes(const color &amp;start, const color &amp;end); // give color-range
+<a name="__line659"></a>	    cboxes(void *p);                              // specify color-mapping func
+<a name="__line660"></a>	    cboxes(color (*p)(double,double,double));     // specify color-mapping func
+<a name="__line661"></a>	    cboxes(const cboxes &amp;);
+<a name="__line662"></a>
+<a name="__line663"></a>
+<a name="__line664"></a>	    // ------------------- switch on/off legend -----------------------------
+<a name="__line665"></a>
+<a name="__line666"></a>	    //cboxes &amp;legend(bool f) { draw_clegend_ = f; return *this; }
+<a name="__line667"></a>	    cboxes &amp;legend(color_legend *l);
+<a name="__line668"></a>	    cboxes &amp;legend(const var &amp;legendname);
+<a name="__line669"></a>
+<a name="__line670"></a>
+<a name="__line671"></a>
+<a name="__line672"></a>	    cboxes &amp;operator() (double mini=unset, double maxi=unset)
+<a name="__line673"></a>	    { value_range(mini,maxi); return *this; }
+<a name="__line674"></a>
+<a name="__line675"></a>	    cboxes &amp;operator() (const color &amp;start, const color &amp;end)
+<a name="__line676"></a>	    { color_range(start,end); return *this; }
+<a name="__line677"></a>
+<a name="__line678"></a>	    cboxes &amp;operator() (void *p) { map_function(p); return *this; }
+<a name="__line679"></a>		
+<a name="__line680"></a>	    cboxes &amp;operator() (color (*p)(double,double,double))
+<a name="__line681"></a>	    { map_function(p); return *this; }
+<a name="__line682"></a>
+<a name="__line683"></a>	    cboxes &amp;title(const var &amp;t) { color_title_ = t; return *this; }
+<a name="__line684"></a>
+<a name="__line685"></a>	    cboxes &amp;underflow(const color &amp;c) { underflow_color_ = c; return *this; }
+<a name="__line686"></a>	    cboxes &amp;overflow (const color &amp;c) { overflow_color_  = c; return *this; }
+<a name="__line687"></a>	    cboxes &amp;skip_outrange(bool f)     { skip_outrange_ = f; return *this; }
+<a name="__line688"></a>
+<a name="__line689"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line690"></a>	    void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line691"></a>	    graph_drawer *clone() const;
+<a name="__line692"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line693"></a>	    int req_components() const {return 3;}
+<a name="__line694"></a>
+<a name="__line695"></a>	};
+<a name="__line696"></a>*/</span>
+<a name="__line697"></a>
+<a name="__line698"></a>    <span class=comment>// ---------- graphd_scbox --------------------------------------------------------</span>
+<a name="__line699"></a>
+<a name="__line700"></a>    class csboxes : public cbox_base
+<a name="__line701"></a>	{
+<a name="__line702"></a></span><span class=private>	private:
+<a name="__line703"></a>	    void init_csboxes_();
+<a name="__line704"></a>	    void calc_box_x_(double x, double dx, double *x1, double *x2);
+<a name="__line705"></a>	    void calc_box_y_(double y, double dy, double *y1, double *y2);
+<a name="__line706"></a>            
+<a name="__line707"></a></span><span class=protected>	protected:
+<a name="__line708"></a>	    function boxsize_x_func_, boxsize_y_func_, color_func_;
+<a name="__line709"></a>
+<a name="__line710"></a>	    double cell_dx_, cell_dy_;
+<a name="__line711"></a>	    bool   cell_dx_fixed_, cell_dy_fixed_;
+<a name="__line712"></a>
+<a name="__line713"></a>	    bool   normalize_xsize_, normalize_ysize_;
+<a name="__line714"></a>	    double xsize_min_, xsize_max_, ysize_min_, ysize_max_;
+<a name="__line715"></a>	    bool   xsize_min_fixed_;
+<a name="__line716"></a>	    bool   xsize_max_fixed_;
+<a name="__line717"></a>	    bool   ysize_min_fixed_;
+<a name="__line718"></a>	    bool   ysize_max_fixed_;
+<a name="__line719"></a>	    double xsize_goal_min_, xsize_goal_max_, ysize_goal_min_, ysize_goal_max_;
+<a name="__line720"></a>	    bool   skip_outrange_x_, skip_outrange_y_, skip_outrange_color_;
+<a name="__line721"></a>	    
+<a name="__line722"></a>	    bool fill_;
+<a name="__line723"></a>
+<a name="__line724"></a>	    friend class hist;
+<a name="__line725"></a>	    void calc(plottable *g, axis *xaxis, axis *yaxis);
+<a name="__line726"></a>	    static bool default_frame_foreground_;
+<a name="__line727"></a>	    static bool default_grid_foreground_;
+<a name="__line728"></a>	    bool frame_foreground_, grid_foreground_;
+<a name="__line729"></a>	    void get_functions(plottable *g,
+<a name="__line730"></a>			       function &amp;getx,
+<a name="__line731"></a>			       function &amp;gety,
+<a name="__line732"></a>			       function &amp;boxsizex,
+<a name="__line733"></a>			       function &amp;boxsizey,
+<a name="__line734"></a>			       function &amp;getz);
+<a name="__line735"></a>
+<a name="__line736"></a></span><span class=public>	public:
+<a name="__line737"></a>
+<a name="__line738"></a>	    csboxes();
+<a name="__line739"></a>	    csboxes(const csboxes &amp;);
+<a name="__line740"></a>	    csboxes(const color &amp;startcolor, const color &amp;endcolor);
+<a name="__line741"></a>	    csboxes(double min, double max);
+<a name="__line742"></a>            csboxes(const std::vector&lt;blop::color&gt; &amp;colors);
+<a name="__line743"></a>            csboxes(const std::vector&lt;blop::color&gt; &amp;colors, const std::vector&lt;double&gt; &amp;values, bool values_normalized=true);
+<a name="__line744"></a>
+<a name="__line745"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line746"></a>	    <span class=comment>// set the normalization limits for the box sizes in x/y.</span>
+<a name="__line747"></a>	    <span class=comment>// All boxes will be normalized/scaled such that a box with a size-value</span>
+<a name="__line748"></a>	    <span class=comment>// == max will match the cell size (which is the grid-spacing of the points),</span>
+<a name="__line749"></a>	    <span class=comment>// and a size-value == min will appear as a 0-sized box (invisibly small)</span>
+<a name="__line750"></a>
+<a name="__line751"></a>	    csboxes &amp;xsize_range(double min, double max);
+<a name="__line752"></a>	    csboxes &amp;xsize_min  (double min);
+<a name="__line753"></a>	    csboxes &amp;xsize_max  (double max);
+<a name="__line754"></a>
+<a name="__line755"></a>	    csboxes &amp;ysize_range(double min, double max);
+<a name="__line756"></a>	    csboxes &amp;ysize_min  (double min);
+<a name="__line757"></a>	    csboxes &amp;ysize_max  (double max);
+<a name="__line758"></a>
+<a name="__line759"></a>	    csboxes &amp;color_range(double min, double max) { graphd_colorscale::color_range(min,max); return *this; }
+<a name="__line760"></a>	    csboxes &amp;color_range(const color &amp;startcolor, const color &amp;endcolor) { graphd_colorscale::color_range(startcolor,endcolor); return *this; }
+<a name="__line761"></a>
+<a name="__line762"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line763"></a>	    <span class=comment>// Set the goal size of the boxes (note that calling this function automatically</span>
+<a name="__line764"></a>	    <span class=comment>// switches on boxsize normalization in the given direction x/y)</span>
+<a name="__line765"></a>	    <span class=comment>// min,max (both of which should be in principle in the range 0-1) means that</span>
+<a name="__line766"></a>	    <span class=comment>// the value-range of the data (either the full range of the data, or the range</span>
+<a name="__line767"></a>	    <span class=comment>// requested by the user via xsize_range, etc functions) will be represented by</span>
+<a name="__line768"></a>	    <span class=comment>// boxes in the range [min..max]*cellsize</span>
+<a name="__line769"></a>	    <span class=comment>// the default value is 0 for minimum (i.e. 'invisibly small box' for the minimum value)</span>
+<a name="__line770"></a>	    <span class=comment>// and 1 for maximum (i.e. the full cellsize of the data grid)</span>
+<a name="__line771"></a>
+<a name="__line772"></a>	    csboxes &amp;xsize_goal_range(double min, double max);
+<a name="__line773"></a>	    csboxes &amp;xsize_goal_min  (double min);
+<a name="__line774"></a>	    csboxes &amp;xsize_goal_max  (double max);
+<a name="__line775"></a>	    csboxes &amp;ysize_goal_range(double min, double max);
+<a name="__line776"></a>	    csboxes &amp;ysize_goal_min  (double min);
+<a name="__line777"></a>	    csboxes &amp;ysize_goal_max  (double max);
+<a name="__line778"></a>
+<a name="__line779"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line780"></a>	    <span class=comment>// Skip points which fall outside of the ranges. </span>
+<a name="__line781"></a>
+<a name="__line782"></a>	    csboxes &amp;skip_outrange_x    (bool f) { skip_outrange_x_ = f; return *this; }
+<a name="__line783"></a>	    csboxes &amp;skip_outrange_y    (bool f) { skip_outrange_y_ = f; return *this; }
+<a name="__line784"></a>	    csboxes &amp;skip_outrange_color(bool f) { skip_outrange_y_ = f; return *this; }
+<a name="__line785"></a>
+<a name="__line786"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line787"></a>	    <span class=comment>// Specify the colors used to display the under/overflow values.</span>
+<a name="__line788"></a>
+<a name="__line789"></a>	    csboxes &amp;underflow(const color &amp;c) { graphd_colorscale::underflow_color(c); skip_outrange_color_ = false; return *this; }
+<a name="__line790"></a>	    csboxes &amp;underflow_color(const color &amp;c) { graphd_colorscale::underflow_color(c); skip_outrange_color_ = false; return *this; }
+<a name="__line791"></a>	    csboxes &amp;overflow(const color &amp;c)  { graphd_colorscale::overflow_color(c);  skip_outrange_color_ = false; return *this; }
+<a name="__line792"></a>	    csboxes &amp;overflow_color(const color &amp;c)  { graphd_colorscale::overflow_color(c);  skip_outrange_color_ = false; return *this; }
+<a name="__line793"></a>
+<a name="__line794"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line795"></a>	    <span class=comment>// Set the normalization of the boxes. If this is set to true, then</span>
+<a name="__line796"></a>	    <span class=comment>// the box will be scaled such that a value equal to 'max' will match the</span>
+<a name="__line797"></a>	    <span class=comment>// cell size (which by default is calculated from the grid spacing of the datapoints),</span>
+<a name="__line798"></a>	    <span class=comment>// and a value equal to 'min' will appear as a 0-sized box.</span>
+<a name="__line799"></a>	    <span class=comment>// 'max' and 'min' are the maximum and minimum values over the whole graph,</span>
+<a name="__line800"></a>	    <span class=comment>// unless overwritten by the norm_dx/norm_dy functions, see above. </span>
+<a name="__line801"></a>
+<a name="__line802"></a>	    csboxes &amp;normalize_xsize(bool f) { normalize_xsize_ = f; return *this; }
+<a name="__line803"></a>	    csboxes &amp;normalize_ysize(bool f) { normalize_ysize_ = f; return *this; }
+<a name="__line804"></a>	    csboxes &amp;normalize_size (bool f) { normalize_xsize_ = normalize_ysize_ = f; return *this; }
+<a name="__line805"></a>
+<a name="__line806"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line807"></a>	    <span class=comment>// Scale the boxes in the x/y directions independently (or not)</span>
+<a name="__line808"></a>	    <span class=comment>// If true, 2 columns (4 and 5) are used to determine the box-sizes</span>
+<a name="__line809"></a>	    <span class=comment>// in the x/y direction. Otherwise just one column (4th) is used</span>
+<a name="__line810"></a>
+<a name="__line811"></a>	    csboxes &amp;independent_xy(bool f);
+<a name="__line812"></a>
+<a name="__line813"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line814"></a>	    <span class=comment>// Specify manually the cellsize (the reference for scaling the boxes).</span>
+<a name="__line815"></a>	    <span class=comment>// If the value 'unset' is given, then the grid spacing will be automatically</span>
+<a name="__line816"></a>	    <span class=comment>// calculated from the data points, and this will be used.</span>
+<a name="__line817"></a>
+<a name="__line818"></a>	    csboxes &amp;dx(double v);
+<a name="__line819"></a>	    csboxes &amp;dy(double v);
+<a name="__line820"></a>
+<a name="__line821"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line822"></a>
+<a name="__line823"></a>	    virtual csboxes &amp;fill(bool f) { fill_ = f; return *this; }
+<a name="__line824"></a>
+<a name="__line825"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line826"></a>	    <span class=comment>// set the number of samples used by the colorlegend bar. Just overwrite</span>
+<a name="__line827"></a>	    <span class=comment>// the inherited function to return a csboxes</span>
+<a name="__line828"></a>
+<a name="__line829"></a>	    csboxes &amp;color_samples(int n)  { graphd_colorscale::color_samples(n); return *this; }
+<a name="__line830"></a>
+<a name="__line831"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line832"></a>	    <span class=comment>// set logscale for the representation of the z-values by colors. Just overwrite</span>
+<a name="__line833"></a>	    <span class=comment>// the inherited function to return csboxes</span>
+<a name="__line834"></a>
+<a name="__line835"></a>	    csboxes &amp;color_logscale(bool f) { graphd_colorscale::color_logscale(f); return *this; }
+<a name="__line836"></a>
+<a name="__line837"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line838"></a>	    <span class=comment>// Set the title of the color-legendbar. Just overwrite the inherited function to return csboxes</span>
+<a name="__line839"></a>
+<a name="__line840"></a>	    csboxes &amp;color_title(const var &amp;t) { graphd_colorscale::color_title(t); return *this; }
+<a name="__line841"></a>	    csboxes &amp;title(const var &amp;t)       { color_title(t); return *this; }
+<a name="__line842"></a>
+<a name="__line843"></a>	    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line844"></a>	    <span class=comment>// call this function with 'true' to automatically bring the frame to </span>
+<a name="__line845"></a>	    <span class=comment>// the foreground, whenever a plottable is plotted with scbox style</span>
+<a name="__line846"></a>	    <span class=comment>// The default behaviour is 'true'</span>
+<a name="__line847"></a>
+<a name="__line848"></a>	    static void default_frame_foreground(bool f) { default_frame_foreground_ = f; }
+<a name="__line849"></a>	    static void default_grid_foreground(bool f)  { default_grid_foreground_ = f; }
+<a name="__line850"></a>	    csboxes &amp;frame_foreground(bool f) { frame_foreground_ = f; return *this; }
+<a name="__line851"></a>	    csboxes &amp;grid_foreground (bool f) { grid_foreground_ = f; return *this; }
+<a name="__line852"></a>
+<a name="__line853"></a>
+<a name="__line854"></a>	    csboxes &amp;operator() (double mini=unset, double maxi=unset) { color_range(mini,maxi); return *this; }
+<a name="__line855"></a>	    csboxes &amp;operator() (const color &amp;start, const color &amp;end) { color_range(start,end); return *this; }
+<a name="__line856"></a>	    csboxes &amp;operator() (void *p) { color_mapping(p); return *this; }
+<a name="__line857"></a>	    csboxes &amp;operator() (color (*p)(double,double,double))     { color_mapping(p); return *this; }
+<a name="__line858"></a>            csboxes &amp;operator() (const std::vector&lt;blop::color&gt; &amp;colors) { color_mapping(colors); return *this; }
+<a name="__line859"></a>            csboxes &amp;operator() (const std::vector&lt;blop::color&gt; &amp;colors, const std::vector&lt;double&gt; &amp;values, bool values_normalized=true) { color_mapping(colors,values,values_normalized); return *this; }
+<a name="__line860"></a>
+<a name="__line861"></a>	    csboxes &amp;legend(color_legend *l)       { set_colorlegend(l); return *this; }
+<a name="__line862"></a>	    csboxes &amp;legend(bool f)                { draw_colorlegend(f); return *this; }
+<a name="__line863"></a>	    csboxes &amp;legend(const var &amp;legendname) {legendname_ = legendname.str();return *this;}
+<a name="__line864"></a>            color_legend *legend() { return get_colorlegend(); }
+<a name="__line865"></a>
+<a name="__line866"></a>	    void draw(plottable *g,frame *f,terminal *t);
+<a name="__line867"></a>	    void set_ranges(plottable *g,axis *x,axis *y);
+<a name="__line868"></a>	    graph_drawer *clone() const;
+<a name="__line869"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line870"></a>	    int req_components() const {return 3;}
+<a name="__line871"></a>
+<a name="__line872"></a>	    bool draws_points() const { return false; }
+<a name="__line873"></a>
+<a name="__line874"></a>	    bool uses_linecolor() const { return !fill_; }
+<a name="__line875"></a>            bool uses_linestyle() const { return !fill_; }
+<a name="__line876"></a>            bool uses_linewidth() const { return !fill_; }
+<a name="__line877"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line878"></a>            bool uses_pointsize() const { return false; }
+<a name="__line879"></a>            bool uses_fillcolor() const { return fill_; }
+<a name="__line880"></a>            
+<a name="__line881"></a>	};
+<a name="__line882"></a>
+<a name="__line883"></a>    class cboxes : public csboxes
+<a name="__line884"></a>    {
+<a name="__line885"></a></span><span class=private>    private:
+<a name="__line886"></a>	void init_();
+<a name="__line887"></a></span><span class=public>    public:
+<a name="__line888"></a>	cboxes *clone() const { return new cboxes(*this); }
+<a name="__line889"></a>	cboxes();
+<a name="__line890"></a>        cboxes(const cboxes &amp;rhs);
+<a name="__line891"></a>        cboxes(const csboxes &amp;rhs);
+<a name="__line892"></a>	cboxes(double min, double max);                           <span class=comment>// set the z-value-range</span>
+<a name="__line893"></a>	cboxes(const color &amp;start, const color &amp;stop);            <span class=comment>// set the color-range</span>
+<a name="__line894"></a>        cboxes(const std::vector&lt;blop::color&gt; &amp;colors);
+<a name="__line895"></a>        cboxes(const std::vector&lt;blop::color&gt; &amp;colors, const std::vector&lt;double&gt; &amp;values, bool values_normalized=true);
+<a name="__line896"></a>	cboxes(void *p);
+<a name="__line897"></a>	cboxes(color (*p)(double,double,double));
+<a name="__line898"></a>        template &lt;typename... T&gt;
+<a name="__line899"></a>        cboxes(T... colors)
+<a name="__line900"></a>            {
+<a name="__line901"></a>                init_();
+<a name="__line902"></a>                color_mapping({colors...});
+<a name="__line903"></a>            }
+<a name="__line904"></a>	cboxes &amp;operator()(double min,double max) { color_range(min,max); return *this;}
+<a name="__line905"></a>	cboxes &amp;operator()(const color &amp;start, const color &amp;end) { color_range(start,end); return *this; }
+<a name="__line906"></a>        cboxes &amp;operator()(const std::vector&lt;blop::color&gt; &amp;colors) { color_mapping(colors); return *this; }
+<a name="__line907"></a>        cboxes &amp;operator()(const std::vector&lt;blop::color&gt; &amp;colors, const std::vector&lt;double&gt; &amp;values, bool values_normalized) { color_mapping(colors,values,values_normalized); return *this; }
+<a name="__line908"></a>	cboxes &amp;operator()(void *p)    { color_mapping(p); return *this; }
+<a name="__line909"></a>	cboxes &amp;operator()(color (*p)(double,double,double))  { color_mapping(p); return *this; }
+<a name="__line910"></a>	cboxes &amp;title(const var &amp;t) { color_title(t); return *this; }
+<a name="__line911"></a>	cboxes &amp;logscale(bool f) { color_logscale(f); return *this; }
+<a name="__line912"></a>	cboxes &amp;legend(color_legend *l)       { csboxes::legend(l); return *this; }
+<a name="__line913"></a>	cboxes &amp;legend(bool f)                { csboxes::legend(f); return *this; }
+<a name="__line914"></a>	cboxes &amp;legend(const var &amp;legendname) { csboxes::legend(legendname); return *this;}
+<a name="__line915"></a>        color_legend *legend() { return csboxes::legend(); }
+<a name="__line916"></a>
+<a name="__line917"></a>    };
+<a name="__line918"></a>
+<a name="__line919"></a>    class sboxes : public csboxes
+<a name="__line920"></a>    {
+<a name="__line921"></a></span><span class=private>    private:
+<a name="__line922"></a>	void init_();
+<a name="__line923"></a></span><span class=public>    public:
+<a name="__line924"></a>	sboxes *clone() const { return new sboxes(*this); }
+<a name="__line925"></a>	sboxes();
+<a name="__line926"></a>        sboxes(const sboxes &amp;rhs);
+<a name="__line927"></a>        sboxes(const csboxes &amp;rhs);
+<a name="__line928"></a>	sboxes(double min, double max);
+<a name="__line929"></a>	sboxes &amp;operator()(double min, double max);   <span class=comment>// set the boxsize-range (both x/y directions)</span>
+<a name="__line930"></a>
+<a name="__line931"></a>	void draw_sample(const length &amp;x,
+<a name="__line932"></a>			 const length &amp;y,
+<a name="__line933"></a>			 const length &amp;size,
+<a name="__line934"></a>			 const plottable *s,
+<a name="__line935"></a>			 terminal *t);
+<a name="__line936"></a>    };
+<a name="__line937"></a>
+<a name="__line938"></a>
+<a name="__line939"></a>    <span class=comment>// ---------- band drawstyle ------------------------------------------------------</span>
+<a name="__line940"></a>    <span class=comment>// the 'band' style requires 3 components: </span>
+<a name="__line941"></a>    <span class=comment>// 1st: the x coordinate</span>
+<a name="__line942"></a>    <span class=comment>// 2nd and 3rd: the lower and upper y coordinates, between which a</span>
+<a name="__line943"></a>    <span class=comment>// band will be drawn. This is in an early status, it does not make</span>
+<a name="__line944"></a>    <span class=comment>// clipping correctly: if the range of the frame is narrower than</span>
+<a name="__line945"></a>    <span class=comment>// the data to be shown, it will go out of the frame</span>
+<a name="__line946"></a>
+<a name="__line947"></a>    class bands : public graph_drawer
+<a name="__line948"></a>	{
+<a name="__line949"></a></span><span class=private>	private:
+<a name="__line950"></a>	    bool x_,y_;
+<a name="__line951"></a>	    function get_x1_(plottable *) const;
+<a name="__line952"></a>	    function get_x2_(plottable *) const;
+<a name="__line953"></a>	    function get_y1_(plottable *) const;
+<a name="__line954"></a>	    function get_y2_(plottable *) const;
+<a name="__line955"></a></span><span class=public>	public:
+<a name="__line956"></a>	    bands(bool x=true, bool y=true) : x_(x), y_(y) {}
+<a name="__line957"></a>
+<a name="__line958"></a>	    void draw(plottable *g, frame *f, terminal *t);
+<a name="__line959"></a>	    void draw_sample(const length &amp;x, const length &amp;y,
+<a name="__line960"></a>			     const length &amp;samplen, const plottable *s, terminal *t);
+<a name="__line961"></a>	    void set_ranges(plottable *g, axis *x, axis *y);
+<a name="__line962"></a>	    graph_drawer *clone() const;
+<a name="__line963"></a>	    void prepare_for_draw(plottable *, frame *, int) {}
+<a name="__line964"></a>	    int req_components() const {if(x_ &amp;&amp; y_) return 4; return 3;}
+<a name="__line965"></a>	    bool draws_points() const { return false; }
+<a name="__line966"></a>
+<a name="__line967"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line968"></a>            bool uses_linestyle() const { return false; }
+<a name="__line969"></a>            bool uses_linewidth() const { return false; }
+<a name="__line970"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line971"></a>            bool uses_pointsize() const { return false; }
+<a name="__line972"></a>
+<a name="__line973"></a>	};
+<a name="__line974"></a>
+<a name="__line975"></a>    class xbands : public bands
+<a name="__line976"></a>    {public: xbands() : bands(true,false) {}};
+<a name="__line977"></a>    class ybands : public bands
+<a name="__line978"></a>    {public: ybands() : bands(false,true) {}};
+<a name="__line979"></a>
+<a name="__line980"></a>    <span class=comment>// ---------- mosaic  -------------------------------------------------------------</span>
+<a name="__line981"></a>
+<a name="__line982"></a>    class mosaic : public cbox_base
+<a name="__line983"></a>	{
+<a name="__line984"></a></span><span class=private>	private:
+<a name="__line985"></a>	    function  params_to_xy_;
+<a name="__line986"></a>	    bool fixdp_; <span class=comment>// wether parameters have a fix stepsize</span>
+<a name="__line987"></a>
+<a name="__line988"></a>	    static bool default_frame_foreground_;
+<a name="__line989"></a>	    static bool default_grid_foreground_;
+<a name="__line990"></a>	    bool frame_foreground_, grid_foreground_;
+<a name="__line991"></a>
+<a name="__line992"></a></span><span class=public>	public:
+<a name="__line993"></a>	    <span class=comment>// if initialized with a single function, this function MUST have</span>
+<a name="__line994"></a>	    <span class=comment>// 2 components (to calculate the x and y values from the params)</span>
+<a name="__line995"></a>	    mosaic(const function &amp;f1);
+<a name="__line996"></a>	    mosaic(const function &amp;f1, const function &amp;f2);
+<a name="__line997"></a>	    mosaic(const mosaic &amp;rhs);
+<a name="__line998"></a>
+<a name="__line999"></a>	    void set_ranges(plottable *g, axis *x, axis *y);
+<a name="__line1000"></a>	    void draw(plottable *g, frame *f, terminal *t);
+<a name="__line1001"></a>	    bool draws_sample() const { return false; }
+<a name="__line1002"></a>	    graph_drawer *clone() const {return new mosaic(*this);}
+<a name="__line1003"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line1004"></a>	    int req_components() const { return 3; }
+<a name="__line1005"></a>
+<a name="__line1006"></a>	    <span class=comment>// set the z-range (to calculate colors)</span>
+<a name="__line1007"></a>	    mosaic &amp;operator()(double mini, double maxi) { color_range(mini,maxi);return *this; }
+<a name="__line1008"></a>	    mosaic &amp;operator()(double mini, int maxi   ) { color_range(mini,(double)maxi); return *this; }
+<a name="__line1009"></a>	    mosaic &amp;operator()(int    mini, double maxi) { color_range((double)mini,maxi); return *this; }
+<a name="__line1010"></a>	    mosaic &amp;operator()(int    mini, int    maxi) { color_range((double)mini,(double)maxi); return *this; }
+<a name="__line1011"></a>
+<a name="__line1012"></a>	    <span class=comment>// Specify the start- and end-colors. A linear transition</span>
+<a name="__line1013"></a>	    <span class=comment>// from the start- to the end-color is done as a function</span>
+<a name="__line1014"></a>	    <span class=comment>// of the z-value</span>
+<a name="__line1015"></a>	    mosaic &amp;operator() (const color &amp;s, const color &amp;e) { color_range(s,e); return *this; }
+<a name="__line1016"></a>
+<a name="__line1017"></a>	    <span class=comment>// Specify the color mapping functions</span>
+<a name="__line1018"></a>	    mosaic &amp;operator()(void *p) { color_mapping(p); return *this; }
+<a name="__line1019"></a>	    mosaic &amp;operator()(color (*p)(double,double,double)) { color_mapping(p); return *this; }
+<a name="__line1020"></a>
+<a name="__line1021"></a>	    <span class=comment>// specify the title (to be shown next to the legend</span>
+<a name="__line1022"></a>	    mosaic &amp;color_title(const var &amp;t) { graphd_colorscale::color_title(t); return *this; }
+<a name="__line1023"></a>
+<a name="__line1024"></a>	    <span class=comment>// specify logscale for the z values</span>
+<a name="__line1025"></a>	    mosaic &amp;color_logscale(bool v)    { graphd_colorscale::color_logscale(v); return *this; }
+<a name="__line1026"></a>
+<a name="__line1027"></a>	    mosaic &amp;legend(bool f) { draw_colorlegend(f); return *this; }
+<a name="__line1028"></a>	    mosaic &amp;legend(const var &amp;legendname) {legendname_=legendname.str();return *this;}
+<a name="__line1029"></a>
+<a name="__line1030"></a>	    mosaic &amp;fixdp(bool f) { fixdp_ = f; return *this; }
+<a name="__line1031"></a>
+<a name="__line1032"></a>	    static void default_frame_foreground(bool f) { default_frame_foreground_ = f; }
+<a name="__line1033"></a>	    static void default_grid_foreground(bool f)  { default_grid_foreground_ = f; }
+<a name="__line1034"></a>	    mosaic &amp;frame_foreground(bool f) { frame_foreground_ = f; return *this; }
+<a name="__line1035"></a>	    mosaic &amp;grid_foreground(bool f) { grid_foreground_ = f; return *this; }
+<a name="__line1036"></a>
+<a name="__line1037"></a>	    mosaic &amp;underflow      (const color &amp;c) { graphd_colorscale::underflow_color(c); return *this; }
+<a name="__line1038"></a>	    mosaic &amp;underflow_color(const color &amp;c) { graphd_colorscale::underflow_color(c); return *this; }
+<a name="__line1039"></a>	    mosaic &amp;overflow       (const color &amp;c) { graphd_colorscale::overflow_color (c); return *this; }
+<a name="__line1040"></a>	    mosaic &amp;overflow_color (const color &amp;c) { graphd_colorscale::overflow_color (c); return *this; }
+<a name="__line1041"></a>
+<a name="__line1042"></a>	    bool draws_points() const { return false; }
+<a name="__line1043"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line1044"></a>            bool uses_linestyle() const { return false; }
+<a name="__line1045"></a>            bool uses_linewidth() const { return false; }
+<a name="__line1046"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line1047"></a>            bool uses_pointsize() const { return false; }
+<a name="__line1048"></a>            bool uses_fillcolor() const { return false; }
+<a name="__line1049"></a>
+<a name="__line1050"></a>	};
+<a name="__line1051"></a>
+<a name="__line1052"></a>    class mosaic_polar : public mosaic
+<a name="__line1053"></a>    {
+<a name="__line1054"></a></span><span class=public>    public:
+<a name="__line1055"></a>        mosaic_polar() : mosaic(ARG(1)*cos(ARG(2)), ARG(1)*sin(ARG(2))) {}
+<a name="__line1056"></a>        mosaic_polar(double mini, double maxi) : mosaic(ARG(1)*cos(ARG(2)), ARG(1)*sin(ARG(2)))
+<a name="__line1057"></a>	{
+<a name="__line1058"></a>	    operator()(mini,maxi);
+<a name="__line1059"></a>	}
+<a name="__line1060"></a>    };
+<a name="__line1061"></a>    
+<a name="__line1062"></a>
+<a name="__line1063"></a>    <span class=comment>// ---------- gts-based isoline drawer --------------------------------------------</span>
+<a name="__line1064"></a>    class isolines : public graph_drawer
+<a name="__line1065"></a>	{
+<a name="__line1066"></a></span><span class=private>	private:
+<a name="__line1067"></a>	    bool skip_(const var &amp;, const var &amp;, const var &amp;, axis *xaxis, axis *yaxis,
+<a name="__line1068"></a>		       double xmin, double xmax, double ymin, double ymax);
+<a name="__line1069"></a>	    vector&lt;double&gt; isovalues_;
+<a name="__line1070"></a>	    bool isovalues_specified_;
+<a name="__line1071"></a>	    double min_, max_, step_, spec_val_;
+<a name="__line1072"></a>	    bool minfixed_, maxfixed_, stepfixed_;
+<a name="__line1073"></a>	    bool logscale_;
+<a name="__line1074"></a>	    std::vector&lt;color&gt; colors_;
+<a name="__line1075"></a>	    std::vector&lt;var&gt;   labels_;
+<a name="__line1076"></a>	    bool draw_labels_, turn_labels_;
+<a name="__line1077"></a>	    std::string labelformat_;
+<a name="__line1078"></a>	    bool center_labels_;
+<a name="__line1079"></a>	    static bool default_center_labels_;
+<a name="__line1080"></a>	    double x1repulsion_, x2repulsion_, y1repulsion_, y2repulsion_;
+<a name="__line1081"></a>	    double labelrepulsion_[3];
+<a name="__line1082"></a>	    sym::position label_xalign_, label_yalign_;
+<a name="__line1083"></a>
+<a name="__line1084"></a>            void init_();
+<a name="__line1085"></a>
+<a name="__line1086"></a></span><span class=public>	public:
+<a name="__line1087"></a>	    isolines();
+<a name="__line1088"></a>
+<a name="__line1089"></a>            isolines(double Min, double Max);
+<a name="__line1090"></a>
+<a name="__line1091"></a>	    <span class=comment>// use a logarithmic scale for calculating the iso-values</span>
+<a name="__line1092"></a>	    isolines &amp;logscale(bool f) { logscale_ = f; return *this; }
+<a name="__line1093"></a>
+<a name="__line1094"></a>	    <span class=comment>// set the minimum/maximum iso-values</span>
+<a name="__line1095"></a>	    isolines &amp;min(double v) { min_ = v; minfixed_ = true; return *this; }
+<a name="__line1096"></a>	    isolines &amp;max(double v) { max_ = v; maxfixed_ = true; return *this; }
+<a name="__line1097"></a>
+<a name="__line1098"></a>	    <span class=comment>// set the stepsize between iso-values. If not specified, an automatic</span>
+<a name="__line1099"></a>	    <span class=comment>// calculation is done for the optimum</span>
+<a name="__line1100"></a>	    isolines &amp;step(double stepsize, double specval=unset)
+<a name="__line1101"></a>	    { step_ = stepsize; spec_val_ = specval; stepfixed_ = (stepsize!=unset); return *this; }
+<a name="__line1102"></a>
+<a name="__line1103"></a>	    <span class=comment>// Set the format (printf style), which will be used to print</span>
+<a name="__line1104"></a>	    <span class=comment>// the labels on the isolines. The default is "%g". </span>
+<a name="__line1105"></a>	    isolines &amp;labelformat(const var &amp;format)
+<a name="__line1106"></a>	    { labelformat_ = format.str(); return *this; }
+<a name="__line1107"></a>
+<a name="__line1108"></a>	    <span class=comment>// Specify the values, at which isolines should be drawn</span>
+<a name="__line1109"></a>	    <span class=comment>// if more than 10 values are needed, call .at(...) twice:</span>
+<a name="__line1110"></a>	    <span class=comment>// plot("filename").ds(isolines.at(1,2,3,4,..).at(11,12);</span>
+<a name="__line1111"></a>	    <span class=comment>// If these values are specified, the min,max,step are ignored</span>
+<a name="__line1112"></a>            isolines &amp;at(const vector&lt;double&gt; &amp;values);
+<a name="__line1113"></a>
+<a name="__line1114"></a>	    isolines &amp;at(double val1,
+<a name="__line1115"></a>			 double val2=unset,
+<a name="__line1116"></a>			 double val3=unset,
+<a name="__line1117"></a>			 double val4=unset,
+<a name="__line1118"></a>			 double val5=unset,
+<a name="__line1119"></a>			 double val6=unset,
+<a name="__line1120"></a>			 double val7=unset,
+<a name="__line1121"></a>			 double val8=unset,
+<a name="__line1122"></a>			 double val9=unset,
+<a name="__line1123"></a>			 double val10=unset,
+<a name="__line1124"></a>			 double val11=unset,
+<a name="__line1125"></a>			 double val12=unset,
+<a name="__line1126"></a>			 double val13=unset,
+<a name="__line1127"></a>			 double val14=unset,
+<a name="__line1128"></a>			 double val15=unset,
+<a name="__line1129"></a>			 double val16=unset,
+<a name="__line1130"></a>			 double val17=unset,
+<a name="__line1131"></a>			 double val18=unset,
+<a name="__line1132"></a>			 double val19=unset,
+<a name="__line1133"></a>			 double val20=unset);
+<a name="__line1134"></a>	    
+<a name="__line1135"></a>	    <span class=comment>// switch on/off the drawing of isovalue-labels at the lines</span>
+<a name="__line1136"></a>	    isolines &amp;labels(bool f) { draw_labels_ = f; return *this; }
+<a name="__line1137"></a>
+<a name="__line1138"></a>	    <span class=comment>// switch on/off turned labels (along the tangent of the given isoline)</span>
+<a name="__line1139"></a>	    isolines &amp;turn_labels(bool f) { turn_labels_ = f; return *this; }
+<a name="__line1140"></a>
+<a name="__line1141"></a>	    isolines &amp;colors(const color &amp;c1,
+<a name="__line1142"></a>			     const color &amp;c2 = color(-1,-1,-1),
+<a name="__line1143"></a>			     const color &amp;c3 = color(-1,-1,-1),
+<a name="__line1144"></a>			     const color &amp;c4 = color(-1,-1,-1),
+<a name="__line1145"></a>			     const color &amp;c5 = color(-1,-1,-1),
+<a name="__line1146"></a>			     const color &amp;c6 = color(-1,-1,-1),
+<a name="__line1147"></a>			     const color &amp;c7 = color(-1,-1,-1),
+<a name="__line1148"></a>			     const color &amp;c8 = color(-1,-1,-1),
+<a name="__line1149"></a>			     const color &amp;c9 = color(-1,-1,-1),
+<a name="__line1150"></a>			     const color &amp;c10 = color(-1,-1,-1));
+<a name="__line1151"></a>
+<a name="__line1152"></a>	    <span class=comment>// specify a sequence of labels to be printed on the isolines</span>
+<a name="__line1153"></a>	    <span class=comment>// (instead the isovalue itself)</span>
+<a name="__line1154"></a>	    isolines &amp;labels(const var &amp;l1,
+<a name="__line1155"></a>			     const var &amp;l2 = blop::unset,
+<a name="__line1156"></a>			     const var &amp;l3 = blop::unset,
+<a name="__line1157"></a>			     const var &amp;l4 = blop::unset,
+<a name="__line1158"></a>			     const var &amp;l5 = blop::unset,
+<a name="__line1159"></a>			     const var &amp;l6 = blop::unset,
+<a name="__line1160"></a>			     const var &amp;l7 = blop::unset,
+<a name="__line1161"></a>			     const var &amp;l8 = blop::unset,
+<a name="__line1162"></a>			     const var &amp;l9 = blop::unset,
+<a name="__line1163"></a>			     const var &amp;l10 = blop::unset);
+<a name="__line1164"></a>	    
+<a name="__line1165"></a>	    <span class=comment>// try to center the labels on the lines, instead of</span>
+<a name="__line1166"></a>	    <span class=comment>// a more complicated algorithm to space them rather apart from</span>
+<a name="__line1167"></a>	    <span class=comment>// each other</span>
+<a name="__line1168"></a>	    isolines &amp;center_labels(bool f) { center_labels_ = f; return *this; }
+<a name="__line1169"></a>	    
+<a name="isolines_label_align">
+<a name="__line1171"></a>	    <span class=comment>// Alignment of the labels, default is center,center</span>
+</a>
+<a name="__line1173"></a>	    isolines &amp;label_align(sym::position xalign, sym::position yalign);
+<a name="__line1174"></a>
+<a name="__line1175"></a>	    <span class=comment>// specify the weights to push away the line labels from the frame edges.</span>
+<a name="__line1176"></a>	    <span class=comment>// The bigger this weight, the further away they will be from the frame edges.</span>
+<a name="__line1177"></a>	    <span class=comment>// Default is 1.5</span>
+<a name="__line1178"></a>	    isolines &amp;label_repulsion_frame(double w);
+<a name="__line1179"></a>
+<a name="__line1180"></a>            <span class=comment>// Specify the weights to push away the isovalue labels from individual axes.</span>
+<a name="__line1181"></a>            <span class=comment>// The bigger this wekght, the further away they will be positioned from the given axis.</span>
+<a name="__line1182"></a>            <span class=comment>// Example: plot(_1,_2,_1*_2).ds(isolines().label_repulsion_axis(axis::x1,20);</span>
+<a name="__line1183"></a>            isolines &amp;label_repulsion_axis(int axis_id, double w);
+<a name="__line1184"></a>
+<a name="__line1185"></a>	    <span class=comment>// Set repulsion weights for the previous 3 isovalues. Default is </span>
+<a name="__line1186"></a>	    isolines &amp;label_repulsion_label(double w1, double w2, double w3);
+<a name="__line1187"></a>
+<a name="__line1188"></a>	    void set_ranges(plottable *g, axis *x, axis *y);
+<a name="__line1189"></a>	    void draw(plottable *g, frame *f, terminal *t);
+<a name="__line1190"></a>	    void draw_sample(const length &amp;, const length &amp;, const length &amp;,
+<a name="__line1191"></a>			     const plottable *, terminal*);
+<a name="__line1192"></a>	    bool draws_sample() const { return true; }
+<a name="__line1193"></a>	    graph_drawer *clone() const;
+<a name="__line1194"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line1195"></a>	    int req_components() const { return 3; }
+<a name="__line1196"></a>	    bool draws_points() const { return false; }
+<a name="__line1197"></a>	    bool uses_linecolor() const { return false; }
+<a name="__line1198"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line1199"></a>            bool uses_pointsize() const { return false; }
+<a name="__line1200"></a>            bool uses_fillcolor() const { return false; }
+<a name="__line1201"></a>	};
+<a name="__line1202"></a>
+<a name="__line1203"></a>    <span class=comment>// ---------- vectors -------------------------------------------------------------</span>
+<a name="__line1204"></a>    class vectors :  public virtual graphd_colorscale
+<a name="__line1205"></a>	{
+<a name="__line1206"></a></span><span class=private>	private:
+<a name="__line1207"></a>	    friend class color_legend;
+<a name="__line1208"></a>	    length xunit_, yunit_;
+<a name="__line1209"></a>	    arrowhead *arrow_;
+<a name="__line1210"></a>	    double dx_, dy_, norm_, min_length_cut_, max_length_cut_;
+<a name="__line1211"></a>	    bool norm_fixed_, min_length_cut_fixed_;
+<a name="__line1212"></a>	    sym::position pos_;
+<a name="__line1213"></a>	    double min_length_, max_length_;
+<a name="__line1214"></a>
+<a name="__line1215"></a>	    bool scale_arrow_;
+<a name="__line1216"></a>	    bool use_color_;
+<a name="__line1217"></a>
+<a name="__line1218"></a>	    <span class=comment>// A function to calculate the numerical value from</span>
+<a name="__line1219"></a>	    <span class=comment>// the 4 columns of the dgraph, which will be used</span>
+<a name="__line1220"></a>	    <span class=comment>// to set a color. It defaults to sqrt(_3*_3+_4*_4),</span>
+<a name="__line1221"></a>	    <span class=comment>// i.e. the length of the arrow</span>
+<a name="__line1222"></a>	    function colorfunc_;
+<a name="__line1223"></a>
+<a name="__line1224"></a>	    bool clip_;
+<a name="__line1225"></a>
+<a name="__line1226"></a></span><span class=public>	public:
+<a name="__line1227"></a>	    vectors(const vectors &amp;);
+<a name="__line1228"></a>	    vectors();
+<a name="__line1229"></a>	    ~vectors();
+<a name="__line1230"></a>
+<a name="__line1231"></a>	    vectors &amp;norm(double val);
+<a name="__line1232"></a>	    vectors &amp;pos(sym::position p);
+<a name="__line1233"></a>
+<a name="__line1234"></a>	    <span class=comment>// ---------- Set the arrow -------------------------------------------------------</span>
+<a name="__line1235"></a>	    vectors &amp;arrow(const arrowhead &amp;);
+<a name="__line1236"></a>
+<a name="__line1237"></a>	    <span class=comment>// ---------- length of the arrows ------------------------------------------------</span>
+<a name="__line1238"></a>	    <span class=comment>// Specify the length of the arrows (for the maximum value...</span>
+<a name="__line1239"></a>	    <span class=comment>// lower values will be normally scaled down by the</span>
+<a name="__line1240"></a>	    <span class=comment>// length of the vector)</span>
+<a name="__line1241"></a>	    vectors &amp;arrowlength(const length &amp;l) { arrow_-&gt;size(l); return *this; }
+<a name="__line1242"></a>
+<a name="__line1243"></a>	    <span class=comment>// ---------- angle arrow ---------------------------------------------------------</span>
+<a name="__line1244"></a>	    <span class=comment>// specify the angle of the arrows</span>
+<a name="__line1245"></a>	    vectors &amp;arrowangle(double a) { arrow_-&gt;angle(a); return *this; }
+<a name="__line1246"></a>
+<a name="__line1247"></a>	    <span class=comment>// ---------- skip values lower than this -----------------------------------------</span>
+<a name="__line1248"></a>	    vectors &amp;min(double v);
+<a name="__line1249"></a>            vectors &amp;max(double v);
+<a name="__line1250"></a>
+<a name="__line1251"></a>	    <span class=comment>// ---------- change clipping outside of the frame --------------------------------</span>
+<a name="__line1252"></a>	    vectors &amp;clip(bool f) { clip_ = f; return *this; }
+<a name="__line1253"></a>
+<a name="__line1254"></a>
+<a name="__line1255"></a>	    vectors &amp;scale_arrow(bool f) { scale_arrow_ = f; return *this; }
+<a name="__line1256"></a>	    vectors &amp;use_color(bool f) { use_color_ = f; return *this; }
+<a name="__line1257"></a>	    vectors &amp;use_color(const function &amp;f)
+<a name="__line1258"></a>	    { use_color_ = true; colorfunc_ = f; return *this; }
+<a name="__line1259"></a>
+<a name="__line1260"></a>	    void setup_when_added(plottable *, frame *);
+<a name="__line1261"></a>
+<a name="__line1262"></a>	    void set_ranges(plottable *g, axis *x, axis *y);
+<a name="__line1263"></a>	    void draw(plottable *g, frame *f, terminal *t);
+<a name="__line1264"></a>	    void draw_sample(const length &amp;, const length &amp;, const length &amp;,
+<a name="__line1265"></a>			     const plottable *, terminal*);
+<a name="__line1266"></a>	    bool draws_sample() const { return true; }
+<a name="__line1267"></a>	    graph_drawer *clone() const;
+<a name="__line1268"></a>	    void prepare_for_draw(plottable *, frame *, int count);
+<a name="__line1269"></a>	    int req_components() const;
+<a name="__line1270"></a>	    bool draws_points() const { return false; }
+<a name="__line1271"></a>            bool uses_pointcolor() const { return false; }
+<a name="__line1272"></a>            bool uses_pointsize() const { return false; }
+<a name="__line1273"></a>            bool uses_fillcolor() const { return false; }
+<a name="__line1274"></a>
+<a name="__line1275"></a>	};
+<a name="__line1276"></a>
+<a name="__line1277"></a>#ifndef __MAKECINT__    
+<a name="__line1278"></a>    typedef std::variant&lt;blop::dots,blop::lines,blop::splines,blop::histo,blop::points,blop::linespoints,blop::spoints,blop::cpoints,blop::bars,blop::labels,blop::errorbars,blop::yerrorbars,blop::syerrorbars,blop::xerrorbars,blop::sxerrorbars,blop::xyerrorbars,blop::sxyerrorbars,blop::ticlabels,blop::xticlabels,blop::yticlabels,blop::xyticlabels,blop::csboxes,blop::cboxes,blop::sboxes,blop::bands,blop::xbands,blop::ybands,blop::mosaic,blop::mosaic_polar,blop::isolines,blop::vectors&gt; graph_drawers;
+<a name="__line1279"></a>#endif
+<a name="__line1280"></a>}
+<a name="__line1281"></a>
+<a name="__line1282"></a>#ifdef __MAKECINT__
+<a name="__line1283"></a>#pragma link off function operator&lt;=(vector&lt;blop::color&gt;&amp;,vector&lt;blop::color&gt;&amp;);
+<a name="__line1284"></a>#pragma link off function operator&lt;(vector&lt;blop::color&gt;&amp;,vector&lt;blop::color&gt;&amp;);
+<a name="__line1285"></a>#pragma link off function operator&gt;=(vector&lt;blop::color&gt;&amp;,vector&lt;blop::color&gt;&amp;);
+<a name="__line1286"></a>#pragma link off function operator&gt;(vector&lt;blop::color&gt;&amp;,vector&lt;blop::color&gt;&amp;);
+<a name="__line1287"></a>#endif
+<a name="__line1288"></a>
+<a name="__line1289"></a>#endif
+<a name="__line1290"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

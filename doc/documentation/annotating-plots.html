@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Annotating plots</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="plotting-functions.html">
+   <link rel="Next" href="layers.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="plotting-functions.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: plotting-functions.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="layers.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: layers.html">
+    </a> <br>
+
+<center class=title><b>
+Annotating plots
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+set::vline(1);                          // Draw a vertical line at x=1
+auto [lin,lab] = set::vline(1,"Label"); // Draw a vertical line with an optional label, and get line and label objects
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<ul>
+  <li><a href="#hline-vline">Drawing horizontal/vertical lines with optional labels</a></li>
+</ul>
+
+<a name="hline-vline"></a><h1>Drawing horizontal/vertical lines with optional labels</h1>        
+The utility functions to add horizontal/vertical marker lines are defined in the namespace <tt>set</tt>.
+
+<pre>line &set::aline(double d, int ax)</pre>
+This draws and returns a marker line at the given value of the
+specified axis. For example, set::aline(1,axis::y2); draws a
+horizontal marker line extending  the full width of the given frame,
+at the value 'd' of the y2 axis. 
+
+<pre>line &set::aline(double d, int ax, var label, const length &x=-0.5*EX, const length &y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double angle=unset);</pre>
+This draws a marker line as before, and adds a label to it. x and y are absolute or relative positions from the line position, depending on whether it's a horizontal or vertical line. The other parameters are self-explanatory. 
+
+<p>
+The following shorthands can also be used:
+
+<pre>line &vline(double d);
+line &v1line(double d);
+line &v2line(double d);
+struct{line,label} vline(double d,var label, const length &dx=-0.5*EX, const length &y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double angle=90*unit::deg)</pre>
+Draw a vertical line at the given value of the x1, x1 and x2 axes,
+respectively. The last one adds a label as well. The same functions (v replaced by h) exist for
+horizontal lines. 
+
+<pre>vline(double d, var label, const length &dx=-0.5*EX, const length &y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double a=90*unit::deg);</pre>
+This draws a vertical line at the value 'd' of the y1 axis, and adds a
+label to it. It returns a structure { line the_line; label the_label;
+}; which can be captured with this syntax:
+<pre>auto [lin,lab] = vline(1,"Hello");</pre>
+The same function exists for horizontal line.
+
+<pre>aline(double d, int ax, var label, const length &dx=-0.5*EX, const length &y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double a=90*unit::deg);</pre>
+Same as before, but you can specify the axis (axis::x1, axis::x2,
+axis::y1, axis::y2).
+
+
+
+</div>
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="plotting-functions.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: plotting-functions.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="layers.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: layers.html">
+    </a> 
+
+</body>
+</html>

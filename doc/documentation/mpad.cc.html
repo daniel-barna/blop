@@ -1,0 +1,400 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mpad.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="mpad.h.html">mpad.h</a>"
+<a name="__line1"></a>#include &lt;vector&gt;
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>    bool mpad::modified() const
+<a name="__line7"></a>    {
+<a name="__line8"></a>	if(container::modified()) return true;
+<a name="__line9"></a>	for(int i=1; i&lt;=nx_; ++i)
+<a name="__line10"></a>	{
+<a name="__line11"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line12"></a>	    {
+<a name="__line13"></a>		if(pads_[ind(i,j)]-&gt;modified()) return true;
+<a name="__line14"></a>	    }
+<a name="__line15"></a>	}
+<a name="__line16"></a>	return false;
+<a name="__line17"></a>    }
+<a name="__line18"></a>    void mpad::modified(bool f)
+<a name="__line19"></a>    {
+<a name="__line20"></a>	container::modified(f);
+<a name="__line21"></a>	for(int i=1; i&lt;=nx_; ++i)
+<a name="__line22"></a>	{
+<a name="__line23"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line24"></a>	    {
+<a name="__line25"></a>		pads_[ind(i,j)]-&gt;modified(f);
+<a name="__line26"></a>	    }
+<a name="__line27"></a>	}
+<a name="__line28"></a>    }
+<a name="__line29"></a>
+<a name="__line30"></a>
+<a name="__line31"></a>    int mpad::default_direction_ = mpad::right_down | mpad::jump;
+<a name="__line32"></a>    length &amp;mpad::default_gap_()
+<a name="__line33"></a>    {
+<a name="__line34"></a>	static length g = ZERO;
+<a name="__line35"></a>	return g;
+<a name="__line36"></a>    }
+<a name="__line37"></a>    void mpad::default_gap(const length &amp;l)
+<a name="__line38"></a>    {
+<a name="__line39"></a>	default_gap_() = l;
+<a name="__line40"></a>    }
+<a name="__line41"></a>
+<a name="__line42"></a>    void mpad::default_direction(int i) { default_direction_ = i; }
+<a name="__line43"></a>
+<a name="__line44"></a>    mpad::~mpad()
+<a name="__line45"></a>    {
+<a name="__line46"></a>	for(int i=0; i&lt;nx_*ny_; ++i) delete pads_[i];
+<a name="__line47"></a>	delete [] pads_;
+<a name="__line48"></a>	delete [] widths_;
+<a name="__line49"></a>	delete [] heights_;
+<a name="__line50"></a>	delete [] rwidths_;
+<a name="__line51"></a>	delete [] rheights_;
+<a name="__line52"></a>    }
+<a name="__line53"></a>
+<a name="__line54"></a>    mpad::mpad(int xdim, int ydim) : mcontainer(xdim,ydim,default_direction_)
+<a name="__line55"></a>    {
+<a name="__line56"></a>	name("mpad");
+<a name="__line57"></a>
+<a name="__line58"></a>	widths_ = new length[nx_];
+<a name="__line59"></a>	heights_ = new length[ny_];
+<a name="__line60"></a>	rwidths_ = new double[nx_];
+<a name="__line61"></a>	rheights_ = new double[ny_];
+<a name="__line62"></a>
+<a name="__line63"></a>	for(int i=0; i&lt;nx_; ++i) rwidths_[i] = 1;
+<a name="__line64"></a>	for(int i=0; i&lt;ny_; ++i) rheights_[i] = 1;
+<a name="__line65"></a>
+<a name="__line66"></a>	x_avail_ = !cwidth();
+<a name="__line67"></a>	y_avail_ = !cheight();
+<a name="__line68"></a>	gap_     = default_gap_();
+<a name="__line69"></a>
+<a name="__line70"></a>	pads_ = new pad*[nx_ * ny_];
+<a name="__line71"></a>
+<a name="__line72"></a>	left(ZERO);
+<a name="__line73"></a>	right(!parent_cwidth_);
+<a name="__line74"></a>	bottom(ZERO);
+<a name="__line75"></a>	top(!parent_cheight_);
+<a name="__line76"></a>
+<a name="__line77"></a>	lmargin(ZERO);
+<a name="__line78"></a>	rmargin(ZERO);
+<a name="__line79"></a>	bmargin(ZERO);
+<a name="__line80"></a>	tmargin(ZERO);
+<a name="__line81"></a>
+<a name="__line82"></a>	for(int i=1; i &lt;= nx_; ++i)
+<a name="__line83"></a>	{
+<a name="__line84"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line85"></a>	    {
+<a name="__line86"></a>		pads_[ind(i,j)] = new pad(0.0,1.0,0.0,1.0);
+<a name="__line87"></a>	    }
+<a name="__line88"></a>	}
+<a name="__line89"></a>	set_widths();
+<a name="__line90"></a>	set_heights();
+<a name="__line91"></a>    }
+<a name="__line92"></a>
+<a name="__line93"></a>    mpad::mpad(int n)
+<a name="__line94"></a>    {
+<a name="__line95"></a>	int xdim=0, ydim=0;
+<a name="__line96"></a>	mcontainer::get_gridsize_(n,xdim,ydim);
+<a name="__line97"></a>	mcontainer::init_(xdim,ydim,default_direction_);
+<a name="__line98"></a>
+<a name="__line99"></a>	name("mpad");
+<a name="__line100"></a>
+<a name="__line101"></a>	widths_ = new length[nx_];
+<a name="__line102"></a>	heights_ = new length[ny_];
+<a name="__line103"></a>	rwidths_ = new double[nx_];
+<a name="__line104"></a>	rheights_ = new double[ny_];
+<a name="__line105"></a>
+<a name="__line106"></a>	for(int i=0; i&lt;nx_; ++i) rwidths_[i] = 1;
+<a name="__line107"></a>	for(int i=0; i&lt;ny_; ++i) rheights_[i] = 1;
+<a name="__line108"></a>
+<a name="__line109"></a>	x_avail_ = !cwidth();
+<a name="__line110"></a>	y_avail_ = !cheight();
+<a name="__line111"></a>	gap_     = default_gap_();
+<a name="__line112"></a>
+<a name="__line113"></a>	pads_ = new pad*[nx_ * ny_];
+<a name="__line114"></a>
+<a name="__line115"></a>	left(ZERO);
+<a name="__line116"></a>	right(!parent_cwidth_);
+<a name="__line117"></a>	bottom(ZERO);
+<a name="__line118"></a>	top(!parent_cheight_);
+<a name="__line119"></a>
+<a name="__line120"></a>	lmargin(ZERO);
+<a name="__line121"></a>	rmargin(ZERO);
+<a name="__line122"></a>	bmargin(ZERO);
+<a name="__line123"></a>	tmargin(ZERO);
+<a name="__line124"></a>
+<a name="__line125"></a>	for(int i=1; i &lt;= nx_; ++i)
+<a name="__line126"></a>	{
+<a name="__line127"></a>	    for(int j=1; j&lt;=ny_; ++j)
+<a name="__line128"></a>	    {
+<a name="__line129"></a>		pads_[ind(i,j)] = new pad(0.0,1.0,0.0,1.0);
+<a name="__line130"></a>	    }
+<a name="__line131"></a>	}
+<a name="__line132"></a>	set_widths();
+<a name="__line133"></a>	set_heights();
+<a name="__line134"></a>    }
+<a name="__line135"></a>
+<a name="__line136"></a>
+<a name="__line137"></a>    void mpad::set_widths()
+<a name="__line138"></a>    {
+<a name="__line139"></a>	x_avail_ = !cwidth() - (nx_-1)*!gap_;
+<a name="__line140"></a>	double sum = 0;
+<a name="__line141"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line142"></a>	{
+<a name="__line143"></a>	    if(rwidths_[i] &gt; 0)
+<a name="__line144"></a>	    {
+<a name="__line145"></a>		sum += rwidths_[i];
+<a name="__line146"></a>	    }
+<a name="__line147"></a>	    else <span class=comment>// width[i] is fixed</span>
+<a name="__line148"></a>	    {
+<a name="__line149"></a>		x_avail_ -= !widths_[i];
+<a name="__line150"></a>	    }
+<a name="__line151"></a>	}
+<a name="__line152"></a>
+<a name="__line153"></a>	length l = ZERO;
+<a name="__line154"></a>	for(int i=0; i&lt;nx_; ++i)
+<a name="__line155"></a>	{
+<a name="__line156"></a>	    if(rwidths_[i] &gt; 0) widths_[i] = rwidths_[i]/sum * !x_avail_;
+<a name="__line157"></a>	    for(int j=0; j&lt;ny_; ++j)
+<a name="__line158"></a>	    {
+<a name="__line159"></a>		int ii = ind(i+1,j+1);
+<a name="__line160"></a>		pads_[ii]-&gt;left(l);
+<a name="__line161"></a>		pads_[ii]-&gt;right(l+!widths_[i]);
+<a name="__line162"></a>	    }
+<a name="__line163"></a>	    l += !widths_[i] + !gap_;
+<a name="__line164"></a>	}
+<a name="__line165"></a>    }
+<a name="__line166"></a>
+<a name="__line167"></a>    void mpad::set_heights()
+<a name="__line168"></a>    {
+<a name="__line169"></a>	y_avail_ = !cheight() - (ny_-1)*!gap_;
+<a name="__line170"></a>	double sum = 0;
+<a name="__line171"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line172"></a>	{
+<a name="__line173"></a>	    if(rheights_[i] &gt; 0)
+<a name="__line174"></a>	    {
+<a name="__line175"></a>		sum += rheights_[i];
+<a name="__line176"></a>	    }
+<a name="__line177"></a>	    else <span class=comment>// height[i] is fixed</span>
+<a name="__line178"></a>	    {
+<a name="__line179"></a>		y_avail_ -= !heights_[i];
+<a name="__line180"></a>	    }
+<a name="__line181"></a>	}
+<a name="__line182"></a>
+<a name="__line183"></a>	length l = ZERO;
+<a name="__line184"></a>	for(int i=0; i&lt;ny_; ++i)
+<a name="__line185"></a>	{
+<a name="__line186"></a>	    if(rheights_[i] &gt; 0) heights_[i] = rheights_[i]/sum * !y_avail_;
+<a name="__line187"></a>	    for(int j=0; j&lt;nx_; ++j)
+<a name="__line188"></a>	    {
+<a name="__line189"></a>		int ii = ind(j+1,i+1);
+<a name="__line190"></a>		pads_[ii]-&gt;bottom(l);
+<a name="__line191"></a>		pads_[ii]-&gt;top(l+!heights_[i]);
+<a name="__line192"></a>	    }
+<a name="__line193"></a>	    l += !heights_[i] + !gap_;
+<a name="__line194"></a>	}
+<a name="__line195"></a>    }
+<a name="__line196"></a>
+<a name="__line197"></a>    mpad &amp;mpad::width(int i, const length &amp;l)
+<a name="__line198"></a>    {
+<a name="__line199"></a>	if(i &lt;= 0 || nx_ &lt; i)
+<a name="__line200"></a>	{
+<a name="__line201"></a>	    warning::print(var("Index [") &amp; i &amp; var("] is out of range"),
+<a name="__line202"></a>			   "mpad::width");
+<a name="__line203"></a>	    return *this;
+<a name="__line204"></a>	}
+<a name="__line205"></a>	--i;
+<a name="__line206"></a>	rwidths_[i] = -1;
+<a name="__line207"></a>	widths_[i] = l;
+<a name="__line208"></a>	set_widths();
+<a name="__line209"></a>	return *this;
+<a name="__line210"></a>    }
+<a name="__line211"></a>    mpad &amp;mpad::rwidth(int i, double d)
+<a name="__line212"></a>    {
+<a name="__line213"></a>	if(i &lt;= 0 || nx_ &lt; i)
+<a name="__line214"></a>	{
+<a name="__line215"></a>	    warning::print(var("Index [") &amp; i &amp; var("] is out of range"),
+<a name="__line216"></a>			   "mpad::rwidth");
+<a name="__line217"></a>	    return *this;
+<a name="__line218"></a>	}
+<a name="__line219"></a>	--i;
+<a name="__line220"></a>	rwidths_[i] = d;
+<a name="__line221"></a>	widths_[i] = ZERO;
+<a name="__line222"></a>	set_widths();
+<a name="__line223"></a>	return *this;
+<a name="__line224"></a>    }
+<a name="__line225"></a>    mpad &amp;mpad::height(int i, const length &amp;l)
+<a name="__line226"></a>    {
+<a name="__line227"></a>	if(i &lt;= 0 || ny_ &lt; i)
+<a name="__line228"></a>	{
+<a name="__line229"></a>	    warning::print(var("Index [") &amp; i &amp; var("] is out of range"),
+<a name="__line230"></a>			   "mpad::height");
+<a name="__line231"></a>	    return *this;
+<a name="__line232"></a>	}
+<a name="__line233"></a>	--i;
+<a name="__line234"></a>	rheights_[i] = -1;
+<a name="__line235"></a>	heights_[i] = l;
+<a name="__line236"></a>	set_heights();
+<a name="__line237"></a>	return *this;
+<a name="__line238"></a>    }
+<a name="__line239"></a>    mpad &amp;mpad::rheight(int i, double d)
+<a name="__line240"></a>    {
+<a name="__line241"></a>	if(i &lt;= 0 || ny_ &lt; i)
+<a name="__line242"></a>	{
+<a name="__line243"></a>	    warning::print(var("Index [") &amp; i &amp; var("] is out of range"),
+<a name="__line244"></a>			   "mpad::rheight");
+<a name="__line245"></a>	    return *this;
+<a name="__line246"></a>	}
+<a name="__line247"></a>	--i;
+<a name="__line248"></a>	rheights_[i] = d;
+<a name="__line249"></a>	heights_[i] = ZERO;
+<a name="__line250"></a>	set_heights();
+<a name="__line251"></a>	return *this;
+<a name="__line252"></a>    }
+<a name="__line253"></a>
+<a name="__line254"></a>
+<a name="__line255"></a>
+<a name="__line256"></a>    mpad &amp;mpad::gap(const length &amp;l)
+<a name="__line257"></a>    {
+<a name="__line258"></a>	gap_ = l;
+<a name="__line259"></a>	set_widths();
+<a name="__line260"></a>	set_heights();
+<a name="__line261"></a>	return *this;
+<a name="__line262"></a>    }
+<a name="__line263"></a>
+<a name="__line264"></a>    mpad &amp;mpad::draw_border(bool b)
+<a name="__line265"></a>    {
+<a name="__line266"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;draw_border(b);
+<a name="__line267"></a>	return *this;
+<a name="__line268"></a>    }
+<a name="__line269"></a>
+<a name="__line270"></a>    mpad &amp;mpad::bordercolor(const color &amp;c)
+<a name="__line271"></a>    {
+<a name="__line272"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;bordercolor(c);
+<a name="__line273"></a>	return *this;	
+<a name="__line274"></a>    }
+<a name="__line275"></a>
+<a name="__line276"></a>    mpad &amp;mpad::borderwidth(const length &amp;l)
+<a name="__line277"></a>    {
+<a name="__line278"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;borderwidth(l);
+<a name="__line279"></a>	return *this;
+<a name="__line280"></a>    }
+<a name="__line281"></a>
+<a name="__line282"></a>    mpad &amp;mpad::border_3D(bool b)
+<a name="__line283"></a>    {
+<a name="__line284"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;border_3D(b);
+<a name="__line285"></a>	return *this;
+<a name="__line286"></a>    }
+<a name="__line287"></a>
+<a name="__line288"></a>    mpad &amp;mpad::fill(bool b)
+<a name="__line289"></a>    {
+<a name="__line290"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;fill(b);
+<a name="__line291"></a>	return *this;
+<a name="__line292"></a>    }
+<a name="__line293"></a>
+<a name="__line294"></a>    mpad &amp;mpad::fillcolor(const color &amp;c)
+<a name="__line295"></a>    {
+<a name="__line296"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;fillcolor(c);
+<a name="__line297"></a>	return *this;
+<a name="__line298"></a>    }
+<a name="__line299"></a>
+<a name="__line300"></a>    pad *mpad::operator() (int i,int j)
+<a name="__line301"></a>    {
+<a name="__line302"></a>	return pads_[ind(i,j)];
+<a name="__line303"></a>    }
+<a name="__line304"></a>	    
+<a name="__line305"></a>    mpad &amp;mpad::mknew(int i, int j)
+<a name="__line306"></a>    {
+<a name="__line307"></a>	mpad *p = new mpad(i,j);
+<a name="__line308"></a>	p-&gt;autodel(true);
+<a name="__line309"></a>	pad::current().add(p);
+<a name="__line310"></a>
+<a name="__line311"></a>	int ix, iy;
+<a name="__line312"></a>
+<a name="__line313"></a>	if( (p-&gt;direction_&amp;right_up) || (p-&gt;direction_&amp;right_down) || (p-&gt;direction_&amp;down_right) || (p-&gt;direction_&amp;up_right) ) ix = 1;
+<a name="__line314"></a>	else ix = p-&gt;nx_;
+<a name="__line315"></a>
+<a name="__line316"></a>	if( (p-&gt;direction_&amp;right_up) || (p-&gt;direction_&amp;left_up) || (p-&gt;direction_&amp;up_right) || (p-&gt;direction_&amp;up_left) ) iy = 1;
+<a name="__line317"></a>	else iy = p-&gt;ny_;
+<a name="__line318"></a>	
+<a name="__line319"></a>	p-&gt;cd(ix,iy);
+<a name="__line320"></a>	return *p;
+<a name="__line321"></a>    }
+<a name="__line322"></a>    mpad &amp;mpad::mknew(int n)
+<a name="__line323"></a>    {
+<a name="__line324"></a>	int i=0,j=0;
+<a name="__line325"></a>	mcontainer::get_gridsize_(n,i,j);
+<a name="__line326"></a>	mpad *p = new mpad(i,j);
+<a name="__line327"></a>	p-&gt;autodel(true);
+<a name="__line328"></a>	pad::current().add(p);
+<a name="__line329"></a>
+<a name="__line330"></a>	int ix, iy;
+<a name="__line331"></a>
+<a name="__line332"></a>	if( (p-&gt;direction_&amp;right_up) || (p-&gt;direction_&amp;right_down) || (p-&gt;direction_&amp;down_right) || (p-&gt;direction_&amp;up_right) ) ix = 1;
+<a name="__line333"></a>	else ix = p-&gt;nx_;
+<a name="__line334"></a>
+<a name="__line335"></a>	if( (p-&gt;direction_&amp;right_up) || (p-&gt;direction_&amp;left_up) || (p-&gt;direction_&amp;up_right) || (p-&gt;direction_&amp;up_left) ) iy = 1;
+<a name="__line336"></a>	else iy = p-&gt;ny_;
+<a name="__line337"></a>	
+<a name="__line338"></a>	p-&gt;cd(ix,iy);
+<a name="__line339"></a>	return *p;
+<a name="__line340"></a>    }
+<a name="__line341"></a>
+<a name="__line342"></a>
+<a name="__line343"></a>
+<a name="__line344"></a>    void mpad::prepare_for_draw()
+<a name="__line345"></a>    {
+<a name="__line346"></a>	container::prepare_for_draw();
+<a name="__line347"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;prepare_for_draw();
+<a name="__line348"></a>    }
+<a name="__line349"></a>
+<a name="__line350"></a>    void mpad::print(terminal *term)
+<a name="__line351"></a>    {
+<a name="__line352"></a>	if(print_me_ &lt; 2) return;
+<a name="__line353"></a>	term-&gt;set_linewidth(LW.termspecific_id());
+<a name="__line354"></a>	term-&gt;set_color(black);
+<a name="__line355"></a>	term-&gt;set_linestyle(sym::solid);
+<a name="__line356"></a>
+<a name="__line357"></a>	term-&gt;subpicture_begin(terminal::coord(cleft().termspecific_id(),
+<a name="__line358"></a>					       cbottom().termspecific_id()),
+<a name="__line359"></a>			       terminal::coord(cright().termspecific_id(),
+<a name="__line360"></a>					       ctop().termspecific_id()));
+<a name="__line361"></a>
+<a name="__line362"></a>	for(int i=0; i&lt;nx_*ny_; ++i) pads_[i]-&gt;print(term);
+<a name="__line363"></a>	for(unsigned int i=0; i&lt;content_.size(); ++i)
+<a name="__line364"></a>	{
+<a name="__line365"></a>	    content_[i]-&gt;print(term);
+<a name="__line366"></a>	}
+<a name="__line367"></a>
+<a name="__line368"></a>	term-&gt;subpicture_end();
+<a name="__line369"></a>    }
+<a name="__line370"></a>
+<a name="__line371"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

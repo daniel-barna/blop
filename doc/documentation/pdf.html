@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- The png terminal</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="eps.html">
+   <link rel="Next" href="x11_ps.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="eps.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: eps.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="x11_ps.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: x11_ps.html">
+    </a> <br>
+
+<center class=title><b>
+The png terminal
+</b></center>
+<hr>
+
+<pre class=prguide><u>Practical Guide:</u>
+
+plot("filename")....;   // plot something
+pdf::print("file.pdf","-w 8cm -h 5cm");
+
+    // print it to an pdf file named file.pdf
+    // the second argument is the options to beps2pdf
+    // (run  beps2pdf --help  at your shell prompt to get
+    // list of options)
+</pre>
+<hr>
+
+<div class=description> This is a terminal derived from blopeps: first
+a blopeps file  is created, and then it is transformed  to a pdf  file
+using the <a href="tools.html#beps2pdf">beps2pdf</a> tool of blop. The
+static   <tt>print(var  filename,var   opts)</tt>   function  of   the
+<tt>pdf</tt> terminal  can be  used to print  the current canvas  to a
+file specified  by the first  argument. The second  argument specifies
+the  options  to  be  given  to  <tt>beps2pdf</tt>  (say  <tt>beps2pdf
+--help</tt> at your shell prompt for help on these arguments)
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="pdf.h.html">pdf.h</a>
+   <a href="pdf.cc.html">pdf.cc</a>
+</pre>
+
+
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="eps.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: eps.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="x11_ps.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: x11_ps.html">
+    </a> 
+
+</body>
+</html>

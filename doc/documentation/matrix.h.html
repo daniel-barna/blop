@@ -1,0 +1,470 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: matrix.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MATRIX_H__
+<a name="__line1"></a>#define __BLOP_MATRIX_H__
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;iostream&gt;
+<a name="__line5"></a>#include &lt;iomanip&gt;
+<a name="__line6"></a>
+<a name="__line7"></a>#ifndef __MAKECINT__
+<a name="__line8"></a>#include &lt;algorithm&gt;
+<a name="__line9"></a>#endif
+<a name="__line10"></a>
+<a name="__line11"></a>
+<a name="__line12"></a>namespace blop
+<a name="__line13"></a>{
+<a name="__line14"></a>    template &lt;typename T=double&gt;
+<a name="__line15"></a>    class matrix
+<a name="__line16"></a>    {
+<a name="__line17"></a><span class=private>    private:
+<a name="__line18"></a>
+<a name="__line19"></a>	std::vector&lt;std::vector&lt;T&gt; &gt; data_;
+<a name="__line20"></a>	int nrows_, ncols_;
+<a name="__line21"></a>	int row_base_, col_base_;
+<a name="__line22"></a>	static int &amp;default_nrows_() { static int dummy=0; return dummy; }
+<a name="__line23"></a>	static int &amp;default_ncols_() { static int dummy=0; return dummy; }
+<a name="__line24"></a>
+<a name="__line25"></a>	void init(const T &amp;t)
+<a name="__line26"></a>        {
+<a name="__line27"></a>            data_.resize(nrows_);
+<a name="__line28"></a>            for(int i=0; i&lt;nrows_; ++i) data_[i].resize(ncols_,t);
+<a name="__line29"></a>        }
+<a name="__line30"></a></span><span class=public>    public:
+<a name="__line31"></a>        matrix(const T &amp;t = T())
+<a name="__line32"></a>            : nrows_(default_nrows_()), ncols_(default_ncols_()), row_base_(0), col_base_(0) { init(t); }
+<a name="__line33"></a>        matrix(int nrows, int ncols, const T &amp;t = T())
+<a name="__line34"></a>            : nrows_(nrows), ncols_(ncols), row_base_(0), col_base_(0) { init(t); }
+<a name="__line35"></a>        matrix(const matrix&lt;T&gt; &amp;o)
+<a name="__line36"></a>        {
+<a name="__line37"></a>            nrows_ = o.nrows_;
+<a name="__line38"></a>            ncols_ = o.ncols_;
+<a name="__line39"></a>            col_base_ = o.col_base_;
+<a name="__line40"></a>            row_base_ = o.row_base_;
+<a name="__line41"></a>            data_ = o.data_;
+<a name="__line42"></a>        }
+<a name="__line43"></a>	~matrix() {}
+<a name="__line44"></a>	const matrix&lt;T&gt; &amp;operator= (const matrix&lt;T&gt; &amp;o)
+<a name="__line45"></a>	{
+<a name="__line46"></a>            nrows_ = o.nrows_;
+<a name="__line47"></a>            ncols_ = o.ncols_;
+<a name="__line48"></a>            col_base_ = o.col_base_;
+<a name="__line49"></a>            row_base_ = o.row_base_;
+<a name="__line50"></a>            data_ = o.data_;
+<a name="__line51"></a>            return *this;
+<a name="__line52"></a>        }
+<a name="__line53"></a>
+<a name="__line54"></a>	static void default_nrows(int n) { default_nrows_() = n; }
+<a name="__line55"></a>	static void default_ncols(int n) { default_ncols_() = n; }
+<a name="__line56"></a>
+<a name="__line57"></a>	int cols() const { return ncols_; }
+<a name="__line58"></a>	int rows() const { return nrows_; }
+<a name="__line59"></a>
+<a name="__line60"></a>	void resize(int new_nrows, int new_ncols, const T &amp;val = T())
+<a name="__line61"></a>        {
+<a name="__line62"></a>            data_.resize(new_nrows);
+<a name="__line63"></a>            for(int i=0; i&lt;new_nrows; ++i) data_[i].resize(new_ncols, val);
+<a name="__line64"></a>            nrows_ = new_nrows;
+<a name="__line65"></a>            ncols_ = new_ncols;
+<a name="__line66"></a>        }
+<a name="__line67"></a>
+<a name="__line68"></a>	int col_base() const { return col_base_; }
+<a name="__line69"></a>	int row_base() const { return row_base_; }
+<a name="__line70"></a>
+<a name="__line71"></a>	T &amp;operator()       (int row, int col)           { return data_[row-row_base_][col-col_base_]; }
+<a name="__line72"></a>	const T &amp;operator() (int row, int col) const     { return data_[row-row_base_][col-col_base_]; }
+<a name="__line73"></a>	std::vector&lt;T&gt; &amp;row(int rownumber)               { return data_[rownumber-row_base_]; }
+<a name="__line74"></a>	const std::vector&lt;T&gt; &amp;row(int rownumber)   const { return data_[rownumber-row_base_]; }
+<a name="__line75"></a>	void index_base(int rb, int cb)                  { row_base_ = rb; col_base_ = cb; }
+<a name="__line76"></a>
+<a name="__line77"></a>
+<a name="__line78"></a><span class=comment>// for some reason the produced code G__cpp_blop.cxx does not want to compile:</span>
+<a name="__line79"></a><span class=comment>// ambiguous overload of operator*(T,T) [with T=blop::var], etc</span>
+<a name="__line80"></a><span class=comment>// although there IS an operator* for blop::var. I don't understand why. </span>
+<a name="__line81"></a><span class=comment>// so I just remove this problematic code here. template classes are anyway</span>
+<a name="__line82"></a><span class=comment>// not available in the interpreter...       </span>
+<a name="__line83"></a>#ifndef __MAKECINT__
+<a name="__line84"></a>
+<a name="__line85"></a>        matrix&lt;T&gt; inverse() const;
+<a name="__line86"></a>        T matrix_minor   (int ind1, int ind2) const;
+<a name="__line87"></a>        T cofactor(int ind1, int ind2) const;
+<a name="__line88"></a>        T det() const;
+<a name="__line89"></a>
+<a name="__line90"></a>        const matrix&lt;T&gt; &amp;operator*=(const T &amp;);
+<a name="__line91"></a>        const matrix&lt;T&gt; &amp;operator/=(const T &amp;);
+<a name="__line92"></a>
+<a name="__line93"></a>        const matrix&lt;T&gt; &amp;operator+=(const matrix&lt;T&gt; &amp;);
+<a name="__line94"></a>        const matrix&lt;T&gt; &amp;operator-=(const matrix&lt;T&gt; &amp;);
+<a name="__line95"></a>
+<a name="__line96"></a>#endif
+<a name="__line97"></a>
+<a name="__line98"></a>    };
+<a name="__line99"></a>
+<a name="__line100"></a>    inline int parity(const int P[], int N)
+<a name="__line101"></a>    {
+<a name="__line102"></a>        int G = 0;
+<a name="__line103"></a>        for(int i=0; i&lt;N; ++i)
+<a name="__line104"></a>        {
+<a name="__line105"></a>            for(int j=i+1; j&lt;N; ++j)
+<a name="__line106"></a>            {
+<a name="__line107"></a>                if(P[i] &gt; P[j]) ++G;
+<a name="__line108"></a>            }
+<a name="__line109"></a>        }
+<a name="__line110"></a>        return 1-2*(G%2);
+<a name="__line111"></a>    }
+<a name="__line112"></a>
+<a name="__line113"></a>#ifndef __MAKECINT__
+<a name="__line114"></a>    template &lt;typename T&gt;
+<a name="__line115"></a>    T matrix&lt;T&gt;::matrix_minor(int ind1, int ind2) const
+<a name="__line116"></a>    {
+<a name="__line117"></a>        if(cols() != rows())
+<a name="__line118"></a>        {
+<a name="__line119"></a>            warning::print("Matrix minor can only be called for square matrices","matrix&lt;T&gt;::matrix_minor(int,int)");
+<a name="__line120"></a>            return T();
+<a name="__line121"></a>        }
+<a name="__line122"></a>
+<a name="__line123"></a>        <span class=comment>// make both indices 0-based</span>
+<a name="__line124"></a>        ind1 -= row_base();
+<a name="__line125"></a>        ind2 -= col_base();
+<a name="__line126"></a>        
+<a name="__line127"></a>        const int N = cols();
+<a name="__line128"></a>        int *I = new int[N-1];
+<a name="__line129"></a>        int *J = new int[N-1];
+<a name="__line130"></a>        {
+<a name="__line131"></a>            int iout = 0;
+<a name="__line132"></a>            for(int i=0; i&lt;N; ++i) if(i!=ind1) I[iout++] = i;
+<a name="__line133"></a>        }
+<a name="__line134"></a>        {
+<a name="__line135"></a>            int iout = 0;
+<a name="__line136"></a>            for(int i=0; i&lt;N; ++i) if(i!=ind2) J[iout++] = i;
+<a name="__line137"></a>        }
+<a name="__line138"></a>
+<a name="__line139"></a>        T result = 0;
+<a name="__line140"></a>        do
+<a name="__line141"></a>        {
+<a name="__line142"></a>            T subresult = 1;
+<a name="__line143"></a>            for(int i=0; i&lt;N-1; ++i)
+<a name="__line144"></a>            {
+<a name="__line145"></a>                subresult *= operator()(I[i]+row_base(),J[i]+col_base());
+<a name="__line146"></a>            }
+<a name="__line147"></a>            result += parity(J,N-1)*subresult;
+<a name="__line148"></a>        }
+<a name="__line149"></a>        while(next_permutation(J,J+(N-1)));
+<a name="__line150"></a>
+<a name="__line151"></a>        delete [] I;
+<a name="__line152"></a>        delete [] J;
+<a name="__line153"></a>
+<a name="__line154"></a>        return result;
+<a name="__line155"></a>    }
+<a name="__line156"></a>
+<a name="__line157"></a>    template &lt;typename T&gt;
+<a name="__line158"></a>    T matrix&lt;T&gt;::cofactor(int ind1, int ind2) const
+<a name="__line159"></a>    {
+<a name="__line160"></a>        const int P = 1-((ind1-row_base())+(ind2-col_base()))%2*2;
+<a name="__line161"></a>        return P * matrix_minor(ind1,ind2);
+<a name="__line162"></a>    }
+<a name="__line163"></a>
+<a name="__line164"></a>    template &lt;typename T&gt;
+<a name="__line165"></a>    matrix&lt;T&gt; matrix&lt;T&gt;::inverse() const
+<a name="__line166"></a>    {
+<a name="__line167"></a>        if(cols() != rows())
+<a name="__line168"></a>        {
+<a name="__line169"></a>            warning::print("Can not invert a non-square matrix","matrix&lt;T&gt;::inverse()");
+<a name="__line170"></a>            return *this;
+<a name="__line171"></a>        }
+<a name="__line172"></a>        const int N = cols();
+<a name="__line173"></a>        matrix&lt;T&gt; result(N,N);
+<a name="__line174"></a>        if(N == 2)
+<a name="__line175"></a>        {
+<a name="__line176"></a>            T a = operator()(0+row_base(), 0+col_base());
+<a name="__line177"></a>            T b = operator()(0+row_base(), 1+col_base());
+<a name="__line178"></a>            T c = operator()(1+row_base(), 0+col_base());
+<a name="__line179"></a>            T d = operator()(1+row_base(), 1+col_base());
+<a name="__line180"></a>            T det = a*d-b*c;
+<a name="__line181"></a>            result(0,0) =  d/det;
+<a name="__line182"></a>            result(0,1) = -b/det;
+<a name="__line183"></a>            result(1,0) = -c/det;
+<a name="__line184"></a>            result(1,1) =  a/det;
+<a name="__line185"></a>            result.index_base(row_base(), col_base());
+<a name="__line186"></a>        }
+<a name="__line187"></a>        else if(N == 3)
+<a name="__line188"></a>        {
+<a name="__line189"></a>            const T a = operator()(0+row_base(), 0+col_base());
+<a name="__line190"></a>            const T b = operator()(0+row_base(), 1+col_base());
+<a name="__line191"></a>            const T c = operator()(0+row_base(), 2+col_base());
+<a name="__line192"></a>            const T d = operator()(1+row_base(), 0+col_base());
+<a name="__line193"></a>            const T e = operator()(1+row_base(), 1+col_base());
+<a name="__line194"></a>            const T f = operator()(1+row_base(), 2+col_base());
+<a name="__line195"></a>            const T g = operator()(2+row_base(), 0+col_base());
+<a name="__line196"></a>            const T h = operator()(2+row_base(), 1+col_base());
+<a name="__line197"></a>            const T k = operator()(2+row_base(), 2+col_base());
+<a name="__line198"></a>            const T det = a*(e*k-f*h) + b*(f*g-k*d) + c*(d*h-e*g);
+<a name="__line199"></a>            result(0,0) = (e*k-f*h)/det;
+<a name="__line200"></a>            result(0,1) = (c*h-b*k)/det;
+<a name="__line201"></a>            result(0,2) = (b*f-c*e)/det;
+<a name="__line202"></a>            result(1,0) = (f*g-d*k)/det;
+<a name="__line203"></a>            result(1,1) = (a*k-c*g)/det;
+<a name="__line204"></a>            result(1,2) = (c*d-a*f)/det;
+<a name="__line205"></a>            result(2,0) = (d*h-e*g)/det;
+<a name="__line206"></a>            result(2,1) = (g*b-a*h)/det;
+<a name="__line207"></a>            result(2,2) = (a*e-b*d)/det;
+<a name="__line208"></a>            result.index_base(row_base(),col_base());
+<a name="__line209"></a>        }
+<a name="__line210"></a>        else
+<a name="__line211"></a>        {
+<a name="__line212"></a>            const T D = det();
+<a name="__line213"></a>            for(int i=0; i&lt;N; ++i)
+<a name="__line214"></a>            {
+<a name="__line215"></a>                for(int j=0; j&lt;N; ++j)
+<a name="__line216"></a>                {
+<a name="__line217"></a>                    result(i,j) = cofactor(j+row_base(), i+col_base())/D;
+<a name="__line218"></a>                }
+<a name="__line219"></a>            }
+<a name="__line220"></a>        }
+<a name="__line221"></a>        return result;
+<a name="__line222"></a>    }
+<a name="__line223"></a>
+<a name="__line224"></a>    template &lt;typename T&gt;
+<a name="__line225"></a>    T matrix&lt;T&gt;::det() const
+<a name="__line226"></a>    {
+<a name="__line227"></a>        if(cols() != rows())
+<a name="__line228"></a>        {
+<a name="__line229"></a>            warning::print("Determinant can only be calculated for a square matrix","matrix&lt;T&gt;::det()");
+<a name="__line230"></a>            return T();
+<a name="__line231"></a>        }
+<a name="__line232"></a>        const int N = cols();
+<a name="__line233"></a>        T result = 0;
+<a name="__line234"></a>        int *ind = new int[N];
+<a name="__line235"></a>        for(int i=0; i&lt;N; ++i) ind[i] = i; <span class=comment>// create the first permutation</span>
+<a name="__line236"></a>        
+<a name="__line237"></a>        for(bool ok=true; ok; ok=next_permutation(ind, ind+N))
+<a name="__line238"></a>        {
+<a name="__line239"></a>            T tmp = 1.0;
+<a name="__line240"></a>            for(int i=0; i&lt;N; ++i)
+<a name="__line241"></a>            {
+<a name="__line242"></a>                tmp *= operator()(i+row_base(), ind[i]+col_base()) * parity(ind,N);
+<a name="__line243"></a>            }
+<a name="__line244"></a>            result += tmp;
+<a name="__line245"></a>        }
+<a name="__line246"></a>        delete [] ind;
+<a name="__line247"></a>        return result;
+<a name="__line248"></a>    }
+<a name="__line249"></a>
+<a name="__line250"></a>
+<a name="__line251"></a>    template &lt;typename T&gt;
+<a name="__line252"></a>    const matrix&lt;T&gt; &amp;matrix&lt;T&gt;::operator*=(const T &amp;t)
+<a name="__line253"></a>    {
+<a name="__line254"></a>        for(unsigned int i=0; i&lt;data_.size(); ++i)
+<a name="__line255"></a>        {
+<a name="__line256"></a>            for(unsigned int j=0; j&lt;data_[i].size(); ++j)
+<a name="__line257"></a>            {
+<a name="__line258"></a>                data_[i][j] *= t;
+<a name="__line259"></a>            }
+<a name="__line260"></a>        }
+<a name="__line261"></a>        return *this;
+<a name="__line262"></a>    }
+<a name="__line263"></a>    template &lt;typename T&gt;
+<a name="__line264"></a>    const matrix&lt;T&gt; &amp;matrix&lt;T&gt;::operator/=(const T &amp;t)
+<a name="__line265"></a>    {
+<a name="__line266"></a>        for(unsigned int i=0; i&lt;data_.size(); ++i)
+<a name="__line267"></a>        {
+<a name="__line268"></a>            for(unsigned int j=0; j&lt;data_[i].size(); ++j)
+<a name="__line269"></a>            {
+<a name="__line270"></a>                data_[i][j] /= t;
+<a name="__line271"></a>            }
+<a name="__line272"></a>        }
+<a name="__line273"></a>        return *this;
+<a name="__line274"></a>    }
+<a name="__line275"></a>
+<a name="__line276"></a>    template &lt;typename T&gt;
+<a name="__line277"></a>    const matrix&lt;T&gt; &amp;matrix&lt;T&gt;::operator+=(const matrix&lt;T&gt; &amp;M)
+<a name="__line278"></a>    {
+<a name="__line279"></a>        if(M.cols() != cols() || M.rows() != rows())
+<a name="__line280"></a>        {
+<a name="__line281"></a>            warning::print("Row or column mismatch","matrix&lt;T&gt;::operator+=(const matrix&lt;T&gt;&amp;)");
+<a name="__line282"></a>            return *this;
+<a name="__line283"></a>        }
+<a name="__line284"></a>        for(int row=0; row&lt;rows(); ++row)
+<a name="__line285"></a>        {
+<a name="__line286"></a>            for(int col=0; col&lt;cols(); ++col)
+<a name="__line287"></a>            {
+<a name="__line288"></a>                (*this)(row_base()+row,col_base()+col) += M(M.row_base()+row,M.col_base()+col);
+<a name="__line289"></a>            }
+<a name="__line290"></a>        }
+<a name="__line291"></a>        return *this;
+<a name="__line292"></a>    }
+<a name="__line293"></a>    template &lt;typename T&gt;
+<a name="__line294"></a>    const matrix&lt;T&gt; &amp;matrix&lt;T&gt;::operator-=(const matrix&lt;T&gt; &amp;M)
+<a name="__line295"></a>    {
+<a name="__line296"></a>        if(M.cols() != cols() || M.rows() != rows())
+<a name="__line297"></a>        {
+<a name="__line298"></a>            warning::print("Row or column mismatch","matrix&lt;T&gt;::operator-=(const matrix&lt;T&gt;&amp;)");
+<a name="__line299"></a>            return *this;
+<a name="__line300"></a>        }
+<a name="__line301"></a>        for(int row=0; row&lt;rows(); ++row)
+<a name="__line302"></a>        {
+<a name="__line303"></a>            for(int col=0; col&lt;cols(); ++col)
+<a name="__line304"></a>            {
+<a name="__line305"></a>                (*this)(row_base()+row,col_base()+col) -= M(M.row_base()+row,M.col_base()+col);
+<a name="__line306"></a>            }
+<a name="__line307"></a>        }
+<a name="__line308"></a>        return *this;
+<a name="__line309"></a>    }
+<a name="__line310"></a>
+<a name="__line311"></a>
+<a name="__line312"></a>#endif <span class=comment>// __MAKECINT__</span>
+<a name="__line313"></a>
+<a name="__line314"></a>    <span class=comment>// Product of two matrices. The resulting matrix will have 0-based indexes!</span>
+<a name="__line315"></a>    template &lt;typename T&gt;
+<a name="__line316"></a>    matrix&lt;T&gt; operator*(const matrix&lt;T&gt; &amp;a, const matrix&lt;T&gt; &amp;b)
+<a name="__line317"></a>    {
+<a name="__line318"></a>	matrix&lt;T&gt; result(a.rows(),b.cols());
+<a name="__line319"></a>	if(a.cols() != b.rows())
+<a name="__line320"></a>	{
+<a name="__line321"></a>	    warning::print("a.cols() != b.rows()","operator*(const matrix &amp;a, const matrix &amp;b)");
+<a name="__line322"></a>	    return result;
+<a name="__line323"></a>	}
+<a name="__line324"></a>	for(int row=0; row&lt;a.rows(); ++row)
+<a name="__line325"></a>	{
+<a name="__line326"></a>	    for(int col=0; col&lt;b.cols(); ++col)
+<a name="__line327"></a>	    {
+<a name="__line328"></a>		T r = 0;
+<a name="__line329"></a>		for(int i=0; i&lt;a.cols(); ++i)
+<a name="__line330"></a>		{
+<a name="__line331"></a>		    r += a(a.row_base()+row,a.col_base()+i)*b(b.row_base()+i,b.col_base()+col);
+<a name="__line332"></a>		}
+<a name="__line333"></a>		result(row,col) = r;
+<a name="__line334"></a>	    }
+<a name="__line335"></a>	}
+<a name="__line336"></a>	return result;
+<a name="__line337"></a>    }
+<a name="__line338"></a>
+<a name="__line339"></a>    template &lt;class T&gt;
+<a name="__line340"></a>    matrix&lt;T&gt; operator+(const matrix&lt;T&gt; &amp;a, const matrix&lt;T&gt; &amp;b)
+<a name="__line341"></a>    {
+<a name="__line342"></a>	matrix&lt;T&gt; result(a);
+<a name="__line343"></a>        result += b;
+<a name="__line344"></a>        return result;
+<a name="__line345"></a>    }
+<a name="__line346"></a>   
+<a name="__line347"></a>    template &lt;class T&gt;
+<a name="__line348"></a>    matrix&lt;T&gt; operator-(const matrix&lt;T&gt; &amp;a, const matrix&lt;T&gt; &amp;b)
+<a name="__line349"></a>    {
+<a name="__line350"></a>	matrix&lt;T&gt; result(a);
+<a name="__line351"></a>        result -= b;
+<a name="__line352"></a>	return result;
+<a name="__line353"></a>    }
+<a name="__line354"></a>
+<a name="__line355"></a>
+<a name="__line356"></a>    template &lt;class T&gt;
+<a name="__line357"></a>    matrix&lt;T&gt; operator*(const matrix&lt;T&gt; &amp;a, const T &amp;factor)
+<a name="__line358"></a>    {
+<a name="__line359"></a>        matrix&lt;T&gt; result(a.rows(),a.cols());
+<a name="__line360"></a>	for(int row=0; row&lt;a.rows(); ++row)
+<a name="__line361"></a>	{
+<a name="__line362"></a>	    for(int col=0; col&lt;a.cols(); ++col)
+<a name="__line363"></a>	    {
+<a name="__line364"></a>		result(row,col) = a(a.row_base()+row,a.col_base()+col)*factor;
+<a name="__line365"></a>	    }
+<a name="__line366"></a>	}
+<a name="__line367"></a>	return result;
+<a name="__line368"></a>    }
+<a name="__line369"></a>    template &lt;class T&gt;
+<a name="__line370"></a>    matrix&lt;T&gt; operator*(const T &amp;factor,const matrix&lt;T&gt; &amp;a)
+<a name="__line371"></a>    {
+<a name="__line372"></a>        matrix&lt;T&gt; result(a.rows(),a.cols());
+<a name="__line373"></a>	for(int row=0; row&lt;a.rows(); ++row)
+<a name="__line374"></a>	{
+<a name="__line375"></a>	    for(int col=0; col&lt;a.cols(); ++col)
+<a name="__line376"></a>	    {
+<a name="__line377"></a>		result(row,col) = a(a.row_base()+row,a.col_base()+col)*factor;
+<a name="__line378"></a>	    }
+<a name="__line379"></a>	}
+<a name="__line380"></a>	return result;
+<a name="__line381"></a>    }
+<a name="__line382"></a>
+<a name="__line383"></a>    template &lt;class T&gt;
+<a name="__line384"></a>    matrix&lt;T&gt; operator/(const matrix&lt;T&gt; &amp;a, const T &amp;factor)
+<a name="__line385"></a>    {
+<a name="__line386"></a>        matrix&lt;T&gt; result(a.rows(),a.cols());
+<a name="__line387"></a>	for(int row=0; row&lt;a.rows(); ++row)
+<a name="__line388"></a>	{
+<a name="__line389"></a>	    for(int col=0; col&lt;a.cols(); ++col)
+<a name="__line390"></a>	    {
+<a name="__line391"></a>		result(row,col) = a(a.row_base()+row,a.col_base()+col)/factor;
+<a name="__line392"></a>	    }
+<a name="__line393"></a>	}
+<a name="__line394"></a>	return result;
+<a name="__line395"></a>    }
+<a name="__line396"></a>
+<a name="__line397"></a>    <span class=comment>// The transpose of a matrix. The resulting matrix will keep the index-bases of the</span>
+<a name="__line398"></a>    <span class=comment>// original matrix, i.e. its base for the col-index will be the same as that of the row-index</span>
+<a name="__line399"></a>    <span class=comment>// of the original matrix, and similarly for the other direction.</span>
+<a name="__line400"></a>    template &lt;class T&gt;
+<a name="__line401"></a>        matrix&lt;T&gt; transpose(const matrix&lt;T&gt; &amp;a)
+<a name="__line402"></a>    {
+<a name="__line403"></a>	matrix&lt;T&gt; result(a.cols(),a.rows());
+<a name="__line404"></a>	for(int row=0; row&lt;a.rows(); ++row)
+<a name="__line405"></a>	{
+<a name="__line406"></a>	    for(int col=0; col&lt;a.cols(); ++col)
+<a name="__line407"></a>	    {
+<a name="__line408"></a>		result(col,row) = a(a.row_base()+row,a.col_base()+col);
+<a name="__line409"></a>	    }
+<a name="__line410"></a>	}
+<a name="__line411"></a>	result.index_base(a.col_base(),a.row_base());
+<a name="__line412"></a>	return result;
+<a name="__line413"></a>    }
+<a name="__line414"></a>
+<a name="__line415"></a>    template &lt;typename T&gt;
+<a name="__line416"></a>        ostream &amp;operator&lt;&lt;(ostream &amp;out, const matrix&lt;T&gt; &amp;m)
+<a name="__line417"></a>    {
+<a name="__line418"></a>        for(int row=m.row_base(); row&lt;m.row_base()+m.rows(); ++row)
+<a name="__line419"></a>        {
+<a name="__line420"></a>            for(int col=m.col_base(); col&lt;m.col_base()+m.cols(); ++col)
+<a name="__line421"></a>            {
+<a name="__line422"></a>                out&lt;&lt;setw(10)&lt;&lt;m(row,col)&lt;&lt;" ";
+<a name="__line423"></a>            }
+<a name="__line424"></a>            out&lt;&lt;endl;
+<a name="__line425"></a>        }
+<a name="__line426"></a>        return out;
+<a name="__line427"></a>    }
+<a name="__line428"></a>
+<a name="__line429"></a>    template &lt;typename T&gt;
+<a name="__line430"></a>    matrix&lt;T&gt; identity_matrix(int dim)
+<a name="__line431"></a>    {
+<a name="__line432"></a>        matrix&lt;T&gt; result(dim,dim);
+<a name="__line433"></a>        for(int i=0; i&lt;dim; ++i) result(i,i) = 1;
+<a name="__line434"></a>        return result;
+<a name="__line435"></a>    }
+<a name="__line436"></a>    
+<a name="__line437"></a>}
+<a name="__line438"></a>
+<a name="__line439"></a>
+<a name="__line440"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

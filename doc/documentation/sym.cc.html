@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: sym.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>namespace blop
+<a name="__line3"></a>{
+<a name="__line4"></a>    namespace sym
+<a name="__line5"></a>    {
+<a name="__line6"></a>        linestyle &amp;init_linestyle(int i)
+<a name="__line7"></a>        {
+<a name="__line8"></a>            if(i==0) {static blop::sym::linestyle s; return s; }
+<a name="__line9"></a>            if(i==1) {static blop::sym::linestyle s = {1.5,3.0}; return s; }
+<a name="__line10"></a>            if(i==2) {static blop::sym::linestyle s = {7.0, 5.0}; return s; }
+<a name="__line11"></a>            if(i==3) {static blop::sym::linestyle s = {6.0, 2.5, 1.5, 2.5}; return s; }
+<a name="__line12"></a>            if(i==4) {static blop::sym::linestyle s = {6.0, 2.5, 1.5, 2.5, 1.5, 2.5}; return s; }
+<a name="__line13"></a>
+<a name="__line14"></a>            <span class=comment>// by default, return solid</span>
+<a name="__line15"></a>            static blop::sym::linestyle s;
+<a name="__line16"></a>            return s;
+<a name="__line17"></a>        }
+<a name="__line18"></a>    }
+<a name="__line19"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

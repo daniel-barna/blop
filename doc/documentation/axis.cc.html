@@ -1,0 +1,1360 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: axis.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="axis.h.html">axis.h</a>"
+<a name="__line1"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line2"></a>#include &lt;cmath&gt;
+<a name="__line3"></a>#include &lt;cstdio&gt;
+<a name="__line4"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line5"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line6"></a>#include &lt;algorithm&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>
+<a name="__line11"></a>    void axis::operator=(const axis &amp;) {cerr&lt;&lt;"this shouldn't be called"&lt;&lt;endl; exit(1);}
+<a name="__line12"></a>
+<a name="__line13"></a>    color axis::default_axiscolor_(0,0,0);
+<a name="__line14"></a>
+<a name="__line15"></a>    bool axis::default_symmetric_range_ = false;
+<a name="__line16"></a>    bool axis::default_draw_tics_ = true;
+<a name="__line17"></a>    void axis::default_draw_tics(bool f) {default_draw_tics_ = f;}
+<a name="__line18"></a>
+<a name="__line19"></a>    void axis::default_symmetric_range(bool s)
+<a name="__line20"></a>    {
+<a name="__line21"></a>        axis::default_symmetric_range_ = s;
+<a name="__line22"></a>    }
+<a name="__line23"></a>
+<a name="__line24"></a>    length &amp;axis::default_ticlength_()
+<a name="__line25"></a>    {
+<a name="__line26"></a>        static length l = 2*MM;
+<a name="__line27"></a>        return l;
+<a name="__line28"></a>    }
+<a name="__line29"></a>
+<a name="__line30"></a>    length &amp;axis::default_minor_ticlength_()
+<a name="__line31"></a>    {
+<a name="__line32"></a>        static length l = MM;
+<a name="__line33"></a>        return l;
+<a name="__line34"></a>    }
+<a name="__line35"></a>
+<a name="__line36"></a>    void axis::default_ticlength(const length &amp;l)
+<a name="__line37"></a>    {
+<a name="__line38"></a>        default_ticlength_() = l;
+<a name="__line39"></a>    }
+<a name="__line40"></a>
+<a name="__line41"></a>    void axis::default_minor_ticlength(const length &amp;l)
+<a name="__line42"></a>    {
+<a name="__line43"></a>        default_minor_ticlength_() = l;
+<a name="__line44"></a>    }
+<a name="__line45"></a>
+<a name="__line46"></a>    axis &amp;axis::transform(axis *orig,
+<a name="__line47"></a>			  const function &amp;f, const function &amp;finverse, bool own_tic_calc)
+<a name="__line48"></a>    {
+<a name="__line49"></a>	transformed_axis_ = orig;
+<a name="__line50"></a>	transform_ = f;
+<a name="__line51"></a>	transform_inverse_ = finverse;
+<a name="__line52"></a>	own_tic_calculation_ = own_tic_calc;
+<a name="__line53"></a>	return *this;
+<a name="__line54"></a>    }
+<a name="__line55"></a>
+<a name="__line56"></a>    axis &amp;axis::axiscolor(const color &amp;c)
+<a name="__line57"></a>    {
+<a name="__line58"></a>	axiscolor_ = c;
+<a name="__line59"></a>	title_.textcolor(c);
+<a name="__line60"></a>	scalelabel_.textcolor(c);
+<a name="__line61"></a>	modified_ = true;
+<a name="__line62"></a>	return *this;
+<a name="__line63"></a>    }
+<a name="__line64"></a>
+<a name="__line65"></a>    const color &amp;axis::axiscolor() const {return axiscolor_;}
+<a name="__line66"></a>
+<a name="__line67"></a>    void axis::default_axiscolor(const color &amp;c) {default_axiscolor_ = c;}
+<a name="__line68"></a>
+<a name="__line69"></a>    axis &amp;axis::autoextend_min(bool f)
+<a name="__line70"></a>    {
+<a name="__line71"></a>	if(transformed_axis_)
+<a name="__line72"></a>	{
+<a name="__line73"></a>	    transformed_axis_-&gt;autoextend_min(f);
+<a name="__line74"></a>	}
+<a name="__line75"></a>	if(f == true) autoextend_min_ = 2;
+<a name="__line76"></a>	else autoextend_min_ = -2;
+<a name="__line77"></a>	return *this;
+<a name="__line78"></a>    }
+<a name="__line79"></a>
+<a name="__line80"></a>    axis &amp;axis::autoextend_max(bool f)
+<a name="__line81"></a>    {
+<a name="__line82"></a>	if(transformed_axis_)
+<a name="__line83"></a>	{
+<a name="__line84"></a>	    transformed_axis_-&gt;autoextend_max(f);
+<a name="__line85"></a>	}
+<a name="__line86"></a>	if(f == true) autoextend_max_ = 2;
+<a name="__line87"></a>	else autoextend_max_ = -2;
+<a name="__line88"></a>	return *this;
+<a name="__line89"></a>    }
+<a name="__line90"></a>
+<a name="__line91"></a>    axis &amp;axis::autoextend(bool f)
+<a name="__line92"></a>    {
+<a name="__line93"></a>	if(transformed_axis_)
+<a name="__line94"></a>	{
+<a name="__line95"></a>	    transformed_axis_-&gt;autoextend(f);
+<a name="__line96"></a>	}
+<a name="__line97"></a>	if(f == true) autoextend_min_ = autoextend_max_ = 2;
+<a name="__line98"></a>	else autoextend_min_ = autoextend_max_ = -2;
+<a name="__line99"></a>	return *this;
+<a name="__line100"></a>    }
+<a name="__line101"></a>
+<a name="__line102"></a>    axis &amp;axis::autoextend_min_soft(bool f)
+<a name="__line103"></a>    {
+<a name="__line104"></a>	if(transformed_axis_)
+<a name="__line105"></a>	{
+<a name="__line106"></a>	    transformed_axis_-&gt;autoextend_min_soft(f);
+<a name="__line107"></a>	}
+<a name="__line108"></a>	if(autoextend_min_ != 2 &amp;&amp; autoextend_min_ != -2)
+<a name="__line109"></a>	{
+<a name="__line110"></a>	    if(f == true) autoextend_min_ = 1;
+<a name="__line111"></a>	    else autoextend_min_ = -1;
+<a name="__line112"></a>	}
+<a name="__line113"></a>	return *this;
+<a name="__line114"></a>    }
+<a name="__line115"></a>
+<a name="__line116"></a>    axis &amp;axis::autoextend_max_soft(bool f)
+<a name="__line117"></a>    {
+<a name="__line118"></a>	if(transformed_axis_)
+<a name="__line119"></a>	{
+<a name="__line120"></a>	    transformed_axis_-&gt;autoextend_max_soft(f);
+<a name="__line121"></a>	}
+<a name="__line122"></a>	if(autoextend_max_ != 2 &amp;&amp; autoextend_max_ != -2)
+<a name="__line123"></a>	{
+<a name="__line124"></a>	    if(f == true) autoextend_max_ = 1;
+<a name="__line125"></a>	    else autoextend_max_ = -1;
+<a name="__line126"></a>	}
+<a name="__line127"></a>	return *this;
+<a name="__line128"></a>    }
+<a name="__line129"></a>
+<a name="__line130"></a>
+<a name="__line131"></a>    void axis::prepare_for_draw()
+<a name="__line132"></a>    {
+<a name="__line133"></a>	if(print_me_ &lt; 1) return;
+<a name="__line134"></a>	if(draw_tics_) ticlength_.register_me();
+<a name="__line135"></a>	if(draw_minor_tics_) minor_ticlength_.register_me();
+<a name="__line136"></a>	beg_.register_me();
+<a name="__line137"></a>	end_.register_me();
+<a name="__line138"></a>	pos_.register_me();
+<a name="__line139"></a>	bl1_.register_me();
+<a name="__line140"></a>	bl2_.register_me();
+<a name="__line141"></a>	if(title_.text().str() != "") title_.prepare_for_draw();
+<a name="__line142"></a>	scalelabel_.prepare_for_draw();
+<a name="__line143"></a>	if(!cuts_.empty())
+<a name="__line144"></a>	{
+<a name="__line145"></a>	    cut_gap_.register_me();
+<a name="__line146"></a>	    cut_x1_.register_me();
+<a name="__line147"></a>	    cut_x2_.register_me();
+<a name="__line148"></a>	    cut_x3_.register_me();
+<a name="__line149"></a>	    cut_x4_.register_me();
+<a name="__line150"></a>	    cut_y1_.register_me();
+<a name="__line151"></a>	    cut_y2_.register_me();
+<a name="__line152"></a>	    cut_y3_.register_me();
+<a name="__line153"></a>	    cut_y4_.register_me();
+<a name="__line154"></a>	}
+<a name="__line155"></a>    }
+<a name="__line156"></a>
+<a name="__line157"></a>
+<a name="__line158"></a>    axis&amp; axis::pos(const length &amp;p,
+<a name="__line159"></a>		   const length &amp;l2,const length &amp;l3)
+<a name="__line160"></a>    {
+<a name="__line161"></a>	pos_ = p;
+<a name="__line162"></a>	beg_ = l2;
+<a name="__line163"></a>	end_ = l3;
+<a name="__line164"></a>        return *this;
+<a name="__line165"></a>    }
+<a name="__line166"></a>
+<a name="__line167"></a>    axis&amp; axis::pos(const length &amp;p)
+<a name="__line168"></a>    {
+<a name="__line169"></a>	pos_ = p;
+<a name="__line170"></a>	pos_changed_ = true;
+<a name="__line171"></a>        return *this;
+<a name="__line172"></a>    }
+<a name="__line173"></a>
+<a name="__line174"></a>    axis &amp;axis::title_pos(sym::position pos)
+<a name="__line175"></a>    {
+<a name="__line176"></a>        title_pos(pos,pos);
+<a name="__line177"></a>        return *this;
+<a name="__line178"></a>    }
+<a name="__line179"></a>
+<a name="__line180"></a>    axis &amp;axis::title_pos(sym::position pos, sym::position align)
+<a name="__line181"></a>    {
+<a name="__line182"></a>        if(id_==x1 || id_==x2)
+<a name="__line183"></a>        {
+<a name="__line184"></a>            if     (pos==sym::center) title_.x(0.5*(!beg_+!end_),align);
+<a name="__line185"></a>            else if(pos==sym::left)   title_.x(!beg_,align);
+<a name="__line186"></a>            else if(pos==sym::right)  title_.x(!end_,align);
+<a name="__line187"></a>            else warning::print("Bad position for axis title");
+<a name="__line188"></a>            return *this;
+<a name="__line189"></a>        }
+<a name="__line190"></a>        if(id_==y1 || id_==y2)
+<a name="__line191"></a>        {
+<a name="__line192"></a>            if     (pos==sym::bottom) title_.y(!beg_,align);
+<a name="__line193"></a>            else if(pos==sym::center) title_.y(0.5*(!beg_+!end_),align);
+<a name="__line194"></a>            else if(pos==sym::top)    title_.y(!end_,align);
+<a name="__line195"></a>            else warning::print("Bad position for axis title");
+<a name="__line196"></a>            return *this;
+<a name="__line197"></a>        }
+<a name="__line198"></a>        return *this;
+<a name="__line199"></a>    }
+<a name="__line200"></a>
+<a name="__line201"></a>    axis::axis(int id)  : id_(id), tics(this)
+<a name="__line202"></a>    {
+<a name="__line203"></a>	pos_changed_ = false;
+<a name="__line204"></a>	title_autoset_ = false;
+<a name="__line205"></a>	transformed_axis_ = 0;
+<a name="__line206"></a>	cut_gap_ = default_cut_gap_();
+<a name="__line207"></a>	cut_x1_ = -0.5*!cut_gap_-EX;
+<a name="__line208"></a>	cut_x2_ = -0.5*!cut_gap_+EX;
+<a name="__line209"></a>	cut_x3_ =  0.5*!cut_gap_-EX;
+<a name="__line210"></a>	cut_x4_ =  0.5*!cut_gap_+EX;
+<a name="__line211"></a>	cut_y1_ = -2*EX;
+<a name="__line212"></a>	cut_y2_ = -1*EX;
+<a name="__line213"></a>	cut_y3_ = EX;
+<a name="__line214"></a>	cut_y4_ = 2*EX;
+<a name="__line215"></a>
+<a name="__line216"></a>	unit_value_  = 1;
+<a name="__line217"></a>	unit_symbol_ = "";
+<a name="__line218"></a>	unit_format_ = "";
+<a name="__line219"></a>
+<a name="__line220"></a>	axiscolor_ = default_axiscolor_;
+<a name="__line221"></a>	scale_ = unset;
+<a name="__line222"></a>	scalelabel_.off();
+<a name="__line223"></a>	scalelabel_.textcolor(axiscolor_);
+<a name="__line224"></a>	if(id_ == x1)
+<a name="__line225"></a>	{
+<a name="__line226"></a>	    title_.angle(0);
+<a name="__line227"></a>	    title_.y(!pos_ - !title_axis_sep_,sym::top);
+<a name="__line228"></a>	    title_.x(0.5*(!beg_+!end_),sym::center);
+<a name="__line229"></a>	}
+<a name="__line230"></a>	if(id_ == x2)
+<a name="__line231"></a>	{
+<a name="__line232"></a>	    title_.angle(0);
+<a name="__line233"></a>	    title_.y(!pos_ + !title_axis_sep_,sym::bottom);
+<a name="__line234"></a>	    title_.x(0.5*(!beg_+!end_),sym::center);
+<a name="__line235"></a>	}
+<a name="__line236"></a>	if(id_ == y1)
+<a name="__line237"></a>	{
+<a name="__line238"></a>	    title_.angle(90*unit::deg);
+<a name="__line239"></a>	    title_.x(!pos_ - !title_axis_sep_,sym::right);
+<a name="__line240"></a>	    title_.y(0.5*(!beg_+!end_),sym::center);
+<a name="__line241"></a>	}
+<a name="__line242"></a>	if(id_ == y2)
+<a name="__line243"></a>	{
+<a name="__line244"></a>	    title_.angle(90*unit::deg);
+<a name="__line245"></a>	    title_.x(!pos_ + !title_axis_sep_,sym::left);
+<a name="__line246"></a>	    title_.y(0.5*(!beg_+!end_),sym::center);
+<a name="__line247"></a>	}
+<a name="__line248"></a>
+<a name="__line249"></a>	logscale_ = false;
+<a name="__line250"></a>
+<a name="__line251"></a>	title_.text("");
+<a name="__line252"></a>	title_.textcolor(default_axiscolor_);
+<a name="__line253"></a>
+<a name="__line254"></a>	tics_format_ = minor_tics_format_ = "%g";
+<a name="__line255"></a>
+<a name="__line256"></a>	ticlength_ = default_ticlength_();
+<a name="__line257"></a>	minor_ticlength_ = default_minor_ticlength_();
+<a name="__line258"></a>
+<a name="__line259"></a>	draw_tics_ = default_draw_tics_;
+<a name="__line260"></a>	draw_minor_tics_ = false;
+<a name="__line261"></a>        n_minor_tics_ = 0;
+<a name="__line262"></a>
+<a name="__line263"></a>	min_ = unset;
+<a name="__line264"></a>	max_ = unset;
+<a name="__line265"></a>	min_fixed_ = false;
+<a name="__line266"></a>	max_fixed_ = false;
+<a name="__line267"></a>
+<a name="__line268"></a>	tic_start_ = tic_incr_ = tic_end_ = unset;
+<a name="__line269"></a>	tic_start_fixed_ = tic_incr_fixed_ = tic_end_fixed_ = false;
+<a name="__line270"></a>
+<a name="__line271"></a>	labelsep_ = EX;
+<a name="__line272"></a>	titlesep_ = EX;
+<a name="__line273"></a>	label_maxsize_ = 0;
+<a name="__line274"></a>	label_maxdist_ = 0;
+<a name="__line275"></a>	title_axis_sep_ = !label_maxdist_ + !titlesep_;
+<a name="__line276"></a>	script_size_ = 0;
+<a name="__line277"></a>
+<a name="__line278"></a>	autoextend_min_ = autoextend_max_ = 1;
+<a name="__line279"></a>
+<a name="__line280"></a>	if(id != x1 &amp;&amp; id != x2 &amp;&amp; id != y1 &amp;&amp; id != y2)
+<a name="__line281"></a>	{
+<a name="__line282"></a>	    warning::print("Bad id","axis::axis()");
+<a name="__line283"></a>	    exit(1);
+<a name="__line284"></a>	}
+<a name="__line285"></a>        
+<a name="__line286"></a>        symmetric_range_ = default_symmetric_range_;
+<a name="__line287"></a>    }
+<a name="__line288"></a>
+<a name="__line289"></a>    axis::axis(const axis &amp;o) : tics(this)
+<a name="__line290"></a>    {
+<a name="__line291"></a>	unit_value_  = o.unit_value_;
+<a name="__line292"></a>	unit_symbol_ = o.unit_symbol_;
+<a name="__line293"></a>	unit_format_ = o.unit_format_;
+<a name="__line294"></a>	
+<a name="__line295"></a>	pos_changed_ = o.pos_changed_;
+<a name="__line296"></a>	title_autoset_ = o.title_autoset_;
+<a name="__line297"></a>	transformed_axis_ = 0;
+<a name="__line298"></a>	cut_gap_ = o.cut_gap_;
+<a name="__line299"></a>	cut_x1_ = o.cut_x1_;
+<a name="__line300"></a>	cut_x2_ = o.cut_x2_;
+<a name="__line301"></a>	cut_x3_ = o.cut_x3_;
+<a name="__line302"></a>	cut_x4_ = o.cut_x4_;
+<a name="__line303"></a>	cut_y1_ = o.cut_y1_;
+<a name="__line304"></a>	cut_y2_ = o.cut_y2_;
+<a name="__line305"></a>	cut_y3_ = o.cut_y3_;
+<a name="__line306"></a>	cut_y4_ = o.cut_y4_;
+<a name="__line307"></a>
+<a name="__line308"></a>	scale_ = o.scale_;
+<a name="__line309"></a>	id_ = o.id_;
+<a name="__line310"></a>	logscale_          = o.logscale_;
+<a name="__line311"></a>
+<a name="__line312"></a>	title_             = o.title_;
+<a name="__line313"></a>
+<a name="__line314"></a>	tics_              = o.tics_;
+<a name="__line315"></a>	minor_tics_        = o.minor_tics_;
+<a name="__line316"></a>	tics_format_       = o.tics_format_;
+<a name="__line317"></a>        tics_format_func_  = o.tics_format_func_;
+<a name="__line318"></a>	minor_tics_format_ = o.minor_tics_format_;
+<a name="__line319"></a>	ticlength_         = o.ticlength_;
+<a name="__line320"></a>	minor_ticlength_   = o.minor_ticlength_;
+<a name="__line321"></a>	draw_tics_         = o.draw_tics_;
+<a name="__line322"></a>	draw_minor_tics_   = o.draw_minor_tics_;
+<a name="__line323"></a>
+<a name="__line324"></a>	min_ = o.min_;
+<a name="__line325"></a>	max_ = o.max_;
+<a name="__line326"></a>	min_fixed_ = o.min_fixed_;
+<a name="__line327"></a>	max_fixed_ = o.max_fixed_;
+<a name="__line328"></a>
+<a name="__line329"></a>	tic_start_ = o.tic_start_;
+<a name="__line330"></a>	tic_incr_  = o.tic_incr_;
+<a name="__line331"></a>	tic_end_   = o.tic_end_;
+<a name="__line332"></a>	tic_start_fixed_ = o.tic_start_fixed_;
+<a name="__line333"></a>	tic_incr_fixed_  = o.tic_incr_fixed_;
+<a name="__line334"></a>	tic_end_fixed_   = o.tic_end_fixed_;
+<a name="__line335"></a>	user_tics_       = o.user_tics_;
+<a name="__line336"></a>
+<a name="__line337"></a>	cerr&lt;&lt;"The length copying should be checked"&lt;&lt;endl;
+<a name="__line338"></a>	labelsep_ = o.labelsep_; 
+<a name="__line339"></a>	titlesep_ = o.titlesep_;
+<a name="__line340"></a>	label_maxsize_ = o.label_maxsize_;
+<a name="__line341"></a>	label_maxdist_ = o.label_maxdist_;
+<a name="__line342"></a>	title_axis_sep_ = !label_maxdist_ + titlesep_;
+<a name="__line343"></a>
+<a name="__line344"></a>	autoextend_min_ = o.autoextend_min_;
+<a name="__line345"></a>	autoextend_max_ = o.autoextend_max_;
+<a name="__line346"></a>    }
+<a name="__line347"></a>
+<a name="__line348"></a>    axis::~axis() {}
+<a name="__line349"></a>
+<a name="__line350"></a>    axis &amp;axis::min(double a)
+<a name="__line351"></a>    {
+<a name="__line352"></a>	min_ = a;
+<a name="__line353"></a>	if(a == unset) min_fixed_ = false;
+<a name="__line354"></a>	else min_fixed_ = true;
+<a name="__line355"></a>	if(transformed_axis_)
+<a name="__line356"></a>	{
+<a name="__line357"></a>            if(a == unset) transformed_axis_-&gt;min(unset);
+<a name="__line358"></a>	    else transformed_axis_-&gt;min(transform_inverse_(a).dbl());
+<a name="__line359"></a>	}
+<a name="__line360"></a>	modified_ = true;
+<a name="__line361"></a>	return *this;
+<a name="__line362"></a>    }
+<a name="__line363"></a>
+<a name="__line364"></a>    axis &amp;axis::max(double a)
+<a name="__line365"></a>    {
+<a name="__line366"></a>	max_ = a;
+<a name="__line367"></a>	if(a == unset) max_fixed_ = false;
+<a name="__line368"></a>	else max_fixed_ = true;
+<a name="__line369"></a>	if(transformed_axis_)
+<a name="__line370"></a>	{
+<a name="__line371"></a>            if(a == unset) transformed_axis_-&gt;max(unset);
+<a name="__line372"></a>	    else transformed_axis_-&gt;max(transform_inverse_(a).dbl());
+<a name="__line373"></a>	}
+<a name="__line374"></a>	modified_ = true;
+<a name="__line375"></a>	return *this;
+<a name="__line376"></a>    }
+<a name="__line377"></a>
+<a name="__line378"></a>    axis &amp;axis::range(double a,double b)
+<a name="__line379"></a>    {
+<a name="__line380"></a>	min(a);
+<a name="__line381"></a>        max(b);
+<a name="__line382"></a>	modified_ = true;
+<a name="__line383"></a>	return *this; 
+<a name="__line384"></a>    }
+<a name="__line385"></a>
+<a name="__line386"></a>    void axis::calculate_lengths()
+<a name="__line387"></a>    {
+<a name="__line388"></a>	if(tics_.empty())
+<a name="__line389"></a>	{
+<a name="__line390"></a>	    label_maxsize_ = 0;
+<a name="__line391"></a>	    label_maxdist_ = 0;
+<a name="__line392"></a>	}
+<a name="__line393"></a>	else
+<a name="__line394"></a>	{
+<a name="__line395"></a>	    vector&lt;var&gt; l;
+<a name="__line396"></a>	    for(unsigned int i=0; i&lt;tics_.size(); ++i)
+<a name="__line397"></a>	    {
+<a name="__line398"></a>		l.push_back(tics_[i].label());
+<a name="__line399"></a>	    }
+<a name="__line400"></a>	    
+<a name="__line401"></a>	    if(id_ == x1 || id_ == x2)
+<a name="__line402"></a>	    {
+<a name="__line403"></a>		label_maxsize_ = maxlheight(l);
+<a name="__line404"></a>	    }
+<a name="__line405"></a>	    else
+<a name="__line406"></a>	    {
+<a name="__line407"></a>		label_maxsize_ =  maxwidth(l);
+<a name="__line408"></a>	    }
+<a name="__line409"></a>	    label_maxdist_ = !labelsep_ + !label_maxsize_;
+<a name="__line410"></a>	}
+<a name="__line411"></a>
+<a name="__line412"></a>	if(id_ == x1 || id_ == y1)
+<a name="__line413"></a>	{
+<a name="__line414"></a>	    if(tics_.empty()) bl1_ = !pos_;
+<a name="__line415"></a>	    else bl1_ = !pos_ - !labelsep_;
+<a name="__line416"></a>
+<a name="__line417"></a>	    bl2_ = !pos_ - !label_maxdist_;
+<a name="__line418"></a>	    bl3_ = !pos_ - !title_axis_sep_;
+<a name="__line419"></a>	    if(id_ == x1) bl4_ = !bl3_ - !title_.height();
+<a name="__line420"></a>	    else bl4_ = !bl3_ - !title_.width();
+<a name="__line421"></a>	}
+<a name="__line422"></a>	else
+<a name="__line423"></a>	{
+<a name="__line424"></a>	    if(tics_.empty()) bl1_ = !pos_;
+<a name="__line425"></a>	    else bl1_ = !pos_ + !labelsep_;
+<a name="__line426"></a>
+<a name="__line427"></a>	    bl2_ = !pos_ + !label_maxdist_;
+<a name="__line428"></a>	    bl3_ = !pos_ + !title_axis_sep_;
+<a name="__line429"></a>	    if(id_ == x2) bl4_ = !bl3_ + !title_.height();
+<a name="__line430"></a>	    if(id_ == x2) bl4_ = !bl3_ + !title_.width();
+<a name="__line431"></a>	}
+<a name="__line432"></a>
+<a name="__line433"></a>	if(title_.text().str() == "")
+<a name="__line434"></a>	{
+<a name="__line435"></a>	    script_size_ = !label_maxdist_;
+<a name="__line436"></a>	}
+<a name="__line437"></a>	else
+<a name="__line438"></a>	{
+<a name="__line439"></a>	    if(id_ == x1 || id_ == x2)
+<a name="__line440"></a>	    {
+<a name="__line441"></a>		script_size_ = !title_axis_sep_ + title_.height();
+<a name="__line442"></a>	    }
+<a name="__line443"></a>	    else
+<a name="__line444"></a>	    {
+<a name="__line445"></a>		script_size_ = !title_axis_sep_ + title_.width();
+<a name="__line446"></a>	    }
+<a name="__line447"></a>	}
+<a name="__line448"></a>    }
+<a name="__line449"></a>
+<a name="__line450"></a>    label *axis::titlebox()
+<a name="__line451"></a>    {
+<a name="__line452"></a>	return &amp;title_;
+<a name="__line453"></a>    }
+<a name="__line454"></a>
+<a name="__line455"></a>    axis &amp;axis::title(const var &amp;s, bool autoset)
+<a name="__line456"></a>    {
+<a name="__line457"></a>	title_autoset_ = autoset;
+<a name="__line458"></a>	title_.text(s.str());
+<a name="__line459"></a>	if(id_ == x1 || id_ == x2) title_.angle(0);
+<a name="__line460"></a>	else title_.angle(90*unit::deg);
+<a name="__line461"></a>	if(unit_symbol_ != "" &amp;&amp; unit_format_ != "")
+<a name="__line462"></a>	{
+<a name="__line463"></a>	    var f = replace(var("%s"),var(unit_symbol_),var(unit_format_));
+<a name="__line464"></a>	    title_.text(title_.text() &amp; " " &amp; f);
+<a name="__line465"></a>	}
+<a name="__line466"></a>	calculate_lengths();
+<a name="__line467"></a>	modified_ = true;
+<a name="__line468"></a>	return *this;
+<a name="__line469"></a>    }
+<a name="__line470"></a>
+<a name="__line471"></a>
+<a name="__line472"></a>    axis &amp;axis::clear()
+<a name="__line473"></a>    {
+<a name="__line474"></a>	transformed_axis_ = 0;
+<a name="__line475"></a>
+<a name="__line476"></a>	user_tics_.clear();
+<a name="__line477"></a>
+<a name="__line478"></a>	draw_tics_ = true;
+<a name="__line479"></a>
+<a name="__line480"></a>	logscale_ = false;
+<a name="__line481"></a>	title_.text("");
+<a name="__line482"></a>	tics_.clear();
+<a name="__line483"></a>	minor_tics_.clear();
+<a name="__line484"></a>
+<a name="__line485"></a>	min_fixed_ = max_fixed_ = false;
+<a name="__line486"></a>	min_ = max_ = unset;
+<a name="__line487"></a>	tic_start_ = tic_incr_ = tic_end_ = unset;
+<a name="__line488"></a>	tic_start_fixed_ = false;
+<a name="__line489"></a>	tic_incr_fixed_ = false;
+<a name="__line490"></a>	tic_end_fixed_ = false;
+<a name="__line491"></a>	return *this;
+<a name="__line492"></a>    }
+<a name="__line493"></a>
+<a name="__line494"></a>    axis &amp;axis::extend_range(double a)
+<a name="__line495"></a>    {
+<a name="__line496"></a>	if(a == unset) return *this;
+<a name="__line497"></a>	if(transformed_axis_)
+<a name="__line498"></a>	{
+<a name="__line499"></a>	    transformed_axis_-&gt;extend_range(transform_inverse_(a).dbl());
+<a name="__line500"></a>	}
+<a name="__line501"></a>
+<a name="__line502"></a>	if(a == unset) return *this;
+<a name="__line503"></a>	if(min_ == unset) min_ = a;
+<a name="__line504"></a>	else
+<a name="__line505"></a>	{
+<a name="__line506"></a>	    if(! min_fixed_)
+<a name="__line507"></a>	    {
+<a name="__line508"></a>		if(a &lt; min_) min_ = a;
+<a name="__line509"></a>	    }
+<a name="__line510"></a>	}
+<a name="__line511"></a>	if(max_ == unset) max_ = a;
+<a name="__line512"></a>	else
+<a name="__line513"></a>	{
+<a name="__line514"></a>	    if(! max_fixed_)
+<a name="__line515"></a>	    {
+<a name="__line516"></a>		if(max_ &lt; a) max_ = a;
+<a name="__line517"></a>	    }
+<a name="__line518"></a>	}
+<a name="__line519"></a>	return *this;
+<a name="__line520"></a>    }
+<a name="__line521"></a>
+<a name="__line522"></a>    axis &amp;axis::logscale(bool l)
+<a name="__line523"></a>    {
+<a name="__line524"></a>	if(transformed_axis_)
+<a name="__line525"></a>	{
+<a name="__line526"></a>	    warning::print("Can not set logscale for a transformed axis");
+<a name="__line527"></a>	    return *this;
+<a name="__line528"></a>	}
+<a name="__line529"></a>	logscale_ = l;
+<a name="__line530"></a>	if(logscale_ == true &amp;&amp; min_ != unset &amp;&amp; min_ &lt;= 0) min(unset);
+<a name="__line531"></a>	modified_ = true;
+<a name="__line532"></a>	if(l) draw_minor_tics_ = true;
+<a name="__line533"></a>	return *this;
+<a name="__line534"></a>    }
+<a name="__line535"></a>
+<a name="__line536"></a>    axis &amp;axis::clear_autosettings()
+<a name="__line537"></a>    {
+<a name="__line538"></a>	if(!min_fixed_) min_ = unset;
+<a name="__line539"></a>	if(!max_fixed_) max_ = unset;
+<a name="__line540"></a>	if(!tic_start_fixed_) tic_start_ = unset;
+<a name="__line541"></a>	if(!tic_incr_fixed_)  tic_incr_  = unset;
+<a name="__line542"></a>	if(!tic_end_fixed_)   tic_end_   = unset;
+<a name="__line543"></a>	tics_.clear();
+<a name="__line544"></a>	if(title_autoset_) title("");
+<a name="__line545"></a>	minor_tics_.clear();
+<a name="__line546"></a>	return *this;
+<a name="__line547"></a>    }
+<a name="__line548"></a>
+<a name="__line549"></a>    void axis::print_cuts(terminal *t)
+<a name="__line550"></a>    {
+<a name="__line551"></a>	if(cuts_.empty()) return;
+<a name="__line552"></a>
+<a name="__line553"></a>	t-&gt;set_color(axiscolor_);
+<a name="__line554"></a>
+<a name="__line555"></a>	vector&lt;terminal::coord&gt; cuts1, cuts2;
+<a name="__line556"></a>	if(id_ == x1 || id_ == x2)
+<a name="__line557"></a>	{
+<a name="__line558"></a>	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
+<a name="__line559"></a>					    cut_y1_.termspecific_id()));
+<a name="__line560"></a>	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
+<a name="__line561"></a>					    cut_y2_.termspecific_id()));
+<a name="__line562"></a>	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
+<a name="__line563"></a>					    cut_y3_.termspecific_id()));
+<a name="__line564"></a>	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
+<a name="__line565"></a>					    cut_y4_.termspecific_id()));
+<a name="__line566"></a>
+<a name="__line567"></a>	    cuts2.push_back(terminal::coord(cut_x3_.termspecific_id(),
+<a name="__line568"></a>					    cut_y1_.termspecific_id()));
+<a name="__line569"></a>	    cuts2.push_back(terminal::coord(cut_x4_.termspecific_id(),
+<a name="__line570"></a>					    cut_y2_.termspecific_id()));
+<a name="__line571"></a>	    cuts2.push_back(terminal::coord(cut_x3_.termspecific_id(),
+<a name="__line572"></a>					    cut_y3_.termspecific_id()));
+<a name="__line573"></a>	    cuts2.push_back(terminal::coord(cut_x4_.termspecific_id(),
+<a name="__line574"></a>					    cut_y4_.termspecific_id()));
+<a name="__line575"></a>
+<a name="__line576"></a>	}
+<a name="__line577"></a>	else
+<a name="__line578"></a>	{
+<a name="__line579"></a>	    cuts1.push_back(terminal::coord(cut_y1_.termspecific_id(),
+<a name="__line580"></a>					    cut_x1_.termspecific_id()));
+<a name="__line581"></a>	    cuts1.push_back(terminal::coord(cut_y2_.termspecific_id(),
+<a name="__line582"></a>					    cut_x2_.termspecific_id()));
+<a name="__line583"></a>	    cuts1.push_back(terminal::coord(cut_y3_.termspecific_id(),
+<a name="__line584"></a>					    cut_x1_.termspecific_id()));
+<a name="__line585"></a>	    cuts1.push_back(terminal::coord(cut_y4_.termspecific_id(),
+<a name="__line586"></a>					    cut_x2_.termspecific_id()));
+<a name="__line587"></a>
+<a name="__line588"></a>	    cuts2.push_back(terminal::coord(cut_y1_.termspecific_id(),
+<a name="__line589"></a>					    cut_x3_.termspecific_id()));
+<a name="__line590"></a>	    cuts2.push_back(terminal::coord(cut_y2_.termspecific_id(),
+<a name="__line591"></a>					    cut_x4_.termspecific_id()));
+<a name="__line592"></a>	    cuts2.push_back(terminal::coord(cut_y3_.termspecific_id(),
+<a name="__line593"></a>					    cut_x3_.termspecific_id()));
+<a name="__line594"></a>	    cuts2.push_back(terminal::coord(cut_y4_.termspecific_id(),
+<a name="__line595"></a>					    cut_x4_.termspecific_id()));
+<a name="__line596"></a>	}
+<a name="__line597"></a>
+<a name="__line598"></a>	for(unsigned int i=0; i&lt;cuts_.size(); ++i)
+<a name="__line599"></a>	{
+<a name="__line600"></a>	    double norm = map_point(cuts_[i].second); <span class=comment>/<span class=comment>/*(1+1e-6));</span>
+<a name="__line601"></a>	    if(norm == unset) continue;
+<a name="__line602"></a>
+<a name="__line603"></a>	    int cutpos_id = t-&gt;lincombi(1-norm,beg_.termspecific_id(),
+<a name="__line604"></a>					norm, end_.termspecific_id());
+<a name="__line605"></a>	    if(id_ == x1 || id_ == x2)
+<a name="__line606"></a>	    {
+<a name="__line607"></a>		t-&gt;translate(cutpos_id,pos_.termspecific_id());
+<a name="__line608"></a>	    }
+<a name="__line609"></a>	    else
+<a name="__line610"></a>	    {
+<a name="__line611"></a>		t-&gt;translate(pos_.termspecific_id(),cutpos_id);
+<a name="__line612"></a>	    }
+<a name="__line613"></a>	    t-&gt;draw_lines(cuts1);
+<a name="__line614"></a>	    t-&gt;draw_lines(cuts2);
+<a name="__line615"></a>	    t-&gt;reset_transformation();
+<a name="__line616"></a>	}
+<a name="__line617"></a>    }
+<a name="__line618"></a>
+<a name="__line619"></a>
+<a name="__line620"></a>    void axis::print_tics(terminal *t,const length &amp;p1, const length &amp;p2,
+<a name="__line621"></a>			  const length &amp;p3,bool mirror)
+<a name="__line622"></a>    {
+<a name="__line623"></a>	if(!draw_tics_ &amp;&amp; !draw_minor_tics_) return;
+<a name="__line624"></a>
+<a name="__line625"></a>	t-&gt;set_color(axiscolor_);
+<a name="__line626"></a>
+<a name="__line627"></a>	int coord_id = t-&gt;newlength();
+<a name="__line628"></a>
+<a name="__line629"></a>	if(draw_tics_)
+<a name="__line630"></a>	{
+<a name="__line631"></a>	    terminal::id ticlength_id = ticlength_.termspecific_id();
+<a name="__line632"></a>	    if( ((id_ == x1 || id_ == y1) &amp;&amp; mirror==true) ||
+<a name="__line633"></a>		((id_ == x2 || id_ == y2) &amp;&amp; mirror==false) )
+<a name="__line634"></a>	    {
+<a name="__line635"></a>		ticlength_id = t-&gt;lincombi(-1,ticlength_id);
+<a name="__line636"></a>	    }
+<a name="__line637"></a>
+<a name="__line638"></a>	    for(vector&lt;tic&gt;::size_type i=0; i&lt;tics_.size(); ++i)
+<a name="__line639"></a>	    {
+<a name="__line640"></a>		double norm = map_point(tics_[i].value());
+<a name="__line641"></a>
+<a name="__line642"></a>		// skip those points, for which map_point returns unset
+<a name="__line643"></a>		// (for example those which fall into a cut
+<a name="__line644"></a>		if(norm == unset) continue;
+<a name="__line645"></a>
+<a name="__line646"></a>		t-&gt;overwrite(coord_id,
+<a name="__line647"></a>			     1-norm,p1.termspecific_id(),
+<a name="__line648"></a>			     norm,  p2.termspecific_id());
+<a name="__line649"></a>		terminal::coord start;
+<a name="__line650"></a>		vector&lt;terminal::id&gt; dx,dy;
+<a name="__line651"></a>		if(id_ == x1 || id_ == x2)
+<a name="__line652"></a>		{
+<a name="__line653"></a>		    start.x = coord_id;
+<a name="__line654"></a>		    start.y = p3.termspecific_id();
+<a name="__line655"></a>		    dx.push_back(ZERO.termspecific_id());
+<a name="__line656"></a>		    dy.push_back(ticlength_id);
+<a name="__line657"></a>		}
+<a name="__line658"></a>		else
+<a name="__line659"></a>		{
+<a name="__line660"></a>		    start.x = p3.termspecific_id();
+<a name="__line661"></a>		    start.y = coord_id;
+<a name="__line662"></a>		    dx.push_back(ticlength_id);
+<a name="__line663"></a>		    dy.push_back(ZERO.termspecific_id());
+<a name="__line664"></a>		}
+<a name="__line665"></a>		t-&gt;draw_rlines(start,dx,dy);
+<a name="__line666"></a>	    }
+<a name="__line667"></a>	}
+<a name="__line668"></a>
+<a name="__line669"></a>	if(draw_minor_tics_)
+<a name="__line670"></a>	{
+<a name="__line671"></a>	    terminal::id minor_ticlength_id = minor_ticlength_.termspecific_id();
+<a name="__line672"></a>	    if( ((id_ == x1 || id_ == y1) &amp;&amp; mirror==true) ||
+<a name="__line673"></a>		((id_ == x2 || id_ == y2) &amp;&amp; mirror==false) )
+<a name="__line674"></a>	    {
+<a name="__line675"></a>		minor_ticlength_id = t-&gt;lincombi(-1,minor_ticlength_id);
+<a name="__line676"></a>	    }
+<a name="__line677"></a>
+<a name="__line678"></a>	    for(vector&lt;tic&gt;::size_type i=0; i&lt;minor_tics_.size(); ++i)
+<a name="__line679"></a>	    {
+<a name="__line680"></a>		double norm = map_point(minor_tics_[i].value());
+<a name="__line681"></a>		if(norm == unset) continue;
+<a name="__line682"></a>		t-&gt;overwrite(coord_id,
+<a name="__line683"></a>			     1-norm,p1.termspecific_id(),
+<a name="__line684"></a>			     norm,  p2.termspecific_id());
+<a name="__line685"></a>		terminal::coord start;
+<a name="__line686"></a>		vector&lt;terminal::id&gt; dx,dy;
+<a name="__line687"></a>		if(id_ == x1 || id_ == x2)
+<a name="__line688"></a>		{
+<a name="__line689"></a>		    start.x = coord_id;
+<a name="__line690"></a>		    start.y = p3.termspecific_id();
+<a name="__line691"></a>		    dx.push_back(ZERO.termspecific_id());
+<a name="__line692"></a>		    dy.push_back(minor_ticlength_id);
+<a name="__line693"></a>		}
+<a name="__line694"></a>		else
+<a name="__line695"></a>		{
+<a name="__line696"></a>		    start.x = p3.termspecific_id();
+<a name="__line697"></a>		    start.y = coord_id;
+<a name="__line698"></a>		    dx.push_back(minor_ticlength_id);
+<a name="__line699"></a>		    dy.push_back(ZERO.termspecific_id());
+<a name="__line700"></a>		}
+<a name="__line701"></a>		t-&gt;draw_rlines(start,dx,dy);
+<a name="__line702"></a>	    }
+<a name="__line703"></a>	}
+<a name="__line704"></a>    }
+<a name="__line705"></a>
+<a name="__line706"></a>    void axis::print_line(terminal *term)
+<a name="__line707"></a>    {
+<a name="__line708"></a>	term-&gt;set_color(axiscolor_);
+<a name="__line709"></a>
+<a name="__line710"></a>	vector&lt;terminal::coord&gt; c;
+<a name="__line711"></a>	if(id_ == y1 || id_ == y2)
+<a name="__line712"></a>	{
+<a name="__line713"></a>	    c.push_back(terminal::coord(pos_.termspecific_id(),beg_.termspecific_id()));
+<a name="__line714"></a>	    c.push_back(terminal::coord(pos_.termspecific_id(),end_.termspecific_id()));
+<a name="__line715"></a>	}
+<a name="__line716"></a>	else
+<a name="__line717"></a>	{
+<a name="__line718"></a>	    c.push_back(terminal::coord(beg_.termspecific_id(),pos_.termspecific_id()));
+<a name="__line719"></a>	    c.push_back(terminal::coord(end_.termspecific_id(),pos_.termspecific_id()));
+<a name="__line720"></a>	}
+<a name="__line721"></a>	term-&gt;draw_lines(c);
+<a name="__line722"></a>    }
+<a name="__line723"></a>
+<a name="__line724"></a>    void axis::print_title(terminal *term)
+<a name="__line725"></a>    {
+<a name="__line726"></a>	if(title_.text().str() != "")
+<a name="__line727"></a>	{
+<a name="__line728"></a>	    term-&gt;set_color(axiscolor_);
+<a name="__line729"></a>	    title_.print(term);
+<a name="__line730"></a>	}
+<a name="__line731"></a>    }
+<a name="__line732"></a>
+<a name="__line733"></a>    void axis::print_ticlabels(terminal *term)
+<a name="__line734"></a>    {
+<a name="__line735"></a>	term-&gt;set_color(axiscolor_);
+<a name="__line736"></a>	scalelabel_.print(term);
+<a name="__line737"></a>
+<a name="__line738"></a>	int coord_id = term-&gt;newlength();
+<a name="__line739"></a>	for(vector&lt;tic&gt;::size_type i=0; i&lt;tics_.size(); ++i)
+<a name="__line740"></a>	{
+<a name="__line741"></a>	    double norm = map_point(tics_[i].value());
+<a name="__line742"></a>	    if(norm == unset) continue;
+<a name="__line743"></a>	    term-&gt;overwrite(coord_id,
+<a name="__line744"></a>			    1-norm,beg_.termspecific_id(),
+<a name="__line745"></a>			    norm,end_.termspecific_id());
+<a name="__line746"></a>
+<a name="__line747"></a>	    // draw the tic label
+<a name="__line748"></a>	    int xalign = sym::left,yalign = sym::bottom;
+<a name="__line749"></a>	    terminal::id xpos,ypos;
+<a name="__line750"></a>
+<a name="__line751"></a>	    //if(id_ == x1)  // default! overwrite later if needed
+<a name="__line752"></a>	    {
+<a name="__line753"></a>		xpos.length_id = coord_id;
+<a name="__line754"></a>		xalign = sym::center;
+<a name="__line755"></a>		ypos = bl2_.termspecific_id();
+<a name="__line756"></a>		yalign = sym::base;
+<a name="__line757"></a>	    }
+<a name="__line758"></a>	    if(id_ == x2)
+<a name="__line759"></a>	    {
+<a name="__line760"></a>		xpos.length_id = coord_id;
+<a name="__line761"></a>		xalign = sym::center;
+<a name="__line762"></a>		ypos = bl1_.termspecific_id();
+<a name="__line763"></a>		yalign = sym::bottom;
+<a name="__line764"></a>	    }
+<a name="__line765"></a>	    if(id_ == y1)
+<a name="__line766"></a>	    {
+<a name="__line767"></a>		xpos = bl1_.termspecific_id();
+<a name="__line768"></a>		xalign = sym::right;
+<a name="__line769"></a>		ypos.length_id = coord_id;
+<a name="__line770"></a>		yalign = sym::center;
+<a name="__line771"></a>	    }
+<a name="__line772"></a>	    if(id_ == y2)
+<a name="__line773"></a>	    {
+<a name="__line774"></a>		xpos = bl1_.termspecific_id();
+<a name="__line775"></a>		xalign = sym::left;
+<a name="__line776"></a>		ypos.length_id = coord_id;
+<a name="__line777"></a>		yalign = sym::center;
+<a name="__line778"></a>	    }
+<a name="__line779"></a>	    term-&gt;draw_text(terminal::coord(xpos,ypos),tics_[i].label().str(),
+<a name="__line780"></a>			    xalign,yalign,0);
+<a name="__line781"></a>
+<a name="__line782"></a>	}
+<a name="__line783"></a>    }    
+<a name="__line784"></a>
+<a name="__line785"></a>    void axis::print(terminal *term)
+<a name="__line786"></a>    {
+<a name="__line787"></a>	if(print_me_ &lt; 2) return;
+<a name="__line788"></a>	term-&gt;open_layer(layer_);
+<a name="__line789"></a>	print_title(term);
+<a name="__line790"></a>	print_line(term);
+<a name="__line791"></a>	print_ticlabels(term);
+<a name="__line792"></a>	print_tics(term, beg_, end_, pos_);
+<a name="__line793"></a>	print_cuts(term);
+<a name="__line794"></a>	term-&gt;close_layer(layer_);
+<a name="__line795"></a>    }
+<a name="__line796"></a>
+<a name="__line797"></a>    void axis::print(terminal *term, bool printline)
+<a name="__line798"></a>    {
+<a name="__line799"></a>	if(print_me_ &lt; 2) return;
+<a name="__line800"></a>	print_title(term);
+<a name="__line801"></a>	if(printline) print_line(term);
+<a name="__line802"></a>	print_ticlabels(term);
+<a name="__line803"></a>	print_tics(term, beg_, end_, pos_);
+<a name="__line804"></a>	print_cuts(term);
+<a name="__line805"></a>    }
+<a name="__line806"></a>
+<a name="__line807"></a>    double axis::map_point(double p)
+<a name="__line808"></a>    {
+<a name="__line809"></a>	if(transformed_axis_)
+<a name="__line810"></a>	{
+<a name="__line811"></a>	    return transformed_axis_-&gt;map_point(transform_inverse_(p).dbl());
+<a name="__line812"></a>	}
+<a name="__line813"></a>
+<a name="__line814"></a>	if(p == unset || std::isnan(p) || std::isinf(p)) return unset;
+<a name="__line815"></a>	for(unsigned int i=0; i&lt;cuts_.size(); ++i)
+<a name="__line816"></a>	{
+<a name="__line817"></a>	    if(cuts_[i].first &lt; p &amp;&amp; p &lt; cuts_[i].second) return unset;
+<a name="__line818"></a>	}
+<a name="__line819"></a>
+<a name="__line820"></a>	double effective_range = max_ - min_;
+<a name="__line821"></a>	double effective_value = p - min_;
+<a name="__line822"></a>
+<a name="__line823"></a>	if(logscale_)
+<a name="__line824"></a>	{
+<a name="__line825"></a>	    effective_range = ::log10(max_) - ::log10(min_);
+<a name="__line826"></a>	    effective_value = ::log10(p)    - ::log10(min_);
+<a name="__line827"></a>	}
+<a name="__line828"></a>
+<a name="__line829"></a>	for(unsigned int i=0; i&lt;cuts_.size(); ++i)
+<a name="__line830"></a>	{
+<a name="__line831"></a>	    if(cuts_[i].first &lt; max_ &amp;&amp; min_ &lt; cuts_[i].second)
+<a name="__line832"></a>	    {
+<a name="__line833"></a>		double l = std::max(cuts_[i].first,min_);
+<a name="__line834"></a>		double h = std::min(cuts_[i].second,max_);
+<a name="__line835"></a>		if(!logscale_) effective_range -= h-l;
+<a name="__line836"></a>		else effective_range -= ::log10(h)-::log10(l);
+<a name="__line837"></a>	    }
+<a name="__line838"></a>
+<a name="__line839"></a>	    if(cuts_[i].first &lt; p &amp;&amp; min_ &lt; cuts_[i].second)
+<a name="__line840"></a>	    {
+<a name="__line841"></a>		double l = std::max(cuts_[i].first,min_);
+<a name="__line842"></a>		double h = std::min(cuts_[i].second,p);
+<a name="__line843"></a>		if(!logscale_) effective_value -= h-l;
+<a name="__line844"></a>		else effective_value -= ::log10(h)-::log10(l);
+<a name="__line845"></a>	    }
+<a name="__line846"></a>	}
+<a name="__line847"></a>
+<a name="__line848"></a>	double mapped = effective_value / effective_range;
+<a name="__line849"></a>
+<a name="__line850"></a>	if(mapped == unset || std::isnan(mapped) || std::isinf(mapped)) return unset;
+<a name="__line851"></a>	return mapped;
+<a name="__line852"></a>    }
+<a name="__line853"></a>
+<a name="__line854"></a>    axis &amp;axis::calculate_tics()
+<a name="__line855"></a>    {
+<a name="__line856"></a>	if(!draw_tics_) return *this;
+<a name="__line857"></a>	tics_.clear();
+<a name="__line858"></a>
+<a name="__line859"></a>	// if this is a transformed axis, synchronize the range
+<a name="__line860"></a>	// with the original axis
+<a name="__line861"></a>	if(transformed_axis_)
+<a name="__line862"></a>	{
+<a name="__line863"></a>	    transformed_axis_-&gt;calculate_tics();
+<a name="__line864"></a>	    min_ = transform_(transformed_axis_-&gt;min_).dbl();
+<a name="__line865"></a>	    max_ = transform_(transformed_axis_-&gt;max_).dbl();
+<a name="__line866"></a>
+<a name="__line867"></a>	    // if it should not itself calculate its tics, then copy from the original,
+<a name="__line868"></a>	    // and return
+<a name="__line869"></a>	    if(!own_tic_calculation_)
+<a name="__line870"></a>	    {
+<a name="__line871"></a>		for(unsigned int i=0; i&lt;transformed_axis_-&gt;tics_.size(); ++i)
+<a name="__line872"></a>		{
+<a name="__line873"></a>                    var ticlabel;
+<a name="__line874"></a>		    const double v = transform_(transformed_axis_-&gt;tics_[i].value()).dbl();
+<a name="__line875"></a>                    if(tics_format_func_.initialized())
+<a name="__line876"></a>                    {
+<a name="__line877"></a>                        ticlabel = tics_format_func_(v);
+<a name="__line878"></a>                    }
+<a name="__line879"></a>                    else
+<a name="__line880"></a>                    {
+<a name="__line881"></a>                        ticlabel = var::sprintf(tics_format_.c_str(),v);
+<a name="__line882"></a>                    }
+<a name="__line883"></a>		    tics_.push_back(tic(v,ticlabel));
+<a name="__line884"></a>		}
+<a name="__line885"></a>		calculate_lengths();
+<a name="__line886"></a>		return *this;
+<a name="__line887"></a>	    }
+<a name="__line888"></a>	}
+<a name="__line889"></a>
+<a name="__line890"></a>	if(min_ == unset || max_ == unset)
+<a name="__line891"></a>	{
+<a name="__line892"></a>	    return *this;
+<a name="__line893"></a>	}
+<a name="__line894"></a>	
+<a name="__line895"></a>	if(max_ &lt;= min_)
+<a name="__line896"></a>	{
+<a name="__line897"></a>	    if(id_ == x1) warning::print("Zero x1-range","axis::calculate_tics()");
+<a name="__line898"></a>	    if(id_ == x2) warning::print("Zero x2-range","axis::calculate_tics()");
+<a name="__line899"></a>	    if(id_ == y1) warning::print("Zero y1-range","axis::calculate_tics()");
+<a name="__line900"></a>	    if(id_ == y2) warning::print("Zero y2-range","axis::calculate_tics()");
+<a name="__line901"></a>	    if(!min_fixed_) min_ -= 1;
+<a name="__line902"></a>	    if(!max_fixed_) max_ += 1;
+<a name="__line903"></a>	}
+<a name="__line904"></a>
+<a name="__line905"></a>
+<a name="__line906"></a>	// make tic calculation if the user requested it (tic_start_!=unset ||
+<a name="__line907"></a>	// tic_end_!=unset || tic_incr_!=unset),
+<a name="__line908"></a>	// or if no user_tics have been specified
+<a name="__line909"></a>	if(tic_start_ != unset || tic_end_  != unset || tic_incr_  != unset ||
+<a name="__line910"></a>	   user_tics_.empty())
+<a name="__line911"></a>	   
+<a name="__line912"></a>	{
+<a name="__line913"></a>	    tic scaletic;
+<a name="__line914"></a>	    scaletic.value(scale_);
+<a name="__line915"></a>	    blop::calculate_tics(min_,
+<a name="__line916"></a>				 min_fixed_ || (transformed_axis_!=0),
+<a name="__line917"></a>				 max_,
+<a name="__line918"></a>				 max_fixed_ || (transformed_axis_!=0),
+<a name="__line919"></a>				 tic_incr_,
+<a name="__line920"></a>				 tic_incr_fixed_,     // stepfixed
+<a name="__line921"></a>				 (tic_start_fixed_?tic_start_:unset),
+<a name="__line922"></a>				 (tic_end_fixed_  ?tic_end_  :unset),
+<a name="__line923"></a>				 scaletic,
+<a name="__line924"></a>				 unit_value_,
+<a name="__line925"></a>				 //(unit_str_!=""?unit::value(unit_):1.0),
+<a name="__line926"></a>				 cuts_,
+<a name="__line927"></a>				 logscale_,
+<a name="__line928"></a>				 (logscale_?2:0), // normalform tics
+<a name="__line929"></a>				 true,      // normalform scale
+<a name="__line930"></a>				 tics_,
+<a name="__line931"></a>				 tics_format_.c_str(),
+<a name="__line932"></a>                                 tics_format_func_,
+<a name="__line933"></a>                                 "%g",
+<a name="__line934"></a>                                 5,
+<a name="__line935"></a>                                 symmetric_range_);
+<a name="__line936"></a>	    scalelabel_.text(var("$\\times$") &amp; scaletic.label());
+<a name="__line937"></a>
+<a name="__line938"></a>	    if(draw_minor_tics_ &amp;&amp; cuts_.empty())
+<a name="__line939"></a>	    {
+<a name="__line940"></a>                if(logscale_)
+<a name="__line941"></a>                {
+<a name="__line942"></a>                    if(!tics_.empty())
+<a name="__line943"></a>                    {
+<a name="__line944"></a>                        double scale = 1;
+<a name="__line945"></a>                        if(scaletic.value() != unset) scale = scaletic.value();
+<a name="__line946"></a>                        int    expint = (int)::round(::log10(tics_[0].value()*scale*unit_value_)-1);
+<a name="__line947"></a>                        for(int m=2; m&lt;10 &amp;&amp; m*::pow(10.0,expint)&lt;tics_[0].value()*scale*unit_value_; ++m)
+<a name="__line948"></a>                        {
+<a name="__line949"></a>                            double v = m*::pow(10.0,expint);
+<a name="__line950"></a>                            if(v&lt;min_) continue;
+<a name="__line951"></a>                            minor_tics_.push_back(tic(v,""));
+<a name="__line952"></a>                        }
+<a name="__line953"></a>                    }
+<a name="__line954"></a>                    for(unsigned int i=0; i&lt;tics_.size(); ++i)
+<a name="__line955"></a>                    {
+<a name="__line956"></a>                        double scale = 1;
+<a name="__line957"></a>                        if(scaletic.value() != unset) scale = scaletic.value();
+<a name="__line958"></a>
+<a name="__line959"></a>                        const double start = tics_[i].value()/(scale*unit_value_);
+<a name="__line960"></a>                        const double stop  = (i&lt;tics_.size()-1?tics_[i+1].value()/(scale*unit_value_):max_/(scale*unit_value_));
+<a name="__line961"></a>
+<a name="__line962"></a>                        //double expdbl = ::log10(start);
+<a name="__line963"></a>                        //int    expint = (int)(0.1+::round(expdbl));
+<a name="__line964"></a>                        const double    expdbl = ::log10(start);
+<a name="__line965"></a>                        const int    expint = (int)(::round(expdbl));
+<a name="__line966"></a>                        const int    mant   = int(::pow(10.0, expdbl-expint)+0.01);
+<a name="__line967"></a>
+<a name="__line968"></a>                        for(int m=mant+1; m&lt;10 &amp;&amp; m*::pow(10.0,expint)&lt;stop; ++m)
+<a name="__line969"></a>                        {
+<a name="__line970"></a>                            minor_tics_.push_back(tic(m*::pow(10.0,expint)*scale*unit_value_,""));
+<a name="__line971"></a>                        }
+<a name="__line972"></a>                    }
+<a name="__line973"></a>                }
+<a name="__line974"></a>                else
+<a name="__line975"></a>                {
+<a name="__line976"></a>                    if(tics_.size() &gt;= 2)
+<a name="__line977"></a>                    {
+<a name="__line978"></a>                        // check if they are equidistant
+<a name="__line979"></a>                        bool equidistant = true;
+<a name="__line980"></a>                        for(unsigned int i=2; i&lt;tics_.size(); ++i)
+<a name="__line981"></a>                        {
+<a name="__line982"></a>                            if( ((tics_[i].value()-tics_[i-1].value())-(tics_[1].value()-tics_[0].value()))/(tics_[1].value()-tics_[0].value()) &gt; 0.001)
+<a name="__line983"></a>                            {
+<a name="__line984"></a>                                equidistant = false;
+<a name="__line985"></a>                                break;
+<a name="__line986"></a>                            }
+<a name="__line987"></a>                        }
+<a name="__line988"></a>                        if(equidistant)
+<a name="__line989"></a>                        {
+<a name="__line990"></a>                            int n_minor_tic_intervals = n_minor_tics_;
+<a name="__line991"></a>                            if(n_minor_tic_intervals == 0)
+<a name="__line992"></a>                            {
+<a name="__line993"></a>                                n_minor_tic_intervals = 10;
+<a name="__line994"></a>                                int shown_tics = 0;
+<a name="__line995"></a>                                for(unsigned int i=0; i&lt;tics_.size(); ++i)
+<a name="__line996"></a>                                {
+<a name="__line997"></a>                                    if(min_ &lt;= tics_[i].value() &amp;&amp; tics_[i].value() &lt;= max_) ++shown_tics;
+<a name="__line998"></a>                                }
+<a name="__line999"></a>                                if(shown_tics &gt; 5) n_minor_tic_intervals = 5;
+<a name="__line1000"></a>                                if(shown_tics &gt; 6) n_minor_tic_intervals = 4;
+<a name="__line1001"></a>                                if(shown_tics &gt; 12) n_minor_tic_intervals = 2;
+<a name="__line1002"></a>                            }
+<a name="__line1003"></a>
+<a name="__line1004"></a>                            for(unsigned int i=0; i&lt;tics_.size()-1; ++i)
+<a name="__line1005"></a>                            {
+<a name="__line1006"></a>                                const double t1 = tics_[i].value();
+<a name="__line1007"></a>                                const double t2 = tics_[i+1].value();
+<a name="__line1008"></a>                                const double delta = (t2-t1)/n_minor_tic_intervals;
+<a name="__line1009"></a>                                for(int m=1; m&lt;n_minor_tic_intervals; ++m)
+<a name="__line1010"></a>                                {
+<a name="__line1011"></a>                                    minor_tics_.push_back(tic(t1+m*delta,""));
+<a name="__line1012"></a>                                }
+<a name="__line1013"></a>                            }
+<a name="__line1014"></a>                            {
+<a name="__line1015"></a>                                const double delta = (tics_[1].value()-tics_[0].value())/n_minor_tic_intervals;
+<a name="__line1016"></a>                                for(double m=tics_[0].value()-delta; m&gt;min_; m-=delta)
+<a name="__line1017"></a>                                {
+<a name="__line1018"></a>                                    minor_tics_.push_back(tic(m,""));
+<a name="__line1019"></a>                                }
+<a name="__line1020"></a>
+<a name="__line1021"></a>                            }
+<a name="__line1022"></a>                            {
+<a name="__line1023"></a>                                const double delta = (tics_.back().value()-tics_[tics_.size()-2].value())/n_minor_tic_intervals;
+<a name="__line1024"></a>                                for(double m=tics_.back().value()+delta; m&lt;max_; m+=delta)
+<a name="__line1025"></a>                                {
+<a name="__line1026"></a>                                    minor_tics_.push_back(tic(m,""));
+<a name="__line1027"></a>                                }
+<a name="__line1028"></a>
+<a name="__line1029"></a>                            }
+<a name="__line1030"></a>                        }
+<a name="__line1031"></a>                        else
+<a name="__line1032"></a>                        {
+<a name="__line1033"></a>                            cerr&lt;&lt;"Non-equidistant tics, can not calculate minor tics"&lt;&lt;endl;
+<a name="__line1034"></a>                        }
+<a name="__line1035"></a>                    }
+<a name="__line1036"></a>                }
+<a name="__line1037"></a>	    }
+<a name="__line1038"></a>	}
+<a name="__line1039"></a>
+<a name="__line1040"></a>	// add the user-tics
+<a name="__line1041"></a>	if(!user_tics_.empty())
+<a name="__line1042"></a>	{
+<a name="__line1043"></a>	    for(unsigned int i=0; i&lt;user_tics_.size(); ++i)
+<a name="__line1044"></a>	    {
+<a name="__line1045"></a>		tics_.push_back(user_tics_[i]);
+<a name="__line1046"></a>	    }
+<a name="__line1047"></a>	}
+<a name="__line1048"></a>
+<a name="__line1049"></a>	for(unsigned int i=0; i&lt;tics_.size(); ++i)
+<a name="__line1050"></a>	{
+<a name="__line1051"></a>	    extend_range(tics_[i].value());
+<a name="__line1052"></a>	}
+<a name="__line1053"></a>	calculate_lengths();
+<a name="__line1054"></a>
+<a name="__line1055"></a>	return *this;
+<a name="__line1056"></a>    }
+<a name="__line1057"></a>
+<a name="__line1058"></a>    axis::tic_setter &amp;axis::tic_setter::operator()()
+<a name="__line1059"></a>    {
+<a name="__line1060"></a>	axis_-&gt;user_tics_.clear();
+<a name="__line1061"></a>	axis_-&gt;modified_ = true;
+<a name="__line1062"></a>	operator()(unset,unset,unset);
+<a name="__line1063"></a>	return *this;
+<a name="__line1064"></a>    }
+<a name="__line1065"></a>
+<a name="__line1066"></a>    // Set the tic incrementation (i.e. stepsize)
+<a name="__line1067"></a>    axis::tic_setter &amp;axis::tic_setter::operator()(var i)
+<a name="__line1068"></a>    {
+<a name="__line1069"></a>	axis_-&gt;draw_tics_ = true;
+<a name="__line1070"></a>	axis_-&gt;tic_incr_ = i.dbl();
+<a name="__line1071"></a>	if(i != unset) axis_-&gt;tic_incr_fixed_ = true;
+<a name="__line1072"></a>	else axis_-&gt;tic_incr_fixed_ = false;
+<a name="__line1073"></a>	axis_-&gt;modified_ = true;
+<a name="__line1074"></a>	return *this;
+<a name="__line1075"></a>    }
+<a name="__line1076"></a>
+<a name="__line1077"></a>    // only set the increment and limits for the tics. do not create
+<a name="__line1078"></a>    // user-tics, since start and end values might optionally be
+<a name="__line1079"></a>    // 'unset', in which case they will be calculated from the
+<a name="__line1080"></a>    // actual range of the axis. 
+<a name="__line1081"></a>    axis::tic_setter &amp;axis::tic_setter::operator()(var incr,var start,var end)
+<a name="__line1082"></a>    {
+<a name="__line1083"></a>	axis_-&gt;draw_tics_ = true;
+<a name="__line1084"></a>
+<a name="__line1085"></a>	axis_-&gt;tic_start_ = start.dbl();
+<a name="__line1086"></a>	if(start.dbl() != unset) axis_-&gt;tic_start_fixed_ = true;
+<a name="__line1087"></a>	else axis_-&gt;tic_start_fixed_ = false;
+<a name="__line1088"></a>
+<a name="__line1089"></a>	axis_-&gt;tic_incr_ = incr.dbl();
+<a name="__line1090"></a>	if(incr.dbl() != unset) axis_-&gt;tic_incr_fixed_ = true;
+<a name="__line1091"></a>	else axis_-&gt;tic_incr_fixed_ = false;
+<a name="__line1092"></a>
+<a name="__line1093"></a>	axis_-&gt;tic_end_ = end.dbl();
+<a name="__line1094"></a>	if(end.dbl() != unset) axis_-&gt;tic_end_fixed_ = true;
+<a name="__line1095"></a>	else axis_-&gt;tic_end_fixed_ = false;
+<a name="__line1096"></a>
+<a name="__line1097"></a>	axis_-&gt;modified_ = true;
+<a name="__line1098"></a>	return *this;
+<a name="__line1099"></a>    }
+<a name="__line1100"></a>
+<a name="__line1101"></a>    // Set a single tic at value 'v', having label 'l'
+<a name="__line1102"></a>    axis::tic_setter &amp;axis::tic_setter::operator()(var v, var l)
+<a name="__line1103"></a>    {
+<a name="__line1104"></a>	// First check if at this value the user has already set
+<a name="__line1105"></a>	// a label. Change this, if so.
+<a name="__line1106"></a>	for(unsigned int i=0; i&lt;axis_-&gt;user_tics_.size(); ++i)
+<a name="__line1107"></a>	{
+<a name="__line1108"></a>	    if(axis_-&gt;user_tics_[i].value() == v.dbl() &amp;&amp;
+<a name="__line1109"></a>	       axis_-&gt;user_tics_[i].label().str() == l.str()) return *this;
+<a name="__line1110"></a>	}
+<a name="__line1111"></a>
+<a name="__line1112"></a>	// otherwise add this value/label pair to user_tics_
+<a name="__line1113"></a>	axis_-&gt;user_tics_.push_back(tic(v.dbl(),l));
+<a name="__line1114"></a>	axis_-&gt;modified_ = true;
+<a name="__line1115"></a>	return *this;
+<a name="__line1116"></a>    }
+<a name="__line1117"></a>
+<a name="__line1118"></a>    axis &amp;axis::titleaxissep(const length &amp;l)
+<a name="__line1119"></a>    {
+<a name="__line1120"></a>	title_axis_sep_ = l;
+<a name="__line1121"></a>	modified_ = true;
+<a name="__line1122"></a>	return *this;
+<a name="__line1123"></a>    }
+<a name="__line1124"></a>
+<a name="__line1125"></a>    axis &amp;axis::unit(const var &amp;u, const var &amp;format)
+<a name="__line1126"></a>    {
+<a name="__line1127"></a>	// First, remove any previous unit indication from the title
+<a name="__line1128"></a>	if(unit_format_ != "" &amp;&amp; title_.text().str() != "" &amp;&amp; unit_symbol_ != "")
+<a name="__line1129"></a>	{
+<a name="__line1130"></a>	    string unit_indicator = replace(var("%s"),var(unit_symbol_),var(unit_format_));
+<a name="__line1131"></a>	    string t = title_.text().str();
+<a name="__line1132"></a>	    string::size_type pos = t.rfind(unit_indicator);
+<a name="__line1133"></a>	    if(pos == t.size()-unit_indicator.size())
+<a name="__line1134"></a>	    {
+<a name="__line1135"></a>		t.erase(pos);
+<a name="__line1136"></a>		title_.text(t);
+<a name="__line1137"></a>	    }
+<a name="__line1138"></a>	}
+<a name="__line1139"></a>
+<a name="__line1140"></a>	if(!find_unit_or_cons(u,&amp;unit_value_,&amp;unit_symbol_))
+<a name="__line1141"></a>	{
+<a name="__line1142"></a>	    unit_value_  = 1;
+<a name="__line1143"></a>	    unit_symbol_ = "";
+<a name="__line1144"></a>	    unit_format_ = "";
+<a name="__line1145"></a>	    return *this;
+<a name="__line1146"></a>	}
+<a name="__line1147"></a>
+<a name="__line1148"></a>	unit_format_ = format.str();
+<a name="__line1149"></a>	if(unit_symbol_ != "" &amp;&amp; unit_format_ != "")
+<a name="__line1150"></a>	{
+<a name="__line1151"></a>	    var f = replace(var("%s"),var(unit_symbol_),var(unit_format_));
+<a name="__line1152"></a>	    title_.text(title_.text() &amp; " " &amp; f);
+<a name="__line1153"></a>	}
+<a name="__line1154"></a>	
+<a name="__line1155"></a>	return *this;
+<a name="__line1156"></a>    }
+<a name="__line1157"></a>
+<a name="__line1158"></a>    axis &amp;axis::scale(double s)
+<a name="__line1159"></a>    {
+<a name="__line1160"></a>	if(transformed_axis_)
+<a name="__line1161"></a>	{
+<a name="__line1162"></a>	    warning::print("Can not (yet) set scale for a transformed axis");
+<a name="__line1163"></a>	    return *this;
+<a name="__line1164"></a>	}
+<a name="__line1165"></a>	modified_ = true;
+<a name="__line1166"></a>	const double mind = 0.0000001;
+<a name="__line1167"></a>	if(s == unset || ::fabs(s-1) &lt; mind)
+<a name="__line1168"></a>	{
+<a name="__line1169"></a>	    scalelabel_.off();
+<a name="__line1170"></a>	    scale_ = 1;
+<a name="__line1171"></a>	    return *this;
+<a name="__line1172"></a>	}
+<a name="__line1173"></a>	scalelabel_.on();
+<a name="__line1174"></a>	double exponent = ::log10(s);
+<a name="__line1175"></a>	if(::fabs(::floor(exponent)-exponent) &lt; mind)
+<a name="__line1176"></a>	{
+<a name="__line1177"></a>	    scale_ = ::pow(10,::floor(exponent));
+<a name="__line1178"></a>	}
+<a name="__line1179"></a>	else
+<a name="__line1180"></a>	{
+<a name="__line1181"></a>	    scale_ = s;
+<a name="__line1182"></a>	}
+<a name="__line1183"></a>	if(id_ == x1 || id_ == x2)
+<a name="__line1184"></a>	{
+<a name="__line1185"></a>	    scalelabel_.y(pos_).yalign(sym::center).x(end_ + EX);
+<a name="__line1186"></a>	}
+<a name="__line1187"></a>	else
+<a name="__line1188"></a>	{
+<a name="__line1189"></a>	    scalelabel_.x(pos_).xalign(sym::center).y(end_ + EX);
+<a name="__line1190"></a>	}
+<a name="__line1191"></a>	return *this;
+<a name="__line1192"></a>    }
+<a name="__line1193"></a>
+<a name="__line1194"></a>    double axis::scale() const
+<a name="__line1195"></a>    {
+<a name="__line1196"></a>	return scale_;
+<a name="__line1197"></a>    }
+<a name="__line1198"></a>
+<a name="__line1199"></a>    void axis::default_cut_gap(length l)
+<a name="__line1200"></a>    {
+<a name="__line1201"></a>	default_cut_gap_() = l;
+<a name="__line1202"></a>    }
+<a name="__line1203"></a>
+<a name="__line1204"></a>    length &amp;axis::default_cut_gap_()
+<a name="__line1205"></a>    {
+<a name="__line1206"></a>	static length l = length::base_id_t(terminal::EX);
+<a name="__line1207"></a>	return l;
+<a name="__line1208"></a>    }
+<a name="__line1209"></a>
+<a name="__line1210"></a>    axis &amp;axis::cut_gap(length l)
+<a name="__line1211"></a>    {
+<a name="__line1212"></a>	modified_ = true;
+<a name="__line1213"></a>	cut_gap_ = l;
+<a name="__line1214"></a>	return *this;
+<a name="__line1215"></a>    }
+<a name="__line1216"></a>
+<a name="__line1217"></a>    const length &amp;axis::cut_gap() const { return cut_gap_; }
+<a name="__line1218"></a>
+<a name="__line1219"></a>    axis &amp;axis::cut()
+<a name="__line1220"></a>    {
+<a name="__line1221"></a>	if(transformed_axis_)
+<a name="__line1222"></a>	{
+<a name="__line1223"></a>	    warning::print("Can not yet define cuts for a transformed axis");
+<a name="__line1224"></a>	    return *this;
+<a name="__line1225"></a>	}
+<a name="__line1226"></a>	modified_ = true;
+<a name="__line1227"></a>	cuts_.clear();
+<a name="__line1228"></a>	return *this;
+<a name="__line1229"></a>    }
+<a name="__line1230"></a>
+<a name="__line1231"></a>    axis &amp;axis::cut(double low, double high)
+<a name="__line1232"></a>    {
+<a name="__line1233"></a>	modified_ = true;
+<a name="__line1234"></a>	if(low &gt;= high)
+<a name="__line1235"></a>	{
+<a name="__line1236"></a>	    warning::print(var("Axis-cut low value (") &amp; low &amp; ") is bigger than high value (" &amp; high &amp; ")",
+<a name="__line1237"></a>			   "axis::cut(double low, double high)");
+<a name="__line1238"></a>	    return *this;
+<a name="__line1239"></a>	}
+<a name="__line1240"></a>
+<a name="__line1241"></a>	if(cuts_.empty())
+<a name="__line1242"></a>	{
+<a name="__line1243"></a>	    cuts_.push_back(pair&lt;double,double&gt;(low,high));
+<a name="__line1244"></a>	    return *this;
+<a name="__line1245"></a>	}
+<a name="__line1246"></a>
+<a name="__line1247"></a>	for(unsigned int i=0; i&lt;cuts_.size(); )
+<a name="__line1248"></a>	{
+<a name="__line1249"></a>	    // if no overlap, do nothing
+<a name="__line1250"></a>	    if(cuts_[i].second &lt; low || cuts_[i].first &gt; high)
+<a name="__line1251"></a>	    {
+<a name="__line1252"></a>		++i;
+<a name="__line1253"></a>		continue;
+<a name="__line1254"></a>	    }
+<a name="__line1255"></a>
+<a name="__line1256"></a>	    low = std::min(low,cuts_[i].first);
+<a name="__line1257"></a>	    high = std::max(high,cuts_[i].second);
+<a name="__line1258"></a>	    for(unsigned int j=i+1; j&lt;cuts_.size(); ++j)
+<a name="__line1259"></a>	    {
+<a name="__line1260"></a>		cuts_[j-1].first = cuts_[j].first;
+<a name="__line1261"></a>		cuts_[j-1].second = cuts_[j].second;
+<a name="__line1262"></a>	    }
+<a name="__line1263"></a>	    cuts_.pop_back();
+<a name="__line1264"></a>	}
+<a name="__line1265"></a>
+<a name="__line1266"></a>	// and finally insert it into the correct place
+<a name="__line1267"></a>
+<a name="__line1268"></a><span class=comment>/*
+<a name="__line1269"></a>  unsigned int i=0; 
+<a name="__line1270"></a>  for(; i&lt;cuts_.size() &amp;&amp; high &lt; cuts_[i].first; ++i);
+<a name="__line1271"></a>  cuts_.insert(cuts_.begin()+i, pair&lt;double,double&gt;(low,high));
+<a name="__line1272"></a>*/</span>
+<a name="__line1273"></a>
+<a name="__line1274"></a>	for(unsigned int i=0; i&lt;cuts_.size(); ++i)
+<a name="__line1275"></a>	{
+<a name="__line1276"></a>	    if(high &lt; cuts_[i].first)
+<a name="__line1277"></a>	    {
+<a name="__line1278"></a>		cuts_.insert(cuts_.begin()+i, pair&lt;double,double&gt;(low,high));
+<a name="__line1279"></a>		return *this;
+<a name="__line1280"></a>	    }
+<a name="__line1281"></a>	}
+<a name="__line1282"></a>	<span class=comment>// if no insertion, so we got here, put it to the end</span>
+<a name="__line1283"></a>	cuts_.push_back(pair&lt;double,double&gt;(low,high));
+<a name="__line1284"></a>	return *this;
+<a name="__line1285"></a>    }
+<a name="__line1286"></a>
+<a name="__line1287"></a>
+<a name="__line1288"></a>
+<a name="__line1289"></a>    <span class=comment>// ---------- tic_setter - global -------------------------------------------------</span>
+<a name="__line1290"></a>
+<a name="__line1291"></a>    tic_setter::tic_setter(int a) : axis_(a) {}
+<a name="__line1292"></a>
+<a name="__line1293"></a>    axis *tic_setter::get_axis()
+<a name="__line1294"></a>    {
+<a name="__line1295"></a>	switch(axis_)
+<a name="__line1296"></a>	{
+<a name="__line1297"></a>	case axis::x1 : return frame::current().x1axis();
+<a name="__line1298"></a>	case axis::x2 : return frame::current().x2axis();
+<a name="__line1299"></a>	case axis::y1 : return frame::current().y1axis();
+<a name="__line1300"></a>	case axis::y2 : return frame::current().y2axis();
+<a name="__line1301"></a>	default: return 0;
+<a name="__line1302"></a>	}
+<a name="__line1303"></a>	return 0;
+<a name="__line1304"></a>    }
+<a name="__line1305"></a>
+<a name="__line1306"></a>    tic_setter &amp;tic_setter::operator()()
+<a name="__line1307"></a>    {
+<a name="__line1308"></a>	get_axis()-&gt;tics();
+<a name="__line1309"></a>	return *this;
+<a name="__line1310"></a>    }
+<a name="__line1311"></a>
+<a name="__line1312"></a>    tic_setter &amp;tic_setter::operator()(var a)
+<a name="__line1313"></a>    {
+<a name="__line1314"></a>	get_axis()-&gt;tics(a);
+<a name="__line1315"></a>	return *this;
+<a name="__line1316"></a>    }
+<a name="__line1317"></a>
+<a name="__line1318"></a>    tic_setter &amp;tic_setter::operator()(var a,var b)
+<a name="__line1319"></a>    {
+<a name="__line1320"></a>	get_axis()-&gt;tics(a,b);
+<a name="__line1321"></a>	return *this;
+<a name="__line1322"></a>    }
+<a name="__line1323"></a>
+<a name="__line1324"></a>    tic_setter &amp;tic_setter::operator()(var a,var b,var c)
+<a name="__line1325"></a>    {
+<a name="__line1326"></a>	get_axis()-&gt;tics(a,b,c);
+<a name="__line1327"></a>	return *this;
+<a name="__line1328"></a>    }
+<a name="__line1329"></a>
+<a name="__line1330"></a>}
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

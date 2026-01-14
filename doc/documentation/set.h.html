@@ -1,0 +1,972 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: set.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_SET_H__
+<a name="__line1"></a>#define __BLOP_SET_H__
+<a name="__line2"></a>
+<a name="__line3"></a><span class=comment>/*
+<a name="__line4"></a>  Since one has access to all public member functions of all classes in
+<a name="__line5"></a>  blop, one can do everything, which has been implemented. However, this
+<a name="__line6"></a>  would be sometimes too much typing, for example: 
+<a name="__line7"></a>
+<a name="__line8"></a>  frame::current().x1axis()-&gt;title("This is the x axis");
+<a name="__line9"></a>
+<a name="__line10"></a>  Therefore wrapper functions for these most common methods of classes are
+<a name="__line11"></a>  provided. In order to logically group them, they are implemented within
+<a name="__line12"></a>  the 'set' namespace, for example:
+<a name="__line13"></a>
+<a name="__line14"></a>  set::xtitle("This is the x axis");
+<a name="__line15"></a>
+<a name="__line16"></a>*/</span>
+<a name="__line17"></a>
+<a name="__line18"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line19"></a>#include "<a href="mframe.h.html">mframe.h</a>"
+<a name="__line20"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line21"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line22"></a>#include "<a href="line.h.html">line.h</a>"
+<a name="__line23"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line24"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line25"></a>#include "<a href="sym.h.html">sym.h</a>"
+<a name="__line26"></a>
+<a name="__line27"></a>namespace blop
+<a name="__line28"></a>{
+<a name="__line29"></a>    <span class=comment>// dummy class to be returned, upon which G__ateval will replot the canvas</span>
+<a name="__line30"></a>    class replot_request {};
+<a name="__line31"></a>
+<a name="__line32"></a>    namespace set
+<a name="__line33"></a>    {
+<a name="__line34"></a>	inline replot_request  clear()
+<a name="__line35"></a>	    {
+<a name="__line36"></a>		canvas::current().clear();
+<a name="__line37"></a>		return replot_request();
+<a name="__line38"></a>	    }
+<a name="__line39"></a>
+<a name='margins'>
+<a name="__line41"></a>	<span class=comment>// ---------- Set the current frame's margins -------------------------------------</span>
+<a name="__line42"></a>	inline replot_request lmargin(const length &amp;l)
+<a name="__line43"></a>	{
+<a name="__line44"></a>	    frame::current().lmargin(l);
+<a name="__line45"></a>	    return replot_request();
+<a name="__line46"></a>	}
+<a name="__line47"></a>	inline replot_request rmargin(const length &amp;l)
+<a name="__line48"></a>	{
+<a name="__line49"></a>	    frame::current().rmargin(l);
+<a name="__line50"></a>	    return replot_request();
+<a name="__line51"></a>	}
+<a name="__line52"></a>	inline replot_request bmargin(const length &amp;l)
+<a name="__line53"></a>	{
+<a name="__line54"></a>	    frame::current().bmargin(l);
+<a name="__line55"></a>	    return replot_request();
+<a name="__line56"></a>	}
+<a name="__line57"></a>	inline replot_request tmargin(const length &amp;l)
+<a name="__line58"></a>	{
+<a name="__line59"></a>	    frame::current().tmargin(l);
+<a name="__line60"></a>	    return replot_request();
+<a name="__line61"></a>	}
+<a name="__line62"></a>
+</a>
+<a name="__line64"></a>
+<a name="__line65"></a>
+<a name='clear'> 
+<a name="__line67"></a>	<span class=comment>// ---------- Clear the current canvas --------------------------------------------</span>
+<a name="__line68"></a>	<span class=comment>// (delete every content, for which the 'autodel' flag is set)</span>
+</a>
+<a name="__line70"></a>
+<a name="__line71"></a>	<span class=comment>// Clear all graphs from the current frame. If the flag 'all' is set</span>
+<a name="__line72"></a>	<span class=comment>// to true, also the permanent graphs are deleted</span>
+<a name="__line73"></a>	inline replot_request clear_graphs(bool all=false)
+<a name="__line74"></a>	    {
+<a name="__line75"></a>		frame::current().clear_graphs(all);
+<a name="__line76"></a>		return replot_request();
+<a name="__line77"></a>	    }
+<a name="__line78"></a>
+<a name='axiscolor'> </a>
+<a name="__line80"></a>	<span class=comment>// ---------- set the color of a given axis of the current frame ------------------</span>
+<a name="__line81"></a>
+<a name="__line82"></a>	inline replot_request x1color(const color &amp;c)
+<a name="__line83"></a>	  { frame::current().x1axis()-&gt;axiscolor(c); return replot_request(); }
+<a name="__line84"></a>	inline replot_request y1color(const color &amp;c)
+<a name="__line85"></a>	  { frame::current().y1axis()-&gt;axiscolor(c); return replot_request(); }
+<a name="__line86"></a>	inline replot_request x2color(const color &amp;c)
+<a name="__line87"></a>	  { frame::current().x2axis()-&gt;axiscolor(c); return replot_request(); }
+<a name="__line88"></a>	inline replot_request y2color(const color &amp;c)
+<a name="__line89"></a>	  { frame::current().y2axis()-&gt;axiscolor(c); return replot_request(); }
+<a name="__line90"></a>
+<a name="__line91"></a>
+<a name='axiscut'> </a>
+<a name="__line93"></a>	<span class=comment>// ---------- Set cuts on the axes of the current frame ---------------------------</span>
+<a name="__line94"></a>	inline replot_request x1cut(double v1, double v2)
+<a name="__line95"></a>	{
+<a name="__line96"></a>	    frame::current().x1axis()-&gt;cut(v1,v2);
+<a name="__line97"></a>	    return replot_request();
+<a name="__line98"></a>	}
+<a name="__line99"></a>	inline replot_request xcut(double v1, double v2)
+<a name="__line100"></a>	{
+<a name="__line101"></a>	    frame::current().x1axis()-&gt;cut(v1,v2);
+<a name="__line102"></a>	    return replot_request();
+<a name="__line103"></a>	}
+<a name="__line104"></a>	inline replot_request y1cut(double v1, double v2)
+<a name="__line105"></a>	{
+<a name="__line106"></a>	    frame::current().y1axis()-&gt;cut(v1,v2);
+<a name="__line107"></a>	    return replot_request();
+<a name="__line108"></a>	}
+<a name="__line109"></a>	inline replot_request ycut(double v1, double v2)
+<a name="__line110"></a>	{
+<a name="__line111"></a>	    frame::current().y1axis()-&gt;cut(v1,v2);
+<a name="__line112"></a>	    return replot_request();
+<a name="__line113"></a>	}
+<a name="__line114"></a>	inline replot_request x2cut(double v1, double v2)
+<a name="__line115"></a>	{
+<a name="__line116"></a>	    frame::current().x2axis()-&gt;cut(v1,v2);
+<a name="__line117"></a>	    return replot_request();
+<a name="__line118"></a>	}
+<a name="__line119"></a>	inline replot_request y2cut(double v1, double v2)
+<a name="__line120"></a>	{
+<a name="__line121"></a>	    frame::current().y2axis()-&gt;cut(v1,v2);
+<a name="__line122"></a>	    return replot_request();
+<a name="__line123"></a>	}
+<a name="__line124"></a>
+<a name="__line125"></a>
+<a name="__line126"></a>
+<a name='axistitle'> </a>
+<a name="__line128"></a>	<span class=comment>// ---------- Set the title of the axes of the current frame  ---------------------</span>
+<a name="__line129"></a>
+<a name="__line130"></a>	inline replot_request  x1title(const var &amp;t)
+<a name="__line131"></a>	    {
+<a name="__line132"></a>		frame::current().x1axis()-&gt;title(t);
+<a name="__line133"></a>		return replot_request();
+<a name="__line134"></a>	    }
+<a name="__line135"></a>	inline replot_request  y1title(const var &amp;t)
+<a name="__line136"></a>	    {
+<a name="__line137"></a>		frame::current().y1axis()-&gt;title(t);
+<a name="__line138"></a>		return replot_request();
+<a name="__line139"></a>	    }
+<a name="__line140"></a>	inline replot_request  x2title(const var &amp;t)
+<a name="__line141"></a>	    {
+<a name="__line142"></a>		frame::current().x2axis()-&gt;title(t);
+<a name="__line143"></a>		return replot_request();
+<a name="__line144"></a>	    }
+<a name="__line145"></a>	inline replot_request  y2title(const var &amp;t)
+<a name="__line146"></a>	    {
+<a name="__line147"></a>		frame::current().y2axis()-&gt;title(t);
+<a name="__line148"></a>		return replot_request();
+<a name="__line149"></a>	    }
+<a name="__line150"></a>	inline replot_request  xtitle(const var &amp;t)
+<a name="__line151"></a>	    {
+<a name="__line152"></a>		x1title(t);
+<a name="__line153"></a>		return replot_request();
+<a name="__line154"></a>	    }
+<a name="__line155"></a>        inline replot_request x1title(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line156"></a>        {
+<a name="__line157"></a>            frame::current().x1axis()-&gt;title(t);
+<a name="__line158"></a>            frame::current().x1axis()-&gt;unit(u,format);
+<a name="__line159"></a>            return replot_request();
+<a name="__line160"></a>        }
+<a name="__line161"></a>        inline replot_request x2title(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line162"></a>        {
+<a name="__line163"></a>            frame::current().x2axis()-&gt;title(t);
+<a name="__line164"></a>            frame::current().x2axis()-&gt;unit(u,format);
+<a name="__line165"></a>            return replot_request();
+<a name="__line166"></a>        }
+<a name="__line167"></a>        inline replot_request y1title(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line168"></a>        {
+<a name="__line169"></a>            frame::current().y1axis()-&gt;title(t);
+<a name="__line170"></a>            frame::current().y1axis()-&gt;unit(u,format);
+<a name="__line171"></a>            return replot_request();
+<a name="__line172"></a>        }
+<a name="__line173"></a>        inline replot_request y2title(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line174"></a>        {
+<a name="__line175"></a>            frame::current().y2axis()-&gt;title(t);
+<a name="__line176"></a>            frame::current().y2axis()-&gt;unit(u,format);
+<a name="__line177"></a>            return replot_request();
+<a name="__line178"></a>        }
+<a name="__line179"></a>        inline replot_request xtitle(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line180"></a>        {
+<a name="__line181"></a>            frame::current().x1axis()-&gt;title(t);
+<a name="__line182"></a>            frame::current().x1axis()-&gt;unit(u,format);
+<a name="__line183"></a>            return replot_request();
+<a name="__line184"></a>        }
+<a name="__line185"></a>        inline replot_request ytitle(const var &amp;t, const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line186"></a>        {
+<a name="__line187"></a>            frame::current().y1axis()-&gt;title(t);
+<a name="__line188"></a>            frame::current().y1axis()-&gt;unit(u,format);
+<a name="__line189"></a>            return replot_request();
+<a name="__line190"></a>        }
+<a name="__line191"></a>
+<a name="__line192"></a>
+<a name="__line193"></a>	inline replot_request  ytitle(const var &amp;t)
+<a name="__line194"></a>	    {
+<a name="__line195"></a>		y1title(t);
+<a name="__line196"></a>		return replot_request();
+<a name="__line197"></a>	    }
+<a name="__line198"></a>
+<a name="__line199"></a>        inline replot_request x1title(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line200"></a>        {
+<a name="__line201"></a>            frame::current().x1axis()-&gt;title(t);
+<a name="__line202"></a>            frame::current().x1axis()-&gt;title_pos(pos,align);
+<a name="__line203"></a>            return replot_request();
+<a name="__line204"></a>        }
+<a name="__line205"></a>        inline replot_request x2title(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line206"></a>        {
+<a name="__line207"></a>            frame::current().x2axis()-&gt;title(t);
+<a name="__line208"></a>            frame::current().x2axis()-&gt;title_pos(pos,align);
+<a name="__line209"></a>            return replot_request();
+<a name="__line210"></a>        }
+<a name="__line211"></a>        inline replot_request y1title(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line212"></a>        {
+<a name="__line213"></a>            frame::current().y1axis()-&gt;title(t);
+<a name="__line214"></a>            frame::current().y1axis()-&gt;title_pos(pos,align);
+<a name="__line215"></a>            return replot_request();
+<a name="__line216"></a>        }
+<a name="__line217"></a>        inline replot_request y2title(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line218"></a>        {
+<a name="__line219"></a>            frame::current().y2axis()-&gt;title(t);
+<a name="__line220"></a>            frame::current().y2axis()-&gt;title_pos(pos,align);
+<a name="__line221"></a>            return replot_request();
+<a name="__line222"></a>        }
+<a name="__line223"></a>        inline replot_request xtitle(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line224"></a>        {
+<a name="__line225"></a>            x1title(t,pos,align);
+<a name="__line226"></a>            return replot_request();
+<a name="__line227"></a>        }
+<a name="__line228"></a>        inline replot_request ytitle(const var &amp;t, sym::position pos, sym::position align)
+<a name="__line229"></a>        {
+<a name="__line230"></a>            y1title(t,pos,align);
+<a name="__line231"></a>            return replot_request();
+<a name="__line232"></a>        }
+<a name="__line233"></a>
+<a name="__line234"></a>
+<a name="__line235"></a>	inline replot_request x1label(const var &amp;t) { return x1title(t); }  <span class=comment>// These are provided to have more closely</span>
+<a name="__line236"></a>	inline replot_request x2label(const var &amp;t) { return x2title(t); }  <span class=comment>// mimic Gnuplot's naming scheme</span>
+<a name="__line237"></a>	inline replot_request y1label(const var &amp;t) { return y1title(t); }
+<a name="__line238"></a>	inline replot_request y2label(const var &amp;t) { return y2title(t); }
+<a name="__line239"></a>	inline replot_request xlabel (const var &amp;t) { return x1title(t); }
+<a name="__line240"></a>	inline replot_request ylabel (const var &amp;t) { return y1title(t); }
+<a name="__line241"></a>	
+<a name="__line242"></a>
+<a name='mirror'>
+<a name="__line244"></a>        inline replot_request mirror_x1(bool f) { frame::current().mirror_x1(f); return replot_request(); }
+<a name="__line245"></a>        inline replot_request mirror_x2(bool f) { frame::current().mirror_x2(f); return replot_request(); }
+<a name="__line246"></a>        inline replot_request mirror_y1(bool f) { frame::current().mirror_y1(f); return replot_request(); }
+<a name="__line247"></a>        inline replot_request mirror_y2(bool f) { frame::current().mirror_y2(f); return replot_request(); }
+</a>
+<a name="__line249"></a>
+<a name='range'> </a>
+<a name="__line251"></a>	<span class=comment>// ---------- Set the range of the axes of the current frame  ---------------------</span>
+<a name="__line252"></a>
+<a name="__line253"></a>	inline replot_request x1range(double a=unset,double b=unset)
+<a name="__line254"></a>	    {
+<a name="__line255"></a>		frame::current().x1axis()-&gt;range(a,b);
+<a name="__line256"></a>		return replot_request();
+<a name="__line257"></a>	    }
+<a name="__line258"></a>	inline replot_request x2range(double a=unset,double b=unset)
+<a name="__line259"></a>	    {
+<a name="__line260"></a>		frame::current().x2axis()-&gt;range(a,b);
+<a name="__line261"></a>		return replot_request();
+<a name="__line262"></a>	    }
+<a name="__line263"></a>	inline replot_request y1range(double a=unset,double b=unset)
+<a name="__line264"></a>	    {
+<a name="__line265"></a>		frame::current().y1axis()-&gt;range(a,b);
+<a name="__line266"></a>		return replot_request();
+<a name="__line267"></a>	    }
+<a name="__line268"></a>	inline replot_request y2range(double a=unset,double b=unset)
+<a name="__line269"></a>	    {
+<a name="__line270"></a>		frame::current().y2axis()-&gt;range(a,b);
+<a name="__line271"></a>		return replot_request();
+<a name="__line272"></a>	    }
+<a name="__line273"></a>	inline replot_request xrange(double a=unset,double b=unset)
+<a name="__line274"></a>	    {
+<a name="__line275"></a>		x1range(a,b);
+<a name="__line276"></a>		return replot_request();
+<a name="__line277"></a>	    }
+<a name="__line278"></a>	inline replot_request yrange(double a=unset,double b=unset)
+<a name="__line279"></a>	    {
+<a name="__line280"></a>		y1range(a,b);
+<a name="__line281"></a>		return replot_request();
+<a name="__line282"></a>	    }
+<a name="__line283"></a>
+<a name="__line284"></a>	inline void x1min(double a=unset) { frame::current().x1axis()-&gt;min(a); }
+<a name="__line285"></a>	inline void x2min(double a=unset) { frame::current().x2axis()-&gt;min(a); }
+<a name="__line286"></a>	inline void y1min(double a=unset) { frame::current().y1axis()-&gt;min(a); }
+<a name="__line287"></a>	inline void y2min(double a=unset) { frame::current().y2axis()-&gt;min(a); }
+<a name="__line288"></a>	inline void xmin(double a=unset)  { x1min(a); }
+<a name="__line289"></a>	inline void ymin(double a=unset)  { y1min(a); }
+<a name="__line290"></a>
+<a name="__line291"></a>	inline void x1max(double a=unset) { frame::current().x1axis()-&gt;max(a); }
+<a name="__line292"></a>	inline void x2max(double a=unset) { frame::current().x2axis()-&gt;max(a); }
+<a name="__line293"></a>	inline void y1max(double a=unset) { frame::current().y1axis()-&gt;max(a); }
+<a name="__line294"></a>	inline void y2max(double a=unset) { frame::current().y2axis()-&gt;max(a); }
+<a name="__line295"></a>	inline void xmax(double a=unset)  { x1max(a); }
+<a name="__line296"></a>	inline void ymax(double a=unset)  { y1max(a); }
+<a name="__line297"></a>
+<a name='nodistort'>
+<a name="__line299"></a>	inline replot_request nodistort(bool f=true)
+<a name="__line300"></a>	    {
+<a name="__line301"></a>		frame::current().nodistort(f);
+<a name="__line302"></a>		return replot_request();
+<a name="__line303"></a>	    }
+</a>
+<a name="__line305"></a>
+<a name="symmetric_range">
+<a name="__line307"></a>        <span class=comment>// Enforce that the range of the given axis is symmetric around 0</span>
+<a name="__line308"></a>        inline replot_request symmetric_range_x1(bool s)
+<a name="__line309"></a>        {
+<a name="__line310"></a>            frame::current().x1axis()-&gt;symmetric_range(s);
+<a name="__line311"></a>            return replot_request();
+<a name="__line312"></a>        }
+<a name="__line313"></a>        inline replot_request symmetric_range_y1(bool s)
+<a name="__line314"></a>        {
+<a name="__line315"></a>            frame::current().y1axis()-&gt;symmetric_range(s);
+<a name="__line316"></a>            return replot_request();
+<a name="__line317"></a>        }
+<a name="__line318"></a>        inline replot_request symmetric_range_x2(bool s)
+<a name="__line319"></a>        {
+<a name="__line320"></a>            frame::current().x2axis()-&gt;symmetric_range(s);
+<a name="__line321"></a>            return replot_request();
+<a name="__line322"></a>        }
+<a name="__line323"></a>        inline replot_request symmetric_range_y2(bool s)
+<a name="__line324"></a>        {
+<a name="__line325"></a>            frame::current().y2axis()-&gt;symmetric_range(s);
+<a name="__line326"></a>            return replot_request();
+<a name="__line327"></a>        }
+<a name="__line328"></a>        inline replot_request symmetric_range_x(bool s)
+<a name="__line329"></a>        {
+<a name="__line330"></a>            return symmetric_range_x1(s);
+<a name="__line331"></a>        }
+<a name="__line332"></a>        inline replot_request symmetric_range_y(bool s)
+<a name="__line333"></a>        {
+<a name="__line334"></a>            return symmetric_range_y1(s);
+<a name="__line335"></a>        }
+</a>
+<a name="__line337"></a>
+<a name='unit'> </a>
+<a name="__line339"></a>	<span class=comment>// ---------- set axis units ------------------------------------------------------</span>
+<a name="__line340"></a>	inline replot_request xunit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line341"></a>	{
+<a name="__line342"></a>	    frame::current().x1axis()-&gt;unit(u,format);
+<a name="__line343"></a>	    return replot_request();
+<a name="__line344"></a>	}
+<a name="__line345"></a>	inline replot_request yunit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line346"></a>	{
+<a name="__line347"></a>	    frame::current().y1axis()-&gt;unit(u,format);
+<a name="__line348"></a>	    return replot_request();
+<a name="__line349"></a>	}
+<a name="__line350"></a>        <span class=comment>// Set both x and y units to the same</span>
+<a name="__line351"></a>        inline replot_request xyunit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line352"></a>        {
+<a name="__line353"></a>	    frame::current().x1axis()-&gt;unit(u,format);
+<a name="__line354"></a>	    frame::current().y1axis()-&gt;unit(u,format);
+<a name="__line355"></a>            return replot_request();
+<a name="__line356"></a>        }
+<a name="__line357"></a>	inline replot_request x1unit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line358"></a>	{
+<a name="__line359"></a>	    frame::current().x1axis()-&gt;unit(u,format);
+<a name="__line360"></a>	    return replot_request();
+<a name="__line361"></a>	}
+<a name="__line362"></a>	inline replot_request y1unit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line363"></a>	{
+<a name="__line364"></a>	    frame::current().y1axis()-&gt;unit(u,format);
+<a name="__line365"></a>	    return replot_request();
+<a name="__line366"></a>	}
+<a name="__line367"></a>	inline replot_request x2unit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line368"></a>	{
+<a name="__line369"></a>	    frame::current().x2axis()-&gt;unit(u,format);
+<a name="__line370"></a>	    return replot_request();
+<a name="__line371"></a>	}
+<a name="__line372"></a>	inline replot_request y2unit(const var &amp;u, const var &amp;format=unit::default_format())
+<a name="__line373"></a>	{
+<a name="__line374"></a>	    frame::current().y2axis()-&gt;unit(u,format);
+<a name="__line375"></a>	    return replot_request();
+<a name="__line376"></a>	}
+<a name="__line377"></a>
+<a name='scale'> </a>
+<a name="__line379"></a>	<span class=comment>// ---------- set axis scales -----------------------------------------------------</span>
+<a name="__line380"></a>
+<a name="__line381"></a>	inline replot_request xscale(const var &amp;scale)
+<a name="__line382"></a>	    {
+<a name="__line383"></a>		frame::current().x1axis()-&gt;scale(scale);
+<a name="__line384"></a>		return replot_request();
+<a name="__line385"></a>	    }
+<a name="__line386"></a>	inline replot_request yscale(const var &amp;scale)
+<a name="__line387"></a>	    {
+<a name="__line388"></a>		frame::current().y1axis()-&gt;scale(scale);
+<a name="__line389"></a>		return replot_request();
+<a name="__line390"></a>	    }
+<a name="__line391"></a>	inline replot_request x1scale(const var &amp;scale)
+<a name="__line392"></a>	    {
+<a name="__line393"></a>		frame::current().x1axis()-&gt;scale(scale);
+<a name="__line394"></a>		return replot_request();
+<a name="__line395"></a>	    }
+<a name="__line396"></a>	inline replot_request y1scale(const var &amp;scale)
+<a name="__line397"></a>	    {
+<a name="__line398"></a>		frame::current().y1axis()-&gt;scale(scale);
+<a name="__line399"></a>		return replot_request();
+<a name="__line400"></a>	    }
+<a name="__line401"></a>	inline replot_request x2scale(const var &amp;scale)
+<a name="__line402"></a>	    {
+<a name="__line403"></a>		frame::current().x2axis()-&gt;scale(scale);
+<a name="__line404"></a>		return replot_request();
+<a name="__line405"></a>	    }
+<a name="__line406"></a>	inline replot_request y2scale(const var &amp;scale)
+<a name="__line407"></a>	    {
+<a name="__line408"></a>		frame::current().y2axis()-&gt;scale(scale);
+<a name="__line409"></a>		return replot_request();
+<a name="__line410"></a>	    }
+<a name="__line411"></a>
+<a name="__line412"></a>
+<a name='grid'> </a>
+<a name="__line414"></a>	<span class=comment>// ---------- Grid control --------------------------------------------------------</span>
+<a name="__line415"></a>	<span class=comment>// Switch on-off grid drawing for the current frame (grid), or permanently, for any</span>
+<a name="__line416"></a>	<span class=comment>// future frames (Grid)</span>
+<a name="__line417"></a>
+<a name="__line418"></a>	inline replot_request  grid(int which_directions)
+<a name="__line419"></a>	    {
+<a name="__line420"></a>                if(frame *f = frame::check_current()) f-&gt;grid(which_directions);
+<a name="__line421"></a>		else frame::default_grid(which_directions);
+<a name="__line422"></a>		return replot_request();
+<a name="__line423"></a>	    }
+<a name="__line424"></a>	inline replot_request grid(bool g=true)
+<a name="__line425"></a>	    {
+<a name="__line426"></a>                if(frame *f = frame::check_current())
+<a name="__line427"></a>                {
+<a name="__line428"></a>                    if(g) f-&gt;grid(axis::x1|axis::y1);
+<a name="__line429"></a>                    else  f-&gt;grid(0);
+<a name="__line430"></a>                }
+<a name="__line431"></a>                else
+<a name="__line432"></a>                {
+<a name="__line433"></a>                    if(g) frame::default_grid(axis::x1|axis::y1);
+<a name="__line434"></a>                    else  frame::default_grid(0);
+<a name="__line435"></a>                }
+<a name="__line436"></a>		return replot_request();
+<a name="__line437"></a>	    }
+<a name="__line438"></a>        inline replot_request grid_at_minor_tics(int which_directions)
+<a name="__line439"></a>            {
+<a name="__line440"></a>                if(frame *f = frame::check_current()) f-&gt;grid_at_minor_tics(which_directions);
+<a name="__line441"></a>                else frame::default_grid_at_minor_tics(which_directions);
+<a name="__line442"></a>                return replot_request();
+<a name="__line443"></a>            }
+<a name="__line444"></a>        inline replot_request grid_at_minor_tics(bool g)
+<a name="__line445"></a>            {
+<a name="__line446"></a>                if(frame *f = frame::check_current())
+<a name="__line447"></a>                {
+<a name="__line448"></a>                    if(g) f-&gt;grid_at_minor_tics(axis::x1|axis::y1);
+<a name="__line449"></a>                    else  f-&gt;grid_at_minor_tics(0);
+<a name="__line450"></a>                }
+<a name="__line451"></a>                else
+<a name="__line452"></a>                {
+<a name="__line453"></a>                    if(g) frame::default_grid_at_minor_tics(axis::x1|axis::y1);
+<a name="__line454"></a>                    else  frame::default_grid_at_minor_tics(0);
+<a name="__line455"></a>                }
+<a name="__line456"></a>                return replot_request();
+<a name="__line457"></a>            }
+<a name="__line458"></a>	inline replot_request default_grid(int which_directions)
+<a name="__line459"></a>	    {
+<a name="__line460"></a>		frame::default_grid(which_directions);
+<a name="__line461"></a>		return replot_request();
+<a name="__line462"></a>	    }
+<a name="__line463"></a>	inline replot_request default_grid(bool f)
+<a name="__line464"></a>	    {
+<a name="__line465"></a>		if(f)
+<a name="__line466"></a>		{
+<a name="__line467"></a>		    frame::default_grid(axis::x1|axis::y1);
+<a name="__line468"></a>		}
+<a name="__line469"></a>		else
+<a name="__line470"></a>		{
+<a name="__line471"></a>		    frame::default_grid(0);
+<a name="__line472"></a>		}
+<a name="__line473"></a>		return replot_request();
+<a name="__line474"></a>	    }
+<a name="__line475"></a>
+<a name="__line476"></a>        <span class=comment>// ---------- set the width of major/minor gridlines ------------------------------</span>
+<a name="__line477"></a>
+<a name="__line478"></a>        inline replot_request gridwidth(const length &amp;l)
+<a name="__line479"></a>        {
+<a name="__line480"></a>            if(frame *f = frame::check_current()) f-&gt;gridwidth(l);
+<a name="__line481"></a>            else frame::default_gridwidth(l);
+<a name="__line482"></a>            return replot_request();
+<a name="__line483"></a>        }
+<a name="__line484"></a>        inline replot_request minor_gridwidth(const length &amp;l)
+<a name="__line485"></a>        {
+<a name="__line486"></a>            if(frame *f = frame::check_current()) f-&gt;minor_gridwidth(l);
+<a name="__line487"></a>            else frame::default_minor_gridwidth(l);
+<a name="__line488"></a>            return replot_request();
+<a name="__line489"></a>        }
+<a name="__line490"></a>
+<a name="__line491"></a>        <span class=comment>// ---------- set the color of the major/minor gridlines --------------------------</span>
+<a name="__line492"></a>
+<a name="__line493"></a>        inline replot_request gridcolor(const color &amp;c)
+<a name="__line494"></a>        {
+<a name="__line495"></a>            if(frame *f = frame::check_current()) f-&gt;gridcolor(c);
+<a name="__line496"></a>            else frame::default_gridcolor(c);
+<a name="__line497"></a>            return replot_request();
+<a name="__line498"></a>        }
+<a name="__line499"></a>        inline replot_request minor_gridcolor(const color &amp;c)
+<a name="__line500"></a>        {
+<a name="__line501"></a>            if(frame *f = frame::check_current()) f-&gt;minor_gridcolor(c);
+<a name="__line502"></a>            else frame::default_minor_gridcolor(c);
+<a name="__line503"></a>            return replot_request();
+<a name="__line504"></a>        }
+<a name="__line505"></a>
+<a name="__line506"></a>        inline void default_gridcolor(const color &amp;c)
+<a name="__line507"></a>        {
+<a name="__line508"></a>            frame::default_gridcolor(c);
+<a name="__line509"></a>        }
+<a name="__line510"></a>        inline void default_minor_gridcolor(const color &amp;c)
+<a name="__line511"></a>        {
+<a name="__line512"></a>            frame::default_minor_gridcolor(c);
+<a name="__line513"></a>        }
+<a name="__line514"></a>
+<a name="__line515"></a>
+<a name="__line516"></a>        <span class=comment>// ---------- set the linestyle of minor/major gridlines --------------------------</span>
+<a name="__line517"></a>
+<a name="__line518"></a>        inline replot_request gridstyle(sym::linestyle s)
+<a name="__line519"></a>        {
+<a name="__line520"></a>            if(frame *f = frame::check_current()) f-&gt;gridstyle(s);
+<a name="__line521"></a>            else frame::default_gridstyle(s);
+<a name="__line522"></a>            return replot_request();
+<a name="__line523"></a>        }
+<a name="__line524"></a>        inline replot_request minor_gridstyle(sym::linestyle s)
+<a name="__line525"></a>        {
+<a name="__line526"></a>            if(frame *f = frame::check_current()) f-&gt;minor_gridstyle(s);
+<a name="__line527"></a>            else frame::default_minor_gridstyle(s);
+<a name="__line528"></a>            return replot_request();
+<a name="__line529"></a>        }
+<a name="__line530"></a>        inline void default_gridstyle(sym::linestyle s)
+<a name="__line531"></a>        {
+<a name="__line532"></a>            frame::default_gridstyle(s);
+<a name="__line533"></a>        }
+<a name="__line534"></a>        inline void default_minor_gridstyle(sym::linestyle s)
+<a name="__line535"></a>        {
+<a name="__line536"></a>            frame::default_minor_gridstyle(s);
+<a name="__line537"></a>        }
+<a name="__line538"></a>
+<a name='title'> </a>
+<a name="__line540"></a>	<span class=comment>// ---------- Set title  ----------------------------------------------------------</span>
+<a name="__line541"></a>        <span class=comment>// If called within a subframe of an mframe, sets the title of the mframe</span>
+<a name="__line542"></a>        <span class=comment>// If called within a standalone frame, sets the title of the frame</span>
+<a name="__line543"></a>        <span class=comment>// Otherwise sets the title of the current pad (or canvas)</span>
+<a name="__line544"></a>
+<a name="__line545"></a>	inline replot_request title(const var &amp;t)
+<a name="__line546"></a>	    {
+<a name="__line547"></a>                <span class=comment>// If there is a current frame...</span>
+<a name="__line548"></a>                if(frame *f = frame::check_current())
+<a name="__line549"></a>                {
+<a name="__line550"></a>                    <span class=comment>// check if it is part of an mframe. If yes, set the title of the mframe</span>
+<a name="__line551"></a>                    if(mframe *mf = dynamic_cast&lt;mframe*&gt;(f-&gt;parent()))
+<a name="__line552"></a>                    {
+<a name="__line553"></a>                        mf-&gt;title(t);
+<a name="__line554"></a>                    }
+<a name="__line555"></a>                    else <span class=comment>// otherwise set the title of the frame</span>
+<a name="__line556"></a>                    {
+<a name="__line557"></a>                        f-&gt;title(t);
+<a name="__line558"></a>                    }
+<a name="__line559"></a>                }
+<a name="__line560"></a>                else
+<a name="__line561"></a>                {
+<a name="__line562"></a>                    <span class=comment>// If there is no current frame, </span>
+<a name="__line563"></a>                    pad::current().title(t);
+<a name="__line564"></a>                }
+<a name="__line565"></a>		return replot_request();
+<a name="__line566"></a>	    }
+<a name="__line567"></a>
+<a name="__line568"></a>        inline replot_request canvastitle(const var &amp;t)
+<a name="__line569"></a>        {
+<a name="__line570"></a>            canvas::current().title(t);
+<a name="__line571"></a>            return replot_request();
+<a name="__line572"></a>        }
+<a name="__line573"></a>        inline replot_request canvas_title(const var &amp;t)
+<a name="__line574"></a>        {
+<a name="__line575"></a>            canvas::current().title(t);
+<a name="__line576"></a>            return replot_request();
+<a name="__line577"></a>        }
+<a name="__line578"></a>
+<a name="__line579"></a>        inline replot_request padtitle(const var &amp;t)
+<a name="__line580"></a>        {
+<a name="__line581"></a>            pad::current().title(t);
+<a name="__line582"></a>            return replot_request();
+<a name="__line583"></a>        }
+<a name="__line584"></a>        inline replot_request pad_title(const var &amp;t)
+<a name="__line585"></a>        {
+<a name="__line586"></a>            pad::current().title(t);
+<a name="__line587"></a>            return replot_request();
+<a name="__line588"></a>        }
+<a name="__line589"></a>
+<a name='legend_sample_length'>
+<a name="__line591"></a>        inline replot_request legend_sample_length(const length &amp;len)
+<a name="__line592"></a>        {
+<a name="__line593"></a>            if(legendbox *l = frame::current().legend()) l-&gt;sample_length(len);
+<a name="__line594"></a>            return replot_request();
+<a name="__line595"></a>        }
+<a name="__line596"></a>
+<a name="__line597"></a>
+<a name='multilegend'> </a>
+<a name="__line599"></a>	<span class=comment>// ---------- Set multilegends on/off  --------------------------------------------</span>
+<a name="__line600"></a>
+<a name="__line601"></a>	inline void multilegend(bool t) { frame::current().legend()-&gt;multi(t); }
+<a name="__line602"></a>
+<a name='legendpos'> </a>
+<a name="__line604"></a>	<span class=comment>// ---------- Set legend position of current frame --------------------------------</span>
+<a name="__line605"></a>
+<a name="__line606"></a>	inline replot_request legendpos(sym::position xpos, sym::position ypos)
+<a name="__line607"></a>	    {
+<a name="__line608"></a>		frame::current().legendpos(xpos,ypos);
+<a name="__line609"></a>		return replot_request();
+<a name="__line610"></a>	    }
+<a name="__line611"></a>        
+<a name="fill_legend">
+<a name="__line613"></a>        <span class=comment>// ---------- Switch on-off filling of the legendbox ------------------------------</span>
+<a name="__line614"></a>        <span class=comment>// If we are within an active frame, the legendbox of that frame is affected.</span>
+<a name="__line615"></a>        <span class=comment>// Otherwise this flag is set globally, and all subsequent frames/legendboxes</span>
+<a name="__line616"></a>        <span class=comment>// will be affected.</span>
+<a name="__line617"></a>
+<a name="__line618"></a>        inline replot_request fill_legend(bool f)
+<a name="__line619"></a>        {
+<a name="__line620"></a>            if(frame *current_frame = frame::check_current())
+<a name="__line621"></a>            {
+<a name="__line622"></a>                if(legendbox *l = current_frame-&gt;legend()) l-&gt;fill(f);
+<a name="__line623"></a>            }
+<a name="__line624"></a>            else legendbox::default_fill(f);
+<a name="__line625"></a>            return replot_request();
+<a name="__line626"></a>        }
+</a>
+<a name="__line628"></a>
+<a name="__line629"></a>	<span class=comment>// ---------- Switch to logscale/nologscale ---------------------------------------</span>
+<a name="__line630"></a>
+<a name='logscale'> </a>
+<a name="__line632"></a>	inline replot_request logscale_x1(bool t)
+<a name="__line633"></a>	    {
+<a name="__line634"></a>		frame::current().x1axis()-&gt;logscale(t);
+<a name="__line635"></a>		return replot_request();
+<a name="__line636"></a>	    }
+<a name="__line637"></a>	inline replot_request logscale_x2(bool t)
+<a name="__line638"></a>	    {
+<a name="__line639"></a>		frame::current().x2axis()-&gt;logscale(t);
+<a name="__line640"></a>		return replot_request();
+<a name="__line641"></a>		
+<a name="__line642"></a>	    }
+<a name="__line643"></a>	inline replot_request logscale_y1(bool t)
+<a name="__line644"></a>	    {
+<a name="__line645"></a>		frame::current().y1axis()-&gt;logscale(t);
+<a name="__line646"></a>		return replot_request();
+<a name="__line647"></a>	    }
+<a name="__line648"></a>	inline replot_request logscale_y2(bool t)
+<a name="__line649"></a>	    {
+<a name="__line650"></a>		frame::current().y2axis()-&gt;logscale(t);
+<a name="__line651"></a>		return replot_request();
+<a name="__line652"></a>	    }
+<a name="__line653"></a>	inline replot_request logscale_x (bool t)
+<a name="__line654"></a>	    {
+<a name="__line655"></a>		frame::current().x1axis()-&gt;logscale(t);
+<a name="__line656"></a>		return replot_request();
+<a name="__line657"></a>	    }
+<a name="__line658"></a>	inline replot_request logscale_y (bool t)
+<a name="__line659"></a>	    {
+<a name="__line660"></a>		frame::current().y1axis()-&gt;logscale(t);
+<a name="__line661"></a>		return replot_request();
+<a name="__line662"></a>	    }
+<a name="__line663"></a>
+<a name="__line664"></a>
+<a name="__line665"></a>	<span class=comment>// ---------- Set the axis tics  --------------------------------------------------</span>
+<a name="__line666"></a>
+<a name="__line667"></a>	extern tic_setter xtics, ytics, x1tics, x2tics, y1tics, y2tics;
+<a name="__line668"></a>
+<a name="__line669"></a>        inline replot_request ticlength(const length &amp;l)
+<a name="__line670"></a>        {
+<a name="__line671"></a>            frame::current().ticlength(l);
+<a name="__line672"></a>            return replot_request();
+<a name="__line673"></a>        }
+<a name="__line674"></a>        inline replot_request minor_ticlength(const length &amp;l)
+<a name="__line675"></a>        {
+<a name="__line676"></a>            frame::current().minor_ticlength(l);
+<a name="__line677"></a>            return replot_request();
+<a name="__line678"></a>        }
+<a name="__line679"></a>
+<a name="__line680"></a>        <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line681"></a>        <span class=comment>// These functions specify the number of intervals between major tics</span>
+<a name="__line682"></a>
+<a name="__line683"></a>        inline replot_request n_minor_tics_x1(int n)
+<a name="__line684"></a>        {
+<a name="__line685"></a>            frame::current().x1axis()-&gt;n_minor_tics(n);
+<a name="__line686"></a>            frame::current().x1axis()-&gt;draw_minor_tics(true);
+<a name="__line687"></a>            return replot_request();
+<a name="__line688"></a>        }
+<a name="__line689"></a>        inline replot_request n_minor_tics_y1(int n)
+<a name="__line690"></a>        {
+<a name="__line691"></a>            frame::current().y1axis()-&gt;n_minor_tics(n);
+<a name="__line692"></a>            frame::current().y1axis()-&gt;draw_minor_tics(true);
+<a name="__line693"></a>            return replot_request();
+<a name="__line694"></a>        }
+<a name="__line695"></a>        inline replot_request n_minor_tics_x(int n)
+<a name="__line696"></a>        {
+<a name="__line697"></a>            n_minor_tics_x1(n);
+<a name="__line698"></a>            return replot_request();
+<a name="__line699"></a>        }
+<a name="__line700"></a>        inline replot_request n_minor_tics_y(int n)
+<a name="__line701"></a>        {
+<a name="__line702"></a>            n_minor_tics_y1(n);
+<a name="__line703"></a>            return replot_request();
+<a name="__line704"></a>        }
+<a name="__line705"></a>        inline replot_request n_minor_tics_x2(int n)
+<a name="__line706"></a>        {
+<a name="__line707"></a>            frame::current().x2axis()-&gt;n_minor_tics(n);
+<a name="__line708"></a>            frame::current().x2axis()-&gt;draw_minor_tics(true);
+<a name="__line709"></a>            return replot_request();
+<a name="__line710"></a>        }
+<a name="__line711"></a>        inline replot_request n_minor_tics_y2(int n)
+<a name="__line712"></a>        {
+<a name="__line713"></a>            frame::current().y2axis()-&gt;n_minor_tics(n);
+<a name="__line714"></a>            frame::current().y2axis()-&gt;draw_minor_tics(true);
+<a name="__line715"></a>            return replot_request();
+<a name="__line716"></a>        }
+<a name="__line717"></a>        inline replot_request n_minor_tics(int n)
+<a name="__line718"></a>        {
+<a name="__line719"></a>            n_minor_tics_x1(n);
+<a name="__line720"></a>            n_minor_tics_y1(n);
+<a name="__line721"></a>            return replot_request();
+<a name="__line722"></a>        }
+<a name="__line723"></a>
+<a name="__line724"></a>	<span class=comment>// ---------- ticformat  ----------------------------------------------------------</span>
+<a name="__line725"></a>
+<a name="__line726"></a>        inline replot_request ticformat(const var &amp;f)
+<a name="__line727"></a>        {
+<a name="__line728"></a>            frame::current().x1axis()-&gt;ticformat(f);
+<a name="__line729"></a>            frame::current().x2axis()-&gt;ticformat(f);
+<a name="__line730"></a>            frame::current().y1axis()-&gt;ticformat(f);
+<a name="__line731"></a>            frame::current().y2axis()-&gt;ticformat(f);
+<a name="__line732"></a>            return replot_request();
+<a name="__line733"></a>        }
+<a name="__line734"></a>
+<a name="__line735"></a>
+<a name="__line736"></a>
+<a name="__line737"></a>	inline replot_request x1ticformat(const var &amp;f)
+<a name="__line738"></a>	{
+<a name="__line739"></a>	    frame::current().x1axis()-&gt;ticformat(f);
+<a name="__line740"></a>	    return replot_request();
+<a name="__line741"></a>	}
+<a name="__line742"></a>	inline replot_request xticformat(const var &amp;f)
+<a name="__line743"></a>	{
+<a name="__line744"></a>	    frame::current().x1axis()-&gt;ticformat(f);
+<a name="__line745"></a>	    return replot_request();
+<a name="__line746"></a>	}
+<a name="__line747"></a>	inline replot_request y1ticformat(const var &amp;f)
+<a name="__line748"></a>	{
+<a name="__line749"></a>	    frame::current().y1axis()-&gt;ticformat(f);
+<a name="__line750"></a>	    return replot_request();
+<a name="__line751"></a>	}
+<a name="__line752"></a>	inline replot_request yticformat(const var &amp;f)
+<a name="__line753"></a>	{
+<a name="__line754"></a>	    frame::current().y1axis()-&gt;ticformat(f);
+<a name="__line755"></a>	    return replot_request();
+<a name="__line756"></a>	}
+<a name="__line757"></a>	inline replot_request x2ticformat(const var &amp;f)
+<a name="__line758"></a>	{
+<a name="__line759"></a>	    frame::current().x2axis()-&gt;ticformat(f);
+<a name="__line760"></a>	    return replot_request();
+<a name="__line761"></a>	}
+<a name="__line762"></a>	inline replot_request y2ticformat(const var &amp;f)
+<a name="__line763"></a>	{
+<a name="__line764"></a>	    frame::current().y2axis()-&gt;ticformat(f);
+<a name="__line765"></a>	    return replot_request();
+<a name="__line766"></a>	}
+<a name="__line767"></a>
+<a name="__line768"></a>	inline replot_request x1ticformat(const char *f) {return x1ticformat(var(f));}
+<a name="__line769"></a>	inline replot_request xticformat(const char *f)  {return xticformat(var(f));}
+<a name="__line770"></a>	inline replot_request y1ticformat(const char *f) {return y1ticformat(var(f));}
+<a name="__line771"></a>	inline replot_request yticformat(const char *f)  {return yticformat(var(f));}
+<a name="__line772"></a>	inline replot_request x2ticformat(const char *f) {return x2ticformat(var(f));}
+<a name="__line773"></a>	inline replot_request y2ticformat(const char *f) {return y2ticformat(var(f));}
+<a name="__line774"></a>
+<a name="__line775"></a>	inline replot_request x1ticformat(const std::string &amp;f) {return x1ticformat(var(f));}
+<a name="__line776"></a>	inline replot_request xticformat(const std::string &amp;f) {return xticformat(var(f));}
+<a name="__line777"></a>	inline replot_request y1ticformat(const std::string &amp;f) {return y1ticformat(var(f));}
+<a name="__line778"></a>	inline replot_request yticformat(const std::string &amp;f) {return yticformat(var(f));}
+<a name="__line779"></a>	inline replot_request x2ticformat(const std::string &amp;f) {return x2ticformat(var(f));}
+<a name="__line780"></a>	inline replot_request y2ticformat(const std::string &amp;f) {return y2ticformat(var(f));}
+<a name="__line781"></a>        
+<a name="__line782"></a>	inline replot_request x1ticformat(const blop::function &amp;f)
+<a name="__line783"></a>	{
+<a name="__line784"></a>	    frame::current().x1axis()-&gt;ticformat(f);
+<a name="__line785"></a>	    return replot_request();
+<a name="__line786"></a>	}
+<a name="__line787"></a>	inline replot_request xticformat(const blop::function &amp;f)
+<a name="__line788"></a>	{
+<a name="__line789"></a>	    frame::current().x1axis()-&gt;ticformat(f);
+<a name="__line790"></a>	    return replot_request();
+<a name="__line791"></a>	}
+<a name="__line792"></a>	inline replot_request y1ticformat(const blop::function &amp;f)
+<a name="__line793"></a>	{
+<a name="__line794"></a>	    frame::current().y1axis()-&gt;ticformat(f);
+<a name="__line795"></a>	    return replot_request();
+<a name="__line796"></a>	}
+<a name="__line797"></a>	inline replot_request yticformat(const blop::function &amp;f)
+<a name="__line798"></a>	{
+<a name="__line799"></a>	    frame::current().y1axis()-&gt;ticformat(f);
+<a name="__line800"></a>	    return replot_request();
+<a name="__line801"></a>	}
+<a name="__line802"></a>	inline replot_request x2ticformat(const blop::function &amp;f)
+<a name="__line803"></a>	{
+<a name="__line804"></a>	    frame::current().x2axis()-&gt;ticformat(f);
+<a name="__line805"></a>	    return replot_request();
+<a name="__line806"></a>	}
+<a name="__line807"></a>	inline replot_request y2ticformat(const blop::function &amp;f)
+<a name="__line808"></a>	{
+<a name="__line809"></a>	    frame::current().y2axis()-&gt;ticformat(f);
+<a name="__line810"></a>	    return replot_request();
+<a name="__line811"></a>	}
+<a name="__line812"></a>
+<a name="__line813"></a>        
+<a name='frame_foreground'> </a>
+<a name='grid_foreground'> </a>
+<a name="__line816"></a>	<span class=comment>// ---------- Draw the grid/frame in the foreground (on top of graphs) ------------</span>
+<a name="__line817"></a>	inline replot_request grid_foreground(bool f)
+<a name="__line818"></a>	    { frame::current().grid_foreground(f); return replot_request(); }
+<a name="__line819"></a>	inline replot_request frame_foreground(bool f)
+<a name="__line820"></a>	    { frame::current().foreground(f); return replot_request(); }
+<a name="__line821"></a>
+<a name="__line822"></a>	<span class=comment>// ---------- transform axis  -----------------------------------------------------</span>
+<a name="__line823"></a>	<span class=comment>// y2transform, for example, sets the y2 axis of the current frame to</span>
+<a name="__line824"></a>	<span class=comment>// be a transformed version of the y1 axis</span>
+<a name="__line825"></a>
+<a name="__line826"></a>	replot_request y2transform(const function &amp;to, const function &amp;back,bool own_tics=false);
+<a name="__line827"></a>	replot_request x2transform(const function &amp;to, const function &amp;back,bool own_tics=false);
+<a name="__line828"></a>	replot_request y1transform(const function &amp;to, const function &amp;back,bool own_tics=false);
+<a name="__line829"></a>	replot_request x1transform(const function &amp;to, const function &amp;back,bool own_tics=false);
+<a name="__line830"></a>
+<a name="__line831"></a>	inline void debug(int d) { blop::global::debug = d; }
+<a name="__line832"></a>
+<a name="__line833"></a>        <span class=comment>// Draw a horizontal or vertical marker line at a given value of the specified axis</span>
+<a name="__line834"></a>        inline line &amp;aline(double d, int ax)
+<a name="__line835"></a>        {
+<a name="__line836"></a>            if(ax==axis::x1) return line::fdraw(x1len(d),0.0)(x1len(d),1.0);
+<a name="__line837"></a>            if(ax==axis::x2) return line::fdraw(x2len(d),0.0)(x2len(d),1.0);
+<a name="__line838"></a>            if(ax==axis::y1) return line::fdraw(0.0,y1len(d))(1.0,y1len(d));
+<a name="__line839"></a>            if(ax==axis::y2) return line::fdraw(0.0,y2len(d))(1.0,y2len(d));
+<a name="__line840"></a>            static line the_line;
+<a name="__line841"></a>            return the_line;
+<a name="__line842"></a>        }
+<a name="__line843"></a>#ifndef __MAKECINT__
+<a name="__line844"></a>        auto aline(double d,int ax, var label, const length &amp;x=-0.5*EX, const length &amp;y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double angle=unset);
+<a name="__line845"></a>#endif
+<a name="__line846"></a>
+<a name="__line847"></a>        inline line &amp;vline(double d) {return line::fdraw(x1len(d),0.0)(x1len(d),1.0);}
+<a name="__line848"></a>        inline line &amp;v1line(double d) {return line::fdraw(x1len(d),0.0)(x1len(d),1.0);}
+<a name="__line849"></a>        inline line &amp;v2line(double d) {return line::fdraw(x2len(d),0.0)(x2len(d),1.0);}
+<a name="__line850"></a>#ifndef __MAKECINT__
+<a name="__line851"></a>        inline auto vline(double d,var label, const length &amp;dx=-0.5*EX, const length &amp;y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double a=90*unit::deg)
+<a name="__line852"></a>        {
+<a name="__line853"></a>            struct _ { blop::line &amp;the_line; blop::label &amp;the_label; };
+<a name="__line854"></a>            return _ {line::fdraw(x1len(d),0.0)(x1len(d),1.0),
+<a name="__line855"></a>                      label::fdraw(label,x1len(d)+dx,y).align(halign,valign).angle(a)};
+<a name="__line856"></a>        }
+<a name="__line857"></a>#endif
+<a name="__line858"></a>
+<a name="__line859"></a>        inline grobs vlines(const blop::array &amp;values)
+<a name="__line860"></a>        {
+<a name="__line861"></a>            grobs result;
+<a name="__line862"></a>            for(unsigned int i=0; i&lt;values.size(); ++i)
+<a name="__line863"></a>            {
+<a name="__line864"></a>                result.add(&amp;line::fdraw(x1len(values[i].dbl()),0.0)(x1len(values[i].dbl()),1.0));
+<a name="__line865"></a>            }
+<a name="__line866"></a>            return result;
+<a name="__line867"></a>        }
+<a name="__line868"></a>        inline grobs vlines(const std::vector&lt;double&gt; &amp;values)
+<a name="__line869"></a>        {
+<a name="__line870"></a>            grobs result;
+<a name="__line871"></a>            for(unsigned int i=0; i&lt;values.size(); ++i)
+<a name="__line872"></a>            {
+<a name="__line873"></a>                result.add(&amp;line::fdraw(x1len(values[i]),0.0)(x1len(values[i]),1.0));
+<a name="__line874"></a>            }
+<a name="__line875"></a>            return result;
+<a name="__line876"></a>        }
+<a name="__line877"></a>        inline grobs vlines(const std::valarray&lt;double&gt; &amp;values)
+<a name="__line878"></a>        {
+<a name="__line879"></a>            grobs result;
+<a name="__line880"></a>            for(unsigned int i=0; i&lt;values.size(); ++i)
+<a name="__line881"></a>            {
+<a name="__line882"></a>                result.add(&amp;line::fdraw(x1len(values[i]),0.0)(x1len(values[i]),1.0));
+<a name="__line883"></a>            }
+<a name="__line884"></a>            return result;
+<a name="__line885"></a>        }
+<a name="__line886"></a>#ifndef __MAKECINT__
+<a name="__line887"></a>        inline grobs vlines(const std::initializer_list&lt;double&gt; values)
+<a name="__line888"></a>        {
+<a name="__line889"></a>            std::vector&lt;double&gt; v = values;
+<a name="__line890"></a>            return vlines(v);
+<a name="__line891"></a>        }
+<a name="__line892"></a>#endif
+<a name="__line893"></a>
+<a name="__line894"></a>        inline line &amp;hline(double d) {return line::fdraw(0.0,y1len(d))(1.0,y1len(d));}
+<a name="__line895"></a>        inline line &amp;h1line(double d) {return line::fdraw(0.0,y1len(d))(1.0,y1len(d));}
+<a name="__line896"></a>        inline line &amp;h2line(double d) {return line::fdraw(0.0,y2len(d))(1.0,y2len(d));}
+<a name="__line897"></a>#ifndef __MAKECINT__
+<a name="__line898"></a>        inline auto hline(double d,var label, const length &amp;x=0.05, const length &amp;dy=0.5*EX, sym::position halign=sym::left, sym::position valign=sym::bottom, double a=0)
+<a name="__line899"></a>        {
+<a name="__line900"></a>            struct _ { blop::line &amp;the_line; blop::label &amp;the_label; };
+<a name="__line901"></a>            return _ {line::fdraw(0.0,y1len(d))(1.0,y1len(d)),
+<a name="__line902"></a>                      label::fdraw(label,x,y1len(d)+dy).align(halign,valign).angle(a)};
+<a name="__line903"></a>        }
+<a name="__line904"></a>#endif
+<a name="__line905"></a>
+<a name="__line906"></a>        inline grobs hlines(const blop::array &amp;values)
+<a name="__line907"></a>        {
+<a name="__line908"></a>            grobs result;
+<a name="__line909"></a>            for(unsigned int i=0; i&lt;values.size(); ++i) 
+<a name="__line910"></a>            {
+<a name="__line911"></a>                result.add(&amp;line::fdraw(0.0,y1len(values[i].dbl()))(1.0,y1len(values[i].dbl())));
+<a name="__line912"></a>            }
+<a name="__line913"></a>            return result;
+<a name="__line914"></a>        }
+<a name="__line915"></a>        inline grobs hlines(const std::vector&lt;double&gt; &amp;values)
+<a name="__line916"></a>        {
+<a name="__line917"></a>            grobs result;
+<a name="__line918"></a>            for(unsigned int i=0; i&lt;values.size(); ++i)
+<a name="__line919"></a>            {
+<a name="__line920"></a>                result.add(&amp;line::fdraw(0.0,y1len(values[i]))(1.0,y1len(values[i])));
+<a name="__line921"></a>            }
+<a name="__line922"></a>            return result;
+<a name="__line923"></a>        }
+<a name="__line924"></a>        inline grobs hlines(const std::valarray&lt;double&gt; &amp;values)
+<a name="__line925"></a>        {
+<a name="__line926"></a>            grobs result;
+<a name="__line927"></a>            for(unsigned int i=0; i&lt;values.size(); ++i)
+<a name="__line928"></a>            {
+<a name="__line929"></a>                result.add(&amp;line::fdraw(0.0,y1len(values[i]))(1.0,y1len(values[i])));
+<a name="__line930"></a>            }
+<a name="__line931"></a>            return result;
+<a name="__line932"></a>        }
+<a name="__line933"></a>#ifndef __MAKECINT__
+<a name="__line934"></a>        inline grobs hlines(const std::initializer_list&lt;double&gt; values)
+<a name="__line935"></a>        {
+<a name="__line936"></a>            std::vector&lt;double&gt; v = values;
+<a name="__line937"></a>            return hlines(v);
+<a name="__line938"></a>        }
+<a name="__line939"></a>#endif
+<a name="__line940"></a>    }
+<a name="__line941"></a>}
+<a name="__line942"></a>
+<a name="__line943"></a>#endif
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

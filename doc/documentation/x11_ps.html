@@ -1,0 +1,140 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- The x11_ps terminal</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="pdf.html">
+   <link rel="Next" href="png.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="pdf.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: pdf.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="png.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: png.html">
+    </a> <br>
+
+<center class=title><b>
+The x11_ps terminal
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+
+
+</div>
+<hr>
+
+<div class=description>
+
+<p> As its name (x11...) suggests, this is a terminal to display plots
+on  your x11  window  system. The  second  part of  the name  (..._gv)
+suggests, that it uses the external program <tt>gv</tt> (ghostview) to
+do  this. In fact,  this terminal  is a  slightly modified  version of
+<tt><a href="blopeps.html">blopeps</a></tt>: it  does exactly the same
+job (it  prepares the same output  file), but then  it transforms this
+file     into    a     normal     eps    file     (using    the     <a
+href="tools.html#beps2eps"><tt>beps2eps</tt></a>   script  shipped  by
+blop.  The  <tt>gv</tt>  program  is then  automatically  launched  to
+display  this PostScript  file.  This  has  the benefit  of 
+
+<ul>  
+<li>making the programmer's task easier  by using an external program 
+<li>using the many features of gv (magnification, printing, etc) 
+</ul>
+
+<p> The terminal <tt>x11_ps</tt> is derived from <tt>blopeps</tt>, and
+beyond  overwriting  some virtual  member  functions  (which the  user
+should not care)  it provides some extra services.  You can define the
+width and height of the figure with the following functions:
+
+<pre>
+x11_ps &x11_ps::width (const var &w);
+x11_ps &x11_ps::height(const var &h);
+</pre>
+
+<p>The arguments  to these functions  must be valid LaTeX  dimens (for
+example 5mm,  0.7\linewidth, etc). The produced file  will be included
+with  these sizes  into  the  latex document,  when  transformed to  a
+postscript  file. These  functions return  a reference  to  the object
+itself, so they can be changed:
+
+<pre>
+x11_ps x;
+x.width("0.7\\linewidth").height("5cm");
+</pre>
+
+<p>The static member function  <tt>def()</tt> returns a reference to a
+global entity  of x11_ps  (which is  created only at  the time  of the
+first call of this function):
+
+<pre>
+static x11_ps &x11_ps::def();
+</pre>
+
+<p> In your daily work you will most often need only one x11 terminal,
+but in several places  in your script. This is the one  to be used! In
+fact, you  don't necessarily have  to explicitely call  this function:
+the
+
+<pre>
+static void x11_ps::print();
+</pre>
+
+<p>static     member     function     simply     prints     the     <a
+href="canvas-pad.html#current">current  canvas</a>  into  this  global
+x11_ps terminal.  So you only  have to call the  <tt>def()</tt> member
+function if you want to set its dimensions, like in the example below:
+
+<pre>
+x11_ps::def().width("6cm").height("5cm");
+plot("datafile");
+x11_ps::print();
+</pre>
+
+<p>In fact, the last line  in the above example is redundant: whenever
+a <tt>graph</tt>, <tt>grob</tt>,  <tt>axis</tt> (....) is evaluated in
+interactive cint  (that is, if no  main function was  provided in your
+script,  or if  you called  blop without  a script,  so that  it waits
+commands from  the terminal, and an  expression of the  above types is
+evaluated), x11_ps::print()  is automatically called, so  it is enough
+to say only 'plot("datafile");', and  voila, the plot will soon appear
+on your screen.
+
+</div>
+<hr>
+
+<pre class=implementation>
+Source files:
+   <a href="x11_ps.h.html">x11_ps.h</a>
+   <a href="x11_ps.cc.html">x11_ps.cc</a>
+</pre>
+
+
+
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="pdf.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: pdf.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="png.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: png.html">
+    </a> 
+
+</body>
+</html>

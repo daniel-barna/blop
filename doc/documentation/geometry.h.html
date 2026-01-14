@@ -1,0 +1,788 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: geometry.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_GEOMETRY_H__
+<a name="__line1"></a>#define __BLOP_GEOMETRY_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;iostream&gt;
+<a name="__line4"></a>#include &lt;cmath&gt;
+<a name="__line5"></a>#include &lt;algorithm&gt;
+<a name="__line6"></a>#include &lt;iomanip&gt;
+<a name="__line7"></a>#include &lt;vector&gt;
+<a name="__line8"></a>
+<a name="__line9"></a>#include "<a href="vec3.h.html">vec3.h</a>"
+<a name="__line10"></a>
+<a name="__line11"></a>namespace blop
+<a name="__line12"></a>{
+<a name="__line13"></a>    namespace geom
+<a name="__line14"></a>    {
+<a name="__line15"></a>        class point;
+<a name="__line16"></a>	class line;
+<a name="__line17"></a>	class plane;
+<a name="__line18"></a>	class triangle;
+<a name="__line19"></a>        class transformation;
+<a name="__line20"></a>
+<a name="__line21"></a>        inline point  intersection(const line &amp;, const plane &amp;);  <span class=comment>// intersection of line &amp; plane</span>
+<a name="__line22"></a>        inline point  intersection(const plane &amp;, const line &amp;);  <span class=comment>// intersection of line &amp; plane</span>
+<a name="__line23"></a>        inline point  intersection(const line &amp;, const line &amp;);   <span class=comment>// intersection of two lines, or midpoint of closest approach.</span>
+<a name="__line24"></a>               line   intersection(const plane &amp;, const plane &amp;);    <span class=comment>// defined in geometry.cc</span>
+<a name="__line25"></a>	inline void   closest_approach(const line &amp;l1, const line &amp;l2, point &amp;p1, point &amp;p2); 
+<a name="__line26"></a>	inline double distance(const line &amp;l1, const line &amp;l2);  <span class=comment>// distance (closest approach) between two lines</span>
+<a name="__line27"></a>	inline double distance2(const line &amp;l1, const line &amp;l2);  <span class=comment>// distance (closest approach) between two lines, squared</span>
+<a name="__line28"></a>        inline double distance(const plane &amp;pl, const point &amp;pnt); 
+<a name="__line29"></a>	inline double distance(const point &amp;pnt, const plane &amp;pl);
+<a name="__line30"></a>        inline double distance(const line &amp;l, const point &amp;p);
+<a name="__line31"></a>        inline double distance(const point &amp;p, const line &amp;l);
+<a name="__line32"></a>
+<a name="__line33"></a>
+<a name="__line34"></a>
+<a name="__line35"></a>        <span class=comment>// ---------- point ---------------------------------------------------------------</span>
+<a name="__line36"></a>
+<a name="__line37"></a>        class point
+<a name="__line38"></a>        {
+<a name="__line39"></a><span class=public>        public:
+<a name="__line40"></a>            vec3 coord;
+<a name="__line41"></a>            point(double x, double y, double z=0) : coord(x,y,z) {}
+<a name="__line42"></a>            point(const vec3 &amp;v) : coord(v) {}
+<a name="__line43"></a>            point() : coord(0,0,0) {}
+<a name="__line44"></a>
+<a name="__line45"></a>            <span class=comment>// intersection of line and plane</span>
+<a name="__line46"></a>            point(const line &amp;l, const plane &amp;p) { *this = intersection(p,l); }
+<a name="__line47"></a>            point(const plane &amp;p, const line &amp;l) { *this = intersection(p,l); }
+<a name="__line48"></a>
+<a name="__line49"></a>	    <span class=comment>// intersection of two lines (if they do not intersect, midpoint</span>
+<a name="__line50"></a>	    <span class=comment>// at closest approach</span>
+<a name="__line51"></a>	    point(const line &amp;l1, const line &amp;l2) { *this = intersection(l1,l2); }
+<a name="__line52"></a>
+<a name="__line53"></a>            const point &amp;operator=(const point &amp;rhs)   { coord = rhs.coord; return *this; }
+<a name="__line54"></a>            const point &amp;operator+=(const vec3 &amp;delta) { coord += delta; return *this; }
+<a name="__line55"></a>            const point &amp;operator-=(const vec3 &amp;delta) { coord -= delta; return *this; }
+<a name="__line56"></a>
+<a name="__line57"></a>            const point &amp;operator*=(const transformation &amp;t);
+<a name="__line58"></a>        };
+<a name="__line59"></a>
+<a name="__line60"></a>	inline bool operator== (const point &amp;p1, const point &amp;p2)
+<a name="__line61"></a>	{
+<a name="__line62"></a>	    return p1.coord==p2.coord;
+<a name="__line63"></a>	}
+<a name="__line64"></a>	inline bool operator!= (const point &amp;p1, const point &amp;p2)
+<a name="__line65"></a>	{
+<a name="__line66"></a>            return p1.coord!=p2.coord;
+<a name="__line67"></a>	}
+<a name="__line68"></a>
+<a name="__line69"></a>        inline point origin() { return point(0,0,0); }
+<a name="__line70"></a>
+<a name="__line71"></a>	inline std::ostream &amp;operator&lt;&lt;(std::ostream &amp;output,const geom::point &amp;v)
+<a name="__line72"></a>	{
+<a name="__line73"></a>            output&lt;&lt;v.coord;
+<a name="__line74"></a>	    return output;
+<a name="__line75"></a>	}
+<a name="__line76"></a>
+<a name="__line77"></a>        inline point operator/(const point &amp;p, double r) {return point(p.coord.x/r,p.coord.y/r,p.coord.z/r);}
+<a name="__line78"></a>        inline point operator/(const point &amp;p, int r) {return point(p.coord.x/r,p.coord.y/r,p.coord.z/r);}
+<a name="__line79"></a>        inline point operator/(const point &amp;p, short r) {return point(p.coord.x/r,p.coord.y/r,p.coord.z/r);}
+<a name="__line80"></a>        inline point operator/(const point &amp;p, unsigned int r) {return point(p.coord.x/r,p.coord.y/r,p.coord.z/r);}
+<a name="__line81"></a>
+<a name="__line82"></a>        inline point operator*(const point &amp;p, double r) {return point(p.coord.x*r,p.coord.y*r,p.coord.z*r);}
+<a name="__line83"></a>        inline point operator*(const point &amp;p, int r) {return point(p.coord.x*r,p.coord.y*r,p.coord.z*r);}
+<a name="__line84"></a>        inline point operator*(const point &amp;p, short r) {return point(p.coord.x*r,p.coord.y*r,p.coord.z*r);}
+<a name="__line85"></a>        inline point operator*(const point &amp;p, unsigned int r) {return point(p.coord.x*r,p.coord.y*r,p.coord.z*r);}
+<a name="__line86"></a>
+<a name="__line87"></a>        <span class=comment>// The difference of two points is a vector</span>
+<a name="__line88"></a>        inline vec3 operator-(const point &amp;p1, const point &amp;p2)
+<a name="__line89"></a>        {
+<a name="__line90"></a>            return p1.coord-p2.coord;
+<a name="__line91"></a>        }
+<a name="__line92"></a>        <span class=comment>// A point and a vector can be added, resulting a translated point</span>
+<a name="__line93"></a>        inline point operator+(const point &amp;p, const vec3 &amp;v)
+<a name="__line94"></a>        {
+<a name="__line95"></a>            return point(p.coord+v);
+<a name="__line96"></a>        }
+<a name="__line97"></a>        inline point operator+(const vec3 &amp;v, const point  &amp;p)
+<a name="__line98"></a>        {
+<a name="__line99"></a>            return point(p.coord+v);
+<a name="__line100"></a>        }
+<a name="__line101"></a>        inline point operator-(const point &amp;p, const vec3 &amp;v)
+<a name="__line102"></a>        {
+<a name="__line103"></a>            return point(p.coord-v);
+<a name="__line104"></a>        }
+<a name="__line105"></a>
+<a name="__line106"></a>	class line
+<a name="__line107"></a>	{
+<a name="__line108"></a></span><span class=private>	private:
+<a name="__line109"></a>	    point p0_;    <span class=comment>// a point along a line</span>
+<a name="__line110"></a>	    vec3  dir_;   <span class=comment>// direction of the line</span>
+<a name="__line111"></a>
+<a name="__line112"></a></span><span class=public>	public:
+<a name="__line113"></a>            <span class=comment>// determined by a point on the line and a direction</span>
+<a name="__line114"></a>            line(const point &amp;p0, const vec3 &amp;dir) : p0_(p0), dir_(dir,1) { }
+<a name="__line115"></a>
+<a name="__line116"></a>            <span class=comment>// determined by two points on the line</span>
+<a name="__line117"></a>            explicit line(const point &amp;p1, const point &amp;p2) : p0_(p1), dir_(p2-p1,1) { }
+<a name="__line118"></a>
+<a name="__line119"></a>	    <span class=comment>// intersection of two planes</span>
+<a name="__line120"></a>	    line(const plane &amp;p1, const plane &amp;p2) { *this = intersection(p1,p2); }
+<a name="__line121"></a>
+<a name="__line122"></a>	    <span class=comment>// parallel to line through point</span>
+<a name="__line123"></a>            line(const line &amp;l, const point &amp;p) : p0_(p), dir_(l.dir_) {}
+<a name="__line124"></a>	    line(const point &amp;p, const line &amp;l) : p0_(p), dir_(l.dir_) {}
+<a name="__line125"></a>
+<a name="__line126"></a>	    <span class=comment>// normal to plane through point</span>
+<a name="__line127"></a>            line(const plane &amp;pl, const point &amp;po);
+<a name="__line128"></a>	    line(const point &amp;po, const plane &amp;pl);
+<a name="__line129"></a>
+<a name="__line130"></a>            const point &amp;origin() const { return p0_; }
+<a name="__line131"></a>	    const point &amp;p0()  const { return p0_;  }
+<a name="__line132"></a>
+<a name="__line133"></a>            <span class=comment>// return the normalized direction-vector of the line</span>
+<a name="__line134"></a>	    const vec3  &amp;dir() const { return dir_; }
+<a name="__line135"></a>
+<a name="__line136"></a>	    const line &amp;operator=(const line &amp;rhs) { p0_ = rhs.p0_; dir_ = rhs.dir_; return *this; }
+<a name="__line137"></a>
+<a name="__line138"></a>            const line &amp;operator*=(const transformation &amp;t);
+<a name="__line139"></a>
+<a name="__line140"></a>            <span class=comment>// Shift the line (its reference point) by a vector</span>
+<a name="__line141"></a>            const line &amp;operator+=(const vec3 &amp;shift) { p0_+=shift; return *this; }
+<a name="__line142"></a>	};
+<a name="__line143"></a>
+<a name="__line144"></a>        <span class=comment>// Create a shifted line by a vector</span>
+<a name="__line145"></a>        inline line operator+(const line &amp;l, const vec3 &amp;shift)
+<a name="__line146"></a>        {
+<a name="__line147"></a>            line result = l;
+<a name="__line148"></a>            result += shift;
+<a name="__line149"></a>            return result;
+<a name="__line150"></a>        }
+<a name="__line151"></a>
+<a name="__line152"></a>	class plane
+<a name="__line153"></a>	{
+<a name="__line154"></a></span><span class=protected>	protected:
+<a name="__line155"></a>            point origin_;
+<a name="__line156"></a>	    vec3  normal_;
+<a name="__line157"></a></span><span class=public>	public:
+<a name="__line158"></a>            plane(const point &amp;origin, const vec3 &amp;normal) : origin_(origin), normal_(normal) { normal_.normalize(); }
+<a name="__line159"></a>
+<a name="__line160"></a>	    <span class=comment>// paralell to plane through point</span>
+<a name="__line161"></a>            plane(const plane &amp;pl, const point &amp;po) : origin_(po), normal_(pl.normal_) {}
+<a name="__line162"></a>	    plane(const point &amp;po, const plane &amp;pl) : origin_(po), normal_(pl.normal_) {}
+<a name="__line163"></a>
+<a name="__line164"></a>	    <span class=comment>// plane through 3 points</span>
+<a name="__line165"></a>            plane(const point &amp;p1, const point &amp;p2, const point &amp;p3) : origin_(p1)
+<a name="__line166"></a>            {
+<a name="__line167"></a>                normal_ = (p2-p1)%(p3-p1);
+<a name="__line168"></a>                normal_.normalize();
+<a name="__line169"></a>            }
+<a name="__line170"></a>
+<a name="__line171"></a>	    <span class=comment>// plane through the 3 corners of a triangle</span>
+<a name="__line172"></a>            plane(const triangle &amp;t);
+<a name="__line173"></a>
+<a name="__line174"></a>            plane &amp;origin(const vec3 &amp;o)  { origin_ = o; return *this; }
+<a name="__line175"></a>            plane &amp;normal(const vec3 &amp;n)  { normal_ = n; return *this; }
+<a name="__line176"></a>
+<a name="__line177"></a>	    const point &amp;origin() const { return origin_; }
+<a name="__line178"></a>	    const vec3  &amp;normal() const { return normal_; }
+<a name="__line179"></a>
+<a name="__line180"></a>            const plane &amp;operator*=(const transformation &amp;t);
+<a name="__line181"></a>
+<a name="__line182"></a>            <span class=comment>// Shift the plane by a vector</span>
+<a name="__line183"></a>            const plane &amp;operator+=(const vec3 &amp;shift) { origin_ += shift; return *this; }
+<a name="__line184"></a>
+<a name="__line185"></a>            <span class=comment>// Shfit the plane by a distance in the normal direction</span>
+<a name="__line186"></a>            const plane &amp;operator+=(double shift) { origin_ += shift*normal_; return *this; }
+<a name="__line187"></a>
+<a name="__line188"></a>            static plane XY() { return plane(point(0,0,0),vec3(0,0,1)); }
+<a name="__line189"></a>            static plane YX() { return plane(point(0,0,0),vec3(0,0,1)); }
+<a name="__line190"></a>            static plane ZY() { return plane(point(0,0,0),vec3(1,0,0)); }
+<a name="__line191"></a>            static plane YZ() { return plane(point(0,0,0),vec3(1,0,0)); }
+<a name="__line192"></a>            static plane XZ() { return plane(point(0,0,0),vec3(0,1,0)); }
+<a name="__line193"></a>            static plane ZX() { return plane(point(0,0,0),vec3(0,1,0)); }
+<a name="__line194"></a>
+<a name="__line195"></a>	};
+<a name="__line196"></a>
+<a name="__line197"></a>        <span class=comment>// Plane shifted by a vector</span>
+<a name="__line198"></a>        inline plane operator+(const plane &amp;p, const vec3 &amp;shift)
+<a name="__line199"></a>        {
+<a name="__line200"></a>            plane result = p;
+<a name="__line201"></a>            result += shift;
+<a name="__line202"></a>            return result;
+<a name="__line203"></a>        }
+<a name="__line204"></a>
+<a name="__line205"></a>        <span class=comment>// Plane shifted by a distance in the normal direction</span>
+<a name="__line206"></a>        inline plane operator+(const plane &amp;p, double distance)
+<a name="__line207"></a>        {
+<a name="__line208"></a>            plane result = p;
+<a name="__line209"></a>            result += distance;
+<a name="__line210"></a>            return result;
+<a name="__line211"></a>        }
+<a name="__line212"></a>
+<a name="__line213"></a>        <span class=comment>// A plane with a 2D coordinate system, i.e. a local x and y axis (which lie in the plane,</span>
+<a name="__line214"></a>        <span class=comment>// and are perpendicular to each other)</span>
+<a name="__line215"></a>        class plane_with_cs : public plane
+<a name="__line216"></a>        {
+<a name="__line217"></a></span><span class=private>        private:
+<a name="__line218"></a>            plane &amp;normal(const vec3 &amp;n) { std::cerr&lt;&lt;"plane_with_cs::normal(vec3) should not be called"&lt;&lt;std::endl; return *this; }
+<a name="__line219"></a></span><span class=protected>        protected:
+<a name="__line220"></a>            vec3 x_, y_;
+<a name="__line221"></a></span><span class=public>        public:
+<a name="__line222"></a>            plane_with_cs(const point &amp;origin, const vec3 &amp;x, const vec3 &amp;y);
+<a name="__line223"></a>            const vec3 &amp;x() const { return x_; }
+<a name="__line224"></a>            const vec3 &amp;y() const { return y_; }
+<a name="__line225"></a>        };
+<a name="__line226"></a>
+<a name="__line227"></a>
+<a name="__line228"></a>        inline plane_with_cs xy_plane() { return plane_with_cs(origin(), vec3(1,0,0), vec3(0,1,0)); }
+<a name="__line229"></a>        inline plane_with_cs yx_plane() { return plane_with_cs(origin(), vec3(0,1,0), vec3(1,0,0)); }
+<a name="__line230"></a>        inline plane_with_cs yz_plane() { return plane_with_cs(origin(), vec3(0,1,0), vec3(0,0,1)); }
+<a name="__line231"></a>        inline plane_with_cs zy_plane() { return plane_with_cs(origin(), vec3(0,0,1), vec3(0,1,0)); }
+<a name="__line232"></a>        inline plane_with_cs xz_plane() { return plane_with_cs(origin(), vec3(1,0,0), vec3(0,0,1)); }
+<a name="__line233"></a>        inline plane_with_cs zx_plane() { return plane_with_cs(origin(), vec3(0,0,1), vec3(1,0,0)); }
+<a name="__line234"></a>
+<a name="__line235"></a>        <span class=comment>// Create a line through a point, normal to a plane</span>
+<a name="__line236"></a>        inline line::line(const plane &amp;pl, const point &amp;po) : p0_(po), dir_(pl.normal(),1) {}
+<a name="__line237"></a>        inline line::line(const point &amp;po, const plane &amp;pl) : p0_(po), dir_(pl.normal(),1) {}
+<a name="__line238"></a>
+<a name="__line239"></a>        <span class=comment>// Return the closest-approach points between two lines. Upon return, p1 (along l1) and p2(along l2)</span>
+<a name="__line240"></a>        <span class=comment>// indicate the closest approach.</span>
+<a name="__line241"></a>	inline void closest_approach(const line &amp;l1, const line &amp;l2, point &amp;p1, point &amp;p2)
+<a name="__line242"></a>	{
+<a name="__line243"></a>	    const point r1 = l1.p0();
+<a name="__line244"></a>	    const point r2 = l2.p0();
+<a name="__line245"></a>	    const vec3 d1 = l1.dir();
+<a name="__line246"></a>	    const vec3 d2 = l2.dir();
+<a name="__line247"></a>	    const double a = (r1-r2)*(d1+d2)/(d1*d2+1);
+<a name="__line248"></a>	    const double b = (r1-r2)*(d1-d2)/(d1*d2-1);
+<a name="__line249"></a>	    const double t1 = (b-a)/2;
+<a name="__line250"></a>	    const double t2 = (b+a)/2;
+<a name="__line251"></a>	    p1 = r1+t1*d1;
+<a name="__line252"></a>	    p2 = r2+t2*d2;
+<a name="__line253"></a>	}
+<a name="__line254"></a>
+<a name="__line255"></a>        <span class=comment>// Distance between two lines</span>
+<a name="__line256"></a>	inline double distance(const line &amp;l1, const line &amp;l2)
+<a name="__line257"></a>	{
+<a name="__line258"></a>	    point p1, p2;
+<a name="__line259"></a>	    closest_approach(l1,l2,p1,p2);
+<a name="__line260"></a>	    return abs(p1-p2);
+<a name="__line261"></a>	}
+<a name="__line262"></a>
+<a name="__line263"></a>        <span class=comment>// Distance between two lines, squared</span>
+<a name="__line264"></a>        inline double distance2(const line &amp;l1, const line &amp;l2)
+<a name="__line265"></a>        {
+<a name="__line266"></a>	    point p1, p2;
+<a name="__line267"></a>	    closest_approach(l1,l2,p1,p2);
+<a name="__line268"></a>            const vec3 d = p1-p2;
+<a name="__line269"></a>	    return d*d;
+<a name="__line270"></a>        }
+<a name="__line271"></a>
+<a name="__line272"></a>	<span class=comment>// Get the intersection of the two lines. If they are not crossing each</span>
+<a name="__line273"></a>	<span class=comment>// other, the midpoint at the shortest distance (closest approach) is returned</span>
+<a name="__line274"></a>	inline point intersection(const line &amp;l1, const line &amp;l2)
+<a name="__line275"></a>	{
+<a name="__line276"></a>	    point p1,p2;
+<a name="__line277"></a>	    closest_approach(l1,l2,p1,p2);
+<a name="__line278"></a>	    return 0.5*(p1.coord+p2.coord);
+<a name="__line279"></a>	}
+<a name="__line280"></a>
+<a name="__line281"></a>        <span class=comment>// Create a point by the intersection of a plane and a line</span>
+<a name="__line282"></a>	inline point intersection(const plane &amp;p, const line &amp;l)
+<a name="__line283"></a>        {
+<a name="__line284"></a>	    const double t = ((p.origin()-l.p0())*p.normal())/(l.dir()*p.normal());
+<a name="__line285"></a>	    return l.p0()+t*l.dir();
+<a name="__line286"></a>        }
+<a name="__line287"></a>	inline point intersection(const line &amp;l, const plane &amp;p) { return intersection(p,l); }
+<a name="__line288"></a>
+<a name="__line289"></a>        <span class=comment>// Distance between a plane and a point</span>
+<a name="__line290"></a>	inline double distance(const plane &amp;pl, const point &amp;pnt)
+<a name="__line291"></a>	{
+<a name="__line292"></a>	    return (pnt.coord-pl.origin())*pl.normal();
+<a name="__line293"></a>	}
+<a name="__line294"></a>	inline double distance(const point &amp;pnt, const plane &amp;pl)
+<a name="__line295"></a>	{
+<a name="__line296"></a>	    return distance(pl,pnt);
+<a name="__line297"></a>	}
+<a name="__line298"></a>
+<a name="__line299"></a>
+<a name="__line300"></a>        <span class=comment>// Ditsance between a line and a point</span>
+<a name="__line301"></a>        inline double distance(const line &amp;l, const point &amp;p)
+<a name="__line302"></a>        {
+<a name="__line303"></a>            const vec3 diff = p-l.origin();
+<a name="__line304"></a>            return abs(diff-(l.dir()*diff)*l.dir());
+<a name="__line305"></a>        }
+<a name="__line306"></a>        inline double distance(const point &amp;p, const line &amp;l) { return distance(l,p); }
+<a name="__line307"></a>
+<a name="__line308"></a>        <span class=comment>// Calculate the midplane between two point</span>
+<a name="__line309"></a>        inline plane midplane(const point &amp;p1, const point &amp;p2)
+<a name="__line310"></a>        {
+<a name="__line311"></a>            return plane(0.5*(p1.coord+p2.coord), p2-p1);
+<a name="__line312"></a>        }
+<a name="__line313"></a>
+<a name="__line314"></a>        <span class=comment>// determine the centre of the circle going through the three points</span>
+<a name="__line315"></a>        inline point circle_center(const point &amp;p1, const point &amp;p2, const point &amp;p3)
+<a name="__line316"></a>        {
+<a name="__line317"></a>            const plane pl1 = midplane(p2,p1);
+<a name="__line318"></a>            const plane pl2 = midplane(p2,p3);
+<a name="__line319"></a>            const line axis = intersection(pl1,pl2);
+<a name="__line320"></a>            return intersection(axis, plane(p1,p2,p3));
+<a name="__line321"></a>        }
+<a name="__line322"></a>
+<a name="__line323"></a>        inline double circle_radius(const point &amp;p1, const point &amp;p2, const point &amp;p3)
+<a name="__line324"></a>        {
+<a name="__line325"></a>            return abs(circle_center(p1,p2,p3)-p2);
+<a name="__line326"></a>        }
+<a name="__line327"></a>
+<a name="__line328"></a>        <span class=comment>// ---------- triangle ------------------------------------------------------------</span>
+<a name="__line329"></a>
+<a name="__line330"></a>	class triangle 
+<a name="__line331"></a>	{
+<a name="__line332"></a></span><span class=private>	private:
+<a name="__line333"></a>	    geom::point vertex_[3];
+<a name="__line334"></a></span><span class=public>	public:
+<a name="__line335"></a>	    triangle() {}
+<a name="__line336"></a>	    triangle(const geom::point &amp;v1, const geom::point &amp;v2, const geom::point &amp;v3) { vertex_[0] = v1; vertex_[1] = v2; vertex_[2] = v3; }
+<a name="__line337"></a>	
+<a name="__line338"></a>	    <span class=comment>// access the 3 corners. index is 1-based</span>
+<a name="__line339"></a>	    const geom::point     &amp;vertex(int i) const;
+<a name="__line340"></a>	    geom::point           &amp;vertex(int i);
+<a name="__line341"></a>	    triangle              &amp;vertex(int i, const geom::point &amp;v);
+<a name="__line342"></a>	
+<a name="__line343"></a>	    geom::vec3 edge(int i) const;
+<a name="__line344"></a>	
+<a name="__line345"></a>	    <span class=comment>// return true if the point 'v' (its perpendicular projection</span>
+<a name="__line346"></a>	    <span class=comment>// to the plane of the triangle) is inside the triangle</span>
+<a name="__line347"></a>	    bool inside(const geom::point &amp;v);
+<a name="__line348"></a>	};
+<a name="__line349"></a>	
+<a name="__line350"></a>        <span class=comment>// plane through the 3 corners of a triangle</span>
+<a name="__line351"></a>        inline plane::plane(const triangle &amp;t) : origin_(t.vertex(1))
+<a name="__line352"></a>        {
+<a name="__line353"></a>            normal_ = (t.vertex(2)-t.vertex(1))%(t.vertex(3)-t.vertex(1));
+<a name="__line354"></a>            normal_.normalize();
+<a name="__line355"></a>        }
+<a name="__line356"></a>
+<a name="__line357"></a>
+<a name="__line358"></a>
+<a name="__line359"></a>	<span class=comment>// ---------- transformations and necessary helper functions ----------------------</span>
+<a name="__line360"></a>
+<a name="__line361"></a>	class transformation
+<a name="__line362"></a>	{
+<a name="__line363"></a></span><span class=protected>	protected:
+<a name="__line364"></a>	    double matrix_[4][4];
+<a name="__line365"></a>	    <span class=comment>//friend vec3 operator*(const transformation &amp;, const vec3 &amp;);</span>
+<a name="__line366"></a>	    friend geom::point operator*(const transformation &amp;, const geom::point &amp;);
+<a name="__line367"></a>	    friend transformation operator*(const transformation &amp;t1, const transformation &amp;t2);
+<a name="__line368"></a>	    friend std::ostream &amp;operator&lt;&lt;(std::ostream &amp;, const transformation &amp;);
+<a name="__line369"></a></span><span class=public>	public:
+<a name="__line370"></a>	    virtual ~transformation() {}
+<a name="__line371"></a>	    transformation()
+<a name="__line372"></a>	    {
+<a name="__line373"></a>		for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) matrix_[i][j]=(i==j?1:0);
+<a name="__line374"></a>	    }
+<a name="__line375"></a>	    transformation(const transformation &amp;rhs)
+<a name="__line376"></a>	    {
+<a name="__line377"></a>		for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) matrix_[i][j] = rhs.matrix_[i][j];
+<a name="__line378"></a>	    }
+<a name="__line379"></a>	    const transformation &amp;operator=(const transformation &amp;rhs)
+<a name="__line380"></a>	    {
+<a name="__line381"></a>                for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) matrix_[i][j] = rhs.matrix_[i][j];
+<a name="__line382"></a>                return *this;
+<a name="__line383"></a>            }
+<a name="__line384"></a>
+<a name="__line385"></a>            <span class=comment>// invert this transformation</span>
+<a name="__line386"></a>            virtual void invert();
+<a name="__line387"></a>
+<a name="__line388"></a>            <span class=comment>// return the inverse of this transformation</span>
+<a name="__line389"></a>	    transformation inverse() const;
+<a name="__line390"></a>
+<a name="__line391"></a>            <span class=comment>// remove the translational part of this transformation, modifying 'this'</span>
+<a name="__line392"></a>            void remove_translation();
+<a name="__line393"></a>
+<a name="__line394"></a>            rotation get_rotation() const;
+<a name="__line395"></a>	};
+<a name="__line396"></a>
+<a name="__line397"></a>	template &lt;int N&gt;
+<a name="__line398"></a>	    int parity(const int P[N])
+<a name="__line399"></a>	{
+<a name="__line400"></a>	    int G = 0;
+<a name="__line401"></a>	    for(unsigned int i=0; i&lt;N; ++i)
+<a name="__line402"></a>	    {
+<a name="__line403"></a>		for(unsigned int j=i+1; j&lt;N; ++j)
+<a name="__line404"></a>		{
+<a name="__line405"></a>		    if(P[i] &gt; P[j]) ++G;
+<a name="__line406"></a>		}
+<a name="__line407"></a>	    }
+<a name="__line408"></a>	    return 1-2*(G%2);
+<a name="__line409"></a>	}
+<a name="__line410"></a>
+<a name="__line411"></a>	template &lt;int N&gt;
+<a name="__line412"></a>	double matrix_minor(const double M[N][N], int ind1, int ind2)
+<a name="__line413"></a>	{
+<a name="__line414"></a>	    int I[N-1];
+<a name="__line415"></a>	    int J[N-1];
+<a name="__line416"></a>	    {
+<a name="__line417"></a>		int iout = 0;
+<a name="__line418"></a>		for(int i=0; i&lt;N; ++i) if(i!=ind1) I[iout++] = i;
+<a name="__line419"></a>	    }
+<a name="__line420"></a>	    {
+<a name="__line421"></a>		int iout = 0;
+<a name="__line422"></a>		for(int i=0; i&lt;N; ++i) if(i!=ind2) J[iout++] = i;
+<a name="__line423"></a>	    }
+<a name="__line424"></a>
+<a name="__line425"></a>	    double result = 0;
+<a name="__line426"></a>	    do
+<a name="__line427"></a>	    {
+<a name="__line428"></a>		double subresult = 1;
+<a name="__line429"></a>		for(int i=0; i&lt;N-1; ++i)
+<a name="__line430"></a>		{
+<a name="__line431"></a>		    subresult *= M[I[i]][J[i]];
+<a name="__line432"></a>		}
+<a name="__line433"></a>		result += parity&lt;N-1&gt;(J)*subresult;
+<a name="__line434"></a>	    } while(std::next_permutation(J,J+(N-1)));
+<a name="__line435"></a>	    return result;
+<a name="__line436"></a>	}
+<a name="__line437"></a>
+<a name="__line438"></a>	template &lt;int N&gt;
+<a name="__line439"></a>	    double cofactor(const double M[N][N], int ind1, int ind2)
+<a name="__line440"></a>	{
+<a name="__line441"></a>	    const int P = 1-(ind1+ind2)%2*2;
+<a name="__line442"></a>	    return P * matrix_minor(M,ind1,ind2);
+<a name="__line443"></a>	}
+<a name="__line444"></a>
+<a name="__line445"></a>	template &lt;int N&gt;
+<a name="__line446"></a>	    double determinant(double M[N][N])
+<a name="__line447"></a>	{
+<a name="__line448"></a>	    double result = 0;
+<a name="__line449"></a>	    int ind[N];
+<a name="__line450"></a>	    for(int i=0; i&lt;N; ++i) ind[i] = i; <span class=comment>// create the first permutation</span>
+<a name="__line451"></a>
+<a name="__line452"></a>	    for(bool ok=true; ok; ok=next_permutation(ind, ind+N))
+<a name="__line453"></a>	    {
+<a name="__line454"></a>		double tmp = 1;
+<a name="__line455"></a>		for(int i=0; i&lt;N; ++i)
+<a name="__line456"></a>		{
+<a name="__line457"></a>		    tmp *= M[i][ind[i]] * parity&lt;N&gt;(ind);
+<a name="__line458"></a>		}
+<a name="__line459"></a>		result += tmp;
+<a name="__line460"></a>	    }
+<a name="__line461"></a>	    return result;
+<a name="__line462"></a>	}
+<a name="__line463"></a>
+<a name="__line464"></a>	std::ostream &amp;operator&lt;&lt;(std::ostream &amp;out, const transformation &amp;t);
+<a name="__line465"></a>
+<a name="__line466"></a>        class mirroring : public transformation
+<a name="__line467"></a>        {
+<a name="__line468"></a></span><span class=private>        private:
+<a name="__line469"></a>            point p0_;
+<a name="__line470"></a>            vec3  normal_;
+<a name="__line471"></a>            void init_(const point &amp;P0, const vec3 &amp;normal);
+<a name="__line472"></a>
+<a name="__line473"></a></span><span class=public>        public:
+<a name="__line474"></a>            mirroring(const geom::point &amp;p0, const geom::vec3 &amp;normal)
+<a name="__line475"></a>            {
+<a name="__line476"></a>                init_(p0,normal);
+<a name="__line477"></a>            }
+<a name="__line478"></a>            mirroring(const plane &amp;p)
+<a name="__line479"></a>            {
+<a name="__line480"></a>                init_(p.origin(), p.normal());
+<a name="__line481"></a>            }
+<a name="__line482"></a>            void invert()
+<a name="__line483"></a>            {
+<a name="__line484"></a>            }
+<a name="__line485"></a>            mirroring inverse() const <span class=comment>// a mirroring is its own inverse</span>
+<a name="__line486"></a>            {
+<a name="__line487"></a>                return mirroring(*this);
+<a name="__line488"></a>            }
+<a name="__line489"></a>        };
+<a name="__line490"></a>
+<a name="__line491"></a>	class translation : public transformation
+<a name="__line492"></a>	{
+<a name="__line493"></a></span><span class=private>	private:
+<a name="__line494"></a>	    <span class=comment>//friend vec3 operator*(const translation &amp;, const vec3 &amp;);</span>
+<a name="__line495"></a>	    friend geom::point operator*(const translation &amp;, const geom::point &amp;);
+<a name="__line496"></a>	    vec3 vec_;
+<a name="__line497"></a>	    void init_(const vec3 &amp;v)
+<a name="__line498"></a>	    {
+<a name="__line499"></a>		vec_ = v;
+<a name="__line500"></a>		for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) matrix_[i][j] = (i==j?1:0);
+<a name="__line501"></a>		matrix_[0][3] = v.x;
+<a name="__line502"></a>		matrix_[1][3] = v.y;
+<a name="__line503"></a>		matrix_[2][3] = v.z;
+<a name="__line504"></a>	    }
+<a name="__line505"></a></span><span class=public>	public:
+<a name="__line506"></a>	    translation(const vec3 &amp;v)
+<a name="__line507"></a>	    {
+<a name="__line508"></a>		init_(v);
+<a name="__line509"></a>	    }
+<a name="__line510"></a>	    translation(double x, double y, double z)
+<a name="__line511"></a>	    {
+<a name="__line512"></a>		init_(vec3(x,y,z));
+<a name="__line513"></a>	    }
+<a name="__line514"></a>	    const translation &amp;operator=(const vec3 &amp;v)
+<a name="__line515"></a>		{
+<a name="__line516"></a>		    init_(v);
+<a name="__line517"></a>		    return *this;
+<a name="__line518"></a>		}
+<a name="__line519"></a>            void invert()
+<a name="__line520"></a>            {
+<a name="__line521"></a>                transformation::invert();
+<a name="__line522"></a>                vec_ *= -1;
+<a name="__line523"></a>            }
+<a name="__line524"></a>	    translation inverse() const
+<a name="__line525"></a>	    {
+<a name="__line526"></a>		return translation(-vec_);
+<a name="__line527"></a>	    }
+<a name="__line528"></a>	};
+<a name="__line529"></a>
+<a name="__line530"></a><span class=comment>/*
+<a name="__line531"></a>	inline vec3 operator*(const translation &amp;t, const vec3 &amp;v)
+<a name="__line532"></a>	{
+<a name="__line533"></a>	    return vec3(v.x+t.matrix_[0][3],v.y+t.matrix_[1][3],v.z+t.matrix_[2][3]);
+<a name="__line534"></a>	}
+<a name="__line535"></a>*/</span>
+<a name="__line536"></a>	inline geom::point operator*(const translation &amp;t, const geom::point &amp;v)
+<a name="__line537"></a>	{
+<a name="__line538"></a>	    return geom::point(v.coord.x+t.matrix_[0][3],v.coord.y+t.matrix_[1][3],v.coord.z+t.matrix_[2][3]);
+<a name="__line539"></a>	}
+<a name="__line540"></a>
+<a name="__line541"></a>        <span class=comment>// Rotations - around the origin!</span>
+<a name="__line542"></a>	class rotation : public transformation
+<a name="__line543"></a>	{
+<a name="__line544"></a></span><span class=private>	private:
+<a name="__line545"></a>	    friend vec3 operator*(const rotation &amp;, const vec3 &amp;);
+<a name="__line546"></a>	    friend geom::point operator*(const rotation &amp;, const geom::point &amp;);
+<a name="__line547"></a>            friend class transformation;
+<a name="__line548"></a>	    void set_axis_angle_from_matrix_()
+<a name="__line549"></a>	    {
+<a name="__line550"></a>		double cos_angle = 0.5*(matrix_[0][0]+matrix_[1][1]+matrix_[2][2]-1);
+<a name="__line551"></a>                if(cos_angle&lt;-1) cos_angle=-1;
+<a name="__line552"></a>                if(cos_angle&gt; 1) cos_angle= 1;
+<a name="__line553"></a>		<span class=comment>//const double sin_angle = std::sqrt(1-cos_angle*cos_angle);</span>
+<a name="__line554"></a>		angle_ = std::acos(cos_angle);
+<a name="__line555"></a>		axis_.z = (matrix_[1][0]-matrix_[0][1]); <span class=comment>// /2/sin_angle;</span>
+<a name="__line556"></a>		axis_.y = (matrix_[0][2]-matrix_[2][0]); <span class=comment>// /2/sin_angle;</span>
+<a name="__line557"></a>		axis_.x = (matrix_[2][1]-matrix_[1][2]); <span class=comment>// /2/sin_angle;</span>
+<a name="__line558"></a>		const double a = abs(axis_);
+<a name="__line559"></a>		axis_ /= a;
+<a name="__line560"></a>		<span class=comment>//if(std::fabs(a-1.0)&gt;1e-6)</span>
+<a name="__line561"></a>                <span class=comment>//    std::cerr&lt;&lt;"Error: the axis of this rotation matrix is normalized to "&lt;&lt;a&lt;&lt;" instead of 1 (sin_angle="&lt;&lt;sin_angle&lt;&lt;")"&lt;&lt;std::endl;</span>
+<a name="__line562"></a>	    }
+<a name="__line563"></a>	    friend rotation operator*(const rotation &amp;, const rotation &amp;);
+<a name="__line564"></a>	    double angle_;
+<a name="__line565"></a>	    vec3   axis_;
+<a name="__line566"></a>	    void init_(const vec3 &amp;v, double theta);
+<a name="__line567"></a></span><span class=public>	public:
+<a name="__line568"></a>	    rotation()
+<a name="__line569"></a>	    {
+<a name="__line570"></a>		init_(vec3(0,0,1),0);
+<a name="__line571"></a>	    }
+<a name="__line572"></a>	    rotation(const vec3 &amp;v, double angle)
+<a name="__line573"></a>	    {
+<a name="__line574"></a>		init_(v,angle);
+<a name="__line575"></a>	    }
+<a name="__line576"></a>            rotation(double angle,const vec3 &amp;v)
+<a name="__line577"></a>            {
+<a name="__line578"></a>                init_(v,angle);
+<a name="__line579"></a>            }
+<a name="__line580"></a>	    rotation(const rotation &amp;rhs);
+<a name="__line581"></a>
+<a name="__line582"></a>
+<a name="__line583"></a>	    <span class=comment>// A rotation which brings v1 --&gt; v1', the axis of which is perpendicular to</span>
+<a name="__line584"></a>	    <span class=comment>// the plane spanned by (v1,v1'), i.e. the smallest angle rotation</span>
+<a name="__line585"></a>	    rotation(vec3 v, vec3 vprime);
+<a name="__line586"></a>
+<a name="__line587"></a>            <span class=comment>// A rotation which brings v1--&gt;v1', v2--&gt;v2'</span>
+<a name="__line588"></a>            <span class=comment>// v1,v2 must have the same angle w.r.t. each other as</span>
+<a name="__line589"></a>            <span class=comment>// v1' and v2' (for obvious reasons)</span>
+<a name="__line590"></a>	    rotation(vec3 v1, vec3 v2, vec3 v1prime, vec3 v2prime);
+<a name="__line591"></a>    
+<a name="__line592"></a>	    rotation &amp;axis(const vec3 &amp;v)
+<a name="__line593"></a>	    {
+<a name="__line594"></a>		init_(v,angle_);
+<a name="__line595"></a>		return *this;
+<a name="__line596"></a>	    }
+<a name="__line597"></a>	    rotation &amp;angle(double a)
+<a name="__line598"></a>	    {
+<a name="__line599"></a>		init_(axis_,a);
+<a name="__line600"></a>		return *this;
+<a name="__line601"></a>	    }
+<a name="__line602"></a>	    rotation &amp;set(const vec3 &amp;v, double angle)
+<a name="__line603"></a>	    {
+<a name="__line604"></a>		init_(v,angle);
+<a name="__line605"></a>		return *this;
+<a name="__line606"></a>	    }
+<a name="__line607"></a>	    double     angle() const { return angle_; }
+<a name="__line608"></a>	    const vec3 axis () const { return axis_;  }
+<a name="__line609"></a>
+<a name="__line610"></a>	    const rotation &amp;operator=(const rotation &amp;rhs)
+<a name="__line611"></a>		{
+<a name="__line612"></a>		    axis_ = rhs.axis_;
+<a name="__line613"></a>		    angle_ = rhs.angle_;
+<a name="__line614"></a>		    for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) matrix_[i][j] = rhs.matrix_[i][j];
+<a name="__line615"></a>		    return *this;
+<a name="__line616"></a>		}
+<a name="__line617"></a>
+<a name="__line618"></a>            void invert()
+<a name="__line619"></a>            {
+<a name="__line620"></a>                transformation::invert();
+<a name="__line621"></a>                angle_ *= -1;
+<a name="__line622"></a>            }
+<a name="__line623"></a>
+<a name="__line624"></a>	    rotation inverse() const
+<a name="__line625"></a>	    {
+<a name="__line626"></a>                rotation result(*this);
+<a name="__line627"></a>                result.invert();
+<a name="__line628"></a>                return result;
+<a name="__line629"></a>	    }
+<a name="__line630"></a>	};
+<a name="__line631"></a>
+<a name="__line632"></a>        <span class=comment>// This function returns a transformation corresponding to a rotation around a given axis</span>
+<a name="__line633"></a>        transformation rotation_around_axis(const line &amp;axis, double angle);
+<a name="__line634"></a>
+<a name="__line635"></a>	inline vec3 operator* (const rotation &amp;r, const vec3 &amp;v)
+<a name="__line636"></a>	{
+<a name="__line637"></a>	    return vec3(r.matrix_[0][0]*v.x+r.matrix_[0][1]*v.y+r.matrix_[0][2]*v.z,
+<a name="__line638"></a>			r.matrix_[1][0]*v.x+r.matrix_[1][1]*v.y+r.matrix_[1][2]*v.z,
+<a name="__line639"></a>			r.matrix_[2][0]*v.x+r.matrix_[2][1]*v.y+r.matrix_[2][2]*v.z);
+<a name="__line640"></a>	}
+<a name="__line641"></a>	inline geom::point operator* (const rotation &amp;r, const geom::point &amp;v)
+<a name="__line642"></a>	{
+<a name="__line643"></a>	    return vec3(r.matrix_[0][0]*v.coord.x+r.matrix_[0][1]*v.coord.y+r.matrix_[0][2]*v.coord.z,
+<a name="__line644"></a>			r.matrix_[1][0]*v.coord.x+r.matrix_[1][1]*v.coord.y+r.matrix_[1][2]*v.coord.z,
+<a name="__line645"></a>			r.matrix_[2][0]*v.coord.x+r.matrix_[2][1]*v.coord.y+r.matrix_[2][2]*v.coord.z);
+<a name="__line646"></a>	}
+<a name="__line647"></a>
+<a name="__line648"></a>	inline rotation operator*(const rotation &amp;r1, const rotation &amp;r2)
+<a name="__line649"></a>	{
+<a name="__line650"></a>	    rotation result;
+<a name="__line651"></a>	    for(int i=0; i&lt;4; ++i)
+<a name="__line652"></a>	    {
+<a name="__line653"></a>		for(int k=0; k&lt;4; ++k)
+<a name="__line654"></a>		{
+<a name="__line655"></a>		    result.matrix_[i][k] = 0;
+<a name="__line656"></a>		    for(int j=0; j&lt;4; ++j) result.matrix_[i][k] += r1.matrix_[i][j]*r2.matrix_[j][k];
+<a name="__line657"></a>		}
+<a name="__line658"></a>	    }
+<a name="__line659"></a>	    result.set_axis_angle_from_matrix_();
+<a name="__line660"></a>	    return result;
+<a name="__line661"></a>	}
+<a name="__line662"></a>
+<a name="__line663"></a><span class=comment>/*
+<a name="__line664"></a>	inline vec3 operator*(const transformation &amp;t, const vec3 &amp;v)
+<a name="__line665"></a>	{
+<a name="__line666"></a>	    const double in [4] = {v.x,v.y,v.z,1};
+<a name="__line667"></a>	    double out[3] = {0,0,0};
+<a name="__line668"></a>	    for(int i=0; i&lt;3; ++i)
+<a name="__line669"></a>	    {
+<a name="__line670"></a>		for(int j=0; j&lt;4; ++j)
+<a name="__line671"></a>		{
+<a name="__line672"></a>		    out[i] += t.matrix_[i][j]*in[j];
+<a name="__line673"></a>		}
+<a name="__line674"></a>	    }
+<a name="__line675"></a>	    return vec3(out[0],out[1],out[2]);
+<a name="__line676"></a>	}
+<a name="__line677"></a>*/</span>
+<a name="__line678"></a>	inline geom::point operator*(const transformation &amp;t, const geom::point &amp;v)
+<a name="__line679"></a>	{
+<a name="__line680"></a>	    const double in [4] = {v.coord.x,v.coord.y,v.coord.z,1};
+<a name="__line681"></a>	    double out[3] = {0,0,0};
+<a name="__line682"></a>	    for(int i=0; i&lt;3; ++i)
+<a name="__line683"></a>	    {
+<a name="__line684"></a>		for(int j=0; j&lt;4; ++j)
+<a name="__line685"></a>		{
+<a name="__line686"></a>		    out[i] += t.matrix_[i][j]*in[j];
+<a name="__line687"></a>		}
+<a name="__line688"></a>	    }
+<a name="__line689"></a>	    return geom::point(out[0],out[1],out[2]);
+<a name="__line690"></a>	}
+<a name="__line691"></a>
+<a name="__line692"></a>	inline transformation operator*(const transformation &amp;t1, const transformation &amp;t2)
+<a name="__line693"></a>	{
+<a name="__line694"></a>	    transformation result;
+<a name="__line695"></a>	    for(int i=0; i&lt;4; ++i)
+<a name="__line696"></a>	    {
+<a name="__line697"></a>		for(int k=0; k&lt;4; ++k)
+<a name="__line698"></a>		{
+<a name="__line699"></a>		    result.matrix_[i][k] = 0;
+<a name="__line700"></a>		    for(int j=0; j&lt;4; ++j) result.matrix_[i][k] += t1.matrix_[i][j]*t2.matrix_[j][k];
+<a name="__line701"></a>		}
+<a name="__line702"></a>	    }
+<a name="__line703"></a>	    return result;
+<a name="__line704"></a>	}
+<a name="__line705"></a>
+<a name="__line706"></a>
+<a name="__line707"></a>
+<a name="__line708"></a>        inline line operator*(const transformation &amp;t, const line &amp;l)
+<a name="__line709"></a>        {
+<a name="__line710"></a>            line result(l);
+<a name="__line711"></a>            result*=t;
+<a name="__line712"></a>            return result;
+<a name="__line713"></a>        }
+<a name="__line714"></a>        inline plane operator*(const transformation &amp;t, const plane &amp;p)
+<a name="__line715"></a>        {
+<a name="__line716"></a>            plane result(p);
+<a name="__line717"></a>            result*=t;
+<a name="__line718"></a>            return result;
+<a name="__line719"></a>        }
+<a name="__line720"></a>
+<a name="__line721"></a>    }
+<a name="__line722"></a>
+<a name="__line723"></a>    <span class=comment>// Project a point perpendicularly onto a plane</span>
+<a name="__line724"></a>    geom::point project(const geom::point &amp;p, const geom::plane &amp;pl);
+<a name="__line725"></a>
+<a name="__line726"></a>    <span class=comment>// Project a point perpendicularly onto a line</span>
+<a name="__line727"></a>    geom::point project(const geom::point &amp;p, const geom::line &amp;l);
+<a name="__line728"></a>
+<a name="__line729"></a>    <span class=comment>// Project a line to a plane</span>
+<a name="__line730"></a>    geom::line project(const geom::line &amp;l, const geom::plane &amp;pl);
+<a name="__line731"></a>
+<a name="__line732"></a>    <span class=comment>// Project a vector onto a plane (remove its normal component)</span>
+<a name="__line733"></a>    geom::vec3 project(const geom::vec3 &amp;v, const geom::plane &amp;pl);
+<a name="__line734"></a>
+<a name="__line735"></a>    <span class=comment>// Project a vector onto a line (remove its normal component)</span>
+<a name="__line736"></a>    geom::vec3 project(const geom::vec3 &amp;v, const geom::line &amp;l);
+<a name="__line737"></a>
+<a name="__line738"></a>
+<a name='intersection'>
+<a name="__line740"></a>    <span class=comment>// Calculate the intersections of two polylines, the coordinates of which are given</span>
+<a name="__line741"></a>    <span class=comment>// in (x1,y1) and (x2,y2). The intersection coordinates are returned in (x,y).</span>
+<a name="__line742"></a>    <span class=comment>// The function returns the number of intersection points</span>
+<a name="__line743"></a>    int intersection(const std::vector&lt;double&gt; &amp;x1, const std::vector&lt;double&gt; &amp;y1,
+<a name="__line744"></a>		     const std::vector&lt;double&gt; &amp;x2, const std::vector&lt;double&gt; &amp;y2,
+<a name="__line745"></a>		     std::vector&lt;double&gt; &amp;x, std::vector&lt;double&gt; &amp;y);
+<a name="__line746"></a>
+</a>
+<a name="__line748"></a>
+<a name="__line749"></a>
+<a name="__line750"></a>
+<a name="__line751"></a>    
+<a name="__line752"></a>}
+<a name="__line753"></a>
+<a name="__line754"></a>
+<a name="__line755"></a>
+<a name="__line756"></a>
+<a name="__line757"></a>
+<a name="__line758"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

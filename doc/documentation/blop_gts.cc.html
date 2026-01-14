@@ -1,0 +1,943 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blop_gts.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="blop_gts.h.html">blop_gts.h</a>"
+<a name="__line1"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line2"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line3"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line4"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line5"></a>#include "<a href="geometry.h.html">geometry.h</a>"
+<a name="__line6"></a>#include "<a href="plot.h.html">plot.h</a>"
+<a name="__line7"></a>#include &lt;algorithm&gt;
+<a name="__line8"></a>#include &lt;cmath&gt;
+<a name="__line9"></a>using namespace std;
+<a name="__line10"></a>
+<a name="__line11"></a>#ifdef HAVE_GTS_H
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop 
+<a name="__line14"></a>{
+<a name="__line15"></a>    inline double sq(double a) { return a*a; }
+<a name="__line16"></a>
+<a name="__line17"></a>    double xmin(const GtsTriangle *t)
+<a name="__line18"></a>    {
+<a name="__line19"></a>	GtsVertex *v1, *v2, *v3;
+<a name="__line20"></a>	vertices(t,&amp;v1,&amp;v2,&amp;v3);
+<a name="__line21"></a>	if(v1==v2 || v1==v3 || v2==v3) warning::print("Error in xmin(GtsTriangle*). Contact the author");
+<a name="__line22"></a>	return std::min(v1-&gt;p.x,std::min(v2-&gt;p.x,v3-&gt;p.x));
+<a name="__line23"></a>    }
+<a name="__line24"></a>    double xmax(const GtsTriangle *t)
+<a name="__line25"></a>    {
+<a name="__line26"></a>	GtsVertex *v1, *v2, *v3;
+<a name="__line27"></a>	vertices(t,&amp;v1,&amp;v2,&amp;v3);
+<a name="__line28"></a>	return std::max(v1-&gt;p.x,std::max(v2-&gt;p.x,v3-&gt;p.x));
+<a name="__line29"></a>    }
+<a name="__line30"></a>    double ymin(const GtsTriangle *t)
+<a name="__line31"></a>    {
+<a name="__line32"></a>	GtsVertex *v1, *v2, *v3;
+<a name="__line33"></a>	vertices(t,&amp;v1,&amp;v2,&amp;v3);
+<a name="__line34"></a>	return std::min(v1-&gt;p.y,std::min(v2-&gt;p.y,v3-&gt;p.y));
+<a name="__line35"></a>    }
+<a name="__line36"></a>    double ymax(const GtsTriangle *t)
+<a name="__line37"></a>    {
+<a name="__line38"></a>	GtsVertex *v1, *v2, *v3;
+<a name="__line39"></a>	vertices(t,&amp;v1,&amp;v2,&amp;v3);
+<a name="__line40"></a>	return std::max(v1-&gt;p.y,std::max(v2-&gt;p.y,v3-&gt;p.y));
+<a name="__line41"></a>    }
+<a name="__line42"></a>
+<a name="__line43"></a>    void   bbox(const GtsTriangle *t, double *xmin, double *xmax, double *ymin, double *ymax, double *zmin, double *zmax)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	GtsVertex *v1, *v2, *v3;
+<a name="__line46"></a>	vertices(t,&amp;v1,&amp;v2,&amp;v3);
+<a name="__line47"></a>	if(v1==v2 || v1==v3 || v2==v3) warning::print("Error in bbox(GtsTriangle*,...). Contact the author");
+<a name="__line48"></a>	*xmin = std::min(v1-&gt;p.x,std::min(v2-&gt;p.x,v3-&gt;p.x));
+<a name="__line49"></a>	*xmax = std::max(v1-&gt;p.x,std::max(v2-&gt;p.x,v3-&gt;p.x));
+<a name="__line50"></a>	*ymin = std::min(v1-&gt;p.y,std::min(v2-&gt;p.y,v3-&gt;p.y));
+<a name="__line51"></a>	*ymax = std::max(v1-&gt;p.y,std::max(v2-&gt;p.y,v3-&gt;p.y));
+<a name="__line52"></a>	if(zmin) *zmin = std::min(v1-&gt;p.z,std::min(v2-&gt;p.z,v3-&gt;p.z));
+<a name="__line53"></a>	if(zmax) *zmax = std::max(v1-&gt;p.z,std::max(v2-&gt;p.z,v3-&gt;p.z));
+<a name="__line54"></a>    }
+<a name="__line55"></a>
+<a name="__line56"></a>    void   vertices(const GtsTriangle *t, GtsVertex **v1, GtsVertex **v2, GtsVertex **v3)
+<a name="__line57"></a>    {
+<a name="__line58"></a>	*v1 = t-&gt;e1-&gt;segment.v1;
+<a name="__line59"></a>	*v2 = t-&gt;e1-&gt;segment.v2;
+<a name="__line60"></a>	*v3 = ((t-&gt;e2-&gt;segment.v1==*v1||t-&gt;e2-&gt;segment.v1==*v2)?t-&gt;e2-&gt;segment.v2:t-&gt;e2-&gt;segment.v1);
+<a name="__line61"></a>    }
+<a name="__line62"></a>
+<a name="__line63"></a>
+<a name="__line64"></a>
+<a name="__line65"></a>    gint vertex_collecting_function(gpointer f, gpointer v)
+<a name="__line66"></a>    {
+<a name="__line67"></a>	GtsVertex *vertex = (GtsVertex*)f;
+<a name="__line68"></a>	vector&lt;GtsVertex*&gt; *vertexvector = (vector&lt;GtsVertex*&gt;*)v;
+<a name="__line69"></a>	vertexvector-&gt;push_back(vertex);
+<a name="__line70"></a>	return 0;
+<a name="__line71"></a>    }
+<a name="__line72"></a>    const GtsVertex *gts_surface::vertex(unsigned int i) const
+<a name="__line73"></a>    {
+<a name="__line74"></a>	if(vertices_.empty())
+<a name="__line75"></a>	{
+<a name="__line76"></a>	    gts_surface_foreach_vertex(surface(),vertex_collecting_function,(gpointer)&amp;vertices_);
+<a name="__line77"></a>	}
+<a name="__line78"></a>	if(i&lt;0 || vertices_.size()&lt;=i) return 0;
+<a name="__line79"></a>	return vertices_[i];
+<a name="__line80"></a>    }
+<a name="__line81"></a>
+<a name="__line82"></a>    gint face_collecting_function(gpointer f, gpointer v)
+<a name="__line83"></a>    {
+<a name="__line84"></a>	GtsFace *face = (GtsFace*)f;
+<a name="__line85"></a>	vector&lt;GtsFace*&gt; *facevector = (vector&lt;GtsFace*&gt;*)v;
+<a name="__line86"></a>	facevector-&gt;push_back(face);
+<a name="__line87"></a>	return 0;
+<a name="__line88"></a>    }
+<a name="__line89"></a>    const GtsFace *gts_surface::face(unsigned int i) const
+<a name="__line90"></a>    {
+<a name="__line91"></a>	if(faces_.empty())  <span class=comment>// initialize the faces array</span>
+<a name="__line92"></a>	{
+<a name="__line93"></a>	    gts_surface_foreach_face(surface(),face_collecting_function,(gpointer)&amp;faces_);
+<a name="__line94"></a>	}
+<a name="__line95"></a>	if(i&lt;0 || faces_.size()&lt;=i) return 0;
+<a name="__line96"></a>	return faces_[i];
+<a name="__line97"></a>    }
+<a name="__line98"></a>
+<a name="__line99"></a>
+<a name="__line100"></a>    gint edge_collecting_function(gpointer f, gpointer v)
+<a name="__line101"></a>    {
+<a name="__line102"></a>	GtsEdge *edge = (GtsEdge*)f;
+<a name="__line103"></a>	vector&lt;GtsEdge*&gt; *edgevector = (vector&lt;GtsEdge*&gt;*)v;
+<a name="__line104"></a>	edgevector-&gt;push_back(edge);
+<a name="__line105"></a>	return 0;
+<a name="__line106"></a>    }
+<a name="__line107"></a>    const GtsEdge *gts_surface::edge(unsigned int i) const
+<a name="__line108"></a>    {
+<a name="__line109"></a>	if(edges_.empty())
+<a name="__line110"></a>	{
+<a name="__line111"></a>	    gts_surface_foreach_edge(surface(),edge_collecting_function,(gpointer)&amp;edges_);
+<a name="__line112"></a>	}
+<a name="__line113"></a>	if(i&lt;0 || edges_.size()&lt;=i) return 0;
+<a name="__line114"></a>	return edges_[i];
+<a name="__line115"></a>    }
+<a name="__line116"></a>
+<a name="__line117"></a>    int gts_surface::nvertices() const
+<a name="__line118"></a>    {
+<a name="__line119"></a>	return gts_surface_vertex_number(surface());
+<a name="__line120"></a>    }
+<a name="__line121"></a>    int gts_surface::nfaces() const
+<a name="__line122"></a>    {
+<a name="__line123"></a>	return gts_surface_face_number(surface());
+<a name="__line124"></a>    }
+<a name="__line125"></a>    int gts_surface::nedges() const
+<a name="__line126"></a>    {
+<a name="__line127"></a>	return gts_surface_edge_number(surface());
+<a name="__line128"></a>    }
+<a name="__line129"></a>
+<a name="__line130"></a>    gts_surface::~gts_surface()
+<a name="__line131"></a>    {
+<a name="__line132"></a>	clear();
+<a name="__line133"></a>    }
+<a name="__line134"></a>
+<a name="__line135"></a>    GtsSurface *gts_surface::surface() const
+<a name="__line136"></a>    {
+<a name="__line137"></a>	if(!initialized_) initialize();
+<a name="__line138"></a>	return surface_;
+<a name="__line139"></a>    }
+<a name="__line140"></a>
+<a name="__line141"></a>    void gts_surface::clear_vertices_() const
+<a name="__line142"></a>    {
+<a name="__line143"></a>	<span class=comment>//for(unsigned int i=0; i&lt;vertices_.size(); ++i) gts_object_destroy(GTS_OBJECT(vertices_[i]));</span>
+<a name="__line144"></a>	vertices_.clear();
+<a name="__line145"></a>    }
+<a name="__line146"></a>    void gts_surface::clear_edges_() const
+<a name="__line147"></a>    {
+<a name="__line148"></a>	<span class=comment>//for(unsigned int i=0; i&lt;edges_.size(); ++i) gts_object_destroy(GTS_OBJECT(edges_[i]));</span>
+<a name="__line149"></a>	edges_.clear();
+<a name="__line150"></a>    }
+<a name="__line151"></a>    void gts_surface::clear_faces_() const
+<a name="__line152"></a>    {
+<a name="__line153"></a>	<span class=comment>//for(unsigned int i=0; i&lt;faces_.size(); ++i) gts_object_destroy(GTS_OBJECT(faces_[i]));</span>
+<a name="__line154"></a>	faces_.clear();
+<a name="__line155"></a>    }
+<a name="__line156"></a>    void gts_surface::clear_enclosing_triangle_() const
+<a name="__line157"></a>    {
+<a name="__line158"></a>	for(int i=0; i&lt;3; ++i) enclosing_triangle_x_[i] = enclosing_triangle_y_[i] = 0;
+<a name="__line159"></a>    }
+<a name="__line160"></a>    void gts_surface::clear_bounding_boxes_() const
+<a name="__line161"></a>    {
+<a name="__line162"></a>	if(bounding_boxes_) gts_bb_tree_destroy(bounding_boxes_, TRUE);
+<a name="__line163"></a>	bounding_boxes_ = 0;
+<a name="__line164"></a>    }
+<a name="__line165"></a>
+<a name="__line166"></a>    gts_surface &amp;gts_surface::clear()
+<a name="__line167"></a>    {
+<a name="__line168"></a>	if(surface_) gts_object_destroy(GTS_OBJECT(surface_));
+<a name="__line169"></a>	surface_ = 0;
+<a name="__line170"></a>	clear_vertices_();
+<a name="__line171"></a>	clear_edges_();
+<a name="__line172"></a>	clear_faces_();
+<a name="__line173"></a>	clear_enclosing_triangle_();
+<a name="__line174"></a>	clear_bounding_boxes_();
+<a name="__line175"></a>	initialized_ = false;
+<a name="__line176"></a>	return *this;
+<a name="__line177"></a>    }
+<a name="__line178"></a>
+<a name="__line179"></a>    void gts_surface::enclosing_triangle(double x[3], double y[3], double scale) const
+<a name="__line180"></a>    {
+<a name="__line181"></a>	if(enclosing_triangle_x_[0] == 0.0 &amp;&amp;
+<a name="__line182"></a>	   enclosing_triangle_x_[1] == 0.0 &amp;&amp;
+<a name="__line183"></a>	   enclosing_triangle_x_[2] == 0.0 &amp;&amp;
+<a name="__line184"></a>	   enclosing_triangle_y_[0] == 0.0 &amp;&amp;
+<a name="__line185"></a>	   enclosing_triangle_y_[1] == 0.0 &amp;&amp;
+<a name="__line186"></a>	   enclosing_triangle_y_[2] == 0.0)
+<a name="__line187"></a>	{
+<a name="__line188"></a>	    const int n = nvertices();
+<a name="__line189"></a>	    double xmin=0, xmax=0, ymin=0, ymax=0;
+<a name="__line190"></a>	    for(int i=0; i&lt;n; ++i)
+<a name="__line191"></a>	    {
+<a name="__line192"></a>		const GtsVertex *v = vertex(i);
+<a name="__line193"></a>		const double x = v-&gt;p.x;
+<a name="__line194"></a>		const double y = v-&gt;p.y;
+<a name="__line195"></a>		if(i==0 || x&lt;xmin) xmin = x;
+<a name="__line196"></a>		if(i==0 || x&gt;xmax) xmax = x;
+<a name="__line197"></a>		if(i==0 || y&lt;ymin) ymin = y;
+<a name="__line198"></a>		if(i==0 || y&gt;ymax) ymax = y;
+<a name="__line199"></a>	    }
+<a name="__line200"></a>	    const double a = xmax-xmin;
+<a name="__line201"></a>	    const double b = ymax-ymin;
+<a name="__line202"></a>	    const double xcenter = 0.5*(xmin+xmin);
+<a name="__line203"></a>	    const double A = a/2+b/tan(60*unit::deg);
+<a name="__line204"></a>
+<a name="__line205"></a>	    enclosing_triangle_x_[0] = -A + xcenter;
+<a name="__line206"></a>	    enclosing_triangle_y_[0] = ymin;
+<a name="__line207"></a>	    enclosing_triangle_x_[1] =  A + xcenter;
+<a name="__line208"></a>	    enclosing_triangle_y_[1] = ymin;
+<a name="__line209"></a>	    enclosing_triangle_x_[2] = xcenter;
+<a name="__line210"></a>	    enclosing_triangle_y_[2] = ymin + 2*A*std::sin(60*unit::deg);
+<a name="__line211"></a>	}
+<a name="__line212"></a>	double
+<a name="__line213"></a>	    cog_x=enclosing_triangle_x_[0],
+<a name="__line214"></a>	    cog_y=enclosing_triangle_y_[0]; <span class=comment>// centers of gravity;</span>
+<a name="__line215"></a>	for(int i=1; i&lt;3; ++i)
+<a name="__line216"></a>	{
+<a name="__line217"></a>	    cog_x += enclosing_triangle_x_[i];
+<a name="__line218"></a>	    cog_y += enclosing_triangle_y_[i];
+<a name="__line219"></a>	}
+<a name="__line220"></a>	cog_x /= 3;
+<a name="__line221"></a>	cog_y /= 3;
+<a name="__line222"></a>	for(int i=0; i&lt;3; ++i)
+<a name="__line223"></a>	{
+<a name="__line224"></a>	    const double dx = enclosing_triangle_x_[i] - cog_x;
+<a name="__line225"></a>	    const double dy = enclosing_triangle_y_[i] - cog_y;
+<a name="__line226"></a>	    x[i] = cog_x + scale*dx;
+<a name="__line227"></a>	    y[i] = cog_y + scale*dy;
+<a name="__line228"></a>	}
+<a name="__line229"></a>    }
+<a name="__line230"></a>
+<a name="__line231"></a>    GNode *gts_surface::bounding_boxes() const
+<a name="__line232"></a>    {
+<a name="__line233"></a>	if(bounding_boxes_ == 0) bounding_boxes_ = gts_bb_tree_surface(surface());
+<a name="__line234"></a>	return bounding_boxes_;
+<a name="__line235"></a>    }
+<a name="__line236"></a>
+<a name="__line237"></a>    gts_surface::gts_surface()
+<a name="__line238"></a>	: bounding_boxes_(0), initialized_(false), surface_(0) 
+<a name="__line239"></a>    {
+<a name="__line240"></a>	for(int i=0; i&lt;3; ++i) enclosing_triangle_x_[i] = enclosing_triangle_y_[i] = 0;
+<a name="__line241"></a>    }
+<a name="__line242"></a>
+<a name="__line243"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line244"></a>
+<a name="__line245"></a>    double delaunay_surface::z_at(double x, double y) const
+<a name="__line246"></a>    {
+<a name="__line247"></a>        for(int i=0; i&lt;nfaces(); ++i)
+<a name="__line248"></a>        {
+<a name="__line249"></a>	    GtsVertex *v1, *v2, *v3;
+<a name="__line250"></a>	    vertices(&amp;(face(i)-&gt;triangle), &amp;v1, &amp;v2, &amp;v3);
+<a name="__line251"></a>	    geom::triangle tt(geom::vec3(v1-&gt;p.x, v1-&gt;p.y, 0),
+<a name="__line252"></a>			      geom::vec3(v2-&gt;p.x, v2-&gt;p.y, 0),
+<a name="__line253"></a>			      geom::vec3(v3-&gt;p.x, v3-&gt;p.y, 0));
+<a name="__line254"></a>	    
+<a name="__line255"></a>	    if(tt.inside(geom::vec3(x,y,0)))
+<a name="__line256"></a>	    {
+<a name="__line257"></a>		tt.vertex(1).coord.z = v1-&gt;p.z;
+<a name="__line258"></a>		tt.vertex(2).coord.z = v2-&gt;p.z;
+<a name="__line259"></a>		tt.vertex(3).coord.z = v3-&gt;p.z;
+<a name="__line260"></a>		const geom::plane p(tt);
+<a name="__line261"></a>		const geom::line  l(geom::point(x,y,0),geom::vec3(0,0,1));
+<a name="__line262"></a>		const geom::point solution(p,l);
+<a name="__line263"></a>		return solution.coord.z;
+<a name="__line264"></a>	    }
+<a name="__line265"></a>        }
+<a name="__line266"></a>        return unset;
+<a name="__line267"></a>    }
+<a name="__line268"></a>
+<a name="__line269"></a>    void delaunay_surface::get_triangle_grid(vector&lt;double&gt; &amp;x, vector&lt;double&gt; &amp;y)
+<a name="__line270"></a>    {
+<a name="__line271"></a>	const GtsVertex *vlast = 0;
+<a name="__line272"></a>	for(int i=0; i&lt;nedges(); ++i)
+<a name="__line273"></a>	{
+<a name="__line274"></a>	    const GtsEdge *e = edge(i);
+<a name="__line275"></a>	    const GtsVertex *v1 = e-&gt;segment.v1;
+<a name="__line276"></a>	    const GtsVertex *v2 = e-&gt;segment.v2;
+<a name="__line277"></a>	    if(v2==vlast) swap(v1,v2);
+<a name="__line278"></a>	    if(v1==vlast)
+<a name="__line279"></a>	    {
+<a name="__line280"></a>		x.push_back(v2-&gt;p.x);
+<a name="__line281"></a>		y.push_back(v2-&gt;p.y);
+<a name="__line282"></a>	    }
+<a name="__line283"></a>	    else
+<a name="__line284"></a>	    {
+<a name="__line285"></a>		if(!x.empty())
+<a name="__line286"></a>		{
+<a name="__line287"></a>		    x.push_back(unset);
+<a name="__line288"></a>		    y.push_back(unset);
+<a name="__line289"></a>		}
+<a name="__line290"></a>		x.push_back(v1-&gt;p.x);
+<a name="__line291"></a>		y.push_back(v1-&gt;p.y);
+<a name="__line292"></a>		x.push_back(v2-&gt;p.x);
+<a name="__line293"></a>		y.push_back(v2-&gt;p.y);
+<a name="__line294"></a>	    }
+<a name="__line295"></a>	    vlast = v2;
+<a name="__line296"></a>	}
+<a name="__line297"></a>    }
+<a name="__line298"></a>
+<a name="__line299"></a>    dgraph &amp;delaunay_surface::plot_triangles()
+<a name="__line300"></a>    {
+<a name="__line301"></a>	vector&lt;double&gt; x,y;
+<a name="__line302"></a>	get_triangle_grid(x,y);
+<a name="__line303"></a>	dgraph &amp;result = plot(x,y);
+<a name="__line304"></a>	result.ds(lines());
+<a name="__line305"></a>	return result;
+<a name="__line306"></a>    }
+<a name="__line307"></a>    dgraph &amp;delaunay_surface::mplot_triangles()
+<a name="__line308"></a>    {
+<a name="__line309"></a>	vector&lt;double&gt; x,y;
+<a name="__line310"></a>	get_triangle_grid(x,y);
+<a name="__line311"></a>	dgraph &amp;result = mplot(x,y);
+<a name="__line312"></a>	result.ds(lines());
+<a name="__line313"></a>	return result;
+<a name="__line314"></a>    }
+<a name="__line315"></a>
+<a name="__line316"></a>    delaunay_surface &amp;delaunay_surface::add_vertex(double x, double y, double z)
+<a name="__line317"></a>    {
+<a name="__line318"></a>	vertices_.push_back(gts_vertex_new(gts_vertex_class(),x,y,z));
+<a name="__line319"></a>	initialized_ = false;
+<a name="__line320"></a>	clear_faces_();
+<a name="__line321"></a>	clear_edges_();
+<a name="__line322"></a>	clear_enclosing_triangle_();
+<a name="__line323"></a>	clear_bounding_boxes_();
+<a name="__line324"></a>	return *this;
+<a name="__line325"></a>    }
+<a name="__line326"></a>
+<a name="__line327"></a>    delaunay_surface::delaunay_surface()
+<a name="__line328"></a>    {
+<a name="__line329"></a>    }
+<a name="__line330"></a>
+<a name="__line331"></a>    delaunay_surface::delaunay_surface(const delaunay_surface &amp;rhs)
+<a name="__line332"></a>    {
+<a name="__line333"></a>	vertices_.resize(rhs.vertices_.size());
+<a name="__line334"></a>	for(unsigned int i=0; i&lt;vertices_.size(); ++i)
+<a name="__line335"></a>	{
+<a name="__line336"></a>	    vertices_[i] = gts_vertex_new(gts_vertex_class(),rhs.vertices_[i]-&gt;p.x,rhs.vertices_[i]-&gt;p.y,rhs.vertices_[i]-&gt;p.z);
+<a name="__line337"></a>	}
+<a name="__line338"></a>    }
+<a name="__line339"></a>
+<a name="__line340"></a>    delaunay_surface::~delaunay_surface()
+<a name="__line341"></a>    {
+<a name="__line342"></a>    }
+<a name="__line343"></a>
+<a name="__line344"></a>
+<a name="__line345"></a>
+<a name="__line346"></a>    void delaunay_surface::initialize() const
+<a name="__line347"></a>    {
+<a name="__line348"></a>	<span class=comment>// Delete first the surface_ if it was already set in a previous initialize operation</span>
+<a name="__line349"></a>	if(surface_) gts_object_destroy(GTS_OBJECT(surface_));
+<a name="__line350"></a>	surface_ = 0;
+<a name="__line351"></a>	clear_edges_();
+<a name="__line352"></a>	clear_faces_();
+<a name="__line353"></a>
+<a name="__line354"></a>	if(vertices_.size()&lt;3)
+<a name="__line355"></a>	{
+<a name="__line356"></a>	    warning::print("delaunay_surface has less than 3 vertices","delaunay_surface::initialzie()");
+<a name="__line357"></a>	    return;
+<a name="__line358"></a>	}
+<a name="__line359"></a>
+<a name="__line360"></a>	surface_ = gts_surface_new(gts_surface_class(),
+<a name="__line361"></a>				   gts_face_class(),
+<a name="__line362"></a>				   gts_edge_class(),
+<a name="__line363"></a>				   gts_vertex_class());
+<a name="__line364"></a>
+<a name="__line365"></a>	if(vertices_.size() == 3)
+<a name="__line366"></a>	{
+<a name="__line367"></a>	    GtsEdge *e1 = gts_edge_new(gts_edge_class(), vertices_[0], vertices_[1]);
+<a name="__line368"></a>	    GtsEdge *e2 = gts_edge_new(gts_edge_class(), vertices_[1], vertices_[2]);
+<a name="__line369"></a>	    GtsEdge *e3 = gts_edge_new(gts_edge_class(), vertices_[2], vertices_[0]);
+<a name="__line370"></a>	    gts_surface_add_face(surface_, gts_face_new(gts_face_class(), e1, e2, e3));
+<a name="__line371"></a>	    return;
+<a name="__line372"></a>	}
+<a name="__line373"></a>
+<a name="__line374"></a>	<span class=comment>// now create the enclosing triangle </span>
+<a name="__line375"></a>	GtsVertex *enclosing_v1=0, *enclosing_v2=0, *enclosing_v3=0;
+<a name="__line376"></a>	{
+<a name="__line377"></a>	    GtsTriangle *enclosing_t;
+<a name="__line378"></a>	    {
+<a name="__line379"></a>		GSList * list = NULL;
+<a name="__line380"></a>		for (unsigned int i = 0; i &lt; vertices_.size(); ++i)
+<a name="__line381"></a>		{
+<a name="__line382"></a>		    list = g_slist_prepend (list, vertices_[i]);
+<a name="__line383"></a>		}
+<a name="__line384"></a>		enclosing_t = gts_triangle_enclosing (gts_triangle_class (), list, 100.);
+<a name="__line385"></a>		g_slist_free (list);
+<a name="__line386"></a>	    }
+<a name="__line387"></a>
+<a name="__line388"></a>
+<a name="__line389"></a>	    gts_triangle_vertices(enclosing_t, &amp;enclosing_v1, &amp;enclosing_v2, &amp;enclosing_v3);
+<a name="__line390"></a>	    gts_surface_add_face (surface_, gts_face_new (gts_face_class (),
+<a name="__line391"></a>							  enclosing_t-&gt;e1,
+<a name="__line392"></a>							  enclosing_t-&gt;e2,
+<a name="__line393"></a>							  enclosing_t-&gt;e3));
+<a name="__line394"></a>
+<a name="__line395"></a>	}
+<a name="__line396"></a>
+<a name="__line397"></a>	for(unsigned int i=0; i&lt;vertices_.size(); ++i)
+<a name="__line398"></a>	{
+<a name="__line399"></a>	    GtsVertex * v1 = vertices_[i];
+<a name="__line400"></a>	    GtsVertex * v = (GtsVertex *)(gts_delaunay_add_vertex (surface_, v1, NULL));
+<a name="__line401"></a>	    g_assert (v != v1);
+<a name="__line402"></a>	    if (v != NULL)
+<a name="__line403"></a>	    {
+<a name="__line404"></a>		warning::print(var("Duplicate datapoint (") &amp;
+<a name="__line405"></a>			       var(v-&gt;p.x) &amp; var(",") &amp;
+<a name="__line406"></a>			       var(v-&gt;p.y) &amp; var(",") &amp;
+<a name="__line407"></a>			       var(v-&gt;p.z) &amp; var(")"),
+<a name="__line408"></a>			       "delaunay_surface::initialize()");
+<a name="__line409"></a>		gts_vertex_replace (v1, v);
+<a name="__line410"></a>	    }
+<a name="__line411"></a>	}
+<a name="__line412"></a>
+<a name="__line413"></a>	gts_allow_floating_vertices = TRUE;
+<a name="__line414"></a>	gts_object_destroy (GTS_OBJECT (enclosing_v1));
+<a name="__line415"></a>	gts_object_destroy (GTS_OBJECT (enclosing_v2));
+<a name="__line416"></a>	gts_object_destroy (GTS_OBJECT (enclosing_v3));
+<a name="__line417"></a>	gts_allow_floating_vertices = FALSE;
+<a name="__line418"></a>    
+<a name="__line419"></a>	if(gts_delaunay_check(surface_)) warning::print("Surface is not Delaunay","delaunay_surface::initialize()");
+<a name="__line420"></a>
+<a name="__line421"></a>	initialized_ = true;
+<a name="__line422"></a>
+<a name="__line423"></a>    }
+<a name="__line424"></a>
+<a name="__line425"></a>
+<a name="__line426"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line427"></a>
+<a name="__line428"></a>    GtsVertex * gts_next_vertex (GtsVertex * v)
+<a name="__line429"></a>    {
+<a name="__line430"></a>	GSList * j = v-&gt;segments;
+<a name="__line431"></a>	
+<a name="__line432"></a>	while (j)
+<a name="__line433"></a>	{
+<a name="__line434"></a>	    GtsSegment * s = (GtsSegment*)(j-&gt;data);
+<a name="__line435"></a>	    
+<a name="__line436"></a>	    if (GTS_OBJECT (s)-&gt;reserved == s)
+<a name="__line437"></a>	    {
+<a name="__line438"></a>		GTS_OBJECT (s)-&gt;reserved = NULL;
+<a name="__line439"></a>		return s-&gt;v1 != v ? s-&gt;v1 : s-&gt;v2;
+<a name="__line440"></a>	    }
+<a name="__line441"></a>	    j = j-&gt;next;
+<a name="__line442"></a>	}
+<a name="__line443"></a>	
+<a name="__line444"></a>	return NULL;
+<a name="__line445"></a>    }
+<a name="__line446"></a>
+<a name="__line447"></a>    GSList * gts_chain_segments (GSList * segments)
+<a name="__line448"></a>    {
+<a name="__line449"></a>	GSList *chains = NULL, *i = segments;
+<a name="__line450"></a>	
+<a name="__line451"></a>	while (i)
+<a name="__line452"></a>	{
+<a name="__line453"></a>	    GTS_OBJECT (i-&gt;data)-&gt;reserved = i-&gt;data;
+<a name="__line454"></a>	    i = i-&gt;next;
+<a name="__line455"></a>	}
+<a name="__line456"></a>	
+<a name="__line457"></a>	i = segments;
+<a name="__line458"></a>	while (i)
+<a name="__line459"></a>	{
+<a name="__line460"></a>	    GtsSegment * s = (GtsSegment*)(i-&gt;data);
+<a name="__line461"></a>	    
+<a name="__line462"></a>	    if (GTS_OBJECT (s)-&gt;reserved == s)
+<a name="__line463"></a>	    {
+<a name="__line464"></a>		GSList * chain = g_slist_prepend (NULL, s-&gt;v1);
+<a name="__line465"></a>		GtsVertex * v = s-&gt;v2;
+<a name="__line466"></a>		
+<a name="__line467"></a>		GTS_OBJECT (s)-&gt;reserved = NULL;
+<a name="__line468"></a>		while (v)
+<a name="__line469"></a>		{
+<a name="__line470"></a>		    chain = g_slist_prepend (chain, v);
+<a name="__line471"></a>		    v = gts_next_vertex (v);
+<a name="__line472"></a>		}
+<a name="__line473"></a>		chains = g_slist_prepend (chains, chain);
+<a name="__line474"></a>	    }
+<a name="__line475"></a>	    i = i-&gt;next;
+<a name="__line476"></a>	}
+<a name="__line477"></a>    
+<a name="__line478"></a>	return chains;
+<a name="__line479"></a>    }
+<a name="__line480"></a>
+<a name="__line481"></a>    void intersection_z(gts_surface &amp;s, double z, std::vector&lt;double&gt; &amp;xx, std::vector&lt;double&gt; &amp;yy)
+<a name="__line482"></a>    {
+<a name="__line483"></a>	<span class=comment>// Create the cutplane. Make it static, so that we do not need to create/delete</span>
+<a name="__line484"></a>	<span class=comment>// these GTS objects across multiple calls to intersection_z, but only update</span>
+<a name="__line485"></a>	<span class=comment>// their coordinates</span>
+<a name="__line486"></a>	static GtsSurface *cutplane = 0; 
+<a name="__line487"></a>	{
+<a name="__line488"></a>	    static GtsFace *cutplane_face = 0;
+<a name="__line489"></a>	    static GtsVertex *cutplane_v1 = 0;
+<a name="__line490"></a>	    static GtsVertex *cutplane_v2 = 0;
+<a name="__line491"></a>	    static GtsVertex *cutplane_v3 = 0;
+<a name="__line492"></a>
+<a name="__line493"></a>	    <span class=comment>// If this is the first call, i.e. these GTS objects have not yet been created, create them.</span>
+<a name="__line494"></a>	    if(!cutplane)
+<a name="__line495"></a>	    {
+<a name="__line496"></a>		cutplane = gts_surface_new(gts_surface_class (),
+<a name="__line497"></a>					   gts_face_class (),
+<a name="__line498"></a>					   gts_edge_class (),
+<a name="__line499"></a>					   gts_vertex_class ());
+<a name="__line500"></a>		
+<a name="__line501"></a>		cutplane_v1 = gts_vertex_new(gts_vertex_class(),0,0,0);
+<a name="__line502"></a>		cutplane_v2 = gts_vertex_new(gts_vertex_class(),0,1,0);
+<a name="__line503"></a>		cutplane_v3 = gts_vertex_new(gts_vertex_class(),1,0,0);
+<a name="__line504"></a>		cutplane_face = gts_face_new(gts_face_class(),
+<a name="__line505"></a>					     gts_edge_new(gts_edge_class(),cutplane_v1,cutplane_v2),
+<a name="__line506"></a>					     gts_edge_new(gts_edge_class(),cutplane_v2,cutplane_v3),
+<a name="__line507"></a>					     gts_edge_new(gts_edge_class(),cutplane_v3,cutplane_v1));
+<a name="__line508"></a>		gts_surface_add_face(cutplane, cutplane_face);
+<a name="__line509"></a>	    }
+<a name="__line510"></a>
+<a name="__line511"></a>	    <span class=comment>// now only change the coordinates of this cutplane</span>
+<a name="__line512"></a>	    <span class=comment>// get the enclosing triangle's corner coordinates (scaled by 2 to surely</span>
+<a name="__line513"></a>	    <span class=comment>// enclose all the (x,y) points of the surface's vertices)</span>
+<a name="__line514"></a>	    double enclosing_x[3], enclosing_y[3];
+<a name="__line515"></a>	    s.enclosing_triangle(enclosing_x, enclosing_y, 2);
+<a name="__line516"></a>
+<a name="__line517"></a>	    cutplane_v1-&gt;p.x = enclosing_x[0];
+<a name="__line518"></a>	    cutplane_v1-&gt;p.y = enclosing_y[0];
+<a name="__line519"></a>	    cutplane_v1-&gt;p.z = z;
+<a name="__line520"></a>	    cutplane_v2-&gt;p.x = enclosing_x[1];
+<a name="__line521"></a>	    cutplane_v2-&gt;p.y = enclosing_y[1];
+<a name="__line522"></a>	    cutplane_v2-&gt;p.z = z;
+<a name="__line523"></a>	    cutplane_v3-&gt;p.x = enclosing_x[2];
+<a name="__line524"></a>	    cutplane_v3-&gt;p.y = enclosing_y[2];
+<a name="__line525"></a>	    cutplane_v3-&gt;p.z = z;
+<a name="__line526"></a>	}
+<a name="__line527"></a>
+<a name="__line528"></a>
+<a name="__line529"></a>	GNode *cutplane_bb = gts_bb_tree_surface(cutplane);
+<a name="__line530"></a>	GSList *intersection = gts_surface_intersection(s.surface(), cutplane,
+<a name="__line531"></a>							s.bounding_boxes(), cutplane_bb);
+<a name="__line532"></a>	gts_bb_tree_destroy(cutplane_bb, TRUE);
+<a name="__line533"></a>
+<a name="__line534"></a>	GSList *chains = gts_chain_segments(intersection);
+<a name="__line535"></a>
+<a name="__line536"></a>	int ichain=0;
+<a name="__line537"></a>	for(GSList *i = chains; i; i=i-&gt;next, ++ichain)
+<a name="__line538"></a>	{
+<a name="__line539"></a>	    <span class=comment>// put a separator (unset,unset) point</span>
+<a name="__line540"></a>	    if(!xx.empty() &amp;&amp; xx.back()!=unset)
+<a name="__line541"></a>	    {
+<a name="__line542"></a>		xx.push_back(unset);
+<a name="__line543"></a>		yy.push_back(unset);
+<a name="__line544"></a>	    }
+<a name="__line545"></a>	    int n = 0;
+<a name="__line546"></a>	    for(GSList *j = (GSList *)(i-&gt;data); j; j=j-&gt;next)
+<a name="__line547"></a>	    {
+<a name="__line548"></a>		GtsPoint * p = (GtsPoint *)(j-&gt;data);
+<a name="__line549"></a>		const double x = p-&gt;x;
+<a name="__line550"></a>		const double y = p-&gt;y;
+<a name="__line551"></a>
+<a name="__line552"></a>		<span class=comment>// skip single separated points...</span>
+<a name="__line553"></a>		if(n == 0 &amp;&amp; j-&gt;next == 0) continue;
+<a name="__line554"></a>
+<a name="__line555"></a>		<span class=comment>// and also those which agree with the last one</span>
+<a name="__line556"></a>		if(!xx.empty() &amp;&amp; xx.back() == x &amp;&amp; yy.back() == y) continue;
+<a name="__line557"></a>
+<a name="__line558"></a>		++n;
+<a name="__line559"></a>		xx.push_back(x);
+<a name="__line560"></a>		yy.push_back(y);
+<a name="__line561"></a>	    }
+<a name="__line562"></a>	    if(n == 1)
+<a name="__line563"></a>	    {
+<a name="__line564"></a>		xx.resize(xx.size()-1);
+<a name="__line565"></a>		yy.resize(yy.size()-1);
+<a name="__line566"></a>	    }
+<a name="__line567"></a>	    g_slist_free ((GSList *)(i-&gt;data));
+<a name="__line568"></a>	}
+<a name="__line569"></a>
+<a name="__line570"></a>	g_slist_free(chains);
+<a name="__line571"></a>    }
+<a name="__line572"></a>    void intersection_z(gts_surface &amp;s, double z, array &amp;xx, array &amp;yy)
+<a name="__line573"></a>    {
+<a name="__line574"></a>	GNode *surface_bb = gts_bb_tree_surface(s.surface());
+<a name="__line575"></a>
+<a name="__line576"></a>	GtsSurface *cutplane = gts_surface_new(gts_surface_class (),
+<a name="__line577"></a>					       gts_face_class (),
+<a name="__line578"></a>					       gts_edge_class (),
+<a name="__line579"></a>					       gts_vertex_class ());
+<a name="__line580"></a>
+<a name="__line581"></a>
+<a name="__line582"></a>	GtsVertex *enclosing_v1=0, *enclosing_v2=0, *enclosing_v3=0;
+<a name="__line583"></a>	{
+<a name="__line584"></a>	    GtsTriangle *enclosing_t;
+<a name="__line585"></a>	    GSList * list = NULL;
+<a name="__line586"></a>	    for(int i=0; i&lt;s.nvertices(); ++i)
+<a name="__line587"></a>	    {
+<a name="__line588"></a>		list = g_slist_prepend (list, (gpointer)s.vertex(i));
+<a name="__line589"></a>	    }
+<a name="__line590"></a>	    enclosing_t = gts_triangle_enclosing (gts_triangle_class(), list, 100.);
+<a name="__line591"></a>	    g_slist_free (list);
+<a name="__line592"></a>	    gts_triangle_vertices(enclosing_t, &amp;enclosing_v1, &amp;enclosing_v2, &amp;enclosing_v3);
+<a name="__line593"></a>	    enclosing_v1-&gt;p.z = z;
+<a name="__line594"></a>	    enclosing_v2-&gt;p.z = z;
+<a name="__line595"></a>	    enclosing_v3-&gt;p.z = z;
+<a name="__line596"></a>
+<a name="__line597"></a>	    gts_surface_add_face (cutplane,
+<a name="__line598"></a>				  gts_face_new (gts_face_class(),
+<a name="__line599"></a>						gts_edge_new(gts_edge_class(),enclosing_v1,enclosing_v2),
+<a name="__line600"></a>						gts_edge_new(gts_edge_class(),enclosing_v2,enclosing_v3),
+<a name="__line601"></a>						gts_edge_new(gts_edge_class(),enclosing_v3,enclosing_v1)));
+<a name="__line602"></a>	}
+<a name="__line603"></a>
+<a name="__line604"></a>	GNode *cutplane_bb = gts_bb_tree_surface(cutplane);
+<a name="__line605"></a>
+<a name="__line606"></a>	GSList *intersection = gts_surface_intersection(s.surface(), cutplane,
+<a name="__line607"></a>							surface_bb, cutplane_bb);
+<a name="__line608"></a>	GSList *chains = gts_chain_segments(intersection);
+<a name="__line609"></a>
+<a name="__line610"></a>	int ichain=0;
+<a name="__line611"></a>	for(GSList *i = chains; i; i=i-&gt;next, ++ichain)
+<a name="__line612"></a>	{
+<a name="__line613"></a>	    <span class=comment>// put a separator (unset,unset) point</span>
+<a name="__line614"></a>	    if(!xx.empty() &amp;&amp; xx.back()!=unset)
+<a name="__line615"></a>	    {
+<a name="__line616"></a>		xx.push_back(var(unset));
+<a name="__line617"></a>		yy.push_back(var(unset));
+<a name="__line618"></a>	    }
+<a name="__line619"></a>	    int n = 0;
+<a name="__line620"></a>	    for(GSList *j = (GSList *)(i-&gt;data); j; j=j-&gt;next)
+<a name="__line621"></a>	    {
+<a name="__line622"></a>		GtsPoint * p = (GtsPoint *)(j-&gt;data);
+<a name="__line623"></a>		const double x = p-&gt;x;
+<a name="__line624"></a>		const double y = p-&gt;y;
+<a name="__line625"></a>
+<a name="__line626"></a>		<span class=comment>// skip single separated points...</span>
+<a name="__line627"></a>		if(n == 0 &amp;&amp; j-&gt;next == 0) continue;
+<a name="__line628"></a>
+<a name="__line629"></a>		<span class=comment>// and also those which agree with the last one</span>
+<a name="__line630"></a>		if(!xx.empty() &amp;&amp; xx.back() == x &amp;&amp; yy.back() == y) continue;
+<a name="__line631"></a>
+<a name="__line632"></a>		++n;
+<a name="__line633"></a>		xx.push_back(var(x));
+<a name="__line634"></a>		yy.push_back(var(y));
+<a name="__line635"></a>	    }
+<a name="__line636"></a>	    if(n == 1)
+<a name="__line637"></a>	    {
+<a name="__line638"></a>		xx.resize(xx.size()-1);
+<a name="__line639"></a>		yy.resize(yy.size()-1);
+<a name="__line640"></a>	    }
+<a name="__line641"></a>	    g_slist_free ((GSList *)(i-&gt;data));
+<a name="__line642"></a>	}
+<a name="__line643"></a>
+<a name="__line644"></a>	g_slist_free(chains);
+<a name="__line645"></a>
+<a name="__line646"></a>    }
+<a name="__line647"></a>
+<a name="__line648"></a>
+<a name="__line649"></a>    void isoline(const var &amp;filename, double zcut, vector&lt;double&gt; &amp;iso_x, vector&lt;double&gt; &amp;iso_y,
+<a name="__line650"></a>		 const function &amp;f1, const function &amp;f2, const function &amp;f3)
+<a name="__line651"></a>    {
+<a name="__line652"></a>	iso_x.clear();
+<a name="__line653"></a>	iso_y.clear();
+<a name="__line654"></a>	delaunay_surface surf;
+<a name="__line655"></a>	function filter = unset;
+<a name="__line656"></a>	if(f1.initialized()) filter.append(f1);
+<a name="__line657"></a>	if(f2.initialized()) filter.append(f2);
+<a name="__line658"></a>	if(f3.initialized()) filter.append(f3);
+<a name="__line659"></a>
+<a name="__line660"></a>	if(filter.initialized() &amp;&amp; filter.components() &lt; 3)
+<a name="__line661"></a>	{
+<a name="__line662"></a>	    warning::print("Filter has too few components","isoline(filename,zcut,iso_x,iso_y,f1,f2,f3)");
+<a name="__line663"></a>	    return;
+<a name="__line664"></a>	}
+<a name="__line665"></a>
+<a name="__line666"></a>	vector&lt;double&gt; x,y,z;
+<a name="__line667"></a>	int lineno = 0;
+<a name="__line668"></a>	istream *file = openin(filename);
+<a name="__line669"></a>	vector&lt;var&gt; filter_result(filter.initialized()?filter.components():0);
+<a name="__line670"></a>        bool last_line_empty = false;
+<a name="__line671"></a>        bool last2_line_empty = false; <span class=comment>// 2nd last line empty</span>
+<a name="__line672"></a>        int blockno=0, Blockno=0;
+<a name="__line673"></a>	for(array line; getline(*file,line); ++lineno)
+<a name="__line674"></a>	{
+<a name="__line675"></a>            if(last_line_empty &amp;&amp; !line.empty()) ++blockno;
+<a name="__line676"></a>            if(last_line_empty &amp;&amp; last2_line_empty &amp;&amp; !line.empty()) ++Blockno;
+<a name="__line677"></a>            last2_line_empty = last_line_empty;
+<a name="__line678"></a>            last_line_empty = line.empty();
+<a name="__line679"></a>
+<a name="__line680"></a>            function::clear_named_params();
+<a name="__line681"></a>	    function::named_param("linenumber",lineno);
+<a name="__line682"></a>            function::named_param("blocknumber",blockno);
+<a name="__line683"></a>            function::named_param("Blocknumber",Blockno);
+<a name="__line684"></a>
+<a name="__line685"></a>	    if(line.empty()) continue;
+<a name="__line686"></a>	    if(line[0][0] == '#') continue;
+<a name="__line687"></a>	    if(filter.initialized() &amp;&amp; filter.nargs()&gt;(int)line.size()) continue;
+<a name="__line688"></a>	    if(!filter.initialized() &amp;&amp; line.size()&lt;3) continue; 
+<a name="__line689"></a>	    bool skip_this_point = false;
+<a name="__line690"></a>	    for(unsigned int i=0; i&lt;line.size(); ++i)
+<a name="__line691"></a>	    {
+<a name="__line692"></a>		if((filter.initialized()?filter.uses_arg(i+1):true) &amp;&amp; ignore::it(line[i]))
+<a name="__line693"></a>		{
+<a name="__line694"></a>		    skip_this_point=true;
+<a name="__line695"></a>		    break;
+<a name="__line696"></a>		}
+<a name="__line697"></a>	    }
+<a name="__line698"></a>	    if(skip_this_point) continue;
+<a name="__line699"></a>	    if(filter.initialized())
+<a name="__line700"></a>	    {
+<a name="__line701"></a>		
+<a name="__line702"></a>		filter.meval(line,filter_result);
+<a name="__line703"></a>		surf.add_vertex(filter_result[0].dbl(),filter_result[1].dbl(),filter_result[2].dbl());
+<a name="__line704"></a>	    }
+<a name="__line705"></a>	    else
+<a name="__line706"></a>	    {
+<a name="__line707"></a>		surf.add_vertex(line[0].dbl(),line[1].dbl(),line[2].dbl());
+<a name="__line708"></a>	    }
+<a name="__line709"></a>	}
+<a name="__line710"></a>
+<a name="__line711"></a>	intersection_z(surf,zcut,iso_x,iso_y);
+<a name="__line712"></a>    }
+<a name="__line713"></a>
+<a name="__line714"></a>    void isoline(const function &amp;f, double zcut, 
+<a name="__line715"></a>		 std::vector&lt;double&gt; &amp;xx,
+<a name="__line716"></a>		 std::vector&lt;double&gt; &amp;yy,
+<a name="__line717"></a>		 double p1min, double p1max,
+<a name="__line718"></a>		 double p2min, double p2max,
+<a name="__line719"></a>		 int np1, int np2)
+<a name="__line720"></a>    {
+<a name="__line721"></a>	delaunay_surface surf;
+<a name="__line722"></a>	const double dp1 = (p1max-p1min)/np1;
+<a name="__line723"></a>	const double dp2 = (p2max-p2min)/np2;
+<a name="__line724"></a>	for(double p1=p1min; p1&lt;p1max+0.1*dp1; p1+=dp1)
+<a name="__line725"></a>	{
+<a name="__line726"></a>	    for(double p2=p2min; p2&lt;p2max+0.1*dp2; p2+=dp2)
+<a name="__line727"></a>	    {
+<a name="__line728"></a>		surf.add_vertex(p1,p2,f(p1,p2).dbl());
+<a name="__line729"></a>	    }
+<a name="__line730"></a>	}
+<a name="__line731"></a>	intersection_z(surf,zcut,xx,yy);
+<a name="__line732"></a>    }
+<a name="__line733"></a>
+<a name="__line734"></a>    void isoline(const vector&lt;double&gt; &amp;x, const vector&lt;double&gt; &amp;y, const vector&lt;double&gt; &amp;z,
+<a name="__line735"></a>		 double zcut,
+<a name="__line736"></a>		 vector&lt;double&gt; &amp;iso_x, vector&lt;double&gt; &amp;iso_y)
+<a name="__line737"></a>    {
+<a name="__line738"></a>	delaunay_surface surf;
+<a name="__line739"></a>	if(x.size() != y.size() || x.size() != z.size())
+<a name="__line740"></a>	{
+<a name="__line741"></a>	    warning::print("The size of the x/y/z arrays do not match","isoline(const vector&lt;double&gt; &amp;, ....)");
+<a name="__line742"></a>	}
+<a name="__line743"></a>	unsigned int n = ::min(x.size(),::min(y.size(),z.size()));
+<a name="__line744"></a>	for(unsigned int i=0; i&lt;n; ++i)
+<a name="__line745"></a>	{
+<a name="__line746"></a>	    surf.add_vertex(x[i],y[i],z[i]);
+<a name="__line747"></a>	}
+<a name="__line748"></a>	intersection_z(surf,zcut,iso_x,iso_y);
+<a name="__line749"></a>    }
+<a name="__line750"></a>
+<a name="__line751"></a>    void isoline(const dgraph &amp;g,
+<a name="__line752"></a>		 double zcut,
+<a name="__line753"></a>		 vector&lt;double&gt; &amp;iso_x, vector&lt;double&gt; &amp;iso_y)
+<a name="__line754"></a>    {
+<a name="__line755"></a>	delaunay_surface surf;
+<a name="__line756"></a>	for(unsigned int i=0; i&lt;g.size(); ++i)
+<a name="__line757"></a>	{
+<a name="__line758"></a>            const datapoint *p = g.get(i);
+<a name="__line759"></a>	    surf.add_vertex((*p)[0],(*p)[1],(*p)[2]);
+<a name="__line760"></a>	}
+<a name="__line761"></a>	intersection_z(surf,zcut,iso_x,iso_y);
+<a name="__line762"></a>    }
+<a name="__line763"></a>
+<a name="__line764"></a>    void isoline(const array &amp;x, const array &amp;y, const array &amp;z,
+<a name="__line765"></a>		 double zcut,
+<a name="__line766"></a>		 array &amp;iso_x, array &amp;iso_y)
+<a name="__line767"></a>    {
+<a name="__line768"></a>	delaunay_surface surf;
+<a name="__line769"></a>	if(x.size() != y.size() || x.size() != z.size())
+<a name="__line770"></a>	{
+<a name="__line771"></a>	    warning::print("The size of the x/y/z arrays do not match","isoline(const vector&lt;double&gt; &amp;, ....)");
+<a name="__line772"></a>	}
+<a name="__line773"></a>	unsigned int n = ::min(x.size(),::min(y.size(),z.size()));
+<a name="__line774"></a>	for(unsigned int i=0; i&lt;n; ++i)
+<a name="__line775"></a>	{
+<a name="__line776"></a>	    surf.add_vertex(x[i].dbl(),y[i].dbl(),z[i].dbl());
+<a name="__line777"></a>	}
+<a name="__line778"></a>	intersection_z(surf,zcut,iso_x,iso_y);
+<a name="__line779"></a>    }
+<a name="__line780"></a>
+<a name="__line781"></a>
+<a name="__line782"></a><span class=comment>/*
+<a name="__line783"></a>
+<a name="__line784"></a>    inline double getx(GPtrArray *v, int i)
+<a name="__line785"></a>    {
+<a name="__line786"></a>	return ((GtsVertex*)g_ptr_array_index(v,i))-&gt;p.x;
+<a name="__line787"></a>    }
+<a name="__line788"></a>    inline double gety(GPtrArray *v, int i)
+<a name="__line789"></a>    {
+<a name="__line790"></a>	return ((GtsVertex*)g_ptr_array_index(v,i))-&gt;p.y;
+<a name="__line791"></a>    }
+<a name="__line792"></a>
+<a name="__line793"></a>    void center_of_mass(GPtrArray *vertices, double *x, double *y)
+<a name="__line794"></a>    {
+<a name="__line795"></a>	*x = 0;
+<a name="__line796"></a>	*y = 0;
+<a name="__line797"></a>	for(unsigned int i=0; i&lt;vertices-&gt;len; ++i)
+<a name="__line798"></a>	{
+<a name="__line799"></a>	    *x += getx(vertices,i);
+<a name="__line800"></a>	    *y += gety(vertices,i);
+<a name="__line801"></a>	}
+<a name="__line802"></a>	*x /= vertices-&gt;len;
+<a name="__line803"></a>	*y /= vertices-&gt;len;
+<a name="__line804"></a>    }
+<a name="__line805"></a>
+<a name="__line806"></a>    int closest_point(GPtrArray *vertices, double x, double y)
+<a name="__line807"></a>    {
+<a name="__line808"></a>	int result = -1;
+<a name="__line809"></a>	double min_distance = 0;
+<a name="__line810"></a>	for(unsigned int i=0; i&lt;vertices-&gt;len; ++i)
+<a name="__line811"></a>	{
+<a name="__line812"></a>	    const double xi = getx(vertices,i);
+<a name="__line813"></a>	    const double yi = gety(vertices,i);
+<a name="__line814"></a>	    const double distance = std::sqrt(sq(xi-x)+sq(yi-y));
+<a name="__line815"></a>	    if(i==0 || distance&lt;min_distance)
+<a name="__line816"></a>	    {
+<a name="__line817"></a>		result = i;
+<a name="__line818"></a>		min_distance = distance;
+<a name="__line819"></a>	    }
+<a name="__line820"></a>	}
+<a name="__line821"></a>	return result;
+<a name="__line822"></a>    }
+<a name="__line823"></a>
+<a name="__line824"></a>    void gift_wrapping_algorithm(GPtrArray *vertices, vector&lt;unsigned int&gt; &amp;result)
+<a name="__line825"></a>    {
+<a name="__line826"></a>	result.clear();
+<a name="__line827"></a>	
+<a name="__line828"></a>	// find the leftmost (and lowermost) point
+<a name="__line829"></a>	{
+<a name="__line830"></a>	    double index = 0;
+<a name="__line831"></a>	    double xmin = getx(vertices,0);
+<a name="__line832"></a>	    double ymin = gety(vertices,0);
+<a name="__line833"></a>	    for(unsigned int i=1; i&lt;vertices-&gt;len; ++i)
+<a name="__line834"></a>	    {
+<a name="__line835"></a>		const double x = getx(vertices,i);
+<a name="__line836"></a>		const double y = gety(vertices,i);
+<a name="__line837"></a>		if(x&lt;xmin)
+<a name="__line838"></a>		{
+<a name="__line839"></a>		    index = i;
+<a name="__line840"></a>		    xmin = x;
+<a name="__line841"></a>		    ymin = y;
+<a name="__line842"></a>		}
+<a name="__line843"></a>		if(x==xmin)
+<a name="__line844"></a>		{
+<a name="__line845"></a>		    if(y&lt;ymin)
+<a name="__line846"></a>		    {
+<a name="__line847"></a>			index = i;
+<a name="__line848"></a>			xmin = x;
+<a name="__line849"></a>			ymin = y;
+<a name="__line850"></a>		    }
+<a name="__line851"></a>		}
+<a name="__line852"></a>	    }
+<a name="__line853"></a>	    // we have the first point on the hull
+<a name="__line854"></a>	    result.push_back(index);
+<a name="__line855"></a>	}
+<a name="__line856"></a>
+<a name="__line857"></a>	double x_last_hull = getx(vertices,result.back());
+<a name="__line858"></a>	double y_last_hull = gety(vertices,result.back());
+<a name="__line859"></a>	double x_butlast_hull = x_last_hull;
+<a name="__line860"></a>	double y_butlast_hull = y_last_hull-1;
+<a name="__line861"></a>	double dx_last_hull = x_butlast_hull-x_last_hull;
+<a name="__line862"></a>	double dy_last_hull = y_butlast_hull-y_last_hull;
+<a name="__line863"></a>	double length_last_hull = std::sqrt(dx_last_hull*dx_last_hull+dy_last_hull*dy_last_hull);
+<a name="__line864"></a>
+<a name="__line865"></a>	while(true)
+<a name="__line866"></a>	{
+<a name="__line867"></a>	    unsigned int ind = 0;
+<a name="__line868"></a>	    double min_cos = 1;
+<a name="__line869"></a>	    double max_length = 0;
+<a name="__line870"></a>	    for(unsigned int i=0; i&lt;vertices-&gt;len; ++i)
+<a name="__line871"></a>	    {
+<a name="__line872"></a>		if(i==result.back()) continue;
+<a name="__line873"></a>		//if(find(result.begin(), result.end(), i) != result.end()) continue;
+<a name="__line874"></a>		const double x = getx(vertices,i);
+<a name="__line875"></a>		const double y = gety(vertices,i);
+<a name="__line876"></a>		
+<a name="__line877"></a>		const double dx = x - x_last_hull;
+<a name="__line878"></a>		const double dy = y - y_last_hull;
+<a name="__line879"></a>		
+<a name="__line880"></a>		const double length = std::sqrt(dx*dx+dy*dy);
+<a name="__line881"></a>		const double cos_angle = (dx*dx_last_hull+dy*dy_last_hull)/(length*length_last_hull);
+<a name="__line882"></a>		if(i==0 || cos_angle&lt;min_cos || (cos_angle == min_cos &amp;&amp; length&gt;max_length))
+<a name="__line883"></a>		{
+<a name="__line884"></a>		    ind = i;
+<a name="__line885"></a>		    min_cos = cos_angle;
+<a name="__line886"></a>		    max_length = length;
+<a name="__line887"></a>		}
+<a name="__line888"></a>	    }
+<a name="__line889"></a>
+<a name="__line890"></a>	    if(find(result.begin()+1, result.end(), ind) != result.end())
+<a name="__line891"></a>	    {
+<a name="__line892"></a>		cerr&lt;&lt;"This should probably never happen"&lt;&lt;endl;
+<a name="__line893"></a>	    }
+<a name="__line894"></a>
+<a name="__line895"></a>	    // the next found point is the first one: stop the loop
+<a name="__line896"></a>	    if(ind == result[0] || ind&lt;0) break;
+<a name="__line897"></a>	    
+<a name="__line898"></a>	    result.push_back(ind);
+<a name="__line899"></a>	    x_butlast_hull = x_last_hull;
+<a name="__line900"></a>	    y_butlast_hull = y_last_hull;
+<a name="__line901"></a>	    x_last_hull = getx(vertices,ind);
+<a name="__line902"></a>	    y_last_hull = gety(vertices,ind);
+<a name="__line903"></a>	    dx_last_hull = x_butlast_hull-x_last_hull;
+<a name="__line904"></a>	    dy_last_hull = y_butlast_hull-y_last_hull;
+<a name="__line905"></a>	    length_last_hull = std::sqrt(dx_last_hull*dx_last_hull+dy_last_hull*dy_last_hull);
+<a name="__line906"></a>	}
+<a name="__line907"></a>    }
+<a name="__line908"></a>*/</span>
+<a name="__line909"></a>
+<a name="__line910"></a>}
+<a name="__line911"></a>
+<a name="__line912"></a>#endif
+<a name="__line913"></a><span class=comment>// HAVE_GTS_H</span>
+<a name="__line914"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

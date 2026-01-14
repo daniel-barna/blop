@@ -1,0 +1,327 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: color_legend.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="color_legend.h.html">color_legend.h</a>"
+<a name="__line1"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>#include "<a href="plottable.h.html">plottable.h</a>"
+<a name="__line4"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line5"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line6"></a>#include &lt;limits&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>namespace blop
+<a name="__line9"></a>{
+<a name="__line10"></a>    using namespace std;
+<a name="__line11"></a>
+<a name="__line12"></a>    length color_legend::default_sample_width_ = 3*length(length::base_id_t(terminal::EX));
+<a name="__line13"></a>    void color_legend::default_sample_width(const length &amp;l) {default_sample_width_ = l;}
+<a name="__line14"></a>
+<a name="__line15"></a>    color_legend &amp;color_legend::mknew()
+<a name="__line16"></a>    {
+<a name="__line17"></a>	color_legend *l = new color_legend;
+<a name="__line18"></a>	l-&gt;autodel(true);
+<a name="__line19"></a>	<span class=comment>//frame::current().rmarginobject(l);</span>
+<a name="__line20"></a>	pad::current().add(l);
+<a name="__line21"></a>	l-&gt;right(1.0);
+<a name="__line22"></a>	return *l;
+<a name="__line23"></a>    }
+<a name="__line24"></a>
+<a name="__line25"></a>    void color_legend::init_()
+<a name="__line26"></a>    {
+<a name="__line27"></a>	name("color_legend");
+<a name="__line28"></a>	box::bottom(0.0);
+<a name="__line29"></a>	box::top(1.0);
+<a name="__line30"></a>	box::left(0.0);
+<a name="__line31"></a>	sample_width_ = default_sample_width_;
+<a name="__line32"></a>	sample_right_ = !sample_width_;
+<a name="__line33"></a>	tic_left_ = !sample_right_ - length(length::base_id_t(terminal::EX));
+<a name="__line34"></a>	sep_ = EX;
+<a name="__line35"></a>	ticlabel_pos_ = !sample_right_+!sep_;
+<a name="__line36"></a>	<span class=comment>// ticlabel_width_ = to be set up later;</span>
+<a name="__line37"></a>        ticlabel_width_fixed_ = false;
+<a name="__line38"></a>	box::width(!sample_width_ + !sep_ + !ticlabel_width_);
+<a name="__line39"></a>	<span class=comment>//box::fix_width(true);</span>
+<a name="__line40"></a>    }
+<a name="__line41"></a>
+<a name="__line42"></a>    color_legend::color_legend()
+<a name="__line43"></a>    {
+<a name="__line44"></a>	init_();
+<a name="__line45"></a>    }
+<a name="__line46"></a>
+<a name="__line47"></a>    color_legend::color_legend(graphd_colorscale *d)
+<a name="__line48"></a>    {
+<a name="__line49"></a>	init_();
+<a name="__line50"></a>	<span class=comment>// register the colorscale as owner</span>
+<a name="__line51"></a>	owners_.push_back(d);
+<a name="__line52"></a>    }
+<a name="__line53"></a>
+<a name="__line54"></a>    color_legend::color_legend(const color_legend &amp;rhs)
+<a name="__line55"></a>    {
+<a name="__line56"></a>    }
+<a name="__line57"></a>
+<a name="__line58"></a>    const color_legend &amp;color_legend::operator= (const color_legend &amp;rhs)
+<a name="__line59"></a>    {
+<a name="__line60"></a>	return rhs;
+<a name="__line61"></a>    }
+<a name="__line62"></a>
+<a name="__line63"></a>
+<a name="__line64"></a>    void color_legend::remove_owner(graphd_colorscale *o)
+<a name="__line65"></a>    {
+<a name="__line66"></a>	for(unsigned int i=0; i&lt;owners_.size(); ++i)
+<a name="__line67"></a>	{
+<a name="__line68"></a>	    if(owners_[i] == o)
+<a name="__line69"></a>	    {
+<a name="__line70"></a>		owners_.erase(owners_.begin()+i);
+<a name="__line71"></a>		--i;
+<a name="__line72"></a>	    }
+<a name="__line73"></a>	}
+<a name="__line74"></a>    }
+<a name="__line75"></a>
+<a name="__line76"></a>    double color_legend::min() const
+<a name="__line77"></a>    {
+<a name="__line78"></a>	return min_;
+<a name="__line79"></a>    }
+<a name="__line80"></a>    double color_legend::max() const
+<a name="__line81"></a>    {
+<a name="__line82"></a>	return max_;
+<a name="__line83"></a>    }
+<a name="__line84"></a>
+<a name="__line85"></a>    void color_legend::clear_tics()
+<a name="__line86"></a>    {
+<a name="__line87"></a>	colortics_.clear();
+<a name="__line88"></a>    }
+<a name="__line89"></a>
+<a name="__line90"></a>    void color_legend::calculate_tics()
+<a name="__line91"></a>    {
+<a name="__line92"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [color_legend] calculate_tics starts..."&lt;&lt;endl;
+<a name="__line93"></a>	<span class=comment>// Tics have already been calcualted, so simply return</span>
+<a name="__line94"></a>	if(!colortics_.empty())
+<a name="__line95"></a>	{
+<a name="__line96"></a>	    if(global::debug&gt;0)
+<a name="__line97"></a>	    {
+<a name="__line98"></a>		cout&lt;&lt;"[blop] [color_legend]   tics have already been calculated"&lt;&lt;endl;
+<a name="__line99"></a>		cout&lt;&lt;"[blop] [color_legend] calculate_tics finished."&lt;&lt;endl;
+<a name="__line100"></a>	    }
+<a name="__line101"></a>	    return;
+<a name="__line102"></a>	}
+<a name="__line103"></a>
+<a name="__line104"></a>	min_ = numeric_limits&lt;double&gt;::max();
+<a name="__line105"></a>	max_ = -numeric_limits&lt;double&gt;::max();
+<a name="__line106"></a>	bool cmin_fixed = false;
+<a name="__line107"></a>	bool cmax_fixed = false;
+<a name="__line108"></a>	bool clogscale  = false;
+<a name="__line109"></a>	for(unsigned int i=0; i&lt;owners_.size(); ++i)
+<a name="__line110"></a>	{
+<a name="__line111"></a>	    if(!cmin_fixed &amp;&amp; owners_[i]-&gt;color_min()&lt;min_)
+<a name="__line112"></a>	    {
+<a name="__line113"></a>		min_ = owners_[i]-&gt;color_min();
+<a name="__line114"></a>	    }
+<a name="__line115"></a>	    if(owners_[i]-&gt;color_min_fixed()) cmin_fixed = true;
+<a name="__line116"></a>	    if(!cmax_fixed &amp;&amp; owners_[i]-&gt;color_max()&gt;max_)
+<a name="__line117"></a>	    {
+<a name="__line118"></a>		max_ = owners_[i]-&gt;color_max();
+<a name="__line119"></a>	    }
+<a name="__line120"></a>	    if(owners_[i]-&gt;color_max_fixed()) cmax_fixed = true;
+<a name="__line121"></a>	    if(owners_[i]-&gt;color_logscale()) clogscale = true;
+<a name="__line122"></a>	}
+<a name="__line123"></a>
+<a name="__line124"></a>	if(min_ == unset || !finite(min_) || max_ == unset || !finite(max_))
+<a name="__line125"></a>	{
+<a name="__line126"></a>	    <span class=comment>// if there are multiple owners, it can easily be that they are plotted</span>
+<a name="__line127"></a>	    <span class=comment>// in different frames, i.e. one of these owner graphs already reaches pass=2</span>
+<a name="__line128"></a>	    <span class=comment>// where it tries to set the color-range/color-tics, whereas the other graph(s)</span>
+<a name="__line129"></a>	    <span class=comment>// - being in a different frame - have not yet been set up yet, i.e. give</span>
+<a name="__line130"></a>	    <span class=comment>// unreal values for min/max. Therefore only warn if there is one owner.</span>
+<a name="__line131"></a>	    <span class=comment>// This is a stupid workaround, not a real solution!</span>
+<a name="__line132"></a>
+<a name="__line133"></a>	    if(owners_.size()&lt;=1) warning::print(var("Problem with color-range [") &amp; min_ &amp; var(" .. ") &amp; max_ &amp; var("]"), "color_legend::calculate_tics()");
+<a name="__line134"></a>
+<a name="__line135"></a>	    if(min_ == unset || !finite(min_))
+<a name="__line136"></a>	    {
+<a name="__line137"></a>		if(max_!=unset &amp;&amp; finite(max_)) min_ = max_-10;
+<a name="__line138"></a>		else min_ = 0;
+<a name="__line139"></a>	    }
+<a name="__line140"></a>	    if(max_ == unset || !finite(max_))
+<a name="__line141"></a>	    {
+<a name="__line142"></a>		if(min_!=unset &amp;&amp; finite(min_)) max_ = min_+10;
+<a name="__line143"></a>		else max_ = 10;
+<a name="__line144"></a>	    }
+<a name="__line145"></a>	}
+<a name="__line146"></a>
+<a name="__line147"></a>	vector&lt;pair&lt;double,double&gt; &gt; cuts_dummy;
+<a name="__line148"></a>	double delta = unset;
+<a name="__line149"></a>	tic scaletic;
+<a name="__line150"></a>	scaletic.value(unset);
+<a name="__line151"></a>	blop::calculate_tics(min_, cmin_fixed,
+<a name="__line152"></a>			     max_, cmax_fixed,
+<a name="__line153"></a>			     delta, false,     <span class=comment>// tic incrementation, fixed(=false)</span>
+<a name="__line154"></a>			     unset, unset,
+<a name="__line155"></a>			     scaletic,
+<a name="__line156"></a>			     1.0,
+<a name="__line157"></a>			     cuts_dummy,
+<a name="__line158"></a>			     clogscale,   <span class=comment>// logscale</span>
+<a name="__line159"></a>			     clogscale,   <span class=comment>// normalform tics</span>
+<a name="__line160"></a>			     true,         <span class=comment>// normalform scale</span>
+<a name="__line161"></a>			     colortics_);
+<a name="__line162"></a>        if(!ticlabel_width_fixed_) ticlabel_width_ = maxwidth(colortics_);
+<a name="__line163"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [color_legend] calculate_tics finished."&lt;&lt;endl;
+<a name="__line164"></a>    }
+<a name="__line165"></a>
+<a name="__line166"></a>    color_legend &amp;color_legend::ticlabel_width(const length &amp;l)
+<a name="__line167"></a>    {
+<a name="__line168"></a>        ticlabel_width_fixed_ = true;
+<a name="__line169"></a>        ticlabel_width_ = l;
+<a name="__line170"></a>        return *this;
+<a name="__line171"></a>    }
+<a name="__line172"></a>
+<a name="__line173"></a>    color_legend &amp;color_legend::title(const var &amp;t)
+<a name="__line174"></a>    {
+<a name="__line175"></a>	title_.text(t).angle(90*unit::deg)
+<a name="__line176"></a>	    .left(!ticlabel_pos_+!ticlabel_width_+!sep_)
+<a name="__line177"></a>	    .ycenter(0.5*!height()); <span class=comment>//!ycenter());</span>
+<a name="__line178"></a>	if(t.str() != "")
+<a name="__line179"></a>	{
+<a name="__line180"></a>	    box::width(!sample_width_ + 2*!sep_ + !ticlabel_width_ + !title_.width());
+<a name="__line181"></a>	}
+<a name="__line182"></a>	else
+<a name="__line183"></a>	{
+<a name="__line184"></a>	    box::width(!sample_width_ + !sep_ + !ticlabel_width_);
+<a name="__line185"></a>	}
+<a name="__line186"></a>	return *this;
+<a name="__line187"></a>    }
+<a name="__line188"></a>    const var &amp;color_legend::title() const
+<a name="__line189"></a>    {
+<a name="__line190"></a>	return title_.text();
+<a name="__line191"></a>    }
+<a name="__line192"></a>    
+<a name="__line193"></a>    color_legend &amp;color_legend::sample_width(const length &amp;l)
+<a name="__line194"></a>    {
+<a name="__line195"></a>	sample_width_ = l;
+<a name="__line196"></a>	return *this;
+<a name="__line197"></a>    }
+<a name="__line198"></a>
+<a name="__line199"></a>    void color_legend::print(terminal *term)
+<a name="__line200"></a>    {
+<a name="__line201"></a>	if(print_me_&lt;2) return;
+<a name="__line202"></a>	if(owners_.empty())
+<a name="__line203"></a>	{
+<a name="__line204"></a>	    warning::print("No owners of this color_legend",
+<a name="__line205"></a>			   "color_legend::print(terminal*)");
+<a name="__line206"></a>	    return;
+<a name="__line207"></a>	}
+<a name="__line208"></a>
+<a name="__line209"></a>	term-&gt;open_layer(layer_);
+<a name="__line210"></a>        term-&gt;subpicture_begin(terminal::coord(left().termspecific_id(), bottom().termspecific_id()),
+<a name="__line211"></a>                               terminal::coord(right().termspecific_id(), top().termspecific_id()));
+<a name="__line212"></a>
+<a name="__line213"></a>	
+<a name="__line214"></a>	<span class=comment>// first draw the color samples</span>
+<a name="__line215"></a>	int csamples = 0;
+<a name="__line216"></a>	bool clogscale=false;
+<a name="__line217"></a>	for(unsigned int i=0; i&lt;owners_.size(); ++i)
+<a name="__line218"></a>	{
+<a name="__line219"></a>	    <span class=comment>// take the maximum of the color-samples from the owners</span>
+<a name="__line220"></a>	    if(owners_[i]-&gt;color_samples()&gt;csamples) csamples=owners_[i]-&gt;color_samples();
+<a name="__line221"></a>
+<a name="__line222"></a>	    <span class=comment>// make color-logscale if any of the owners have this flag set</span>
+<a name="__line223"></a>	    if(owners_[i]-&gt;color_logscale()) clogscale = true;
+<a name="__line224"></a>	}
+<a name="__line225"></a>	vector&lt;terminal::coord&gt; c;
+<a name="__line226"></a>	for(int i=0; i&lt;csamples; ++i)
+<a name="__line227"></a>	{
+<a name="__line228"></a>	    c.clear();
+<a name="__line229"></a>	    const double pos = double(i)/csamples;
+<a name="__line230"></a>	    const double val = (clogscale==false ? min_ + (max_-min_)*pos :
+<a name="__line231"></a>				::pow(10,pos*(::log10(max_)-
+<a name="__line232"></a>					      ::log10(min_))+ ::log10(min_))  );
+<a name="__line233"></a>	    
+<a name="__line234"></a>	    c.push_back(terminal::coord(terminal::id(0.0,1),        terminal::id((double)i/csamples,2)));
+<a name="__line235"></a>	    c.push_back(terminal::coord(sample_right_.termspecific_id(), terminal::id((double)i/csamples,2)));
+<a name="__line236"></a>	    c.push_back(terminal::coord(sample_right_.termspecific_id(), terminal::id(double(i+1)/csamples,2)));
+<a name="__line237"></a>	    c.push_back(terminal::coord(terminal::id(0.0,1),        terminal::id(double(i+1)/csamples,2)));
+<a name="__line238"></a>	    c.push_back(terminal::coord(terminal::id(0.0,1),        terminal::id(double(i)/csamples,2)));
+<a name="__line239"></a>	    term-&gt;set_color(owners_[0]-&gt;map_color(val,min_,max_));
+<a name="__line240"></a>	    term-&gt;fill_polygon(c);
+<a name="__line241"></a>	}
+<a name="__line242"></a>
+<a name="__line243"></a>	term-&gt;set_color(black);
+<a name="__line244"></a>	term-&gt;set_linewidth(LW.termspecific_id());
+<a name="__line245"></a>	
+<a name="__line246"></a>	<span class=comment>// Then draw a surrounding box around the color samples</span>
+<a name="__line247"></a>	c.clear();
+<a name="__line248"></a>	c.push_back(terminal::coord(terminal::id(0.0,1), terminal::id(0,2)));
+<a name="__line249"></a>	c.push_back(terminal::coord(sample_right_.termspecific_id(),terminal::id(0,2)));
+<a name="__line250"></a>	c.push_back(terminal::coord(sample_right_.termspecific_id(),terminal::id(1,2)));
+<a name="__line251"></a>	c.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(1,2)));
+<a name="__line252"></a>	c.push_back(terminal::coord(terminal::id(0.0,1),terminal::id(0,2)));
+<a name="__line253"></a>	term-&gt;draw_lines(c);
+<a name="__line254"></a>	
+<a name="__line255"></a>	<span class=comment>// and finally draw the tics + ticlabels</span>
+<a name="__line256"></a>	for(unsigned int i=0; i&lt;colortics_.size(); ++i)
+<a name="__line257"></a>	{
+<a name="__line258"></a>	    double pos = 0;
+<a name="__line259"></a>	    if(!clogscale) pos = (colortics_[i].value()-min_)/(max_-min_);
+<a name="__line260"></a>	    else           pos =
+<a name="__line261"></a>			       (::log10(colortics_[i].value())-::log10(min_))/
+<a name="__line262"></a>			       (::log10(max_)- ::log10(min_));
+<a name="__line263"></a>	    term-&gt;draw_text(terminal::coord(ticlabel_pos_.termspecific_id(),
+<a name="__line264"></a>					    terminal::id(pos, 2)),
+<a name="__line265"></a>			    colortics_[i].label().str(),
+<a name="__line266"></a>			    sym::left, sym::center, 0);
+<a name="__line267"></a>	    term-&gt;draw_line(terminal::coord(tic_left_.termspecific_id(),
+<a name="__line268"></a>					    terminal::id(pos, 2)),
+<a name="__line269"></a>			    terminal::coord(sample_right_.termspecific_id(),
+<a name="__line270"></a>					    terminal::id(pos, 2)));
+<a name="__line271"></a>	}
+<a name="__line272"></a>	title_.print(term);
+<a name="__line273"></a>
+<a name="__line274"></a>        term-&gt;subpicture_end();
+<a name="__line275"></a>	term-&gt;close_layer(layer_);
+<a name="__line276"></a>    }
+<a name="__line277"></a>
+<a name="__line278"></a>    
+<a name="__line279"></a>    void color_legend::prepare_for_draw()
+<a name="__line280"></a>    {
+<a name="__line281"></a>	if(print_me_&lt;1) return;
+<a name="__line282"></a>	box::prepare_for_draw();
+<a name="__line283"></a>	sample_right_.register_me();
+<a name="__line284"></a>	tic_left_.register_me();
+<a name="__line285"></a>	ticlabel_pos_.register_me();
+<a name="__line286"></a>	title_.prepare_for_draw();
+<a name="__line287"></a>    }
+<a name="__line288"></a>
+<a name="__line289"></a>    color_legend::~color_legend()
+<a name="__line290"></a>    {
+<a name="__line291"></a>	<span class=comment>// Clear the link to myself in all of the owners</span>
+<a name="__line292"></a>	for(unsigned int i=0; i&lt;owners_.size(); ++i)
+<a name="__line293"></a>	{
+<a name="__line294"></a>	    owners_[i]-&gt;colorlegend_ = 0;
+<a name="__line295"></a>	}
+<a name="__line296"></a>    }
+<a name="__line297"></a>}
+<a name="__line298"></a>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

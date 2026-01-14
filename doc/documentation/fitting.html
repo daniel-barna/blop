@@ -1,0 +1,429 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Fitting</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="mpps.html">
+   <link rel="Next" href="histograming.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="mpps.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: mpps.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: histograming.html">
+    </a> <br>
+
+<center class=title><b>
+Fitting
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+// a quadratic fit model
+function model = PAR(1)*_1*_1 + PAR(2)*_1 + PAR(3);
+
+// fit data from a file (x=1st, y=2nd col), specifying that 
+// the error of y should be 1
+fitresult res = fit&lt;gauss_chi2&gt;("filename", model, fitopt().x(_1).y(_2).sigma_y(1.0) ); 
+
+cerr&lt;&lt;"parameter 1 = "&lt;&lt;model.param(1).dbl()&lt;&lt;endl;
+</pre>
+
+Fitting a 2D surface (gauss)
+<pre>
+dgraph g;
+g.add(x, y, z);   // do it many times to set the x,y and z points
+function model = exp( - (_1-PAR(1))*(_1-PAR(1))/(2*PAR(2)*PAR(2))
+                      - (_1-PAR(3))*(_1-PAR(3))/(2*PAR(4)*PAR(4)) );
+
+model.param(1,0); // set initial values for parameters
+model.param(2,10);
+model.param(3,0);
+model.param(4,10);
+
+fitresult r = fit&lt;gauss_chi2&gt;(g,model, fitopt().x(_1,_2).y(_3).sigma_x(1,1).sigma_y(1).verbose(2).maxsteps(200) );
+
+   // the last parameter specifies that
+   // columns 1 and 2 of the graph 'g' should be interpreted as x values
+   // column 3 should be the y value for the fit
+   // all points' errors are 1 (could be also for example _4 to use data from the 4th column)
+
+fitopt::default_x(_1,_2);  // in following, no need to spedify
+</pre>
+</div>
+
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#algorithm">The fitting algorithm</a>
+<li><a href="#fitopt">   Specifying further fitting options</a>
+<li><a href="#chi2">     Specifying the chi2 function for minimization</a>
+<li><a href="#data">     Specifying the datapoints to be fitted</a>
+<li><a href="#maxsteps"> Setting the max number of iterations</a>
+<li><a href="#condition">Limiting the range of fitting, or imposing any other conditions on data points to be used for fitting</a>
+<li><a href="#verbose">  Setting verbose level</a>
+<li><a href="#convergence"> Specifying the convergence criterium</a>
+<li><a href="#fix">      Fixing parameters</a>
+<li><a href="#results">  Obtaining results from the fit</a>
+<li><a href="#default">  Setting default values for the fit options</a>
+</ul>
+
+<p><div class=sectiontitle><a name="algorithm">The fitting algorithm</a></div>
+
+<p>The fitting procedure is based on the Levenberg-Marquardt algorithm
+(as         described         for         example        in         <a
+href="http://www.library.cornell.edu/nr/bookcpdf/c15-5.pdf">Numerical
+Recipes</a>.   The reported covariance  matrix is  the inverse  of the
+hessian (second  derivative matrix) of  the chi2, with respect  to the
+model's parameters.
+
+<p>Fitting  currently does  not work  in the  interpreted environment,
+only in a compiled code. Solution is already in progress.
+
+<p><div class=sectiontitle><a name="fitopt">Specifying    options</a></div>
+
+<p>The  third   argument  to  <tt>fit</tt>  is  a   variable  of  type
+<tt>fitopt</tt>,   which    follows   the   main    guidline   of   <a
+href="design-concepts.html#optclass"> option  classes</a>.  It is used
+to  store any  further specifications  to the  fitting  procedure (see
+below)
+
+<p><div class=sectiontitle><a  name="chi2">What is  chi2?</a></div>
+
+<p>The <i>usual</i>  chi2-fitting is the procedure which optimizes the chi2 defined as  
+
+<pre>chi2=sum_i [y_i - f(x_i)]^2/sigma_i^2</pre> 
+
+This procedure  is a maximum likelihood method  for such measurements,
+where the  y values are normally distributed  around their expectation
+value  with  a known  sigma.   However, many  times  this  is not  the
+case.  For example  when  fitting  a histogram,  where  the number  of
+entries in a bin are distributed according to a multinomial or Poisson
+distribution. In this case the 'usual' chi2 fitting method is <b>not a
+maximum-likelihood</b> method.   However, in many of  these cases chi2
+can be  defined in  such a way,  that the  minimization of it  gives a
+maximum  likelihood   estimation  for  the   parameters  (see  Nuclear
+Instruments and Methods in Physics Research 221 (1984) 437-442).  Blop
+currently implements  the chi2 defined for  Poisson- and multinomially
+distributed  values as  well.   The  user can  specify  in a  template
+argument of the <tt>fit</tt> function, which chi2 should be used:
+
+<pre> 
+fit&lt;gauss_chi2&gt;(....);      // normally distributed data, sigma_y is used
+fit&lt;poisson_chi2&gt;(..);       
+fit&lt;multinomial_chi2&gt;(...); // poisson- and multinomial-chi2, only the x,y values
+                            // are used, sigma_y and sigma_x have no meaning
+</pre>
+
+<p>My compiler  (<tt>g++ 3.3</tt>)  does not support  default template
+argument for this function, so in  the compiled code one always has to
+write  the chi2  explicitely  within the  &lt;..&gt;.  However, in  an
+interactive session  this defaults to <tt>gauss_chi2</tt>,  so if this
+is  the desired  chi2  function to  be  minimized, one  can omit  this
+parameter, and simply say: <pre>fit(gr, model)</pre>
+
+<p>Beyond the above mentioned 3  chi2 functions the user can define an
+arbitrary chi2 function to be used in the fit. The user has to specify
+the per-data-point chi2 function  (as a function of the datapoint-pair
+[and                possibly               their               errors]
+<tt>x</tt>,<tt>y</tt>,<tt>sigma_x</tt>,<tt>sigma_y</tt>     and    the
+modelfunction's value <tt>func</tt>). The  overall chi2 function to be
+minimized  will  be the  sum  of  the  per-data-point values  for  all
+measured points.
+
+This is done by first defining a class with the following 3 static member functions:
+<pre>class my_chi2
+{
+  public:
+    static double der0(int nx,double *x,double *sigma_x,int ny,double *y,double *sigma_y,double *func);
+    static double der1(int nx,double *x,double *sigma_x,int ny,double *y,double *sigma_y,double *func,double *grad1);
+    static double der2(int nx,double *x,double *sigma_x,int ny,double *y,double *sigma_y,double *func,double *grad1,double *grad2);
+};</pre>
+
+The meaning of the member  functions is the following (see for example
+the       definition      of      <tt>gauss_chi2</tt>       in      <a
+href="fit.cc.html">fit.cc</a> to have an example)
+
+<ul>
+
+<li><tt><b>der0</b></tt> calculates the per-data-point chi2 function's
+value for <u>one</u>  <tt>(x,y)</tt> pair with errors <tt>sigma_x</tt>
+and <tt>sigma_y</tt>. (They all can  be multi-valued, this is why they
+are  provided  in  the  form  of  an array  with  number  of  elements
+<tt>nx</tt>  and <tt>ny</tt>,  respectively). The  array <tt>func</tt>
+contains the model function's value(s) at <tt>x</tt>. <br> 
+<span    style="color:#9999CC">For   example,    in   the    case   of
+<tt>gauss_chi2</tt>, </tt>der0</tt> returns
+<pre>chi2(x,y,sigma_x,sigma_y,func) = \sum_{i=0}^{ny-1} (y[i]-func[i])^2/sigma_y[i]^2</pre>
+</span>
+
+<li><tt><b>der1</b></tt>   has  to  calculate   the  product   of  the
+per-data-point  chi2 function's  first derivative  with <tt>grad1</tt>
+(which contains  the modelfunction's derivative with repect  to one of
+its parameters). <br>
+<span   style="color:#9999CC">   For   example,   in  the   case   of
+<tt>gauss_chi2</tt>, <tt>der1</tt> returns
+<pre>\frac{\partial}{\partial func} chi2(x,y,sigma_x,sigma_y,func)*grad1 = 2 * \sum_{i=0}^{ny-1} (func[i]-y[i])*grad1[i]/sigma_y[i]^2</pre>
+</span>
+
+<li><tt><b>der2</b></tt> has to calculate the quadratic product of the
+per-data-point chi2  function's second drivative  with <tt>grad1</tt>
+and <tt>grad2</tt> (which contain the modelfunction's derivatives with
+respect to the parameters). <br>
+<span   style="color:#9999CC">   For   example,   in  the   case   of
+<tt>gauss_chi2</tt>, <tt>der2</tt> returns
+<pre>grad1 * \frac{\partial^2}{\partial func^2}chi2(x,y,sigma_x,sigma_y,func) * grad2 = \sum_{i=0}^{ny-1} grad1[i]*grad2[i]/sigma_y[i]^2</pre>
+</span>
+
+</ul>
+
+Once this is done, the class <tt>my_chi2</tt> can be used as the
+template argument to the <tt>fit</tt> function:
+<pre>fit&lt;my_chi2&gt;(some_graph, some_model, ..);</pre>
+
+<p><div class=sectiontitle><a name="data">Data to fit</a></div>
+
+<p>  The   data  to  be   fitted  can  be   stored  either  in   a  <a
+href="graph.html">dgraph</a> or read from a file.  In both cases it is
+specified  as  the  first  argument  of the  <tt>fit</tt>  routine  (a
+<tt>dgraph</tt>  in   the  first   case,  or  a   <tt>string</tt>,  <a
+href="var.html"><tt>var</tt></a>  or   <tt>char*</tt>  in  the  second
+case).       A      'file'      is      opened     by      the      <a
+href="streams.html#open"><tt>openin</tt></a>  function  (which handles
+special filenames  to be interpreted as  pipes, here-documents, remote
+files, etc).
+
+<p><div class=sectiontitle><a  name="columns">Specification  of columns</a></div>
+
+<p>You can fit a model to a set of data (either stored in a dgraph, or
+read from a  file).  The dgraph is only a storage  for data points, it
+does not specify,  which column is to be interpreted as  x, y or sigma
+values. (The graph's  drawstyle does that).  In the  case of data read
+from  a  file,  you  have  also  no  rule,  which  columns  should  be
+interpreted  as x,  y, etc.   Therefore,  you have  to specify,  which
+columns of the  dgraph/file should be interpreted as  x, y, sigma_x or
+sigma_y values. To specify this (for example, columns 1,2 should be x,
+column 3 should  be y value for the fit [a  2D surface], with constant
+1.0 errors assumed):
+
+<pre>
+fit&lt;gauss_chi2&gt;(g, model, fitopt().x(_1,_2).y(_3).sigma_x(1.0,1.0).sigma_y(1.0));
+</pre>
+
+Pay attention to have the same number of components for x and sigma_x,
+and also for y and sigma_y
+
+<p><div class=sectiontitle><a name="maxsteps">Limit  on iteration steps</a></div>
+
+To    limit    the   number    of    iteration    steps,   call    the
+<tt>maxsteps(int)</tt> function of <tt>fitopt</tt>. Giving an argument
+of 0  will limit the  number of iterations  to 50 times the  number of
+fitted  parameters: <br>  <pre>fit&lt;gauss_chi2&gt;(mygraph, mymodel,
+fitopt().maxsteps(100) );</pre>
+
+<p><div class=sectiontitle><a  name="condition">Limiting  the  range  of  fitting,  or  any
+conditions  on data points</a></div>
+
+<p>  One often  wants to  restrict the  fitting range,  or use  only a
+certain  set   of  data  points   in  the  fit,  which   satisfy  some
+conditions. 
+
+<p> To apply a general condition on the original data point
+(i.e. before deducing the x- and y-values from this point), one can
+set the <tt>condition</tt> property of the <tt>fitopt</tt> to a function, which
+will be evaluated on the original data point. The point is only used
+if the condition evaluates to non-zero. The code example below fits
+only those y-vs-x points (stored in the 1<sup>st</sup> and
+2<sup>nd</sup> columns in the datafile), where the value in the
+3<sup>rd</sup> column is positive:
+
+<pre>function model=PAR(1)*_1+PAR(2);
+fit&lt;gauss_chi2&gt;("datafile.dat",model,fitopt().x(_1).y(_2).condition(_3>0));</pre>
+
+<p>The general condition described above is the most general way of
+imposing conditions. One can impose conditions also separately, on the
+derived x- and y-values. In the example  below, <tt>_2&gt;0</tt> and <tt>fy</tt>
+are  two functions,  which  will be  called  on each  <tt>x</tt>  and
+<tt>y</tt>  point, respectively. Those  points pairs  (x,y) , where
+both of  them return non-0, will be used in the fit, the others not:
+
+<pre>fit&lt;gauss_chi2&gt;(gr, model, fitopt().x(_4,_5).x_condition(_2>0).y_condition(fy);</pre>
+
+Note and remember that these conditions are not evaluated on the
+original data point, but on the x- and y-values respectively. Therefore,
+the condition imposed on the x-value means 'use only those points,
+where the second component of the x-value is larger than 0'. Since in
+this example the x-value was taken to be the values in the
+4<sup>th</sup> and 5<sup>th</sup> columns, this condition is
+equivalent to the general condition <tt>.condition(_5>0)</tt>.
+
+(If you do know what is _1, or do not understand this, go to the <a
+href="function.html">functions' description</a>)
+
+
+
+<p>To  limit the  x-range of fitting,  one has  the following
+possibilities (similar functions exist for the y values as well):
+
+<pre>fit&lt;gauss_chi2&gt;(gr, model, fitopt().xrange(0,10));
+fit&lt;gauss_chi2&gt;(gr, model, fitopt().xmin(0));
+fit&lt;gauss_chi2&gt;(gr, model, fitopt().xmax(10));</pre>
+
+In this  case, only those point-pairs  (x,y) will be used  in the fit,
+where the  x value is between  0 and 10 (or  are larger than  0 in the
+second case,  or are less  than 10  in the 3rd  case). Or, to  be more
+precise:  where the  1st component  of the  x point  (x and  y  can be
+multi-valued)  satisfies   the  above  conditions. 
+
+<p>
+These range-conditions are implemented using the <tt>x_condition</tt>,
+i.e. <tt>.xrange(0,10)</tt> is equivalent to
+<tt>.x_condition((0&lt;_1) &amp;&amp; (_1&lt;10))</tt>. This means
+that if you set xrange first, than impose <tt>x_condition</tt>, it
+will remove(override) the xrange-condition.
+
+
+<p><div class=sectiontitle><a  name="verbose">Verbosity</a></div>
+
+<p> To see  some information after (or during)  the fitting procedure,
+set the verbose  level in the <tt>fitopt</tt> class  (3rd parameter of
+the  <tt>fit</tt> function): <tt>fitopt().verbose(2)</tt>  for example
+(the  bigger number  you write,  the more  printout you  see). Verbose
+level 1 will print a summary at the end of the fit (fitted parameters,
+covariance   matrix,  chi2).  This   is  the   default.   Example:<br>
+<pre>fit&lt;gauss_chi2&gt;(mygraph,    mymodel,    fitopt().verbose(3)
+);</pre>
+
+<p><div class=sectiontitle><a   name="convergence">Convergence</a></div>
+
+<p>   The   convergence
+criteria   can   also   be   specified  through   the   3rd   argument
+(<tt>fitopt</tt>) of the <tt>fit</tt>  function.  In order to do this,
+you have to write a C-function of the type <br>
+<pre>int conv_criteria(double old_chi2, double new_chi2,
+                  const vector&lt;var&gt; &old_pars, const vector&lt;var&gt; &new_pars, 
+                  int iteration_step_number);</pre>
+and specify this function to be the convergence criteria function:
+
+<pre>fit<..>(Graph, model, fitopt().convergence(conv_criteria) );</pre>
+
+(Do not forget to declare your function having a <tt>const vector&lt;var&gt;
+&</tt> argument, and not simply <tt> vector&lt;var&gt;</tt>)
+Now, your  <tt>conv_criteria</tt> function  will be called  after each
+iteration step, and if it returns 0, it will mean that the fit has not
+yet  converged. A non-0  return value  indicates convergence,  and the
+iteration  stops.  The  arguments, with  which this  function  will be
+called,  are self-explanatory  from the  naming  above. If  it is  not
+clear, don't hesitate to ask me.  The default convergence criterium is
+to stop  the iteration if  chi2 becomes 0,  or if it has  decreased by
+less then 0.01% of its value.
+
+<p><div class=sectiontitle><a  name="fix">Fixing  parameters</a></div>
+
+<p>  You  can  fix  or
+release  parameters  by  calling 
+
+<pre>fitopt::fix(int  parindex,  bool fixit=true)</pre>
+
+(Setting the  second argument to  false will release  that parameter).
+For  example,  to  fit  with  the  1st  parameter  being  fixed,  say:<br> 
+
+<pre>fit&lt;gauss_chi2&gt;(gr, model, fitopt().fix(1) );</pre>
+
+<p>The <tt>bool fitopt::fixed(int i)</tt> function returns
+<tt>true</tt>, if the ith parameter was fixed. The
+<tt>fitopt::fixed()</tt> function returns a reference to a
+<tt>vector&lt;int&gt;</tt>, which contains the indices of the fixed parameters.
+
+<p><div class=sectiontitle><a name="results">Obtaining results from the fit</a></div>
+
+<p> The
+fitted values of the parameters are propagated to the function, so you
+can obtain them from the function itself. Other interesting results
+are returned in the <tt>fitresult</tt> class:
+<pre>
+class fitresult
+{
+  public:
+    double chi2;          // the chi2 of the fit
+
+    matrix&lt;double&gt; covar; // the covariancia matrix (1-based indices !!!)
+
+    int nparams;          // number of fitted (free) parameters
+    int N;                // number of degrees of freedom (ndata - nfreeparams)
+
+    int nsteps;           // number of iteration steps carried out
+};
+</pre>
+
+Example for its usage:
+
+<pre>
+fitresult fr = fit&lt;gauss_chi2&gt;(gr, model, ...);
+cerr&lt;&lt;"error of the 1st parameter: "&lt;&lt;sqrt(fr.covar(1,1))&lt;&lt;endl;
+</pre>
+
+<p><div class=sectiontitle><a  name="default">Default  values:</a></div>
+
+<p> According  to  the
+general   <a  href="design-concepts.html#default">guidelines</a>,  the
+default value  of each  of these properties  (x,y,verbose, etc  in the
+<tt>fitopt</tt>    class)    can     be    set    via    the    static
+<tt>fitopt::default_xxx(...)</tt>   function,   where   the   function
+<tt>xxx(...)</tt> would  set the given  property. For example,  if you
+want  to do a  lot of  fitting, in  every case  using the  graph's 1st
+column as  x, and 2nd  and 3rd  columns as y  values for the  fit, you
+should say:
+
+<pre> 
+fitopt::default_x(_1); 
+fitopt::default_y(_2,_3);
+</pre> 
+
+and now  you can simply  say for a  3-column graph, avoiding  the last
+option  (or only  specifying other  properties,  like <tt>verbose</tt>
+below):
+
+<pre> 
+fit&lt;gauss_chi2&gt;(g,model,fitopt().verbose(1) ); 
+</pre>
+
+
+</div>
+<hr>
+
+<pre class=implementation>
+Sources:
+   <a href="fit.h.html">fit.h</a>
+   <a href="fit.cc.html">fit.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="mpps.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: mpps.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="histograming.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: histograming.html">
+    </a> 
+
+</body>
+</html>

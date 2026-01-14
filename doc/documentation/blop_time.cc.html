@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blop_time.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="blop_time.hh.html">blop_time.hh</a>"
+<a name="__line1"></a>#include &lt;cstdio&gt;
+<a name="__line2"></a>
+<a name="__line3"></a>using namespace std;
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>
+<a name="__line8"></a>chrono::system_clock::time_point date2timepoint(int year, int mon, int day, int hour, int min, int sec)
+<a name="__line9"></a>{
+<a name="__line10"></a>   struct std::tm t;
+<a name="__line11"></a>   t.tm_sec = sec;        <span class=comment>// second of minute (0 .. 59 and 60 for leap seconds)</span>
+<a name="__line12"></a>   t.tm_min = min;        <span class=comment>// minute of hour (0 .. 59)</span>
+<a name="__line13"></a>   t.tm_hour = hour;      <span class=comment>// hour of day (0 .. 23)</span>
+<a name="__line14"></a>   t.tm_mday = day;       <span class=comment>// day of month (0 .. 31)</span>
+<a name="__line15"></a>   t.tm_mon = mon-1;      <span class=comment>// month of year (0 .. 11)</span>
+<a name="__line16"></a>   t.tm_year = year-1900; <span class=comment>// year since 1900</span>
+<a name="__line17"></a>   t.tm_isdst = 0;       <span class=comment>// no daylight saving time</span>
+<a name="__line18"></a>   std::time_t tt = std::mktime(&amp;t);
+<a name="__line19"></a>   if (tt == -1) {
+<a name="__line20"></a>       throw "no valid system time";
+<a name="__line21"></a>   }
+<a name="__line22"></a>   return std::chrono::system_clock::from_time_t(tt);
+<a name="__line23"></a>}
+<a name="__line24"></a>
+<a name="__line25"></a>chrono::system_clock::time_point date2timepoint(const var &amp;datestr, const var &amp;format)
+<a name="__line26"></a>{
+<a name="__line27"></a>    int values[7];
+<a name="__line28"></a>    for(int i=0; i&lt;7; ++i) values[i] = 0;
+<a name="__line29"></a>    int year_index=6;
+<a name="__line30"></a>    int month_index=6;
+<a name="__line31"></a>    int day_index=6;
+<a name="__line32"></a>    int hour_index=6;
+<a name="__line33"></a>    int minute_index=6;
+<a name="__line34"></a>    int second_index=6;
+<a name="__line35"></a>
+<a name="__line36"></a>    int index=0;
+<a name="__line37"></a>    string sscanf_format="";
+<a name="__line38"></a>    for(unsigned int i=0; i&lt;format.size(); ++i)
+<a name="__line39"></a>    {
+<a name="__line40"></a>        if(format[i]=='%')
+<a name="__line41"></a>        {
+<a name="__line42"></a>            if(i+1&lt;format.size())
+<a name="__line43"></a>            {
+<a name="__line44"></a>                if(format[i+1]=='y')      { year_index=index++;   sscanf_format += "%d"; ++i; }
+<a name="__line45"></a>                else if(format[i+1]=='m') { month_index=index++;  sscanf_format += "%d"; ++i; }
+<a name="__line46"></a>                else if(format[i+1]=='d') { day_index=index++;    sscanf_format += "%d"; ++i; }
+<a name="__line47"></a>                else if(format[i+1]=='H') { hour_index=index++;   sscanf_format += "%d"; ++i; }
+<a name="__line48"></a>                else if(format[i+1]=='M') { minute_index=index++; sscanf_format += "%d"; ++i; }
+<a name="__line49"></a>                else if(format[i+1]=='S') { second_index=index++; sscanf_format += "%d"; ++i; }
+<a name="__line50"></a>                else if(format[i+1]=='%') { sscanf_format += "%%"; ++i; }
+<a name="__line51"></a>                <span class=comment>//else warning::print("Non-allowed specifier in format string");</span>
+<a name="__line52"></a>            }
+<a name="__line53"></a>            <span class=comment>//else warning::print("Trailing % in format");</span>
+<a name="__line54"></a>        }
+<a name="__line55"></a>        else sscanf_format += format[i];
+<a name="__line56"></a>    }
+<a name="__line57"></a>
+<a name="__line58"></a>    sscanf(datestr.c_str(),sscanf_format.c_str(),values+0, values+1, values+2, values+3, values+4, values+5);
+<a name="__line59"></a>
+<a name="__line60"></a>    return date2timepoint(values[year_index], values[month_index], values[day_index], values[hour_index], values[minute_index], values[second_index]);
+<a name="__line61"></a>}
+<a name="__line62"></a>
+<a name="__line63"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

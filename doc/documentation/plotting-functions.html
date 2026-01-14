@@ -1,0 +1,226 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Plotting functions</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="plotting-data.html">
+   <link rel="Next" href="annotating-plot.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="plotting-data.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: plotting-data.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="annotating-plot.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: annotating-plot.html">
+    </a> <br>
+
+<center class=title><b>
+Plotting functions
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<p>
+<pre>
+plot(_1,sin(_1)+_1);                     // plots the function sin(x) + x
+plot(_1,_2,exp(-_1*_1 - _2*_2)).ds(cboxes()) // plots a gauss, 2 dim (see the examples !!)
+</pre>
+</div>
+<hr>
+
+<div class=description>
+
+<ul>
+<li><a href="#autodel">   Graphs are automatically deleted!!!</a>
+<li><a href="#howto">     How to plot functions?            </a>
+<li><a href="#condition"> Plotting functions with condition </a>
+<li><a href="#prange">    Specifying parameter range(s), scanning     </a>
+<li><a href="#access">    Accessing the most recently plotted function </a>
+<li><a href="#esample">   Equidistant sampling of a curve in 2D</a>
+</ul>
+
+<! =================== graphs automatically deleted =================>
+
+<p><div class=sectiontitle><a name="autodel">Graphs are automatically deleted!!!</a></div>
+
+<p>In the following paragraphs many <tt>plot</tt> commands will be
+described, which plot data from arrays, files, output of commands,
+etc. All of these have the common property, that they set the
+<a href="plottable.h.html#autodel"><tt>autodel</tt></a> flag of the
+resulting graph to <tt>true</tt>. Therefore, whenever the <a
+href="frame.html">frame</a> containing this graph is cleared, this
+graph will be deleted, any pointer to this will be invalid!
+
+<! =================== how to plot functions? =======================>
+
+<p><div class=sectiontitle><a name="howto">How to plot
+functions?</a></div>
+
+Plotting functions in BLOP is similar to the <i>parametric</i> mode of
+<a  href="http://www.gnuplot.info/">gnuplot</a>.   To plot  functions,
+call the <tt>plot(...)</tt> and <tt>mplot(...)</tt> commands with only
+<a href="function.html">functions</a> as arguments. In this case 1 (or
+2) parameters will  be swept  in a <a  href="#prange">given range</a>,
+and the  provided functions  (arguments of the  <tt>plot(...)</tt> and
+<tt>mplot(...)</tt> commands) will be  evaluated at discrete values of
+these parameters.  The first parameter will be the first argument, the
+second  parameter (if  used)  will  be the  second  argument of  these
+functions. That  is, <tt>_1</tt>  and <tt>_2</tt> can  be used  in the
+function  definitions to refer  to these  parameters, but  higher ones
+(such as <tt>_3</tt>) should NOT be used, because these functions will
+never be called with more than 3 arguments. 
+
+<p>The  resulting  values will  be  stored  in  the graph  (the  first
+function's  values in  the first  column,  etc).  From  this point  on
+everything   is    the   same    as   for   data-plotting:    the   <a
+href="graph-drawer.html">drawing style</a>  of the graph  will decide,
+how to interpret the data in the columns.
+
+<p>This means,  that whenever  you want to  plot a  'simple function',
+like sin(x), you should not say <tt>plot(sin(x))</tt>! 
+
+<ul>
+
+<li>First of all  because <tt>x</tt> has no meaning  here, not like in
+gnuplot, where it refers to the independent variable.
+
+<li>The  'more correct'  <tt>plot(sin(_1))</tt> is  also  not correct,
+because it would produce a single-column graph, which can not be drawn
+
+</ul>
+
+Therefore  every  time  you  want  to  plot  a  'simple  function'  (a
+single-valued function of the independent variable), write this:<br>
+<tt>plot(_1, sin(_1));</tt><br>
+
+<p>To plot a parameterized half-circle, for example, write this:<br>
+<tt>plot(cos(_1),sin(_1)).p1range(0,3.1415);</tt>
+
+<p>The number of  parameters to be swept (1 or 2)  is deduced from the
+to-be-plotted functions: if any of them uses 2 arguments, 2 parameters
+will be scanned, otherwise only 1. 
+
+<! ===================== plot_if ====================================>
+
+<p><div   class=sectiontitle><a   name="condition"> Plotting functions with condition
+</a></div>
+
+To plot functions in a domain, where any combination of the parameters
+satisfy some condition, use the following two functions:
+
+<pre>plot_if(const function &condition,
+        const function &f1,
+	const function &f2=unset,
+	const function &f3=unset,
+	const function &f4=unset);</pre>
+
+(or the similar <tt>mplot_if(...)</tt> function). The function
+'<tt>condition</tt>' is evaluated on the same arguments, with which
+also <tt>f1</tt>...<tt>f4</tt> will be called. If it returns non-0
+value, the point is taken. Example:
+
+<pre>function x = _1;
+function y = _2;
+function gaus = exp(-x*x-y*y);
+plot_if(x*x+y*y&lt;1, x, y, gaus).ds(cboxes()).p1range(-1,1).p2range(-1,1);</pre>
+
+This piece of code plots a 2D gaussian within the unit circle. If you
+would want to make a cut in the z-value (i.e. the gaussian), use that:
+
+<pre>plot_if(gaus&lt;0.5,x,y,gaus)...</pre>
+
+
+<! ===================== prange =====================================>
+
+<p><div   class=sectiontitle><a   name="prange">Specifying   parameter
+range(s)</a></div>
+
+The object  returned from a  <tt>plot(...)</tt> or <tt>mplot(...)</tt>
+command is a <a href="fgraph.h.html">fgraph</a> (function graph). To
+specify   the   range   of   the   parameter(s)  of   it,   call   the
+<tt>p1range(min,max)</tt>    or    <tt>p2range(min,max)</tt>    member
+functions of an <tt>fgraph</tt>:
+
+<pre>
+plot(_1, sin(_1)).p1range(0,20);
+plot(_1, _2, exp(-_1*_1 - _2*_2)).p1range(-5,5).p2range(-5,5).ds(cboxes()); // 2 params, a 2D Gauss
+</pre>
+
+<p>By default, the parameters <tt>p1</tt> (and <tt>p2</tt>, if needed)
+are scanned in a linear way to sample the function values. The
+<tt>p1log(bool)</tt> (<tt>p2log(bool)</tt>) member functions can set a
+flag to make the scan logarithmic, i.e. the corresponding parameter
+will be incremented by the same *factor* in each step. 
+
+<! ===================== access =====================================>
+
+<p><div   class=sectiontitle><a   name="access">
+Accessing the most recently plotted function </a></div>
+
+<p>The <tt>get::lastf()</tt> function returns a pointer to the
+most recently plotted fgraph of the current frame (or 0, if no
+functions were plotted yet). This can be used to modify it, for
+example (interactively checking how a function behaves 
+
+<pre>plot(_1,1/(_1-PAR(0)));
+get::lastf()->param(0,1);</pre>
+
+
+
+<! ===================== esample =====================================>
+
+<p><div   class=sectiontitle><a   name="esample">
+Equidistant sampling of a curve in 2D </a></div>
+
+Depending on the parametrization of a curve in 2D, equidistant
+sampling in the parameter might lead to very uneven sampling distances
+along the curve in 2D. As an example take this very steeply rising
+spiral:
+
+<pre>function phi=_1;
+function R=phi;
+plot(R*cos(phi),R*sin(phi)).p1range(0,2*cons::pi)</pre>
+
+By default the curve is sampled at equidistant points of the
+parameter, phi. This leads to very close sampling points (and hence a
+smooth curve) at small phi, and very rarely spaced points
+(low-quality) curve at large phi. The member function
+<tt>esample(double d)</tt> specifies an equidistant sampling, where
+<tt>d</tt> is the required distance between the sampling points in
+cartesian 2D space (approximative...)
+
+
+</div>
+
+<hr>
+<pre class=implementation>
+Source files:
+   <a href="plot.h.html">plot.h</a>
+   <a href="plot.cc.html">plot.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="plotting-data.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: plotting-data.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="annotating-plot.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: annotating-plot.html">
+    </a> 
+
+</body>
+</html>

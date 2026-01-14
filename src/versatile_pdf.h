@@ -25,6 +25,10 @@ namespace blop
         versatile_pdf(const var &filename)
             : outfilename_(filename.str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
         {}
+        versatile_pdf(const std::filesystem::path &filename)
+            : outfilename_(filename.c_str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+        {}
+
         virtual ~versatile_pdf();
 
         virtual void assemble_pages(const std::vector<std::string> &filenames);
@@ -35,10 +39,7 @@ namespace blop
         // Print the current canvas into the pdf file, at the specified page count 'at_page'.
         // For example at_page=1 means insert it as the first page.
         // If this is the default 0, the printout is appended to the pdf file
-        template <typename T
-            // uncomment it for C++0x
-            =pdf
-         >
+        template <typename T =pdf>
         void print(var opt="",int at_page=0, bool replace=false)
         {
             if(opt.str() == "") opt = print_option_;
@@ -94,6 +95,7 @@ namespace blop
             }
             else needs_flush_ = true;
         }
+
     };
 
 

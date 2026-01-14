@@ -1,0 +1,631 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: fgraph.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="fgraph.h.html">fgraph.h</a>"
+<a name="__line1"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line2"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line3"></a>#include "<a href="axis.h.html">axis.h</a>"
+<a name="__line4"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line5"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line6"></a>#include "<a href="frame.h.html">frame.h</a>"
+<a name="__line7"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line8"></a>#include "<a href="function_core.hh.html">function_core.hh</a>"
+<a name="__line9"></a>#include "<a href="global.h.html">global.h</a>"
+<a name="__line10"></a>#include &lt;cmath&gt;
+<a name="__line11"></a>#include &lt;cstdio&gt;
+<a name="__line12"></a>#include &lt;algorithm&gt;
+<a name="__line13"></a>#include &lt;limits&gt;
+<a name="__line14"></a>
+<a name="__line15"></a>namespace blop
+<a name="__line16"></a>{
+<a name="__line17"></a>    int fgraph::default_nsamples1_ = 100;
+<a name="__line18"></a>    int fgraph::default_nsamples2_ = 100;
+<a name="__line19"></a>    void fgraph::default_nsamples(int i) { default_nsamples1_ = default_nsamples2_ = i; }
+<a name="__line20"></a>    void fgraph::default_nsamples1(int i) { default_nsamples1_ = i; }
+<a name="__line21"></a>    void fgraph::default_nsamples2(int i) { default_nsamples2_ = i; }
+<a name="__line22"></a>
+<a name="__line23"></a>    bool   fgraph::default_p1log_ = false;
+<a name="__line24"></a>    bool   fgraph::default_p2log_ = false;
+<a name="__line25"></a>    double fgraph::default_p1min_ = unset;
+<a name="__line26"></a>    double fgraph::default_p1max_ = unset;
+<a name="__line27"></a>    double fgraph::default_p2min_ = unset;
+<a name="__line28"></a>    double fgraph::default_p2max_ = unset;
+<a name="__line29"></a>    void fgraph::default_p1log(bool f) { default_p1log_ = f; }
+<a name="__line30"></a>    void fgraph::default_p2log(bool f) { default_p2log_ = f; }
+<a name="__line31"></a>    void fgraph::default_p1min(double v) { default_p1min_ = v; }
+<a name="__line32"></a>    void fgraph::default_p1max(double v) { default_p1max_ = v; }
+<a name="__line33"></a>    void fgraph::default_p1range(double v1,double v2) { default_p1min_ = v1; default_p1max_ = v2; }
+<a name="__line34"></a>    void fgraph::default_p2min(double v) { default_p2min_ = v; }
+<a name="__line35"></a>    void fgraph::default_p2max(double v) { default_p2max_ = v; }
+<a name="__line36"></a>    void fgraph::default_p2range(double v1,double v2) { default_p2min_ = v1; default_p2max_ = v2; }
+<a name="__line37"></a>
+<a name="__line38"></a>    var fgraph::default_legend_ = "%f";
+<a name="__line39"></a>    void fgraph::default_legend(const var &amp;f) { default_legend_ = f; }
+<a name="__line40"></a>
+<a name="__line41"></a>    length fgraph::default_linewidth_(new length::base_id_t(terminal::LW));
+<a name="__line42"></a>    void fgraph::default_linewidth(const length &amp;l) {default_linewidth_ = l;}
+<a name="__line43"></a>
+<a name="__line44"></a>    color  fgraph::default_linecolor_(0,0,0);
+<a name="__line45"></a>    void fgraph::default_linecolor(const color &amp;c) { default_linecolor_ = c; }
+<a name="__line46"></a>    
+<a name="__line47"></a>    sym::linestyle    fgraph::default_linestyle_ = sym::solid;
+<a name="__line48"></a>    void fgraph::default_linestyle(sym::linestyle i) { default_linestyle_ = i; }
+<a name="__line49"></a>
+<a name="__line50"></a>    length fgraph::default_pointsize_(new length::base_id_t(terminal::PS));
+<a name="__line51"></a>    void fgraph::default_pointsize(const length &amp;l) { default_pointsize_ = l; }
+<a name="__line52"></a>
+<a name="__line53"></a>    point_drawer *fgraph::default_point_drawer_ = new autopoint();
+<a name="__line54"></a>    void fgraph::default_pointtype(const point_drawer &amp;p)
+<a name="__line55"></a>    {
+<a name="__line56"></a>	delete default_point_drawer_;
+<a name="__line57"></a>	if(dynamic_cast&lt;const autopoint *&gt;(&amp;p)) default_point_drawer_ = new autopoint();
+<a name="__line58"></a>	else default_point_drawer_ = p.clone();
+<a name="__line59"></a>    }
+<a name="__line60"></a>
+<a name="__line61"></a>    color fgraph::default_pointcolor_(0,0,0);
+<a name="__line62"></a>    void fgraph::default_pointcolor(const color &amp;c) { default_pointcolor_ = c; }
+<a name="__line63"></a>
+<a name="__line64"></a>    color fgraph::default_fillcolor_(1,1,1);
+<a name="__line65"></a>    void fgraph::default_fillcolor(const color &amp;c) { default_fillcolor_ = c; }
+<a name="__line66"></a>
+<a name="__line67"></a>    bool fgraph::default_fill_ = false;
+<a name="__line68"></a>    void fgraph::default_fill(bool i) { default_fill_ = i; }
+<a name="__line69"></a>
+<a name="__line70"></a>    color fgraph::default_legendcolor_(0,0,0);
+<a name="__line71"></a>    void fgraph::default_legendcolor(const color &amp;c) { default_legendcolor_ = c; }
+<a name="__line72"></a>
+<a name="__line73"></a>    graph_drawer *fgraph::default_graph_drawer_ = new lines;
+<a name="__line74"></a>    void fgraph::default_drawstyle(const graph_drawer &amp;g)
+<a name="__line75"></a>    {
+<a name="__line76"></a>	delete default_graph_drawer_;
+<a name="__line77"></a>	default_graph_drawer_ = g.clone();
+<a name="__line78"></a>    }
+<a name="__line79"></a>
+<a name="__line80"></a>    const fgraph &amp;fgraph::operator=(const fgraph &amp;o)
+<a name="__line81"></a>    {
+<a name="__line82"></a>	graph::operator=(o);
+<a name="__line83"></a>	nsamples_p1_ = o.nsamples_p1_;
+<a name="__line84"></a>	nsamples_p2_ = o.nsamples_p2_;
+<a name="__line85"></a>	p1log_ = o.p1log_;
+<a name="__line86"></a>	p2log_ = o.p2log_;
+<a name="__line87"></a>	p1min_ = o.p1min_;
+<a name="__line88"></a>	p1max_ = o.p1max_;
+<a name="__line89"></a>	p2min_ = o.p2min_;
+<a name="__line90"></a>	p2max_ = o.p2max_;
+<a name="__line91"></a>	function_ = o.function_;
+<a name="__line92"></a>	return o;
+<a name="__line93"></a>    }
+<a name="__line94"></a>
+<a name="__line95"></a>    const function &amp;fgraph::operator=(const function &amp;f)
+<a name="__line96"></a>    {
+<a name="__line97"></a>	function_ = f;
+<a name="__line98"></a>	modified_ = true;
+<a name="__line99"></a>	return f;
+<a name="__line100"></a>    }
+<a name="__line101"></a>
+<a name="__line102"></a>    fgraph &amp;fgraph::filter(const function &amp;f)
+<a name="__line103"></a>    {
+<a name="__line104"></a>	filter_ = f;
+<a name="__line105"></a>	return *this;
+<a name="__line106"></a>    }
+<a name="__line107"></a>
+<a name="__line108"></a>    fgraph &amp;fgraph::param(int n, const var &amp;value)
+<a name="__line109"></a>    {
+<a name="__line110"></a>	function_.param(n,value);
+<a name="__line111"></a>	modified_ = true;
+<a name="__line112"></a>	return *this;
+<a name="__line113"></a>    }
+<a name="__line114"></a>
+<a name="__line115"></a>    const function &amp;fgraph::func() const
+<a name="__line116"></a>    {
+<a name="__line117"></a>	return function_;
+<a name="__line118"></a>    }
+<a name="__line119"></a>
+<a name="__line120"></a>    fgraph &amp;fgraph::set(function  f1, function f2, function f3, function f4)
+<a name="__line121"></a>    {
+<a name="__line122"></a>	function_ = function(f1,f2,f3,f4);
+<a name="__line123"></a>	modified_ = true;
+<a name="__line124"></a>	return *this;
+<a name="__line125"></a>    }
+<a name="__line126"></a>
+<a name="__line127"></a>    fgraph &amp;fgraph::dup()
+<a name="__line128"></a>    {
+<a name="__line129"></a>	fgraph *result = new fgraph(*this);
+<a name="__line130"></a>	if(parent_) parent_-&gt;add(result);
+<a name="__line131"></a>	return *result;
+<a name="__line132"></a>    }
+<a name="__line133"></a>
+<a name="__line134"></a>    void fgraph::init_()
+<a name="__line135"></a>    {
+<a name="__line136"></a>        esample_ = -1;
+<a name="__line137"></a>
+<a name="__line138"></a>	nsamples_p1_ = default_nsamples1_;
+<a name="__line139"></a>	nsamples_p2_ = default_nsamples2_;
+<a name="__line140"></a>
+<a name="__line141"></a>	p1log_ = default_p1log_;
+<a name="__line142"></a>	p2log_ = default_p2log_;
+<a name="__line143"></a>	p1min_ = default_p1min_;
+<a name="__line144"></a>	p1max_ = default_p1max_;
+<a name="__line145"></a>	p2min_ = default_p2min_;
+<a name="__line146"></a>	p2max_ = default_p2max_;
+<a name="__line147"></a>
+<a name="__line148"></a>	linecolor(default_linecolor_);
+<a name="__line149"></a>	linestyle(default_linestyle_);
+<a name="__line150"></a>	linewidth(default_linewidth_);
+<a name="__line151"></a>
+<a name="__line152"></a>	pointsize(default_pointsize_);
+<a name="__line153"></a>	pointtype(*default_point_drawer_);
+<a name="__line154"></a>	pointcolor(default_pointcolor_);
+<a name="__line155"></a>
+<a name="__line156"></a>	fillcolor(default_fillcolor_);
+<a name="__line157"></a>	fill(default_fill_);
+<a name="__line158"></a>
+<a name="__line159"></a>	legendcolor(default_legendcolor_);
+<a name="__line160"></a>
+<a name="__line161"></a>	drawstyle(*default_graph_drawer_);
+<a name="__line162"></a>
+<a name="__line163"></a>	filter_ = unset;
+<a name="__line164"></a>    }
+<a name="__line165"></a>
+<a name="__line166"></a>    fgraph::fgraph(const function &amp;f) : function_(f)
+<a name="__line167"></a>    {
+<a name="__line168"></a>	init_();
+<a name="__line169"></a>    }
+<a name="__line170"></a>
+<a name="__line171"></a>    fgraph::fgraph(const fgraph &amp;o) : graph(o)
+<a name="__line172"></a>    {
+<a name="__line173"></a>	nsamples_p1_ = o.nsamples_p1_;
+<a name="__line174"></a>	nsamples_p2_ = o.nsamples_p2_;
+<a name="__line175"></a>	p1log_ = o.p1log_;
+<a name="__line176"></a>	p2log_ = o.p2log_;
+<a name="__line177"></a>	p1min_ = o.p1min_;
+<a name="__line178"></a>	p1max_ = o.p1max_;
+<a name="__line179"></a>	p2min_ = o.p2min_;
+<a name="__line180"></a>	p2max_ = o.p2max_;
+<a name="__line181"></a>	function_ = o.function_;
+<a name="__line182"></a>	dx_hint_ = o.dx_hint_;
+<a name="__line183"></a>	dy_hint_ = o.dy_hint_;
+<a name="__line184"></a>	filter_ = o.filter_;
+<a name="__line185"></a>        esample_ = o.esample_;
+<a name="__line186"></a>    }
+<a name="__line187"></a>
+<a name="__line188"></a>    fgraph::fgraph()
+<a name="__line189"></a>    {
+<a name="__line190"></a>	init_();
+<a name="__line191"></a>    }
+<a name="__line192"></a>
+<a name="__line193"></a><span class=comment>/*
+<a name="__line194"></a>    fgraph &amp;fgraph::component(int i,const function &amp;f)
+<a name="__line195"></a>    {
+<a name="__line196"></a>	--i;
+<a name="__line197"></a>	if(i &gt;= (int)function_components_.size()) function_components_.resize(i+1,0.0);
+<a name="__line198"></a>	if(i&lt;0)
+<a name="__line199"></a>	{
+<a name="__line200"></a>	    warning::print("Component index is less than 1, ignoring...","fgraph::component(int,const function&amp;)");
+<a name="__line201"></a>	    return *this;
+<a name="__line202"></a>	}
+<a name="__line203"></a>	function_components_[i] = f;
+<a name="__line204"></a>	return *this;
+<a name="__line205"></a>    }
+<a name="__line206"></a>*/</span>
+<a name="__line207"></a>
+<a name="__line208"></a>    int fgraph::nargs()
+<a name="__line209"></a>    {
+<a name="__line210"></a>	int result = function_.nargs();
+<a name="__line211"></a>	return result;
+<a name="__line212"></a>    }
+<a name="__line213"></a>
+<a name="__line214"></a>    void fgraph::prepare_for_draw(axis *x,axis *y, frame *f, int count)
+<a name="__line215"></a>    {
+<a name="__line216"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [fgraph] prepare_for_draw starts... pass="&lt;&lt;count&lt;&lt;endl;
+<a name="__line217"></a>
+<a name="__line218"></a>	<span class=comment>// At the first go, clear and resample the function</span>
+<a name="__line219"></a>	if(count == 1)
+<a name="__line220"></a>	{
+<a name="__line221"></a>	    if(global::debug&gt;0) cout&lt;&lt;"[blop] [fgraph] clearing/resampling the fgraph"&lt;&lt;endl;
+<a name="__line222"></a>	    clear();
+<a name="__line223"></a>	    
+<a name="__line224"></a>	    int n = nargs();
+<a name="__line225"></a>	    
+<a name="__line226"></a>	    if(n &gt; 2)
+<a name="__line227"></a>	    {
+<a name="__line228"></a>		warning::print(var("Function to be plotted requires too many (") &amp; n &amp; ") arguments",
+<a name="__line229"></a>			       "fgraph::prepare_for_draw(...)");
+<a name="__line230"></a>		return;
+<a name="__line231"></a>	    }
+<a name="__line232"></a>
+<a name="__line233"></a>	    double p1_min = p1min_;
+<a name="__line234"></a>	    if(p1_min == unset) p1_min = function_.arg_min(1)+20*numeric_limits&lt;double&gt;::epsilon();
+<a name="__line235"></a>	    double p1_max = p1max_;
+<a name="__line236"></a>	    if(p1_max == unset) p1_max = function_.arg_max(1)-20*numeric_limits&lt;double&gt;::epsilon();
+<a name="__line237"></a>	    double p2_min = p2min_;
+<a name="__line238"></a>	    if(p2_min == unset) p2_min = function_.arg_min(2)+20*numeric_limits&lt;double&gt;::epsilon();
+<a name="__line239"></a>	    double p2_max = p2max_;
+<a name="__line240"></a>	    if(p2_max == unset) p2_max = function_.arg_max(2)-20*numeric_limits&lt;double&gt;::epsilon();
+<a name="__line241"></a>
+<a name="__line242"></a>	    const bool needs_p1 = function_.uses_arg(1);
+<a name="__line243"></a>	    const bool needs_p2 = function_.uses_arg(2);
+<a name="__line244"></a>	    
+<a name="__line245"></a>	    double p1_from_xaxis = 0.0, p2_from_yaxis = 0.0;
+<a name="__line246"></a>	    
+<a name="__line247"></a>	    <span class=comment>// Now check for the following 3 cases: the first (0th) component of the function</span>
+<a name="__line248"></a>	    <span class=comment>// to be plotted is either</span>
+<a name="__line249"></a>	    <span class=comment>// - the scanned parameter p1 (i.e. _1)</span>
+<a name="__line250"></a>	    <span class=comment>// - _1 multiplied by a constant number</span>
+<a name="__line251"></a>	    <span class=comment>// - _1 divided by a constant number (typically a unit, MHz or similar)</span>
+<a name="__line252"></a>	    <span class=comment>// In this case the user most probably wanted to plot some function vs. x,</span>
+<a name="__line253"></a>	    <span class=comment>// where x might be scaled by a unit. In this case the user also most probably</span>
+<a name="__line254"></a>	    <span class=comment>// wants x to run along the whole range of the x-axis. So if the p1range was</span>
+<a name="__line255"></a>	    <span class=comment>// not set, set it from the range of the xaxis, scaled by the 'unit'</span>
+<a name="__line256"></a>	    if(function_[0].equals(_1))
+<a name="__line257"></a>	    {
+<a name="__line258"></a>		p1_from_xaxis = 1;
+<a name="__line259"></a>	    }
+<a name="__line260"></a>	    else if(blop::function_core::Mul *m = dynamic_cast&lt;blop::function_core::Mul *&gt;(function_.base_))
+<a name="__line261"></a>	    {
+<a name="__line262"></a>		function_core::arg *a = dynamic_cast&lt;function_core::arg*&gt;(m-&gt;left_);
+<a name="__line263"></a>	        function_core::constant *c = dynamic_cast&lt;function_core::constant*&gt;(m-&gt;right_);
+<a name="__line264"></a>		if(!a || !c)
+<a name="__line265"></a>		{
+<a name="__line266"></a>		    a = dynamic_cast&lt;function_core::arg*&gt;(m-&gt;right_);
+<a name="__line267"></a>		    c = dynamic_cast&lt;function_core::constant*&gt;(m-&gt;left_);
+<a name="__line268"></a>		}
+<a name="__line269"></a>		if(a &amp;&amp; c)
+<a name="__line270"></a>		{
+<a name="__line271"></a>		    if(a-&gt;arg_index()==1) p1_from_xaxis = c-&gt;value().dbl();
+<a name="__line272"></a>		}
+<a name="__line273"></a>	    }
+<a name="__line274"></a>	    else if(blop::function_core::Div *d = dynamic_cast&lt;blop::function_core::Div *&gt;(function_.base_))
+<a name="__line275"></a>	    {
+<a name="__line276"></a>		function_core::arg      *a = dynamic_cast&lt;function_core::arg*&gt;(d-&gt;left_);
+<a name="__line277"></a>		function_core::constant *c = dynamic_cast&lt;function_core::constant*&gt;(d-&gt;right_);
+<a name="__line278"></a>		if(a &amp;&amp; c)
+<a name="__line279"></a>		{
+<a name="__line280"></a>		    if(a-&gt;arg_index()==1) p1_from_xaxis = 1.0/c-&gt;value().dbl();
+<a name="__line281"></a>		}
+<a name="__line282"></a>	    }
+<a name="__line283"></a>
+<a name="__line284"></a>	    <span class=comment>//function y_func = graph_drawer_-&gt;get_y(this);</span>
+<a name="__line285"></a>	    <span class=comment>//if(y_func.equals(_2)) p2_from_yaxis = true;</span>
+<a name="__line286"></a>	    if(function_[1].equals(_2)) p2_from_yaxis = 1;
+<a name="__line287"></a>	    
+<a name="__line288"></a>	    <span class=comment>// if parameter range has not been specified explicitely,</span>
+<a name="__line289"></a>	    <span class=comment>// take these ranges from the x and y axes for p1 and p2,</span>
+<a name="__line290"></a>	    <span class=comment>// respectively, if p1==_1 or p2==_2</span>
+<a name="__line291"></a>	    <span class=comment>// otherwise cleverly try 0..10 range</span>
+<a name="__line292"></a>
+<a name="__line293"></a>	    double dp1=-1,rp1=-1,dp2=-1,rp2=-1;
+<a name="__line294"></a>	    
+<a name="__line295"></a>	    if(needs_p1)
+<a name="__line296"></a>	    {
+<a name="__line297"></a>		if(p1_min == unset)
+<a name="__line298"></a>		{
+<a name="__line299"></a>		    <span class=comment>//if(p1_from_xaxis) p1_min = x-&gt;min();</span>
+<a name="__line300"></a>		    if(p1_from_xaxis != 0.0) p1_min = x-&gt;min()/p1_from_xaxis;
+<a name="__line301"></a>		    if(p1_min == unset)
+<a name="__line302"></a>		    {
+<a name="__line303"></a>			if(p1_max != unset) p1_min = p1_max-10;
+<a name="__line304"></a>			else p1_min = 0;
+<a name="__line305"></a>		    }
+<a name="__line306"></a>		}
+<a name="__line307"></a>		if(p1_max == unset)
+<a name="__line308"></a>		{
+<a name="__line309"></a>		    <span class=comment>//if(p1_from_xaxis) p1_max = x-&gt;max();</span>
+<a name="__line310"></a>		    if(p1_from_xaxis != 0.0) p1_max = x-&gt;max()/p1_from_xaxis;
+<a name="__line311"></a>		    if(p1_max == unset)
+<a name="__line312"></a>		    {
+<a name="__line313"></a>			if(p1_min != unset) p1_max = p1_min+10;
+<a name="__line314"></a>			else p1_min = 10;
+<a name="__line315"></a>		    }
+<a name="__line316"></a>		}
+<a name="__line317"></a>		
+<a name="__line318"></a>		if(p1_max &lt; p1_min) err("p1_max &lt; p1_min");
+<a name="__line319"></a>		
+<a name="__line320"></a>		if((p1_from_xaxis!=0.0 &amp;&amp; x-&gt;logscale()) || p1log_)
+<a name="__line321"></a>		{
+<a name="__line322"></a>                    if(nsamples_p1_ &gt; 0)
+<a name="__line323"></a>                    {
+<a name="__line324"></a>                        rp1 = ::pow(p1_max/p1_min,1.0/(nsamples_p1_-1));
+<a name="__line325"></a>                    }
+<a name="__line326"></a>                    else
+<a name="__line327"></a>                    {
+<a name="__line328"></a>                        rp1 = dsamples_p1_;
+<a name="__line329"></a>                    }
+<a name="__line330"></a>		}
+<a name="__line331"></a>		else
+<a name="__line332"></a>		{
+<a name="__line333"></a>                    if(nsamples_p1_ &gt; 0)
+<a name="__line334"></a>                    {
+<a name="__line335"></a>                        dp1 = (p1_max - p1_min)/(nsamples_p1_-1);
+<a name="__line336"></a>                    }
+<a name="__line337"></a>                    else
+<a name="__line338"></a>                    {
+<a name="__line339"></a>                        dp1 = dsamples_p1_;
+<a name="__line340"></a>                    }
+<a name="__line341"></a>		}
+<a name="__line342"></a>	    }
+<a name="__line343"></a>	    else
+<a name="__line344"></a>	    {
+<a name="__line345"></a>		p1_min = p1_max = 0;
+<a name="__line346"></a>		dp1 = 1;
+<a name="__line347"></a>	    }
+<a name="__line348"></a>
+<a name="__line349"></a>    
+<a name="__line350"></a>	    if(needs_p2)
+<a name="__line351"></a>	    {
+<a name="__line352"></a>		if(p2_min == unset) 
+<a name="__line353"></a>		{
+<a name="__line354"></a>		    <span class=comment>//if(p2_from_yaxis) p2_min = y-&gt;min();</span>
+<a name="__line355"></a>		    if(p2_from_yaxis!=0.0) p2_min = y-&gt;min()/p2_from_yaxis;
+<a name="__line356"></a>		    if(p2_min == unset)
+<a name="__line357"></a>		    {
+<a name="__line358"></a>			if(p2_max != unset) p2_min = p2_max-10;
+<a name="__line359"></a>			else p2_min = 0;
+<a name="__line360"></a>		    }
+<a name="__line361"></a>		}
+<a name="__line362"></a>		
+<a name="__line363"></a>		if(p2_max == unset)
+<a name="__line364"></a>		{
+<a name="__line365"></a>		    <span class=comment>//if(p2_from_yaxis) p2_max = y-&gt;max();</span>
+<a name="__line366"></a>		    if(p2_from_yaxis!=0.0) p2_max = y-&gt;max()/p2_from_yaxis;
+<a name="__line367"></a>		    if(p2_max == unset)
+<a name="__line368"></a>		    {
+<a name="__line369"></a>			if(p2_min != unset) p2_max = p2_min+10;
+<a name="__line370"></a>			else p2_max = 0;
+<a name="__line371"></a>		    }
+<a name="__line372"></a>		}
+<a name="__line373"></a>		
+<a name="__line374"></a>		if(p2_max &lt; p2_min) err("p2_max &lt; p2_min");
+<a name="__line375"></a>
+<a name="__line376"></a>		if((p2_from_yaxis!=0.0 &amp;&amp; y-&gt;logscale()) || p2log_)
+<a name="__line377"></a>		{
+<a name="__line378"></a>                    if(nsamples_p2_ &gt; 0)
+<a name="__line379"></a>                    {
+<a name="__line380"></a>                        rp2 = ::pow(p2_max/p2_min,1.0/(nsamples_p2_-1));
+<a name="__line381"></a>                    }
+<a name="__line382"></a>                    else
+<a name="__line383"></a>                    {
+<a name="__line384"></a>                        rp2 = dsamples_p2_;
+<a name="__line385"></a>                    }
+<a name="__line386"></a>		}
+<a name="__line387"></a>		else
+<a name="__line388"></a>		{
+<a name="__line389"></a>                    if(nsamples_p2_ &gt; 0)
+<a name="__line390"></a>                    {
+<a name="__line391"></a>                        dp2 = (p2_max - p2_min)/(nsamples_p2_-1);
+<a name="__line392"></a>                    }
+<a name="__line393"></a>                    else
+<a name="__line394"></a>                    {
+<a name="__line395"></a>                        dp2 = dsamples_p2_;
+<a name="__line396"></a>                    }
+<a name="__line397"></a>		}
+<a name="__line398"></a>	    }
+<a name="__line399"></a>	    else
+<a name="__line400"></a>	    {
+<a name="__line401"></a>		p2_min = p2_max = 0;
+<a name="__line402"></a>		dp2 = 1;
+<a name="__line403"></a>	    }
+<a name="__line404"></a>
+<a name="__line405"></a>	    if(dp1 &gt; 0 &amp;&amp; function_[0].equals(_1)) dx_hint_ = dp1;
+<a name="__line406"></a>	    else dx_hint_ = unset;
+<a name="__line407"></a>	    if(dp2 &gt; 0 &amp;&amp; function_[1].equals(_2)) dy_hint_ = dp2;
+<a name="__line408"></a>	    else dy_hint_ = unset;
+<a name="__line409"></a>
+<a name="__line410"></a>	    vector&lt;var&gt; fresult1(function_.components());
+<a name="__line411"></a>	    vector&lt;var&gt; fresult2(function_.components());
+<a name="__line412"></a>	    
+<a name="__line413"></a>	    vector&lt;var&gt; *fresult=&amp;fresult1, *fresult_prev=0;
+<a name="__line414"></a>	    
+<a name="__line415"></a>	    ordered_ = function_.components();
+<a name="__line416"></a>	    vector&lt;var&gt; args((needs_p2?2:1));
+<a name="__line417"></a>
+<a name="__line418"></a>            <span class=comment>// in case equidistant (path-length) sampling is required... we need the derivative</span>
+<a name="__line419"></a>            function deriv = 0;
+<a name="__line420"></a>            if(needs_p1 &amp;&amp; !needs_p2 &amp;&amp; esample_&gt;0 &amp;&amp; function_.components()==2) deriv = function_.derivative(1);
+<a name="__line421"></a>
+<a name="__line422"></a>            for(double p1 = p1_min; p1 &lt; (dp1&gt;0.0 ? p1_max+0.5*dp1 : p1_max*::sqrt(rp1)); )
+<a name="__line423"></a>            {
+<a name="__line424"></a>                args[0] = p1;
+<a name="__line425"></a>		
+<a name="__line426"></a>                for(double p2 = p2_min;
+<a name="__line427"></a>                    p2 &lt;= (dp2&gt;0.0 ? p2_max+0.5*dp2 : p2_max*::sqrt(rp2));
+<a name="__line428"></a>                    (dp2&gt;0 ? p2+=dp2 : p2*=rp2))
+<a name="__line429"></a>                {
+<a name="__line430"></a>                    if(needs_p2) args[1] = p2;
+<a name="__line431"></a>
+<a name="__line432"></a>                    function_.meval(args,*fresult);
+<a name="__line433"></a>		    
+<a name="__line434"></a>                    bool skip_it = false;
+<a name="__line435"></a>		    
+<a name="__line436"></a>                    <span class=comment>// first, apply the filter (if any), and check if it returns non-0</span>
+<a name="__line437"></a>                    if(filter_.initialized())
+<a name="__line438"></a>                    {
+<a name="__line439"></a>                        if(filter_.nargs() &gt; (int)args.size())
+<a name="__line440"></a>                        {
+<a name="__line441"></a>                            warning::print("insufficient columns to execute condition",
+<a name="__line442"></a>                                           "fgraph::prepare_for_draw(...)");
+<a name="__line443"></a>                        }
+<a name="__line444"></a>                        else
+<a name="__line445"></a>                        {
+<a name="__line446"></a>                            if(filter_.eval(args).dbl() == 0.0) skip_it = true;
+<a name="__line447"></a>                        }
+<a name="__line448"></a>                    }
+<a name="__line449"></a>		    
+<a name="__line450"></a>                    <span class=comment>// check, if any of the components of the result are void (to be ignored)</span>
+<a name="__line451"></a>                    if(!skip_it)
+<a name="__line452"></a>                    {
+<a name="__line453"></a>                        for(unsigned int i=0; i&lt;fresult-&gt;size(); ++i)
+<a name="__line454"></a>                        {
+<a name="__line455"></a>                            if(ignore::it((*fresult)[i]))
+<a name="__line456"></a>                            {
+<a name="__line457"></a>                                skip_it = true;
+<a name="__line458"></a>                                break;
+<a name="__line459"></a>                            }
+<a name="__line460"></a>                        }
+<a name="__line461"></a>                    }
+<a name="__line462"></a>		    
+<a name="__line463"></a>		    
+<a name="__line464"></a>                    <span class=comment>// if it was all fine, just store it</span>
+<a name="__line465"></a>                    if(!skip_it)
+<a name="__line466"></a>                    {
+<a name="__line467"></a>                        data_.push_back(*fresult);
+<a name="__line468"></a>                    }
+<a name="__line469"></a>                    else
+<a name="__line470"></a>                    {
+<a name="__line471"></a>                        <span class=comment>// otherwise store a set of 'unset' values, as a 'separator'</span>
+<a name="__line472"></a>                        <span class=comment>// in the set of data, if there was valid data before</span>
+<a name="__line473"></a>                        if(!data_.empty() &amp;&amp; data_.back()[0].dbl() != unset)
+<a name="__line474"></a>                        {
+<a name="__line475"></a>                            for(unsigned int i=0; i&lt;fresult-&gt;size(); ++i)
+<a name="__line476"></a>                            {
+<a name="__line477"></a>                                (*fresult)[i] = unset;
+<a name="__line478"></a>                            }
+<a name="__line479"></a>                            data_.push_back(*fresult);
+<a name="__line480"></a>                        }
+<a name="__line481"></a>                    }
+<a name="__line482"></a>		    
+<a name="__line483"></a>                    if(fresult_prev)
+<a name="__line484"></a>                    {
+<a name="__line485"></a>                        for(int i=0; i&lt;(int)(fresult-&gt;size()); ++i)
+<a name="__line486"></a>                        {
+<a name="__line487"></a>                            <span class=comment>// any element of this array can only be smaller than the</span>
+<a name="__line488"></a>                            <span class=comment>// previous one, if other elements with smaller index</span>
+<a name="__line489"></a>                            <span class=comment>// are larger</span>
+<a name="__line490"></a>                            if((*fresult)[i].dbl() &lt; (*fresult_prev)[i].dbl())
+<a name="__line491"></a>                            {
+<a name="__line492"></a>                                bool ok = false;
+<a name="__line493"></a>                                for(int j=0; j&lt;i; ++j)
+<a name="__line494"></a>                                {
+<a name="__line495"></a>                                    if((*fresult)[j].dbl() &gt; (*fresult_prev)[j].dbl())
+<a name="__line496"></a>                                    {
+<a name="__line497"></a>                                        ok = true;
+<a name="__line498"></a>                                        break;
+<a name="__line499"></a>                                    }
+<a name="__line500"></a>                                }
+<a name="__line501"></a>                                if(!ok) ordered_ = std::min(ordered_, i);
+<a name="__line502"></a>                            }
+<a name="__line503"></a>                        }
+<a name="__line504"></a>                    }
+<a name="__line505"></a>                    if(fresult_prev == 0) fresult_prev = &amp;fresult2;
+<a name="__line506"></a>                    swap(fresult,fresult_prev);
+<a name="__line507"></a>                }
+<a name="__line508"></a>
+<a name="__line509"></a>                <span class=comment>// Increment p1...</span>
+<a name="__line510"></a>                if(needs_p1 &amp;&amp; !needs_p2 &amp;&amp; esample_&gt;0 &amp;&amp; function_.components()==2)
+<a name="__line511"></a>                {
+<a name="__line512"></a>                    deriv.meval(args,*fresult);
+<a name="__line513"></a>                    p1 += esample_/std::sqrt((*fresult)[0].dbl()*(*fresult)[0].dbl() + (*fresult)[1].dbl()*(*fresult)[1].dbl());
+<a name="__line514"></a>                }
+<a name="__line515"></a>                else
+<a name="__line516"></a>                {
+<a name="__line517"></a>                    (dp1&gt;0 ? p1+=dp1 : p1*=rp1);
+<a name="__line518"></a>                }
+<a name="__line519"></a>            }
+<a name="__line520"></a>	    if(global::debug&gt;0) cout&lt;&lt;"[blop] [fgraph] clearing/resampling finished"&lt;&lt;endl;
+<a name="__line521"></a>	} <span class=comment>// end if(count==1)</span>
+<a name="__line522"></a>
+<a name="__line523"></a>	graph::prepare_for_draw(x,y,f,count);
+<a name="__line524"></a>
+<a name="__line525"></a>	if(global::debug&gt;0) cout&lt;&lt;"[blop] [fgraph] prepare_for_draw finished."&lt;&lt;endl;
+<a name="__line526"></a>    }
+<a name="__line527"></a>	
+<a name="__line528"></a>    double fgraph::min(int i)
+<a name="__line529"></a>    {
+<a name="__line530"></a>	double val = unset;
+<a name="__line531"></a>
+<a name="__line532"></a>	int n = nargs();
+<a name="__line533"></a>
+<a name="__line534"></a>	if(p1min_ == unset || p1max_ == unset ||
+<a name="__line535"></a>	   (n &gt; 1 &amp;&amp; (p2min_ == unset || p2max_ == unset)) )
+<a name="__line536"></a>	{
+<a name="__line537"></a>	    warning::print("fgraph: parameter range not specified",
+<a name="__line538"></a>			   "fgraph::min(int)");
+<a name="__line539"></a>	    return 0;
+<a name="__line540"></a>	}
+<a name="__line541"></a>
+<a name="__line542"></a>	double dp1 = (p1max_ - p1min_)/100;
+<a name="__line543"></a>	double dp2 = (p2max_ - p2min_)/100;
+<a name="__line544"></a>	if(n == 1) dp2 = 2*(p2max_ - p2min_);
+<a name="__line545"></a>
+<a name="__line546"></a>	vector&lt;var&gt; args(2), fresult(function_.components());
+<a name="__line547"></a>	for(double p1=p1min_; p1&lt;=p1max_; p1 += dp1)
+<a name="__line548"></a>	{
+<a name="__line549"></a>	    for(double p2=p2min_; p2&lt;=p2max_; p2 += dp2)
+<a name="__line550"></a>	    {
+<a name="__line551"></a>		args[0] = p1;
+<a name="__line552"></a>		args[1] = p2;
+<a name="__line553"></a>		function_.meval(args,fresult);
+<a name="__line554"></a>		double d = fresult[i].dbl();
+<a name="__line555"></a>		if(val == unset || d&lt;val) val = d;
+<a name="__line556"></a>	    }
+<a name="__line557"></a>	}
+<a name="__line558"></a>	return val;
+<a name="__line559"></a>    }
+<a name="__line560"></a>
+<a name="__line561"></a>    double fgraph::max(int i)
+<a name="__line562"></a>    {
+<a name="__line563"></a>	double val = unset;
+<a name="__line564"></a>
+<a name="__line565"></a>	int n = nargs();
+<a name="__line566"></a>
+<a name="__line567"></a>	if(p1min_ == unset || p1max_ == unset ||
+<a name="__line568"></a>	   (n &gt; 1 &amp;&amp; (p2min_ == unset || p2max_ == unset)) )
+<a name="__line569"></a>	{
+<a name="__line570"></a>	    warning::print("fgraph: parameter range not specified",
+<a name="__line571"></a>			   "fgraph::max(int)");
+<a name="__line572"></a>	    return 0;
+<a name="__line573"></a>	}
+<a name="__line574"></a>
+<a name="__line575"></a>	double dp1 = (p1max_ - p1min_)/100;
+<a name="__line576"></a>	double dp2 = (p2max_ - p2min_)/100;
+<a name="__line577"></a>	if(n == 1) dp2 = 2*(p2max_ - p2min_);
+<a name="__line578"></a>	vector&lt;var&gt; args(2), fresult(function_.components());
+<a name="__line579"></a>	for(double p1=p1min_; p1&lt;=p1max_; p1 += dp1)
+<a name="__line580"></a>	{
+<a name="__line581"></a>	    for(double p2=p2min_; p2&lt;=p2max_; p2 += dp2)
+<a name="__line582"></a>	    {
+<a name="__line583"></a>		args[0] = p1;
+<a name="__line584"></a>		args[2] = p2;
+<a name="__line585"></a>		function_.meval(args,fresult);
+<a name="__line586"></a>		double d = fresult[i].dbl();
+<a name="__line587"></a>		if(val == unset || d&gt;val) val = d;
+<a name="__line588"></a>	    }
+<a name="__line589"></a>	}
+<a name="__line590"></a>	return val;
+<a name="__line591"></a>    }
+<a name="__line592"></a>
+<a name="__line593"></a>    void fgraph::set_default_legend()
+<a name="__line594"></a>    {
+<a name="__line595"></a>	var flist = function_.sprint_latex();
+<a name="__line596"></a>	var leg = default_legend_;
+<a name="__line597"></a>	leg.replace("%f",flist);
+<a name="__line598"></a>
+<a name="__line599"></a>	legend(leg);
+<a name="__line600"></a>	<span class=comment>//make_latex_legend(leg);</span>
+<a name="__line601"></a>    }
+<a name="__line602"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: kinematics.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_KINEMATICS_H__
+<a name="__line1"></a>#define __BLOP_KINEMATICS_H__
+<a name="__line2"></a>#include "<a href="units.h.html">units.h</a>"
+<a name="__line3"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line4"></a>
+<a name="__line5"></a>namespace blop
+<a name="__line6"></a>{
+<a name="__line7"></a>    namespace phys
+<a name="__line8"></a>    {
+<a name="__line9"></a>        <span class=comment>/*
+<a name="__line10"></a>          A utility class to quickly convert between relativistic velocities, energies and momenta.
+<a name="__line11"></a>          Example: calculate the momentum of an antiproton with Ekin=100 keV 
+<a name="__line12"></a>
+<a name="__line13"></a>          double p = kin(938*unit::MeVc2).Ekin(100*unit::keV).p();
+<a name="__line14"></a>
+<a name="__line15"></a>          The constructor sets the mass of the particle. Each of the other member functions
+<a name="__line16"></a>          Ekin(double), v(double), etc reset all other kinematic variables to 0.
+<a name="__line17"></a>          The 'getting' funtions (Ekin(), p(), etc) calculate this quantity from that other one,
+<a name="__line18"></a>          which has been set before.
+<a name="__line19"></a>
+<a name="__line20"></a>          Right now, setting the mass (via the m(double) member function) resets all
+<a name="__line21"></a>          other variables to 0. In the future the mass will be also calculable from any other
+<a name="__line22"></a>          2 variables
+<a name="__line23"></a>         */</span>
+<a name="__line24"></a>
+<a name="__line25"></a>        class kin
+<a name="__line26"></a>        {
+<a name="__line27"></a><span class=private>        private:
+<a name="__line28"></a>            double m_, Ekin_, E_, p_, v_;
+<a name="__line29"></a></span><span class=public>        public:
+<a name="__line30"></a>            kin(double m=0) : m_(m), Ekin_(0), E_(0), p_(0), v_(0) {}
+<a name="__line31"></a>            kin &amp;m   (double a) { m_=a; Ekin_=E_=p_=v_=0; return *this; }
+<a name="__line32"></a>
+<a name="__line33"></a>            kin &amp;Ekin(double a)
+<a name="__line34"></a>            {
+<a name="__line35"></a>                Ekin_= a;
+<a name="__line36"></a>                E_   = Ekin_+m_*cons::c*cons::c;
+<a name="__line37"></a>                p_   = ::sqrt(::pow(E_,2)-::pow(m_*cons::c*cons::c,2))/cons::c;
+<a name="__line38"></a>                v_   = cons::c*::sqrt(1-::pow(m_*cons::c*cons::c/E_,2));
+<a name="__line39"></a>                return *this;
+<a name="__line40"></a>            }
+<a name="__line41"></a>            kin &amp;E   (double a)
+<a name="__line42"></a>            {
+<a name="__line43"></a>                E_    = a;
+<a name="__line44"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line45"></a>                p_    = ::sqrt(::pow(E_,2)-::pow(m_*cons::c*cons::c,2))/cons::c;
+<a name="__line46"></a>                v_    = cons::c*::sqrt(1-::pow(m_*cons::c*cons::c/E_,2));
+<a name="__line47"></a>                return *this;
+<a name="__line48"></a>            }
+<a name="__line49"></a>            kin &amp;p   (double a)
+<a name="__line50"></a>            {
+<a name="__line51"></a>                p_    = a;
+<a name="__line52"></a>                v_    = p_/::sqrt(m_*m_+::pow(p_/cons::c,2));
+<a name="__line53"></a>                E_    = ::sqrt(::pow(p_*cons::c,2)+::pow(m_*cons::c*cons::c,2));
+<a name="__line54"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line55"></a>                return *this;
+<a name="__line56"></a>            }
+<a name="__line57"></a>            kin &amp;v   (double a)
+<a name="__line58"></a>            {
+<a name="__line59"></a>                v_    = a;
+<a name="__line60"></a>                p_    = m_*v_/::sqrt(1-::pow(v_/cons::c,2));
+<a name="__line61"></a>                E_    = ::sqrt(m_*m_*v_*v_*cons::c*cons::c/(1-::pow(v_/cons::c,2))+::pow(m_*cons::c*cons::c,2));
+<a name="__line62"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line63"></a>                return *this;
+<a name="__line64"></a>            }
+<a name="__line65"></a>
+<a name="__line66"></a>            inline double v()    const {return v_;}
+<a name="__line67"></a>            inline double beta() const {return v_/cons::c; }
+<a name="__line68"></a>            inline double gamma()const {return 1/::sqrt(1-beta()*beta()); }
+<a name="__line69"></a>            inline double p()    const {return p_;}
+<a name="__line70"></a>            inline double Ekin() const {return Ekin_;}
+<a name="__line71"></a>            inline double E()    const {return E_;}
+<a name="__line72"></a>
+<a name="__line73"></a>        };
+<a name="__line74"></a>
+<a name="__line75"></a>        class kin_func
+<a name="__line76"></a>        {
+<a name="__line77"></a></span><span class=private>        private:
+<a name="__line78"></a>            double m_;
+<a name="__line79"></a>            function Ekin_, E_, p_, v_;
+<a name="__line80"></a></span><span class=public>        public:
+<a name="__line81"></a>            kin_func(double m=0) : m_(m), Ekin_(0), E_(0), p_(0), v_(0) {}
+<a name="__line82"></a>            kin_func &amp;m   (double a) { m_=a; Ekin_=E_=p_=v_=0.0; return *this; }
+<a name="__line83"></a>
+<a name="__line84"></a>            kin_func &amp;Ekin(const function &amp;a)
+<a name="__line85"></a>            {
+<a name="__line86"></a>                Ekin_= a;
+<a name="__line87"></a>                E_   = Ekin_+m_*cons::c*cons::c;
+<a name="__line88"></a>                p_   = blop::sqrt(blop::pow(E_,2)-::pow(m_*cons::c*cons::c,2))/cons::c;
+<a name="__line89"></a>                v_   = cons::c*blop::sqrt(1-blop::pow(m_*cons::c*cons::c/E_,2));
+<a name="__line90"></a>                return *this;
+<a name="__line91"></a>            }
+<a name="__line92"></a>            kin_func &amp;E   (const function &amp;a)
+<a name="__line93"></a>            {
+<a name="__line94"></a>                E_    = a;
+<a name="__line95"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line96"></a>                p_    = blop::sqrt(blop::pow(E_,2)-::pow(m_*cons::c*cons::c,2))/cons::c;
+<a name="__line97"></a>                v_    = cons::c*blop::sqrt(1-blop::pow(m_*cons::c*cons::c/E_,2));
+<a name="__line98"></a>                return *this;
+<a name="__line99"></a>            }
+<a name="__line100"></a>            kin_func &amp;p   (const function &amp;a)
+<a name="__line101"></a>            {
+<a name="__line102"></a>                p_    = a;
+<a name="__line103"></a>                v_    = p_/blop::sqrt(m_*m_+blop::pow(p_/cons::c,2));
+<a name="__line104"></a>                E_    = blop::sqrt(blop::pow(p_*cons::c,2)+::pow(m_*cons::c*cons::c,2));
+<a name="__line105"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line106"></a>                return *this;
+<a name="__line107"></a>            }
+<a name="__line108"></a>            kin_func &amp;v   (const function &amp;a)
+<a name="__line109"></a>            {
+<a name="__line110"></a>                v_    = a;
+<a name="__line111"></a>                p_    = m_*v_/blop::sqrt(1-blop::pow(v_/cons::c,2));
+<a name="__line112"></a>                E_    = blop::sqrt(m_*m_*v_*v_*cons::c*cons::c/(1-blop::pow(v_/cons::c,2))+::pow(m_*cons::c*cons::c,2));
+<a name="__line113"></a>                Ekin_ = E_-m_*cons::c*cons::c;
+<a name="__line114"></a>                return *this;
+<a name="__line115"></a>            }
+<a name="__line116"></a>
+<a name="__line117"></a>            inline function v()    const {return v_;}
+<a name="__line118"></a>            inline function beta() const {return v_/cons::c; }
+<a name="__line119"></a>            inline function gamma()const {return 1/blop::sqrt(1-beta()*beta()); }
+<a name="__line120"></a>            inline function p()    const {return p_;}
+<a name="__line121"></a>            inline function Ekin() const {return Ekin_;}
+<a name="__line122"></a>            inline function E()    const {return E_;}
+<a name="__line123"></a>
+<a name="__line124"></a>        };
+<a name="__line125"></a>
+<a name="__line126"></a>    }
+<a name="__line127"></a>}
+<a name="__line128"></a>
+<a name="__line129"></a>
+<a name="__line130"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

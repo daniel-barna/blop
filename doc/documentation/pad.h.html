@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: pad.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_PAD_H__
+<a name="__line1"></a>#define __BLOP_PAD_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="terminal.h.html">terminal.h</a>"
+<a name="__line4"></a>#include "<a href="color.h.html">color.h</a>"
+<a name="__line5"></a>#include "<a href="container.h.html">container.h</a>"
+<a name="__line6"></a>#include "<a href="label.h.html">label.h</a>"
+<a name="__line7"></a>
+<a name="__line8"></a>#include &lt;vector&gt;
+<a name="__line9"></a>#include &lt;cmath&gt;
+<a name="__line10"></a>#include &lt;cstdio&gt;
+<a name="__line11"></a>
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    class frame;
+<a name="__line16"></a>
+<a name="__line17"></a>    class pad : public container
+<a name="__line18"></a>	{
+<a name="__line19"></a>
+<a name="__line20"></a>	    <span class=comment>// A 'pad' is a rectangular area with its own coordinate system,</span>
+<a name="__line21"></a>	    <span class=comment>// for drawing objects</span>
+<a name="__line22"></a>
+<a name="__line23"></a><span class=private>	private:
+<a name="__line24"></a>            label   title_;
+<a name="__line25"></a>
+<a name="__line26"></a>	    color bordercolor_;
+<a name="__line27"></a>	    static color default_bordercolor_;
+<a name="__line28"></a>
+<a name="__line29"></a>	    bool draw_border_;
+<a name="__line30"></a>	    static bool default_draw_border_;
+<a name="__line31"></a>
+<a name="__line32"></a>	    length borderwidth_;
+<a name="__line33"></a>	    static length default_borderwidth_;
+<a name="__line34"></a>
+<a name="__line35"></a>	    bool border_3D_;
+<a name="__line36"></a>	    static bool default_border_3D_;
+<a name="__line37"></a>
+<a name="__line38"></a>	    color fillcolor_;
+<a name="__line39"></a>	    static color default_fillcolor_;
+<a name="__line40"></a>
+<a name="__line41"></a>	    bool  fill_;
+<a name="__line42"></a>	    static bool default_fill_;
+<a name="__line43"></a>
+<a name="__line44"></a></span><span class=protected>	protected:
+<a name="__line45"></a>
+<a name="__line46"></a>	    static pad *current_pad_;
+<a name="__line47"></a>
+<a name="__line48"></a>	    void draw_border_bg(terminal *);
+<a name="__line49"></a>
+<a name="__line50"></a></span><span class=public>	public:
+<a name="__line51"></a>	    pad(const length &amp;x1=0.0,const length &amp;y1=0.0,
+<a name="__line52"></a>		const length &amp;x2=1.0,const length &amp;y2=1.0,
+<a name="__line53"></a>		bool is_canvas = 0);
+<a name="__line54"></a>	    virtual ~pad();
+<a name="__line55"></a>
+<a name="__line56"></a>            <span class=comment>// ---------- clear ---------------------------------------------------------------</span>
+<a name="__line57"></a>            <span class=comment>// Override the inherited clear, in order to remove the title</span>
+<a name="__line58"></a>
+<a name="__line59"></a>            void clear();
+<a name="__line60"></a>
+<a name="__line61"></a>
+<a name="__line62"></a>	    <span class=comment>// ---------- Return currently active pad -----------------------------------------</span>
+<a name="__line63"></a>	    <span class=comment>// This can as well be the uppermost pad, which is the current canvas</span>
+<a name="__line64"></a>	    <span class=comment>// This function never returns 0 !</span>
+<a name="__line65"></a>	    
+<a name="__line66"></a>	    static pad &amp;current();
+<a name="__line67"></a>
+<a name="__line68"></a>	   
+<a name="__line69"></a>	    <span class=comment>// ---------- Create new pads -----------------------------------------------------</span>
+<a name="__line70"></a>	    <span class=comment>// These functions  create a  new  sub-pad  ('mknew'  places the new</span>
+<a name="__line71"></a>	    <span class=comment>// pad into the current canvas,  while the last  argument of 'mksub'</span>
+<a name="__line72"></a>	    <span class=comment>// specifies the container, in  which the new  pad should be placed)</span>
+<a name="__line73"></a>	    <span class=comment>// The first four arguments  specify the lower  left and upper right</span>
+<a name="__line74"></a>	    <span class=comment>// corners of this new pad within the coordinate system of its parent.</span>
+<a name="__line75"></a>	    <span class=comment>// Each of  these  arguments can  either be a  length,  or simply a</span>
+<a name="__line76"></a>	    <span class=comment>// double.  In the latter case it means the fraction of the width or</span>
+<a name="__line77"></a>	    <span class=comment>// height of the parent (for example x1=0.5 means, that the left side</span>
+<a name="__line78"></a>	    <span class=comment>// of the new pad will be placed to the half of its  parent's width)</span>
+<a name="__line79"></a>
+<a name="__line80"></a>	    static pad &amp;mknew(length x1, length y1,
+<a name="__line81"></a>			      length x2, length y2);
+<a name="__line82"></a>
+<a name="__line83"></a>	    static pad &amp;mksub(length x1, length y1,
+<a name="__line84"></a>			      length x2, length y2,
+<a name="__line85"></a>			      container &amp;parent = pad::current());
+<a name="__line86"></a>
+<a name="__line87"></a>            <span class=comment>// ---------- Set the title of the pad  -------------------------------------------</span>
+<a name="__line88"></a>
+<a name="__line89"></a>            pad &amp;title(const var &amp;t);
+<a name="__line90"></a>            var title() const { return title_.text(); }
+<a name="__line91"></a>
+<a name="__line92"></a>
+<a name="__line93"></a>	    <span class=comment>// ---------- override container:: and box:: dimension functions ------------------</span>
+<a name="__line94"></a>	    <span class=comment>// so that they return a pad&amp; instead of container&amp; or box&amp;</span>
+<a name="__line95"></a>
+<a name="__line96"></a>	    pad &amp;cleft(const length &amp;l) { container::cleft(l); return *this; }
+<a name="__line97"></a>	    pad &amp;cright(const length &amp;l) { container::cright(l); return *this; }
+<a name="__line98"></a>	    pad &amp;cwidth(const length &amp;l) { container::cwidth(l); return *this; }
+<a name="__line99"></a>	    pad &amp;cxcenter(const length &amp;l) { container::cxcenter(l); return *this; }
+<a name="__line100"></a>	    pad &amp;cbottom(const length &amp;l) { container::cbottom(l); return *this; }
+<a name="__line101"></a>	    pad &amp;ctop(const length &amp;l) { container::ctop(l); return *this; }
+<a name="__line102"></a>	    pad &amp;cheight(const length &amp;l) { container::cheight(l); return *this; }
+<a name="__line103"></a>	    pad &amp;cycenter(const length &amp;l) { container::cycenter(l); return *this; }
+<a name="__line104"></a>
+<a name="__line105"></a>	    const length &amp;cleft() const { return container::cleft(); }
+<a name="__line106"></a>	    const length &amp;cright() const { return container::cright(); }
+<a name="__line107"></a>	    const length &amp;cwidth() const { return container::cwidth(); }
+<a name="__line108"></a>	    const length &amp;cxcenter() const { return container::cxcenter(); }
+<a name="__line109"></a>	    const length &amp;cbottom() const { return container::cbottom(); }
+<a name="__line110"></a>	    const length &amp;ctop() const { return container::ctop(); }
+<a name="__line111"></a>	    const length &amp;cheight() const { return container::cheight(); }
+<a name="__line112"></a>	    const length &amp;cycenter() const { return container::cycenter(); }
+<a name="__line113"></a>
+<a name="__line114"></a>	    pad &amp;lmargin(const length &amp;l) { container::lmargin(l); return *this; }
+<a name="__line115"></a>	    pad &amp;rmargin(const length &amp;l) { container::rmargin(l); return *this; }
+<a name="__line116"></a>	    pad &amp;bmargin(const length &amp;l) { container::bmargin(l); return *this; }
+<a name="__line117"></a>	    pad &amp;tmargin(const length &amp;l) { container::tmargin(l); return *this; }
+<a name="__line118"></a>	    const length &amp;lmargin() const { return container::lmargin(); }
+<a name="__line119"></a>	    const length &amp;rmargin() const { return container::rmargin(); }
+<a name="__line120"></a>	    const length &amp;bmargin() const { return container::bmargin(); }
+<a name="__line121"></a>	    const length &amp;tmargin() const { return container::tmargin(); }
+<a name="__line122"></a>
+<a name="__line123"></a>	    pad &amp;left(const length &amp;l) { box::left(l); return *this; }
+<a name="__line124"></a>	    pad &amp;right(const length &amp;l) { box::right(l); return *this; }
+<a name="__line125"></a>	    pad &amp;width(const length &amp;l) { box::width(l); return *this; }
+<a name="__line126"></a>	    pad &amp;xcenter(const length &amp;l) { box::xcenter(l); return *this; }
+<a name="__line127"></a>	    pad &amp;bottom(const length &amp;l) { box::bottom(l); return *this; }
+<a name="__line128"></a>	    pad &amp;top(const length &amp;l) { box::top(l); return *this; }
+<a name="__line129"></a>	    pad &amp;height(const length &amp;l) { box::height(l); return *this; }
+<a name="__line130"></a>	    pad &amp;ycenter(const length &amp;l) { box::ycenter(l); return *this; }
+<a name="__line131"></a>	    const length &amp;left() const { return box::left(); }
+<a name="__line132"></a>	    const length &amp;right() const { return box::right(); }
+<a name="__line133"></a>	    const length &amp;width() const { return box::width(); }
+<a name="__line134"></a>	    const length &amp;bottom() const { return box::bottom(); }
+<a name="__line135"></a>	    const length &amp;top() const { return box::top(); }
+<a name="__line136"></a>	    const length &amp;height() const { return box::height(); }
+<a name="__line137"></a>
+<a name="__line138"></a>	    <span class=comment>// ---------- Switch on/off border drawing ----------------------------------------</span>
+<a name="__line139"></a>
+<a name="__line140"></a>	    pad         &amp;draw_border(bool i);
+<a name="__line141"></a>	    bool         draw_border() const;
+<a name="__line142"></a>	    static void  default_draw_border(bool);
+<a name="__line143"></a>
+<a name="__line144"></a>
+<a name="__line145"></a>	    <span class=comment>// ---------- Specify the color of the border -------------------------------------</span>
+<a name="__line146"></a>
+<a name="__line147"></a>	    pad         &amp;bordercolor        (const color &amp;);
+<a name="__line148"></a>	    color        bordercolor        () const;
+<a name="__line149"></a>	    static void  default_bordercolor(const color &amp;); 
+<a name="__line150"></a>
+<a name="__line151"></a>
+<a name="__line152"></a>
+<a name="__line153"></a>	    <span class=comment>// ---------- Specify the width of the border  ------------------------------------</span>
+<a name="__line154"></a>
+<a name="__line155"></a>	    pad             &amp;borderwidth(const length &amp;l);
+<a name="__line156"></a>	    const length    &amp;borderwidth() const;
+<a name="__line157"></a>	    static void      default_borderwidth(const length &amp;);
+<a name="__line158"></a>
+<a name="__line159"></a>
+<a name="__line160"></a>	    <span class=comment>// ---------- Switch on/off 3D border drawing. ------------------------------------</span>
+<a name="__line161"></a>	    <span class=comment>// In the case of 3D border drawing, the 'bordercolor' is ignored, </span>
+<a name="__line162"></a>	    <span class=comment>// and the background color is used for the border to create a 3D effect</span>
+<a name="__line163"></a>
+<a name="__line164"></a>	    pad         &amp;border_3D(bool i);
+<a name="__line165"></a>	    bool         border_3D() const;
+<a name="__line166"></a>	    static void  default_border_3D(bool);
+<a name="__line167"></a>
+<a name="__line168"></a>
+<a name="__line169"></a>	    <span class=comment>// ---------- Switch on/off background filling  -----------------------------------</span>
+<a name="__line170"></a>
+<a name="__line171"></a>	    pad         &amp;fill(bool i);
+<a name="__line172"></a>	    bool         fill() const;
+<a name="__line173"></a>	    static void  default_fill(bool);
+<a name="__line174"></a>
+<a name="__line175"></a>
+<a name="__line176"></a>	    <span class=comment>// ---------- Specify the background color  ---------------------------------------</span>
+<a name="__line177"></a>	    <span class=comment>// and at the same time switches to filled mode</span>
+<a name="__line178"></a>
+<a name="__line179"></a>	    pad         &amp;fillcolor    (const color &amp;);
+<a name="__line180"></a>	    color       fillcolor    () const;
+<a name="__line181"></a>	    static void default_fillcolor(const color &amp;);
+<a name="__line182"></a>
+<a name="__line183"></a>	    void print(terminal *term);
+<a name="__line184"></a>
+<a name="__line185"></a>	    void cd_specific();
+<a name="__line186"></a>	    void prepare_for_draw();
+<a name="__line187"></a>
+<a name="__line188"></a>	    pad &amp;layer(const var &amp; l) { grob::layer(l); return *this; }
+<a name="__line189"></a>	};
+<a name="__line190"></a>
+<a name="__line191"></a>
+<a name="__line192"></a>
+<a name="__line193"></a>}
+<a name="__line194"></a>
+<a name="__line195"></a>#endif
+<a name="__line196"></a>
+<a name="__line197"></a>
+<a name="__line198"></a>
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

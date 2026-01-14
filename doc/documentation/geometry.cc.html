@@ -1,0 +1,547 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: geometry.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="geometry.h.html">geometry.h</a>"
+<a name="__line1"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line2"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line3"></a>#include &lt;iostream&gt;
+<a name="__line4"></a>
+<a name="__line5"></a>using namespace std;
+<a name="__line6"></a>
+<a name="__line7"></a>namespace blop
+<a name="__line8"></a>{
+<a name="__line9"></a>    namespace geom
+<a name="__line10"></a>    {
+<a name="__line11"></a>        <span class=comment>// treat a scalar product as non-0 if its absolute value is larger than this</span>
+<a name="__line12"></a>        const double scalar_product_tolerance = 1e-6;
+<a name="__line13"></a>
+<a name="__line14"></a>        const vec3 &amp;vec3::operator*=(const rotation &amp;t)
+<a name="__line15"></a>        {
+<a name="__line16"></a>            *this = t*(*this);
+<a name="__line17"></a>            return *this;
+<a name="__line18"></a>        }
+<a name="__line19"></a>        const point &amp;point::operator*=(const transformation &amp;t)
+<a name="__line20"></a>        {
+<a name="__line21"></a>            *this = t*(*this);
+<a name="__line22"></a>            return *this;
+<a name="__line23"></a>        }
+<a name="__line24"></a>        const line &amp;line::operator*=(const transformation &amp;t)
+<a name="__line25"></a>        {
+<a name="__line26"></a>            p0_ *= t;
+<a name="__line27"></a>            dir_ *= t.get_rotation();
+<a name="__line28"></a>            return *this;
+<a name="__line29"></a>        }
+<a name="__line30"></a>        const plane &amp;plane::operator*=(const transformation &amp;t)
+<a name="__line31"></a>        {
+<a name="__line32"></a>            origin_ *= t;
+<a name="__line33"></a>            normal_ *= t.get_rotation();
+<a name="__line34"></a>            return *this;
+<a name="__line35"></a>        }
+<a name="__line36"></a>
+<a name="__line37"></a>	line intersection(const plane &amp;p1, const plane &amp;p2)
+<a name="__line38"></a>	{
+<a name="__line39"></a>	    <span class=comment>// the intersection line lies on both planes, i.e. its direction</span>
+<a name="__line40"></a>	    <span class=comment>// must be perpendicular to both normal vectors. Such a vector can</span>
+<a name="__line41"></a>	    <span class=comment>// be constructed as the vector-product of the two normal-vectors</span>
+<a name="__line42"></a>	    const vec3 n1 = p1.normal();
+<a name="__line43"></a>	    const vec3 n2 = p2.normal();
+<a name="__line44"></a>	    const vec3 d(n1%n2,1);
+<a name="__line45"></a>
+<a name="__line46"></a>	    <span class=comment>// Now only a point along this line must be chosen. It is arbitrary,</span>
+<a name="__line47"></a>	    <span class=comment>// but let's choose the one which is closest to the origin, i.e.</span>
+<a name="__line48"></a>	    <span class=comment>// thee vector pointing to it from the origin is perpendicular to</span>
+<a name="__line49"></a>	    <span class=comment>// the line (d). it satisfies then the following equations:</span>
+<a name="__line50"></a>	    <span class=comment>// (r-p1)*n1 = 0; (r-p2)*n2 = 0; r*d=0;</span>
+<a name="__line51"></a>	    <span class=comment>// this is a linear system of equations:</span>
+<a name="__line52"></a>	    <span class=comment>// [ n1x  n1y  n1z ] [rx]   [n1*p1]           [rx]</span>
+<a name="__line53"></a>	    <span class=comment>// [ n2x  n2y  n2z ]*[ry] = [n2*p2]   = [m] * [ry]</span>
+<a name="__line54"></a>	    <span class=comment>// [ dx   dy   dz  ] [rz]   [0    ]           [rz]</span>
+<a name="__line55"></a>	    <span class=comment>// inver this matrix, etc.</span>
+<a name="__line56"></a><span class=comment>/*
+<a name="__line57"></a>	    double m[3][3];
+<a name="__line58"></a>	    m[0][0] = n1.x; // a
+<a name="__line59"></a>	    m[0][1] = n1.y; // b
+<a name="__line60"></a>	    m[0][2] = n1.z; // c
+<a name="__line61"></a>	    m[1][0] = n2.x; // d
+<a name="__line62"></a>	    m[1][1] = n2.y; // e
+<a name="__line63"></a>	    m[1][2] = n2.z; // f
+<a name="__line64"></a>	    m[2][0] = d.x;  // g
+<a name="__line65"></a>	    m[2][1] = d.y;  // h
+<a name="__line66"></a>	    m[2][2] = d.z;  // k
+<a name="__line67"></a>*/</span>
+<a name="__line68"></a>
+<a name="__line69"></a>	    const double det_m = n1.x*(n2.y*d.z-n2.z*d.y) + n1.y*(n2.z*d.x-d.z*n2.x) + n1.z*(n2.x*d.y-n2.y*d.x);
+<a name="__line70"></a>	    double m_inv[3][3];
+<a name="__line71"></a>	    m_inv[0][0] = (n2.y*d.z-n2.z*d.y)/det_m;
+<a name="__line72"></a>	    m_inv[0][1] = (n1.z*d.y-n1.y*d.z)/det_m;
+<a name="__line73"></a>	    m_inv[0][2] = (n1.y*n2.z-n1.z*n2.y)/det_m;
+<a name="__line74"></a>	    m_inv[1][0] = (n2.z*d.x-n2.x*d.z)/det_m;
+<a name="__line75"></a>	    m_inv[1][1] = (n1.x*d.z-n1.z*d.x)/det_m;
+<a name="__line76"></a>	    m_inv[1][2] = (n1.z*n2.x-n1.x*n2.z)/det_m;
+<a name="__line77"></a>	    m_inv[2][0] = (n2.x*d.y-n2.y*d.x)/det_m;
+<a name="__line78"></a>	    m_inv[2][1] = (d.x*n1.y-n1.x*d.y)/det_m;
+<a name="__line79"></a>	    m_inv[2][2] = (n1.x*n2.y-n1.y*n2.x)/det_m;
+<a name="__line80"></a>
+<a name="__line81"></a><span class=comment>/*
+<a name="__line82"></a>	    cerr&lt;&lt;"remove matrix inversion check"&lt;&lt;endl;
+<a name="__line83"></a>	    for(int i=0; i&lt;3; ++i)
+<a name="__line84"></a>	    {
+<a name="__line85"></a>		for(int k=0; k&lt;3; ++k)
+<a name="__line86"></a>		{
+<a name="__line87"></a>		    double result = 0;
+<a name="__line88"></a>		    for(int j=0; j&lt;3; ++j)
+<a name="__line89"></a>		    {
+<a name="__line90"></a>			result += m[i][j]*m_inv[j][k];
+<a name="__line91"></a>		    }
+<a name="__line92"></a>		    if( (i==k &amp;&amp; fabs(result-1.0)&gt;0.000001) ||
+<a name="__line93"></a>			(i!=k &amp;&amp; fabs(result)    &gt;0.000001))
+<a name="__line94"></a>		    {
+<a name="__line95"></a>			cerr&lt;&lt;"Error in matrix inversion"&lt;&lt;endl;
+<a name="__line96"></a>			exit(1);
+<a name="__line97"></a>		    }
+<a name="__line98"></a>		}
+<a name="__line99"></a>	    }
+<a name="__line100"></a>*/</span>
+<a name="__line101"></a>
+<a name="__line102"></a>	    const double a0 = n1*p1.origin().coord;
+<a name="__line103"></a>	    const double a1 = n2*p2.origin().coord;
+<a name="__line104"></a>	    const vec3 p0(m_inv[0][0]*a0+m_inv[0][1]*a1,
+<a name="__line105"></a>			  m_inv[1][0]*a0+m_inv[1][1]*a1,
+<a name="__line106"></a>			  m_inv[2][0]*a0+m_inv[2][1]*a1);
+<a name="__line107"></a>	
+<a name="__line108"></a>	    return line(p0,d);
+<a name="__line109"></a>	}
+<a name="__line110"></a>
+<a name="__line111"></a>        <span class=comment>// ---------- plane_with_cs  ------------------------------------------------------</span>
+<a name="__line112"></a>
+<a name="__line113"></a>        plane_with_cs::plane_with_cs(const point &amp;origin, const vec3 &amp;x, const vec3 &amp;y)
+<a name="__line114"></a>            : plane(origin, vec3(x%y,1))
+<a name="__line115"></a>        {
+<a name="__line116"></a>            x_ = x/abs(x);
+<a name="__line117"></a>            y_ = y/abs(y);
+<a name="__line118"></a>            if(fabs(x_*y_)&gt;scalar_product_tolerance)
+<a name="__line119"></a>            {
+<a name="__line120"></a>                warning::print("x and y are not perpendicular","plane_with_cs::plane_with_cs(const point &amp;origin, const vec3 &amp;x, const vec3 &amp;y)");
+<a name="__line121"></a>                y_ = vec3(normal_%x,1);
+<a name="__line122"></a>            }
+<a name="__line123"></a>        }
+<a name="__line124"></a>        
+<a name="__line125"></a>
+<a name="__line126"></a>	<span class=comment>// ---------- triangle ------------------------------------------------------------</span>
+<a name="__line127"></a>
+<a name="__line128"></a>	vec3 triangle::edge(int i) const
+<a name="__line129"></a>	{
+<a name="__line130"></a>	    --i;
+<a name="__line131"></a>	    if(i&lt;0 || 2&lt;i)
+<a name="__line132"></a>	    {
+<a name="__line133"></a>		cerr&lt;&lt;"Vertex number out of range: "&lt;&lt;i+1&lt;&lt;endl;
+<a name="__line134"></a>		return vec3(std::sqrt(-1.0),std::sqrt(-1.0), std::sqrt(-1.0));
+<a name="__line135"></a>	    }
+<a name="__line136"></a>	    const point v1 = vertex_[i];
+<a name="__line137"></a>	    const point v2 = (i&lt;2?vertex_[i+1]:vertex_[0]);
+<a name="__line138"></a>	    return v2-v1;
+<a name="__line139"></a>	}
+<a name="__line140"></a>    
+<a name="__line141"></a>	const point &amp;triangle::vertex(int i) const
+<a name="__line142"></a>	{
+<a name="__line143"></a>	    --i;
+<a name="__line144"></a>	    if(i&lt;0 || 2&lt;i)
+<a name="__line145"></a>	    {
+<a name="__line146"></a>		cerr&lt;&lt;"Vertex number out of range: "&lt;&lt;i+1&lt;&lt;endl;
+<a name="__line147"></a>		static point dummy(std::sqrt(-1.0),std::sqrt(-1.0), std::sqrt(-1.0));
+<a name="__line148"></a>		return dummy;
+<a name="__line149"></a>	    }
+<a name="__line150"></a>	    return vertex_[i];
+<a name="__line151"></a>	}
+<a name="__line152"></a>
+<a name="__line153"></a>	point &amp;triangle::vertex(int i)
+<a name="__line154"></a>	{
+<a name="__line155"></a>	    --i;
+<a name="__line156"></a>	    if(i&lt;0 || 2&lt;i)
+<a name="__line157"></a>	    {
+<a name="__line158"></a>		cerr&lt;&lt;"Vertex number out of range: "&lt;&lt;i+1&lt;&lt;endl;
+<a name="__line159"></a>		static point dummy(std::sqrt(-1.0),std::sqrt(-1.0), std::sqrt(-1.0));
+<a name="__line160"></a>		return dummy;
+<a name="__line161"></a>	    }
+<a name="__line162"></a>	    return vertex_[i];
+<a name="__line163"></a>	}
+<a name="__line164"></a>    
+<a name="__line165"></a>	triangle &amp;triangle::vertex(int i, const point &amp;v)
+<a name="__line166"></a>	{
+<a name="__line167"></a>	    --i;
+<a name="__line168"></a>	    if(i&lt;0 || 2&lt;i) cerr&lt;&lt;"Vertex number out of range: "&lt;&lt;i+1&lt;&lt;endl;
+<a name="__line169"></a>	    else vertex_[i] = v;
+<a name="__line170"></a>	    return *this;
+<a name="__line171"></a>	}
+<a name="__line172"></a>    
+<a name="__line173"></a>	<span class=comment>// For each edge, the point 'v' should be on the same side of the edge,</span>
+<a name="__line174"></a>	<span class=comment>// as the third vertex. </span>
+<a name="__line175"></a>	bool triangle::inside(const point &amp;v)
+<a name="__line176"></a>	{
+<a name="__line177"></a>	    for(int i=0; i&lt;3; ++i)
+<a name="__line178"></a>	    {
+<a name="__line179"></a>		const point &amp;v1 = vertex_[i];
+<a name="__line180"></a>		const point &amp;v2 = (i&lt;2?vertex_[i+1]:vertex_[0]);
+<a name="__line181"></a>		const point &amp;v3 = (i==0?vertex_[2]:(i==1?vertex_[0]:vertex_[1]));
+<a name="__line182"></a>		if( ((v-v1)%(v2-v1))*((v3-v1)%(v2-v1)) &lt; 0 ) return false;
+<a name="__line183"></a>	    }
+<a name="__line184"></a>	    return true;
+<a name="__line185"></a>	}
+<a name="__line186"></a>	
+<a name="__line187"></a>
+<a name="__line188"></a>	<span class=comment>// ---------- transformations and necessary helper functions ----------------------</span>
+<a name="__line189"></a>
+<a name="__line190"></a>        void rotation::init_(const vec3 &amp;v, double theta)
+<a name="__line191"></a>        {
+<a name="__line192"></a>            axis_ = v/abs(v);
+<a name="__line193"></a>            angle_ = theta;
+<a name="__line194"></a>            matrix_[0][0] = std::cos(theta)+axis_.x*axis_.x*(1-std::cos(theta));
+<a name="__line195"></a>            matrix_[0][1] = axis_.x*axis_.y*(1-std::cos(theta))-axis_.z*std::sin(theta);
+<a name="__line196"></a>            matrix_[0][2] = axis_.x*axis_.z*(1-std::cos(theta))+axis_.y*std::sin(theta);
+<a name="__line197"></a>            matrix_[0][3] = 0;
+<a name="__line198"></a>
+<a name="__line199"></a>            matrix_[1][0] = axis_.y*axis_.x*(1-std::cos(theta))+axis_.z*std::sin(theta);
+<a name="__line200"></a>            matrix_[1][1] = std::cos(theta)+axis_.y*axis_.y*(1-std::cos(theta));
+<a name="__line201"></a>            matrix_[1][2] = axis_.y*axis_.z*(1-std::cos(theta))-axis_.x*std::sin(theta);
+<a name="__line202"></a>            matrix_[1][3] = 0;
+<a name="__line203"></a>
+<a name="__line204"></a>            matrix_[2][0] = axis_.z*axis_.x*(1-std::cos(theta))-axis_.y*std::sin(theta);
+<a name="__line205"></a>            matrix_[2][1] = axis_.z*axis_.y*(1-std::cos(theta))+axis_.x*std::sin(theta);
+<a name="__line206"></a>            matrix_[2][2] = std::cos(theta)+axis_.z*axis_.z*(1-std::cos(theta));
+<a name="__line207"></a>            matrix_[2][3] = 0;
+<a name="__line208"></a>
+<a name="__line209"></a>            matrix_[3][0] = 0;
+<a name="__line210"></a>            matrix_[3][1] = 0;
+<a name="__line211"></a>            matrix_[3][2] = 0;
+<a name="__line212"></a>            matrix_[3][3] = 1;
+<a name="__line213"></a>        }
+<a name="__line214"></a>
+<a name="__line215"></a>        rotation::rotation(const rotation &amp;rhs) : transformation(rhs)
+<a name="__line216"></a>        {
+<a name="__line217"></a>            angle_ = rhs.angle_;
+<a name="__line218"></a>            axis_ = rhs.axis_;
+<a name="__line219"></a>        }
+<a name="__line220"></a>
+<a name="__line221"></a>	rotation::rotation(vec3 v, vec3 vprime)
+<a name="__line222"></a>	{
+<a name="__line223"></a>	    v /= abs(v);
+<a name="__line224"></a>	    vprime /= abs(vprime);
+<a name="__line225"></a>	    vec3 a = v%vprime;
+<a name="__line226"></a>	    const double sin_angle = abs(a);
+<a name="__line227"></a>	    const double cos_angle = v*vprime;
+<a name="__line228"></a>	    double angle = atan2(sin_angle,cos_angle);
+<a name="__line229"></a>	    if(angle&lt;0) cerr&lt;&lt;"This should never happen"&lt;&lt;endl;
+<a name="__line230"></a>	    a /= abs(a);
+<a name="__line231"></a>
+<a name="__line232"></a>	    <span class=comment>// If it is an almost-180 deg rotation, the axis can not be determined unambigously.</span>
+<a name="__line233"></a>	    <span class=comment>// Choose just one axis</span>
+<a name="__line234"></a>	    if(sin_angle&lt;1e-4)
+<a name="__line235"></a>	    {
+<a name="__line236"></a>		<span class=comment>//cerr&lt;&lt;"Warning: Axis of rotation can not be determined unambiguously"&lt;&lt;endl;</span>
+<a name="__line237"></a>		a = v%vec3(1,0,0);
+<a name="__line238"></a>		vec3 t = v%vec3(0,1,0);
+<a name="__line239"></a>		if(abs(t)&gt;abs(a)) a = t;
+<a name="__line240"></a>		t = v%vec3(0,0,1);
+<a name="__line241"></a>		if(abs(t)&gt;abs(a)) a = t;
+<a name="__line242"></a>		a /= abs(a);
+<a name="__line243"></a>		if(angle&lt;3.1415/2) angle = 0;
+<a name="__line244"></a>		else angle = 3.14159265;
+<a name="__line245"></a>	    }
+<a name="__line246"></a>	    init_(a,angle);
+<a name="__line247"></a>	}
+<a name="__line248"></a>
+<a name="__line249"></a>	rotation::rotation(vec3 v1, vec3 v2, vec3 v1prime, vec3 v2prime)
+<a name="__line250"></a>	{
+<a name="__line251"></a>	    if(v1==v1prime &amp;&amp; v2==v2prime)
+<a name="__line252"></a>	    {
+<a name="__line253"></a>		init_(vec3(0,0,1),0);
+<a name="__line254"></a>		return;
+<a name="__line255"></a>	    }
+<a name="__line256"></a>
+<a name="__line257"></a>	    v1 /= abs(v1);
+<a name="__line258"></a>	    v2 /= abs(v2);
+<a name="__line259"></a>	    v1prime /= abs(v1prime);
+<a name="__line260"></a>	    v2prime /= abs(v2prime);
+<a name="__line261"></a>
+<a name="__line262"></a>            if(fabs(v1*v2-v1prime*v2prime)&gt;1e-3)
+<a name="__line263"></a>            {
+<a name="__line264"></a>                warning::print(var("Angle between v1(") &amp; v1.x &amp; "," &amp; v1.y &amp; "," &amp; v1.z &amp; "),v2(" &amp; v2.x &amp; "," &amp; v2.y &amp; "," &amp; v2.z &amp; ") is not the same as v1prime("
+<a name="__line265"></a>                               &amp; v1prime.x &amp; "," &amp; v1prime.y &amp; "," &amp; v1prime.z &amp; "),v2prime(" &amp; v2prime.x &amp; "," &amp; v2prime.y &amp; "," &amp; v2prime.z &amp; ")",
+<a name="__line266"></a>                               "rotation::rotation(vec3 v1, vec3 v2, vec3 v1prime, vec3 v2prime)");
+<a name="__line267"></a>            }
+<a name="__line268"></a>
+<a name="__line269"></a>	    if(abs(v2%v2prime)&gt;abs(v1%v1prime))
+<a name="__line270"></a>	    {
+<a name="__line271"></a>		std::swap(v1,v2);
+<a name="__line272"></a>		std::swap(v1prime,v2prime);
+<a name="__line273"></a>	    }
+<a name="__line274"></a>
+<a name="__line275"></a>	    <span class=comment>// The first rotation is a rotation around the axis a1, which brings v1 into v1'</span>
+<a name="__line276"></a>	    <span class=comment>// a1 being perpendicular to both of these vectors</span>
+<a name="__line277"></a>	    rotation r1(v1,v1prime);
+<a name="__line278"></a>
+<a name="__line279"></a>	    if(v2 == v2prime)
+<a name="__line280"></a>	    {
+<a name="__line281"></a>		*this = r1;
+<a name="__line282"></a>		return;
+<a name="__line283"></a>	    }
+<a name="__line284"></a>
+<a name="__line285"></a>	    <span class=comment>// First, apply this rotation to v2</span>
+<a name="__line286"></a>	    v2 = r1*v2;
+<a name="__line287"></a>
+<a name="__line288"></a>	    <span class=comment>// And then search for a rotation which brings it (i.e. the rotated v2) into v2prime,</span>
+<a name="__line289"></a>	    <span class=comment>// leaving v1prime unaffected - that is, a rotation around v1prime</span>
+<a name="__line290"></a>	    vec3 a2 = v1prime;
+<a name="__line291"></a>
+<a name="__line292"></a>	    <span class=comment>// now v2 should be rotatable into v2' around a2. That is, they need to have the same angle</span>
+<a name="__line293"></a>	    <span class=comment>// w.r.t. a2. Check this now!</span>
+<a name="__line294"></a>	    if(std::fabs(v2*a2-v2prime*a2)&gt;1e-6)
+<a name="__line295"></a>	    {
+<a name="__line296"></a>                warning::print("Angles between vectors do not satisfy constraints in rotation(vec3 v1, vec3 v2, vec3 v1prime, vec3 v2prime)",
+<a name="__line297"></a>                               "rotation::rotation(vec3 v1, vec3 v2, vec3 v1prime, vec3 v2prime)");
+<a name="__line298"></a>	    }
+<a name="__line299"></a>	    <span class=comment>// get the normalized perpendicular components of v2 and v2' to a2</span>
+<a name="__line300"></a>	    vec3 k2 = v2-a2*(a2*v2);
+<a name="__line301"></a>	    vec3 k2prime = v2prime-a2*(a2*v2prime);
+<a name="__line302"></a>
+<a name="__line303"></a>	    <span class=comment>// They had no perpendicular component to the second rotation axis, so we need no more rotations</span>
+<a name="__line304"></a>	    if(abs(k2)&lt;1e-20 &amp;&amp; abs(k2prime)&lt;1e-20)
+<a name="__line305"></a>	    {
+<a name="__line306"></a>		*this = r1;
+<a name="__line307"></a>		return;
+<a name="__line308"></a>	    }
+<a name="__line309"></a>
+<a name="__line310"></a>	    k2 /= abs(k2);
+<a name="__line311"></a>	    k2prime /= abs(k2prime);
+<a name="__line312"></a>
+<a name="__line313"></a>	    vec3 A2 = k2%k2prime;  <span class=comment>// the magnitude of this vector is sin(angle2);</span>
+<a name="__line314"></a>
+<a name="__line315"></a>	    const double sin2 = abs(A2);
+<a name="__line316"></a>	    const double cos2 = k2*k2prime;
+<a name="__line317"></a>	    double angle2 = std::atan2(sin2,cos2);
+<a name="__line318"></a>
+<a name="__line319"></a>	    <span class=comment>// the two vectors are back-to-back or in the same direction. </span>
+<a name="__line320"></a>	    if(sin2&lt;1e-4)
+<a name="__line321"></a>	    {
+<a name="__line322"></a>		if(angle2&lt;3.1415/2) angle2=0;
+<a name="__line323"></a>		else angle2 = 3.14159265;
+<a name="__line324"></a>	    }
+<a name="__line325"></a>	    else
+<a name="__line326"></a>	    {
+<a name="__line327"></a>		A2 /= abs(A2);
+<a name="__line328"></a>		if(std::fabs(std::fabs(a2*A2)-1)&gt;1e-6) std::cerr&lt;&lt;"Error: some problem with angles in rotation(vec3,vec3,vec3,vec3)"&lt;&lt;std::endl; <span class=comment>// should never happen</span>
+<a name="__line329"></a>		a2 = A2;
+<a name="__line330"></a>	    }
+<a name="__line331"></a>	    rotation r2(a2,angle2);
+<a name="__line332"></a>	    *this = r2*r1;
+<a name="__line333"></a>	}
+<a name="__line334"></a>
+<a name="__line335"></a>        rotation transformation::get_rotation() const
+<a name="__line336"></a>        {
+<a name="__line337"></a>            rotation result;
+<a name="__line338"></a>            for(int i=0; i&lt;3; ++i)
+<a name="__line339"></a>            {
+<a name="__line340"></a>                for(int j=0; j&lt;3; ++j)
+<a name="__line341"></a>                {
+<a name="__line342"></a>                    result.matrix_[i][j] = matrix_[i][j];
+<a name="__line343"></a>                }
+<a name="__line344"></a>            }
+<a name="__line345"></a>            result.set_axis_angle_from_matrix_();
+<a name="__line346"></a>            return result;
+<a name="__line347"></a>        }
+<a name="__line348"></a>
+<a name="__line349"></a>        void transformation::remove_translation()
+<a name="__line350"></a>        {
+<a name="__line351"></a>            for(int i=0; i&lt;3; ++i)
+<a name="__line352"></a>            {
+<a name="__line353"></a>                matrix_[i][3] = 0;
+<a name="__line354"></a>                matrix_[3][i] = 0;
+<a name="__line355"></a>            }
+<a name="__line356"></a>        }
+<a name="__line357"></a>
+<a name="__line358"></a>        void transformation::invert()
+<a name="__line359"></a>        {
+<a name="__line360"></a>            double tmpmatrix[4][4];
+<a name="__line361"></a>            for(int i=0; i&lt;4; ++i) for(int j=0; j&lt;4; ++j) tmpmatrix[i][j] = matrix_[i][j];
+<a name="__line362"></a>
+<a name="__line363"></a>	    const double det =
+<a name="__line364"></a>		+ matrix_[0][0]*(matrix_[1][1]*matrix_[2][2]-matrix_[1][2]*matrix_[2][1])
+<a name="__line365"></a>		+ matrix_[0][1]*(matrix_[1][2]*matrix_[2][0]-matrix_[1][0]*matrix_[2][2])
+<a name="__line366"></a>		+ matrix_[0][2]*(matrix_[1][0]*matrix_[2][1]-matrix_[1][1]*matrix_[2][0]);
+<a name="__line367"></a>
+<a name="__line368"></a>	    for(int i=0; i&lt;4; ++i)
+<a name="__line369"></a>	    {
+<a name="__line370"></a>		for(int j=0; j&lt;4; ++j)
+<a name="__line371"></a>		{
+<a name="__line372"></a>		    matrix_[j][i] = cofactor(tmpmatrix,i,j)/det;
+<a name="__line373"></a>		}
+<a name="__line374"></a>	    }
+<a name="__line375"></a>        }
+<a name="__line376"></a>
+<a name="__line377"></a>	transformation transformation::inverse() const
+<a name="__line378"></a>	{
+<a name="__line379"></a>            transformation result(*this);
+<a name="__line380"></a>            result.invert();
+<a name="__line381"></a>            return result;
+<a name="__line382"></a>	}
+<a name="__line383"></a>
+<a name="__line384"></a>	ostream &amp;operator&lt;&lt;(ostream &amp;out, const transformation &amp;t)
+<a name="__line385"></a>	{
+<a name="__line386"></a>	    for(int i=0; i&lt;4; ++i)
+<a name="__line387"></a>	    {
+<a name="__line388"></a>		for(int j=0; j&lt;4; ++j)
+<a name="__line389"></a>		{
+<a name="__line390"></a>		    out&lt;&lt;std::setw(13)&lt;&lt;t.matrix_[i][j]&lt;&lt;" ";
+<a name="__line391"></a>		}
+<a name="__line392"></a>		out&lt;&lt;endl;
+<a name="__line393"></a>	    }
+<a name="__line394"></a>	    return out;
+<a name="__line395"></a>	}
+<a name="__line396"></a>
+<a name="__line397"></a>        transformation rotation_around_axis(const line &amp;axis, double angle)
+<a name="__line398"></a>        {
+<a name="__line399"></a>            return translation(axis.origin().coord)*rotation(axis.dir(),angle)*translation(-axis.origin().coord);
+<a name="__line400"></a>        }
+<a name="__line401"></a>
+<a name="__line402"></a>
+<a name="__line403"></a>        void mirroring::init_(const point &amp;P0, const vec3 &amp;normal)
+<a name="__line404"></a>        {
+<a name="__line405"></a>            p0_=P0;
+<a name="__line406"></a>            normal_=normal;
+<a name="__line407"></a>            double n[3]  = { normal.x, normal.y, normal.z };
+<a name="__line408"></a>            double p0[3] = { P0.coord.x, P0.coord.y, P0.coord.z };
+<a name="__line409"></a>            for(int i=0; i&lt;3; ++i)
+<a name="__line410"></a>            {
+<a name="__line411"></a>                for(int j=0; j&lt;3; ++j)
+<a name="__line412"></a>                {
+<a name="__line413"></a>                    matrix_[i][j] = ((i==j)-2*n[i]*n[j]);
+<a name="__line414"></a>                }
+<a name="__line415"></a>                matrix_[i][3] = 2*n[i] * (p0[0]*n[0] + p0[1]*n[1] + p0[2]*n[2]);
+<a name="__line416"></a>            }
+<a name="__line417"></a>            for(int j=0; j&lt;4; ++j) matrix_[3][j] = (j==3);
+<a name="__line418"></a>        }
+<a name="__line419"></a>    }
+<a name="__line420"></a>
+<a name="__line421"></a>    geom::vec3 project(const geom::vec3 &amp;v, const geom::plane &amp;pl)
+<a name="__line422"></a>    {
+<a name="__line423"></a>        return v - pl.normal()*(pl.normal()*v);
+<a name="__line424"></a>    }
+<a name="__line425"></a>
+<a name="__line426"></a>    geom::vec3 project(const geom::vec3 &amp;v, const geom::line &amp;l)
+<a name="__line427"></a>    {
+<a name="__line428"></a>        return l.dir()*(l.dir()*v);
+<a name="__line429"></a>    }
+<a name="__line430"></a>
+<a name="__line431"></a>    geom::line project(const geom::line &amp;l, const geom::plane &amp;pl)
+<a name="__line432"></a>    {
+<a name="__line433"></a>        return blop::geom::line(project(l.p0(),pl), project(l.dir(),pl));
+<a name="__line434"></a>    }
+<a name="__line435"></a>
+<a name="__line436"></a>    geom::point project(const geom::point &amp;p, const geom::plane &amp;pl)
+<a name="__line437"></a>    {
+<a name="__line438"></a>        const geom::vec3 diff = p-pl.origin();
+<a name="__line439"></a>        const geom::vec3 diff_in_plane = diff - pl.normal()*(pl.normal()*diff);
+<a name="__line440"></a>        return pl.origin()+diff_in_plane;
+<a name="__line441"></a>    }
+<a name="__line442"></a>
+<a name="__line443"></a>    geom::point project(const geom::point &amp;p, const geom::line &amp;l)
+<a name="__line444"></a>    {
+<a name="__line445"></a>        const geom::vec3 diff = p-l.origin();
+<a name="__line446"></a>        return l.origin()+l.dir()*(l.dir()*diff);
+<a name="__line447"></a>    }
+<a name="__line448"></a>
+<a name="__line449"></a>    int intersection(const std::vector&lt;double&gt; &amp;X1, const std::vector&lt;double&gt; &amp;Y1,
+<a name="__line450"></a>		     const std::vector&lt;double&gt; &amp;X2, const std::vector&lt;double&gt; &amp;Y2,
+<a name="__line451"></a>		     std::vector&lt;double&gt; &amp;x, std::vector&lt;double&gt; &amp;y)
+<a name="__line452"></a>    {
+<a name="__line453"></a>	x.clear();
+<a name="__line454"></a>	y.clear();
+<a name="__line455"></a>	<span class=comment>// Loop over all segment pairs of the two polylines. A segment of the first curve is described by:</span>
+<a name="__line456"></a>	<span class=comment>// (x1,y1)   - starting point of the segment</span>
+<a name="__line457"></a>	<span class=comment>// (dx1,dy1) - vector pointing from start to the end</span>
+<a name="__line458"></a>	<span class=comment>// similarly for the second line. Any point on this segment can be parametrized by the t1 parameter:</span>
+<a name="__line459"></a>	<span class=comment>// (x,y) = (x1,y1)+t1*(dx1,dy1)</span>
+<a name="__line460"></a>	<span class=comment>// The point (x,y) falls within the segment if 0&lt;=t1&lt;=1</span>
+<a name="__line461"></a>	<span class=comment>// The equation for the intersection point:</span>
+<a name="__line462"></a>	<span class=comment>// (x1,y1)+t1*(dx1,dy1) = (x2,y2)+t2*(dx2,dy2)    and 0&lt;=t1&lt;=1 &amp;&amp; 0&lt;=t2&lt;=1</span>
+<a name="__line463"></a>	<span class=comment>// Solving these equations:</span>
+<a name="__line464"></a>	<span class=comment>// t1 = (dx2*(y2-y1)+dy2*(x1-x2))/(dy1*dx2-dy2*dx1)</span>
+<a name="__line465"></a>	<span class=comment>// t2 = (dx1*(y2-y1)+dy1*(x1-x2))/(dy1*dx2-dy2*dx1)</span>
+<a name="__line466"></a>
+<a name="__line467"></a>	<span class=comment>// loop over all segment pairs</span>
+<a name="__line468"></a>        const unsigned int N1 = ::min(X1.size(),Y1.size());
+<a name="__line469"></a>        const unsigned int N2 = ::min(X2.size(),Y2.size());
+<a name="__line470"></a>	for(unsigned int i=1; i&lt;N1; ++i)
+<a name="__line471"></a>	{
+<a name="__line472"></a>	    if(X1[i-1]==unset || X1[i]==unset || Y1[i-1]==unset || Y1[i]==unset) continue;
+<a name="__line473"></a>	    const double x1 = X1[i-1];
+<a name="__line474"></a>	    const double y1 = Y1[i-1];
+<a name="__line475"></a>	    const double dx1 = X1[i]-X1[i-1];
+<a name="__line476"></a>	    const double dy1 = Y1[i]-Y1[i-1];
+<a name="__line477"></a>	    for(unsigned int j=1; j&lt;N2; ++j)
+<a name="__line478"></a>	    {
+<a name="__line479"></a>		if(X2[j-1]==unset || X2[j]==unset || Y2[j-1]==unset || Y2[j]==unset) continue;
+<a name="__line480"></a>		const double x2 = X2[j-1];
+<a name="__line481"></a>		const double y2 = Y2[j-1];
+<a name="__line482"></a>		const double dx2 = X2[j]-X2[j-1];
+<a name="__line483"></a>		const double dy2 = Y2[j]-Y2[j-1];
+<a name="__line484"></a>		const double t1 = (dx2*(y2-y1)+dy2*(x1-x2))/(dy1*dx2-dy2*dx1);
+<a name="__line485"></a>		const double t2 = (dx1*(y2-y1)+dy1*(x1-x2))/(dy1*dx2-dy2*dx1);
+<a name="__line486"></a>
+<a name="__line487"></a>		if(0&lt;=t1 &amp;&amp; t1&lt;=1 &amp;&amp; 0&lt;=t2 &amp;&amp; t2&lt;=1)
+<a name="__line488"></a>		{
+<a name="__line489"></a>		    <span class=comment>// the intersection point's coordinates</span>
+<a name="__line490"></a>		    const double int_x = x1+t1*dx1;
+<a name="__line491"></a>		    const double int_y = y1+t1*dy1;
+<a name="__line492"></a>		    
+<a name="__line493"></a>		    <span class=comment>// check if this point has already been found. what about finite precision???</span>
+<a name="__line494"></a>		    bool found = false;
+<a name="__line495"></a>		    for(unsigned int f=0; f&lt;x.size(); ++f)
+<a name="__line496"></a>		    {
+<a name="__line497"></a>			if(x[f]==int_x &amp;&amp; y[f]==int_y)
+<a name="__line498"></a>			{
+<a name="__line499"></a>			    found = true;
+<a name="__line500"></a>			    break;
+<a name="__line501"></a>			}
+<a name="__line502"></a>		    }
+<a name="__line503"></a>		    
+<a name="__line504"></a>		    if(!found)
+<a name="__line505"></a>		    {
+<a name="__line506"></a>			x.push_back(int_x);
+<a name="__line507"></a>			y.push_back(int_y);
+<a name="__line508"></a>		    }
+<a name="__line509"></a>		}
+<a name="__line510"></a>	    }
+<a name="__line511"></a>	}
+<a name="__line512"></a>	return (int)x.size();
+<a name="__line513"></a>    }
+<a name="__line514"></a>
+<a name="__line515"></a>
+<a name="__line516"></a>    
+<a name="__line517"></a>
+<a name="__line518"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

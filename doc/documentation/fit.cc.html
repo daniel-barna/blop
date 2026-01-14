@@ -1,0 +1,464 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: fit.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="fit.h.html">fit.h</a>"
+<a name="__line1"></a>#include &lt;cmath&gt;
+<a name="__line2"></a>#include "<a href="cfunc_wrapper.hh.html">cfunc_wrapper.hh</a>"
+<a name="__line3"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line4"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line5"></a>#include "<a href="ignore.h.html">ignore.h</a>"
+<a name="__line6"></a>
+<a name="__line7"></a>
+<a name="__line8"></a>#include &lt;iomanip&gt;
+<a name="__line9"></a>#include &lt;cstdlib&gt;
+<a name="__line10"></a>
+<a name="__line11"></a>#include "<a href="levenberg-marquardt.h.html">levenberg-marquardt.h</a>"
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    using namespace std;
+<a name="__line16"></a>
+<a name="__line17"></a>    typedef matrix&lt;var&gt; dmatrix;
+<a name="__line18"></a>
+<a name="__line19"></a>    void fit_kernel(const plottable &amp;g, function &amp;fitfunc, const fitopt &amp;opt,
+<a name="__line20"></a>		    double_func_aref_aref_aref_aref_aref der0,
+<a name="__line21"></a>		    double_func_aref_aref_aref_aref_aref_aref der1,
+<a name="__line22"></a>		    double_func_aref_aref_aref_aref_aref_aref_aref der2,
+<a name="__line23"></a>		    fitresult &amp;fit_result)
+<a name="__line24"></a>    {
+<a name="__line25"></a>	fit_result.chi2    = 0;
+<a name="__line26"></a>	fit_result.nparams = 0;
+<a name="__line27"></a>	fit_result.N       = 0;
+<a name="__line28"></a>	fit_result.nsteps  = 0;
+<a name="__line29"></a>
+<a name="__line30"></a>	function get_x = opt.x();
+<a name="__line31"></a>	const int NX    = get_x.components();
+<a name="__line32"></a>	function get_sigma_x = opt.sigma_x();
+<a name="__line33"></a>	if(!get_sigma_x.initialized()) for(int i=0; i&lt;NX; ++i) get_sigma_x.append(function(1.0)); <span class=comment>//component(i,1);</span>
+<a name="__line34"></a>	if(get_x.components() != get_sigma_x.components())
+<a name="__line35"></a>	{
+<a name="__line36"></a>	    warning::print("The components of the x() and sigma_x() of fitopt do not agree",
+<a name="__line37"></a>			   "fit_kernel(...)");
+<a name="__line38"></a>	    return;
+<a name="__line39"></a>	}
+<a name="__line40"></a>
+<a name="__line41"></a>	function get_y = opt.y();
+<a name="__line42"></a>	const int NY    = get_y.components();
+<a name="__line43"></a>	function get_sigma_y = opt.sigma_y();
+<a name="__line44"></a>	if(!get_sigma_y.initialized()) for(int i=0; i&lt;NY; ++i) get_sigma_y.append(function(1.0)); <span class=comment>//component(i,1);</span>
+<a name="__line45"></a>	if(get_y.components() != get_sigma_y.components())
+<a name="__line46"></a>	{
+<a name="__line47"></a>	    warning::print("The components of the y() and sigma_y() of fitopt do not agree",
+<a name="__line48"></a>			   "fit_kernel(...)");
+<a name="__line49"></a>	    return;
+<a name="__line50"></a>
+<a name="__line51"></a>	}
+<a name="__line52"></a>
+<a name="__line53"></a>        <span class=comment>// determine the number of data points</span>
+<a name="__line54"></a>	int NDATA = g.size();
+<a name="__line55"></a>
+<a name="__line56"></a>	dmatrix x      (NDATA, NX);
+<a name="__line57"></a>	dmatrix sigma_x(NDATA, NX);
+<a name="__line58"></a>	dmatrix y      (NDATA, NY);
+<a name="__line59"></a>	dmatrix sigma_y(NDATA, NY);
+<a name="__line60"></a>
+<a name="__line61"></a>	{
+<a name="__line62"></a>	    const function &amp;x_condition = opt.x_condition();
+<a name="__line63"></a>	    const function &amp;y_condition = opt.y_condition();
+<a name="__line64"></a>	    const function &amp;condition   = opt.condition();
+<a name="__line65"></a>
+<a name="__line66"></a>	    int comp = g.columns();
+<a name="__line67"></a>	    vector&lt;var&gt; point(comp);
+<a name="__line68"></a>	    vector&lt;var&gt; x_values(NX);
+<a name="__line69"></a>	    vector&lt;var&gt; sigma_x_values(NX);
+<a name="__line70"></a>	    vector&lt;var&gt; y_values(NY);
+<a name="__line71"></a>	    vector&lt;var&gt; sigma_y_values(NY);
+<a name="__line72"></a>
+<a name="__line73"></a>	    int n_good_data = 0;
+<a name="__line74"></a>
+<a name="__line75"></a>            int block_index = 0;
+<a name="__line76"></a>            bool previous_unset = false;
+<a name="__line77"></a>
+<a name="__line78"></a>	    for(int idata=0; idata&lt;NDATA; ++idata)
+<a name="__line79"></a>	    {
+<a name="__line80"></a>		for(int i=0; i&lt;comp; ++i) point[i].dbl() = (*(g.get(idata)))[i].dbl();
+<a name="__line81"></a>
+<a name="__line82"></a>		<span class=comment>// skip unset points, corresponding to empty lines in the datafile</span>
+<a name="__line83"></a>		if(point[0].dbl() == unset)
+<a name="__line84"></a>                {
+<a name="__line85"></a>                    previous_unset = true;
+<a name="__line86"></a>                    continue;
+<a name="__line87"></a>                }
+<a name="__line88"></a>                else
+<a name="__line89"></a>                {
+<a name="__line90"></a>                    if(idata==0 || previous_unset) ++block_index;
+<a name="__line91"></a>                    previous_unset = false;
+<a name="__line92"></a>                }
+<a name="__line93"></a>
+<a name="__line94"></a>                if(opt.block()&gt;0 &amp;&amp; opt.block()!=block_index) continue;
+<a name="__line95"></a>
+<a name="__line96"></a>                function::clear_named_params();
+<a name="__line97"></a>		function::named_param("linenumber",idata);
+<a name="__line98"></a>                function::named_param("blocknumber",block_index);
+<a name="__line99"></a>		get_x      .meval_dbl(point,x_values);
+<a name="__line100"></a>		get_sigma_x.meval_dbl(point,sigma_x_values);
+<a name="__line101"></a>		get_y      .meval_dbl(point,y_values);
+<a name="__line102"></a>		get_sigma_y.meval_dbl(point,sigma_y_values);
+<a name="__line103"></a>
+<a name="__line104"></a>		<span class=comment>// if a global condition is set, apply it for the original data point,</span>
+<a name="__line105"></a>		<span class=comment>// and skip this point if the condition evaluates to 0.0</span>
+<a name="__line106"></a>		if(condition.initialized() &amp;&amp; condition.eval_dbl(point)==0.0) continue;
+<a name="__line107"></a>
+<a name="__line108"></a>		<span class=comment>// skip points, which are set globally to be skipped</span>
+<a name="__line109"></a>		{
+<a name="__line110"></a>		    bool skip = false;
+<a name="__line111"></a>		    for(int nx=0; nx&lt;NX; ++nx)
+<a name="__line112"></a>		    {
+<a name="__line113"></a>			if(ignore::it(x_values[nx]      )) { skip = true; break; }
+<a name="__line114"></a>			if(ignore::it(sigma_x_values[nx])) { skip = true; break; }
+<a name="__line115"></a>		    }
+<a name="__line116"></a>		    if(skip) continue;
+<a name="__line117"></a>		    for(int ny=0; ny&lt;NY; ++ny)
+<a name="__line118"></a>		    {
+<a name="__line119"></a>			if(ignore::it(y_values[ny]      )) { skip = true; break; }
+<a name="__line120"></a>			if(ignore::it(sigma_y_values[ny])) { skip = true; break; }
+<a name="__line121"></a>		    }
+<a name="__line122"></a>		    if(skip) continue;
+<a name="__line123"></a>		}
+<a name="__line124"></a>
+<a name="__line125"></a>		if( x_values[0].dbl() != unset &amp;&amp;
+<a name="__line126"></a>		    (!x_condition.initialized() || x_condition.eval_dbl(x_values)&gt;0.0) &amp;&amp;
+<a name="__line127"></a>		    (!y_condition.initialized() || y_condition.eval_dbl(y_values)&gt;0.0))
+<a name="__line128"></a>		{
+<a name="__line129"></a>		    for(int ix=0; ix&lt;NX; ++ix)
+<a name="__line130"></a>		    {
+<a name="__line131"></a>			x      (n_good_data,ix).dbl() = x_values[ix].dbl();
+<a name="__line132"></a>			sigma_x(n_good_data,ix).dbl() = sigma_x_values[ix].dbl();
+<a name="__line133"></a>		    }
+<a name="__line134"></a>		    for(int iy=0; iy&lt;NY; ++iy)
+<a name="__line135"></a>		    {
+<a name="__line136"></a>			y      (n_good_data,iy).dbl() = y_values[iy].dbl();
+<a name="__line137"></a>			sigma_y(n_good_data,iy).dbl() = sigma_y_values[iy].dbl();
+<a name="__line138"></a>		    }
+<a name="__line139"></a>		    ++n_good_data;
+<a name="__line140"></a>		}
+<a name="__line141"></a>	    }
+<a name="__line142"></a>
+<a name="__line143"></a>	    NDATA = n_good_data;
+<a name="__line144"></a>	    x      .resize(NDATA, NX);
+<a name="__line145"></a>	    sigma_x.resize(NDATA, NX);
+<a name="__line146"></a>	    y      .resize(NDATA, NY);
+<a name="__line147"></a>	    sigma_y.resize(NDATA, NY);
+<a name="__line148"></a>	}
+<a name="__line149"></a>
+<a name="__line150"></a>	const int npars = fitfunc.npars();
+<a name="__line151"></a>
+<a name="__line152"></a>	std::vector&lt;blop::var&gt; parameters(npars);
+<a name="__line153"></a>	std::vector&lt;bool&gt; parameter_free(npars);
+<a name="__line154"></a>	    <span class=comment>//bool   *parameter_free = new bool[npars];</span>
+<a name="__line155"></a>	for(int i=0; i&lt;npars; ++i)
+<a name="__line156"></a>	{
+<a name="__line157"></a>	    parameters[i].dbl() = fitfunc.param(i+1).dbl();
+<a name="__line158"></a>	    parameter_free[i] = true;
+<a name="__line159"></a>	}
+<a name="__line160"></a>	const std::vector&lt;int&gt; &amp;fixed_pars = opt.fixed();
+<a name="__line161"></a>	for(unsigned int i=0; i&lt;fixed_pars.size(); ++i)
+<a name="__line162"></a>	{
+<a name="__line163"></a>	    if(0&lt;fixed_pars[i] &amp;&amp; fixed_pars[i]&lt;=npars)
+<a name="__line164"></a>	    {
+<a name="__line165"></a>		parameter_free[fixed_pars[i]-1] = false;
+<a name="__line166"></a>	    }
+<a name="__line167"></a>	}
+<a name="__line168"></a>
+<a name="__line169"></a>	fit_result.covar.resize(npars,npars);
+<a name="__line170"></a>	fit_result.covar.index_base(0,0);
+<a name="__line171"></a>
+<a name="__line172"></a>	vector&lt;blop::function&gt; fitfunc_derivs(fitfunc.npars());
+<a name="__line173"></a>	for(int i=0; i&lt;fitfunc.npars(); ++i)
+<a name="__line174"></a>	{
+<a name="__line175"></a>	    if(parameter_free[i]) fitfunc_derivs[i] = fitfunc.derivative(-(i+1));
+<a name="__line176"></a>	    else fitfunc_derivs[i] = 0.0;
+<a name="__line177"></a>	}
+<a name="__line178"></a>
+<a name="__line179"></a>	fitfunc.print_param_value(true);
+<a name="__line180"></a>
+<a name="__line181"></a>	if(opt.convergence())
+<a name="__line182"></a>	{
+<a name="__line183"></a>	    fit_result.nsteps = levenberg_marquardt(x,sigma_x,y,sigma_y,parameters,parameter_free,
+<a name="__line184"></a>						    fit_result.covar,&amp;fit_result.chi2,opt.verbose(),
+<a name="__line185"></a>						    fitfunc,fitfunc_derivs,fitfunc.components(),opt.maxsteps(),0.001,der0,der1,der2,
+<a name="__line186"></a>						    opt.convergence());
+<a name="__line187"></a>	}
+<a name="__line188"></a>	else
+<a name="__line189"></a>	{
+<a name="__line190"></a>	    fit_result.nsteps = levenberg_marquardt(x,sigma_x,y,sigma_y,parameters,parameter_free,
+<a name="__line191"></a>						    fit_result.covar,&amp;fit_result.chi2,opt.verbose(),
+<a name="__line192"></a>						    fitfunc,fitfunc_derivs,fitfunc.components(),opt.maxsteps(),0.001,der0,der1,der2,
+<a name="__line193"></a>						    int_func_double_double_aref_aref_int(opt.convergence_void()));
+<a name="__line194"></a>	}
+<a name="__line195"></a>
+<a name="__line196"></a>	for(int i=0; i&lt;npars; ++i) fitfunc.param(i+1, parameters[i].dbl());
+<a name="__line197"></a>
+<a name="__line198"></a>	int nfree=0;
+<a name="__line199"></a>	for(int i=0; i&lt;npars; ++i) if(parameter_free[i]) ++nfree;
+<a name="__line200"></a>
+<a name="__line201"></a>	fit_result.nparams = nfree;
+<a name="__line202"></a>	fit_result.N       = NDATA-nfree;
+<a name="__line203"></a>
+<a name="__line204"></a>	if(opt.verbose() &gt; 0)
+<a name="__line205"></a>	{
+<a name="__line206"></a>	    cerr&lt;&lt;"========================  fit results  =============================="&lt;&lt;endl;
+<a name="__line207"></a>	    cerr&lt;&lt;": number of iteration steps = "&lt;&lt;fit_result.nsteps&lt;&lt;endl;
+<a name="__line208"></a>	    cerr&lt;&lt;": chi2 / n                  = "&lt;&lt;fit_result.chi2&lt;&lt;" / "
+<a name="__line209"></a>		&lt;&lt;fit_result.N&lt;&lt;"  =  "&lt;&lt;fit_result.chi2/fit_result.N&lt;&lt;endl;
+<a name="__line210"></a>	    for(int i=0; i&lt;npars; ++i)
+<a name="__line211"></a>	    {
+<a name="__line212"></a>		const double error = ::sqrt(fit_result.covar(i,i).dbl());
+<a name="__line213"></a>		cerr&lt;&lt;": ";
+<a name="__line214"></a>		string parname = fitfunc.parname(i+1).str();
+<a name="__line215"></a>		if(parname != "")
+<a name="__line216"></a>		{
+<a name="__line217"></a>		    cerr&lt;&lt;parname;
+<a name="__line218"></a>		    for(int j=parname.size(); j&lt;=26; ++j) cerr&lt;&lt;" ";
+<a name="__line219"></a>		}
+<a name="__line220"></a>		else
+<a name="__line221"></a>		{
+<a name="__line222"></a>		    var lab = var("parameter[") &amp; (i+1) &amp; var("]");
+<a name="__line223"></a>		    cerr&lt;&lt;lab;
+<a name="__line224"></a>		    for(int j=lab.size(); j&lt;=26; ++j) cerr&lt;&lt;" ";
+<a name="__line225"></a>		}
+<a name="__line226"></a>		cerr&lt;&lt;" = ";
+<a name="__line227"></a>		cerr&lt;&lt;setw(20)&lt;&lt;parameters[i].dbl()
+<a name="__line228"></a>		    &lt;&lt;"  +/-   "&lt;&lt;error&lt;&lt;endl;
+<a name="__line229"></a>	    }
+<a name="__line230"></a>	    cerr&lt;&lt;": Covariance matrix: "&lt;&lt;endl;
+<a name="__line231"></a>	    for(int i=0; i&lt;npars; ++i)
+<a name="__line232"></a>	    {
+<a name="__line233"></a>		cerr&lt;&lt;":   ";
+<a name="__line234"></a>		for(int j=0; j&lt;=i; ++j)
+<a name="__line235"></a>		{
+<a name="__line236"></a>		    cerr&lt;&lt;setw(15)&lt;&lt;fit_result.covar(i,j).dbl()&lt;&lt;" ";
+<a name="__line237"></a>		}
+<a name="__line238"></a>		cerr&lt;&lt;endl;
+<a name="__line239"></a>	    }
+<a name="__line240"></a>	    cerr&lt;&lt;"====================================================================="&lt;&lt;endl;
+<a name="__line241"></a>	}
+<a name="__line242"></a>	fit_result.covar.index_base(1,1);
+<a name="__line243"></a>
+<a name="__line244"></a><span class=comment>//	delete [] parameter_free;</span>
+<a name="__line245"></a>
+<a name="__line246"></a>    }
+<a name="__line247"></a>
+<a name="__line248"></a>    void fit_wrapper(const plottable &amp;g, function &amp;func, const fitopt &amp;opt,
+<a name="__line249"></a>		     void *der0, void *der1, void *der2, fitresult &amp;result)
+<a name="__line250"></a>    {
+<a name="__line251"></a>	fit_kernel(g, func, opt, der0, der1, der2, result);
+<a name="__line252"></a>    }
+<a name="__line253"></a>
+<a name="__line254"></a>    void fit_wrapper(const plottable &amp;g, function &amp;func, const fitopt &amp;opt,
+<a name="__line255"></a>		     deriv0_func der0, deriv1_func der1, deriv2_func der2, fitresult &amp;result)
+<a name="__line256"></a>    {
+<a name="__line257"></a>	fit_kernel(g, func, opt, der0, der1, der2, result);
+<a name="__line258"></a>    }
+<a name="__line259"></a>
+<a name="__line260"></a>
+<a name="__line261"></a>    template  fitresult fit&lt;gauss_chi2&gt;(const plottable &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line262"></a>    template  fitresult fit&lt;poisson_chi2&gt;(const plottable &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line263"></a>    template  fitresult fit&lt;multinomial_chi2&gt;(const plottable &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line264"></a>
+<a name="__line265"></a>    template  fitresult fit&lt;gauss_chi2&gt;(const var &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line266"></a>    template  fitresult fit&lt;poisson_chi2&gt;(const var &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line267"></a>    template  fitresult fit&lt;multinomial_chi2&gt;(const var &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line268"></a>
+<a name="__line269"></a>    template  fitresult fit&lt;gauss_chi2&gt;(const std::string &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line270"></a>    template  fitresult fit&lt;poisson_chi2&gt;(const std::string &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line271"></a>    template  fitresult fit&lt;multinomial_chi2&gt;(const std::string &amp;, function &amp;, const fitopt &amp;opt);
+<a name="__line272"></a>
+<a name="__line273"></a>    template  fitresult fit&lt;gauss_chi2&gt;(const char *, function &amp;, const fitopt &amp;opt);
+<a name="__line274"></a>    template  fitresult fit&lt;poisson_chi2&gt;(const char *, function &amp;, const fitopt &amp;opt);
+<a name="__line275"></a>    template  fitresult fit&lt;multinomial_chi2&gt;(const char *, function &amp;, const fitopt &amp;opt);
+<a name="__line276"></a>
+<a name="__line277"></a>    fitresult fit(const plottable &amp;g, function &amp;func, const fitopt &amp;opt)
+<a name="__line278"></a>    {
+<a name="__line279"></a>	fitresult result;
+<a name="__line280"></a>	fit_wrapper(g, func, opt, gauss_chi2::der0, gauss_chi2::der1, gauss_chi2::der2, result);
+<a name="__line281"></a>	return result;
+<a name="__line282"></a>    }
+<a name="__line283"></a>
+<a name="__line284"></a>    fitresult fit(const var &amp;filename, function &amp;func, const fitopt &amp;opt)
+<a name="__line285"></a>    {
+<a name="__line286"></a>	dgraph g;
+<a name="__line287"></a>	g.read(filename);
+<a name="__line288"></a>	fitresult result;
+<a name="__line289"></a>	fit_wrapper(g, func, opt, gauss_chi2::der0, gauss_chi2::der1, gauss_chi2::der2, result);
+<a name="__line290"></a>	return result;
+<a name="__line291"></a>    }
+<a name="__line292"></a>
+<a name="__line293"></a>    fitresult fit(const char *filename, function &amp;func, const fitopt &amp;opt)
+<a name="__line294"></a>    {
+<a name="__line295"></a>	return fit&lt;gauss_chi2&gt;(var(filename),func,opt);
+<a name="__line296"></a>    }
+<a name="__line297"></a>
+<a name="__line298"></a>    fitresult fit(const std::string &amp;filename, function &amp;func, const fitopt &amp;opt)
+<a name="__line299"></a>    {
+<a name="__line300"></a>	return fit&lt;gauss_chi2&gt;(var(filename),func,opt);
+<a name="__line301"></a>    }
+<a name="__line302"></a>
+<a name="__line303"></a>    fitresult fit(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y,
+<a name="__line304"></a>		  function &amp;func, const fitopt &amp;opt)
+<a name="__line305"></a>    {
+<a name="__line306"></a>	return fit&lt;gauss_chi2&gt;(x,y,func,opt);
+<a name="__line307"></a>    }
+<a name="__line308"></a>
+<a name="__line309"></a>    fitresult fit(const std::vector&lt;double&gt; &amp;x, const std::vector&lt;double&gt; &amp;y, const std::vector&lt;double&gt; &amp;z,
+<a name="__line310"></a>		  function &amp;func, const fitopt &amp;opt)
+<a name="__line311"></a>    {
+<a name="__line312"></a>	return fit&lt;gauss_chi2&gt;(x,y,z,func,opt);
+<a name="__line313"></a>    }
+<a name="__line314"></a>
+<a name="__line315"></a>
+<a name="__line316"></a>    
+<a name="__line317"></a>}
+<a name="__line318"></a>
+<a name="__line319"></a>inline double sq(double a) { return a*a; }
+<a name="__line320"></a>
+<a name="__line321"></a><span class=comment>// ---------- gauss_chi2  ---------------------------------------------------------</span>
+<a name="__line322"></a>double gauss_chi2::der0(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line323"></a>			const std::vector&lt;blop::var&gt; &amp;, <span class=comment>//sigma_x </span>
+<a name="__line324"></a>			const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line325"></a>			const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line326"></a>			const std::vector&lt;blop::var&gt; &amp;funcvalue)
+<a name="__line327"></a>{
+<a name="__line328"></a>    double result = 0;
+<a name="__line329"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += sq(y[i].dbl()-funcvalue[i].dbl())/sq(sigma_y[i].dbl());
+<a name="__line330"></a>    return result;
+<a name="__line331"></a>}
+<a name="__line332"></a>
+<a name="__line333"></a>double gauss_chi2::der1(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line334"></a>			const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line335"></a>			const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line336"></a>			const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line337"></a>			const std::vector&lt;blop::var&gt; &amp;funcvalue,
+<a name="__line338"></a>			const std::vector&lt;blop::var&gt; &amp;g1)
+<a name="__line339"></a>{
+<a name="__line340"></a>    double result = 0;
+<a name="__line341"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += (funcvalue[i].dbl()-y[i].dbl())*g1[i].dbl()/sq(sigma_y[i].dbl());
+<a name="__line342"></a>    return result*2;
+<a name="__line343"></a>}
+<a name="__line344"></a>
+<a name="__line345"></a>double gauss_chi2::der2(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line346"></a>			const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line347"></a>			const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line348"></a>			const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line349"></a>			const std::vector&lt;blop::var&gt; &amp;funcvalue,
+<a name="__line350"></a>			const std::vector&lt;blop::var&gt; &amp;g1,
+<a name="__line351"></a>			const std::vector&lt;blop::var&gt; &amp;g2)
+<a name="__line352"></a>{
+<a name="__line353"></a>    double result = 0;
+<a name="__line354"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += g1[i].dbl()*g2[i].dbl()/sq(sigma_y[i].dbl());
+<a name="__line355"></a>    return result*2;
+<a name="__line356"></a>}
+<a name="__line357"></a>
+<a name="__line358"></a>
+<a name="__line359"></a><span class=comment>// ---------- poisson_chi2  -------------------------------------------------------</span>
+<a name="__line360"></a>double poisson_chi2::der0(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line361"></a>			  const std::vector&lt;blop::var&gt; &amp;, <span class=comment>//sigma_x </span>
+<a name="__line362"></a>			  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line363"></a>			  const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line364"></a>			  const std::vector&lt;blop::var&gt; &amp;f)
+<a name="__line365"></a>{
+<a name="__line366"></a>    double result = 0;
+<a name="__line367"></a>    for(unsigned int i=0; i&lt;y.size(); ++i)
+<a name="__line368"></a>    {
+<a name="__line369"></a>	result += f[i].dbl() - y[i].dbl();
+<a name="__line370"></a>	if(y[i].dbl() &gt; 0) result += y[i].dbl()*::log(y[i].dbl()/f[i].dbl());
+<a name="__line371"></a>    }
+<a name="__line372"></a>    return result*2;
+<a name="__line373"></a>}
+<a name="__line374"></a>
+<a name="__line375"></a>double poisson_chi2::der1(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line376"></a>			  const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line377"></a>			  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line378"></a>			  const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line379"></a>			  const std::vector&lt;blop::var&gt; &amp;funcvalue,
+<a name="__line380"></a>			  const std::vector&lt;blop::var&gt; &amp;g1)
+<a name="__line381"></a>{
+<a name="__line382"></a>    double result = 0;
+<a name="__line383"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += (1-y[i].dbl()/funcvalue[i].dbl())*g1[i].dbl();
+<a name="__line384"></a>    return result*2;
+<a name="__line385"></a>}
+<a name="__line386"></a>
+<a name="__line387"></a>double poisson_chi2::der2(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line388"></a>			  const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line389"></a>			  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line390"></a>			  const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line391"></a>			  const std::vector&lt;blop::var&gt; &amp;funcvalue,
+<a name="__line392"></a>			  const std::vector&lt;blop::var&gt; &amp;g1,
+<a name="__line393"></a>			  const std::vector&lt;blop::var&gt; &amp;g2)
+<a name="__line394"></a>{
+<a name="__line395"></a>    double result = 0;
+<a name="__line396"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += y[i].dbl()/funcvalue[i].dbl()/funcvalue[i].dbl()*g1[i].dbl()*g2[i].dbl();
+<a name="__line397"></a>    return result*2;
+<a name="__line398"></a>}
+<a name="__line399"></a>
+<a name="__line400"></a><span class=comment>// ---------- multinominal_chi2  --------------------------------------------------</span>
+<a name="__line401"></a>double multinomial_chi2::der0(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line402"></a>			      const std::vector&lt;blop::var&gt; &amp;, <span class=comment>//sigma_x </span>
+<a name="__line403"></a>			      const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line404"></a>			      const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line405"></a>			      const std::vector&lt;blop::var&gt; &amp;f)
+<a name="__line406"></a>{
+<a name="__line407"></a>    double result = 0;
+<a name="__line408"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) if(y[i].dbl() &gt; 0) result += y[i].dbl()*::log(y[i].dbl()/f[i].dbl());
+<a name="__line409"></a>    return result*2;
+<a name="__line410"></a>}
+<a name="__line411"></a>
+<a name="__line412"></a>double multinomial_chi2::der1(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line413"></a>			      const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line414"></a>			      const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line415"></a>			      const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line416"></a>			      const std::vector&lt;blop::var&gt; &amp;f,
+<a name="__line417"></a>			      const std::vector&lt;blop::var&gt; &amp;g1)
+<a name="__line418"></a>{
+<a name="__line419"></a>    double result = 0;
+<a name="__line420"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += -y[i].dbl()/f[i].dbl()*g1[i].dbl();
+<a name="__line421"></a>    return result*2;
+<a name="__line422"></a>}
+<a name="__line423"></a>
+<a name="__line424"></a>double multinomial_chi2::der2(const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line425"></a>			      const std::vector&lt;blop::var&gt; &amp; , <span class=comment>//sigma_x</span>
+<a name="__line426"></a>			      const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line427"></a>			      const std::vector&lt;blop::var&gt; &amp;sigma_y,
+<a name="__line428"></a>			      const std::vector&lt;blop::var&gt; &amp;f,
+<a name="__line429"></a>			      const std::vector&lt;blop::var&gt; &amp;g1,
+<a name="__line430"></a>			      const std::vector&lt;blop::var&gt; &amp;g2)
+<a name="__line431"></a>{
+<a name="__line432"></a>    double result = 0;
+<a name="__line433"></a>    for(unsigned int i=0; i&lt;y.size(); ++i) result += y[i].dbl()/f[i].dbl()/f[i].dbl()*g1[i].dbl()*g2[i].dbl();
+<a name="__line434"></a>    return result*2;
+<a name="__line435"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

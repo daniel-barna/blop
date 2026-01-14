@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <meta name="Author" content="Daniel Barna">
+   <meta http-equiv="Content-Style-Type" content="text/css">   
+   <title>BLOP -- Units</title>
+   <link rel="StyleSheet" href="../default.css">
+   <link rel="Prev" href="axis-pos.html">
+   <link rel="Next" href="fft.html">
+
+</head>
+<body>
+
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-pos.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-pos.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="fft.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: fft.html">
+    </a> <br>
+
+<center class=title><b>
+Units
+</b></center>
+<hr>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+double f = 35*unit::MHz;
+double T = 1/f;
+double lambda = cons::c * T;
+cerr&lt;&lt;"Wavelength: "&lt;&lt;lambda/unit::cm&lt;&lt;" cm"&lt;&lt;endl;
+
+plot(_1,_1).p1range(10*unit::MHz, 100*unit::MHz);
+set::xunit("MHz");
+</pre>
+</div>
+<hr>
+
+<div class=description>
+<ul>
+<li><a href="calc">     Using units for calculations </a>
+<li><a href="axis">     Setting a unit for an axis   </a>
+</ul>
+
+<p><div class=sectiontitle><a name="calc">Using units for
+calculations</a></div>
+
+<p>
+One very often wants to work with physical quantities, which have
+units. Using powers of ten might often be confusing. Other,
+non-standard units can be even more tricky to remember. 
+
+<p>
+The namespace <tt>unit</tt> defines constant numbers representing
+physical units, in the SI system. For example, <tt>unit::ms</tt>=0.001
+(millisecond), or <tt>unit::mus</tt>=1e-6 (microsecond). To get the
+SI-value of a quantity with a unit, one simply needs to multiply a
+number with a unit: 24*unit::ms. To print the value of a dimensioned
+quantity in a certain unit, simply divide it by the unit:
+<pre>cerr&lt;&lt;"Elapsed time: "&lt;&lt;t/unit::ms&lt;&lt;" ms"&lt;&lt;endl;</pre>
+
+<p><div class=sectiontitle><a name="axis">Setting a unit for an axis</a></div>
+
+<p>
+One can set a unit for a given axis. The displayed values along that
+axis will be be in that unit, and the unit indication (by default
+[unitname], in square brackets) will be appended to the axis title. 
+
+<pre>axis::unit(const var &amp;u, const var &amp;format="[$%s$]");</pre>
+
+This member function of the <tt>axis</tt> class sets the unit for the
+axis. The second argument, <tt>format</tt> controls the format of the
+appended unit-indication to the title. %s is replaced by the unit
+symbol. This example below sets the unit of the x1 axis of the current frame:
+
+<pre>frame::current().x1axis()->unit("MHz");</pre>
+
+The <a href="set.h.html">shortcut</a> for this (and similar)
+operations:
+
+<pre>set::xunit(const var &amp;u, const var &amp;format="[$%s$]");
+set::x1unit(const var &amp;u, const var &amp;format="[$%s$]");
+set::yunit(const var &amp;u, const var &amp;format="[$%s$]");
+set::y1unit(const var &amp;u, const var &amp;format="[$%s$]");
+set::x2unit(const var &amp;u, const var &amp;format="[$%s$]");
+set::y2unit(const var &amp;u, const var &amp;format="[$%s$]");</pre>
+
+<p>The format of the first argument can be
+<ul>
+<li>A simple unit (see the list <a href="units.h.html">here</a>)
+<li>Several units with different powers or a number, multiplied or
+divided. Some examples: <tt>1/ms</tt>, <tt>Ohm/cm^2</tt>, <tt>cm^2/3&nbsp;s&nbsp;/&nbsp;K</tt>
+</ul>
+
+
+</div>
+<hr>
+<pre class=implementation>
+Source files
+   <a href="units.h.html">units.h</a>
+   <a href="units.cc.html">units.cc</a>
+</pre>
+<hr>
+    <a href="../index.html" title="Home"> 
+    <img src="../home.png"  style="border-width:0cm;"> 
+    </a> 
+    <a href="axis-pos.html">
+    <img src="../left.png"  style="border-width:0cm;" alt="Prev: axis-pos.html">
+    </a> 
+    <a href="index.html" title="Up"> 
+    <img src="../up.png"    style="border-width:0cm;" alt="Up"> 
+    </a> 
+    <a href="fft.html">
+    <img src="../right.png" style="border-width:0cm;" alt="Next: fft.html">
+    </a> 
+
+</body>
+</html>

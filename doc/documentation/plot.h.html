@@ -1,0 +1,809 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: plot.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_PLOT_H__
+<a name="__line1"></a>#define __BLOP_PLOT_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;tuple&gt;
+<a name="__line5"></a>#include "<a href="dgraph.h.html">dgraph.h</a>"
+<a name="__line6"></a>#include "<a href="fgraph.h.html">fgraph.h</a>"
+<a name="__line7"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line8"></a>#include "<a href="length.h.html">length.h</a>"
+<a name="__line9"></a>#include "<a href="function.h.html">function.h</a>"
+<a name="__line10"></a>#include "<a href="constants.h.html">constants.h</a>"
+<a name="__line11"></a>#include "<a href="hist.h.html">hist.h</a>"
+<a name="__line12"></a>
+<a name="__line13"></a>namespace blop
+<a name="__line14"></a>{
+<a name="__line15"></a>    <span class=comment>// ---------- plot  ---------------------------------------------------------------</span>
+<a name="__line16"></a>    <span class=comment>// The following functions plot data provided as arrays</span>
+<a name="__line17"></a>
+<a name="__line18"></a>    class plotcmd_interpreter
+<a name="__line19"></a>    {
+<a name="__line20"></a><span class=public>    public:
+<a name="__line21"></a>	virtual ~plotcmd_interpreter() {}
+<a name="__line22"></a>	virtual plottable *run(const var &amp;cmd) = 0;
+<a name="__line23"></a>	static void set(plotcmd_interpreter *);
+<a name="__line24"></a>	static plotcmd_interpreter *&amp;get();
+<a name="__line25"></a>    };
+<a name="__line26"></a>
+<a name="__line27"></a>    plottable &amp;plotcmd(const var &amp;cmd);
+<a name="__line28"></a>    plottable &amp;mplotcmd(const var &amp;cmd);
+<a name="__line29"></a>
+<a name='plot_rectangle'>
+<a name="__line31"></a>    dgraph &amp;plot_rectangle(const var &amp;x1, const var &amp;y1,
+<a name="__line32"></a>			   const var &amp;x2, const var &amp;y2);
+<a name="__line33"></a>    dgraph &amp;mplot_rectangle(const var &amp;x1, const var &amp;y1,
+<a name="__line34"></a>			   const var &amp;x2, const var &amp;y2);
+</a>
+<a name="__line36"></a>
+<a name="__line37"></a>    hist &amp;hisplot (const var &amp;filename, const function &amp;f1=unset, const function &amp;f2=unset, const histopt &amp;hopt = histopt());
+<a name="__line38"></a>    hist &amp;mhisplot(const var &amp;filename, const function &amp;f1=unset, const function &amp;f2=unset, const histopt &amp;hopt = histopt());
+<a name="__line39"></a>
+<a name="__line40"></a>    dgraph &amp;plot(int n,
+<a name="__line41"></a>		 double *x,
+<a name="__line42"></a>		 const function &amp;f1,
+<a name="__line43"></a>		 const function &amp;f2=unset,
+<a name="__line44"></a>		 const function &amp;f3=unset,
+<a name="__line45"></a>		 const function &amp;f4=unset);
+<a name="__line46"></a>    dgraph &amp;mplot(int n,
+<a name="__line47"></a>		  double *x,
+<a name="__line48"></a>		  const function &amp;f1,
+<a name="__line49"></a>		  const function &amp;f2=unset,
+<a name="__line50"></a>		  const function &amp;f3=unset,
+<a name="__line51"></a>		  const function &amp;f4=unset);
+<a name="__line52"></a>    dgraph &amp;plot(int n,
+<a name="__line53"></a>		 double *x,
+<a name="__line54"></a>		 double *y,
+<a name="__line55"></a>		 const function &amp;f1=unset,
+<a name="__line56"></a>		 const function &amp;f2=unset,
+<a name="__line57"></a>		 const function &amp;f3=unset,
+<a name="__line58"></a>		 const function &amp;f4=unset);
+<a name="__line59"></a>    dgraph &amp;mplot(int n,
+<a name="__line60"></a>		  double *x,
+<a name="__line61"></a>		  double *y,
+<a name="__line62"></a>		  const function &amp;f1=unset,
+<a name="__line63"></a>		  const function &amp;f2=unset,
+<a name="__line64"></a>		  const function &amp;f3=unset,
+<a name="__line65"></a>		  const function &amp;f4=unset);
+<a name="__line66"></a>    dgraph &amp;plot(int n,
+<a name="__line67"></a>		 double *x,
+<a name="__line68"></a>		 double *y,
+<a name="__line69"></a>		 double *z,
+<a name="__line70"></a>		 const function &amp;f1=unset,
+<a name="__line71"></a>		 const function &amp;f2=unset,
+<a name="__line72"></a>		 const function &amp;f3=unset,
+<a name="__line73"></a>		 const function &amp;f4=unset);
+<a name="__line74"></a>    dgraph &amp;mplot(int n,
+<a name="__line75"></a>		  double *x,
+<a name="__line76"></a>		  double *y,
+<a name="__line77"></a>		  double *z,
+<a name="__line78"></a>		  const function &amp;f1=unset,
+<a name="__line79"></a>		  const function &amp;f2=unset,
+<a name="__line80"></a>		  const function &amp;f3=unset,
+<a name="__line81"></a>		  const function &amp;f4=unset);
+<a name="__line82"></a>    dgraph &amp;plot(int n,
+<a name="__line83"></a>		 double *x,
+<a name="__line84"></a>		 double *y,
+<a name="__line85"></a>		 double *z,
+<a name="__line86"></a>		 double *w,
+<a name="__line87"></a>		 const function &amp;f1=unset,
+<a name="__line88"></a>		 const function &amp;f2=unset,
+<a name="__line89"></a>		 const function &amp;f3=unset,
+<a name="__line90"></a>		 const function &amp;f4=unset);
+<a name="__line91"></a>    dgraph &amp;mplot(int n,
+<a name="__line92"></a>		  double *x,
+<a name="__line93"></a>		  double *y,
+<a name="__line94"></a>		  double *z,
+<a name="__line95"></a>		  double *w,
+<a name="__line96"></a>		  const function &amp;f1=unset,
+<a name="__line97"></a>		  const function &amp;f2=unset,
+<a name="__line98"></a>		  const function &amp;f3=unset,
+<a name="__line99"></a>		  const function &amp;f4=unset);
+<a name="__line100"></a>
+<a name="__line101"></a>
+<a name="__line102"></a>    dgraph &amp;plot (int n,
+<a name="__line103"></a>		  var *x,
+<a name="__line104"></a>		  const function &amp;f1,
+<a name="__line105"></a>		  const function &amp;f2=unset,
+<a name="__line106"></a>		  const function &amp;f3=unset,
+<a name="__line107"></a>		  const function &amp;f4=unset);
+<a name="__line108"></a>    dgraph &amp;mplot(int n,
+<a name="__line109"></a>		  var *x,
+<a name="__line110"></a>		  const function &amp;f1,
+<a name="__line111"></a>		  const function &amp;f2=unset,
+<a name="__line112"></a>		  const function &amp;f3=unset,
+<a name="__line113"></a>		  const function &amp;f4=unset);
+<a name="__line114"></a>    dgraph &amp;plot (int n,
+<a name="__line115"></a>		  var *x,
+<a name="__line116"></a>		  var *y,
+<a name="__line117"></a>		  const function &amp;f1=unset,
+<a name="__line118"></a>		  const function &amp;f2=unset,
+<a name="__line119"></a>		  const function &amp;f3=unset,
+<a name="__line120"></a>		  const function &amp;f4=unset);
+<a name="__line121"></a>    dgraph &amp;mplot(int n,
+<a name="__line122"></a>		  var *x,
+<a name="__line123"></a>		  var *y,
+<a name="__line124"></a>		  const function &amp;f1=unset,
+<a name="__line125"></a>		  const function &amp;f2=unset,
+<a name="__line126"></a>		  const function &amp;f3=unset,
+<a name="__line127"></a>		  const function &amp;f4=unset);
+<a name="__line128"></a>    dgraph &amp;plot (int n,
+<a name="__line129"></a>		  var *x,
+<a name="__line130"></a>		  var *y,
+<a name="__line131"></a>		  var *z,
+<a name="__line132"></a>		  const function &amp;f1=unset,
+<a name="__line133"></a>		  const function &amp;f2=unset,
+<a name="__line134"></a>		  const function &amp;f3=unset,
+<a name="__line135"></a>		  const function &amp;f4=unset);
+<a name="__line136"></a>    dgraph &amp;mplot(int n,
+<a name="__line137"></a>		  var *x,
+<a name="__line138"></a>		  var *y,
+<a name="__line139"></a>		  var *z,
+<a name="__line140"></a>		  const function &amp;f1=unset,
+<a name="__line141"></a>		  const function &amp;f2=unset,
+<a name="__line142"></a>		  const function &amp;f3=unset,
+<a name="__line143"></a>		  const function &amp;f4=unset);
+<a name="__line144"></a>
+<a name="__line145"></a>    dgraph &amp;plot (int n,
+<a name="__line146"></a>		  var *x,
+<a name="__line147"></a>		  var *y,
+<a name="__line148"></a>		  var *z,
+<a name="__line149"></a>		  var *w,
+<a name="__line150"></a>		  const function &amp;f1=unset,
+<a name="__line151"></a>		  const function &amp;f2=unset,
+<a name="__line152"></a>		  const function &amp;f3=unset,
+<a name="__line153"></a>		  const function &amp;f4=unset);
+<a name="__line154"></a>    dgraph &amp;mplot(int n,
+<a name="__line155"></a>		  var *x,
+<a name="__line156"></a>		  var *y,
+<a name="__line157"></a>		  var *z,
+<a name="__line158"></a>		  var *w,
+<a name="__line159"></a>		  const function &amp;f1=unset,
+<a name="__line160"></a>		  const function &amp;f2=unset,
+<a name="__line161"></a>		  const function &amp;f3=unset,
+<a name="__line162"></a>		  const function &amp;f4=unset);
+<a name="__line163"></a>
+<a name="__line164"></a>    dgraph &amp; plot(double x, double y); <span class=comment>// just draw a point</span>
+<a name="__line165"></a>    dgraph &amp;mplot(double x, double y);
+<a name="__line166"></a>    dgraph &amp; plot(double x, double y, double z); 
+<a name="__line167"></a>    dgraph &amp;mplot(double x, double y, double z); 
+<a name="__line168"></a>    dgraph &amp; plot(double x, double y, var z); 
+<a name="__line169"></a>    dgraph &amp;mplot(double x, double y, var z); 
+<a name="__line170"></a>    dgraph &amp; plot(const var &amp;x, const var &amp;y, const var &amp;z=unset);
+<a name="__line171"></a>    dgraph &amp;mplot(const var &amp;x, const var &amp;y, const var &amp;z=unset);
+<a name="__line172"></a>    dgraph &amp; plot(double x, var y);
+<a name="__line173"></a>    dgraph &amp;mplot(double x, var y);
+<a name="__line174"></a>    dgraph &amp; plot(var x, double y);
+<a name="__line175"></a>    dgraph &amp;mplot(var x, double y);
+<a name="__line176"></a>
+<a name="__line177"></a>
+<a name="__line178"></a>
+<a name="__line179"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line180"></a>
+<a name="__line181"></a>    dgraph &amp;plot(const std::vector&lt;double&gt; &amp;y);
+<a name="__line182"></a>    dgraph &amp;mplot(const std::vector&lt;double&gt; &amp;y);
+<a name="__line183"></a>
+<a name="__line184"></a>    dgraph &amp;plot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line185"></a>		  const function &amp;f1,
+<a name="__line186"></a>		  const function &amp;f2=unset,
+<a name="__line187"></a>		  const function &amp;f3=unset,
+<a name="__line188"></a>		  const function &amp;f4=unset);
+<a name="__line189"></a>    dgraph &amp;mplot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line190"></a>		   const function &amp;f1,
+<a name="__line191"></a>		   const function &amp;f2=unset,
+<a name="__line192"></a>		   const function &amp;f3=unset,
+<a name="__line193"></a>		   const function &amp;f4=unset);
+<a name="__line194"></a>    dgraph &amp;plot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line195"></a>		  const std::vector&lt;double&gt; &amp;y,
+<a name="__line196"></a>		  const function &amp;f1=unset,
+<a name="__line197"></a>		  const function &amp;f2=unset,
+<a name="__line198"></a>		  const function &amp;f3=unset,
+<a name="__line199"></a>		  const function &amp;f4=unset);
+<a name="__line200"></a>    dgraph &amp;mplot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line201"></a>		   const std::vector&lt;double&gt; &amp;y,
+<a name="__line202"></a>		   const function &amp;f1=unset,
+<a name="__line203"></a>		   const function &amp;f2=unset,
+<a name="__line204"></a>		   const function &amp;f3=unset,
+<a name="__line205"></a>		   const function &amp;f4=unset);
+<a name="__line206"></a>    dgraph &amp;plot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line207"></a>		  const std::vector&lt;double&gt; &amp;y,
+<a name="__line208"></a>		  const std::vector&lt;double&gt; &amp;z,
+<a name="__line209"></a>		  const function &amp;f1=unset,
+<a name="__line210"></a>		  const function &amp;f2=unset,
+<a name="__line211"></a>		  const function &amp;f3=unset,
+<a name="__line212"></a>		  const function &amp;f4=unset);
+<a name="__line213"></a>    dgraph &amp;mplot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line214"></a>		   const std::vector&lt;double&gt; &amp;y,
+<a name="__line215"></a>		   const std::vector&lt;double&gt; &amp;z,
+<a name="__line216"></a>		   const function &amp;f1=unset,
+<a name="__line217"></a>		   const function &amp;f2=unset,
+<a name="__line218"></a>		   const function &amp;f3=unset,
+<a name="__line219"></a>		   const function &amp;f4=unset);
+<a name="__line220"></a>
+<a name="__line221"></a>    dgraph &amp;plot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line222"></a>		  const std::vector&lt;double&gt; &amp;y,
+<a name="__line223"></a>		  const std::vector&lt;double&gt; &amp;z,
+<a name="__line224"></a>		  const std::vector&lt;double&gt; &amp;w,
+<a name="__line225"></a>		  const function &amp;f1=unset,
+<a name="__line226"></a>		  const function &amp;f2=unset,
+<a name="__line227"></a>		  const function &amp;f3=unset,
+<a name="__line228"></a>		  const function &amp;f4=unset);
+<a name="__line229"></a>    dgraph &amp;mplot (const std::vector&lt;double&gt; &amp;x,
+<a name="__line230"></a>		   const std::vector&lt;double&gt; &amp;y,
+<a name="__line231"></a>		   const std::vector&lt;double&gt; &amp;z,
+<a name="__line232"></a>		   const std::vector&lt;double&gt; &amp;w,
+<a name="__line233"></a>		   const function &amp;f1=unset,
+<a name="__line234"></a>		   const function &amp;f2=unset,
+<a name="__line235"></a>		   const function &amp;f3=unset,
+<a name="__line236"></a>		   const function &amp;f4=unset);
+<a name="__line237"></a>
+<a name="__line238"></a>
+<a name="__line239"></a>    dgraph &amp;plot(const std::vector&lt;std::complex&lt;double&gt;&gt; &amp;z);
+<a name="__line240"></a>    dgraph &amp;mplot(const std::vector&lt;std::complex&lt;double&gt;&gt; &amp;z);
+<a name="__line241"></a>
+<a name="__line242"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line243"></a>
+<a name="__line244"></a>
+<a name="__line245"></a>    dgraph &amp;plot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line246"></a>		  const function &amp;f1,
+<a name="__line247"></a>		  const function &amp;f2=unset,
+<a name="__line248"></a>		  const function &amp;f3=unset,
+<a name="__line249"></a>		  const function &amp;f4=unset);
+<a name="__line250"></a>    dgraph &amp;mplot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line251"></a>		   const function &amp;f1,
+<a name="__line252"></a>		   const function &amp;f2=unset,
+<a name="__line253"></a>		   const function &amp;f3=unset,
+<a name="__line254"></a>		   const function &amp;f4=unset);
+<a name="__line255"></a>    dgraph &amp;plot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line256"></a>		  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line257"></a>		  const function &amp;f1=unset,
+<a name="__line258"></a>		  const function &amp;f2=unset,
+<a name="__line259"></a>		  const function &amp;f3=unset,
+<a name="__line260"></a>		  const function &amp;f4=unset);
+<a name="__line261"></a>    dgraph &amp;mplot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line262"></a>		   const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line263"></a>		   const function &amp;f1=unset,
+<a name="__line264"></a>		   const function &amp;f2=unset,
+<a name="__line265"></a>		   const function &amp;f3=unset,
+<a name="__line266"></a>		   const function &amp;f4=unset);
+<a name="__line267"></a>    dgraph &amp;plot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line268"></a>		  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line269"></a>		  const std::vector&lt;blop::var&gt; &amp;z,
+<a name="__line270"></a>		  const function &amp;f1=unset,
+<a name="__line271"></a>		  const function &amp;f2=unset,
+<a name="__line272"></a>		  const function &amp;f3=unset,
+<a name="__line273"></a>		  const function &amp;f4=unset);
+<a name="__line274"></a>    dgraph &amp;mplot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line275"></a>		   const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line276"></a>		   const std::vector&lt;blop::var&gt; &amp;z,
+<a name="__line277"></a>		   const function &amp;f1=unset,
+<a name="__line278"></a>		   const function &amp;f2=unset,
+<a name="__line279"></a>		   const function &amp;f3=unset,
+<a name="__line280"></a>		   const function &amp;f4=unset);
+<a name="__line281"></a>    dgraph &amp;plot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line282"></a>		  const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line283"></a>		  const std::vector&lt;blop::var&gt; &amp;z,
+<a name="__line284"></a>		  const std::vector&lt;blop::var&gt; &amp;w,
+<a name="__line285"></a>		  const function &amp;f1=unset,
+<a name="__line286"></a>		  const function &amp;f2=unset,
+<a name="__line287"></a>		  const function &amp;f3=unset,
+<a name="__line288"></a>		  const function &amp;f4=unset);
+<a name="__line289"></a>    dgraph &amp;mplot (const std::vector&lt;blop::var&gt; &amp;x,
+<a name="__line290"></a>		   const std::vector&lt;blop::var&gt; &amp;y,
+<a name="__line291"></a>		   const std::vector&lt;blop::var&gt; &amp;z,
+<a name="__line292"></a>		   const std::vector&lt;blop::var&gt; &amp;w,
+<a name="__line293"></a>		   const function &amp;f1=unset,
+<a name="__line294"></a>		   const function &amp;f2=unset,
+<a name="__line295"></a>		   const function &amp;f3=unset,
+<a name="__line296"></a>		   const function &amp;f4=unset);
+<a name="__line297"></a>
+<a name="__line298"></a>
+<a name="__line299"></a>    <span class=comment>// ---------- plotting data from a file -------------------------------------------</span>
+<a name="__line300"></a>    <span class=comment>// The following functions plot data from a file (specified by the first argument)</span>
+<a name="__line301"></a>    <span class=comment>// and the columns are selected by the remaining arguments</span>
+<a name="__line302"></a>
+<a name="__line303"></a>    dgraph &amp;plot(const var &amp;filename,
+<a name="__line304"></a>		const function &amp;f1 = unset,
+<a name="__line305"></a>		const function &amp;f2 = unset,
+<a name="__line306"></a>		const function &amp;f3 = unset,
+<a name="__line307"></a>		const function &amp;f4 = unset,
+<a name="__line308"></a>		const function &amp;f5 = unset,
+<a name="__line309"></a>		const function &amp;f6 = unset);
+<a name="__line310"></a>    inline dgraph &amp;plot(const char *filename,
+<a name="__line311"></a>			const function &amp;f1 = unset,
+<a name="__line312"></a>			const function &amp;f2 = unset,
+<a name="__line313"></a>			const function &amp;f3 = unset,
+<a name="__line314"></a>			const function &amp;f4 = unset,
+<a name="__line315"></a>			const function &amp;f5 = unset,
+<a name="__line316"></a>			const function &amp;f6 = unset) { return plot(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line317"></a>    inline dgraph &amp;plot(const string &amp;filename,
+<a name="__line318"></a>			const function &amp;f1 = unset,
+<a name="__line319"></a>			const function &amp;f2 = unset,
+<a name="__line320"></a>			const function &amp;f3 = unset,
+<a name="__line321"></a>			const function &amp;f4 = unset,
+<a name="__line322"></a>			const function &amp;f5 = unset,
+<a name="__line323"></a>			const function &amp;f6 = unset) { return plot(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line324"></a>    
+<a name="__line325"></a>
+<a name="__line326"></a>
+<a name="__line327"></a>    dgraph &amp;mplot(const var &amp;filename,
+<a name="__line328"></a>		 const function &amp;f1 = unset,
+<a name="__line329"></a>		 const function &amp;f2 = unset,
+<a name="__line330"></a>		 const function &amp;f3 = unset,
+<a name="__line331"></a>		 const function &amp;f4 = unset,
+<a name="__line332"></a>		 const function &amp;f5 = unset,
+<a name="__line333"></a>		 const function &amp;f6 = unset);
+<a name="__line334"></a>    inline dgraph &amp;mplot(const char *filename,
+<a name="__line335"></a>			 const function &amp;f1 = unset,
+<a name="__line336"></a>			 const function &amp;f2 = unset,
+<a name="__line337"></a>			 const function &amp;f3 = unset,
+<a name="__line338"></a>			 const function &amp;f4 = unset,
+<a name="__line339"></a>			 const function &amp;f5 = unset,
+<a name="__line340"></a>			 const function &amp;f6 = unset) { return mplot(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line341"></a>    inline dgraph &amp;mplot(const string &amp;filename,
+<a name="__line342"></a>			 const function &amp;f1 = unset,
+<a name="__line343"></a>			 const function &amp;f2 = unset,
+<a name="__line344"></a>			 const function &amp;f3 = unset,
+<a name="__line345"></a>			 const function &amp;f4 = unset,
+<a name="__line346"></a>			 const function &amp;f5 = unset,
+<a name="__line347"></a>			 const function &amp;f6 = unset) { return mplot(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line348"></a>		 
+<a name="__line349"></a>
+<a name="__line350"></a>    plottables plot_groups(const var &amp;filename,
+<a name="__line351"></a>                           const function &amp;grouping_value,
+<a name="__line352"></a>                           const function &amp;f1 = unset,
+<a name="__line353"></a>                           const function &amp;f2 = unset,
+<a name="__line354"></a>                           const function &amp;f3 = unset,
+<a name="__line355"></a>                           const function &amp;f4 = unset,
+<a name="__line356"></a>                           const function &amp;f5 = unset,
+<a name="__line357"></a>                           const function &amp;f6 = unset);
+<a name="__line358"></a>
+<a name="__line359"></a>    plottables mplot_groups(const var &amp;filename,
+<a name="__line360"></a>                            const function &amp;grouping_value,
+<a name="__line361"></a>                            const function &amp;f1 = unset,
+<a name="__line362"></a>                            const function &amp;f2 = unset,
+<a name="__line363"></a>                            const function &amp;f3 = unset,
+<a name="__line364"></a>                            const function &amp;f4 = unset,
+<a name="__line365"></a>                            const function &amp;f5 = unset,
+<a name="__line366"></a>                            const function &amp;f6 = unset);
+<a name="__line367"></a>
+<a name="__line368"></a>    plottables plot_groups_if(const var &amp;filename,
+<a name="__line369"></a>                              const function &amp;grouping_value,
+<a name="__line370"></a>                              const function &amp;condition,
+<a name="__line371"></a>                              const function &amp;f1 = unset,
+<a name="__line372"></a>                              const function &amp;f2 = unset,
+<a name="__line373"></a>                              const function &amp;f3 = unset,
+<a name="__line374"></a>                              const function &amp;f4 = unset,
+<a name="__line375"></a>                              const function &amp;f5 = unset,
+<a name="__line376"></a>                              const function &amp;f6 = unset);
+<a name="__line377"></a>
+<a name="__line378"></a>    <span class=comment>/*
+<a name="__line379"></a>    plottables plot_groups_if(const var &amp;filename,
+<a name="__line380"></a>                              const std::tuple&lt;const function &amp;, double&gt; &amp;grouping_value_and_diff,
+<a name="__line381"></a>                              const function &amp;condition,
+<a name="__line382"></a>                              const function &amp;f1 = unset,
+<a name="__line383"></a>                              const function &amp;f2 = unset,
+<a name="__line384"></a>                              const function &amp;f3 = unset,
+<a name="__line385"></a>                              const function &amp;f4 = unset,
+<a name="__line386"></a>                              const function &amp;f5 = unset,
+<a name="__line387"></a>                              const function &amp;f6 = unset);
+<a name="__line388"></a>    */</span>
+<a name="__line389"></a>
+<a name="__line390"></a>    plottables mplot_groups_if(const var &amp;filename,
+<a name="__line391"></a>				const function &amp;grouping_value,
+<a name="__line392"></a>				const function &amp;condition, 
+<a name="__line393"></a>				const function &amp;f1 = unset,
+<a name="__line394"></a>				const function &amp;f2 = unset,
+<a name="__line395"></a>				const function &amp;f3 = unset,
+<a name="__line396"></a>				const function &amp;f4 = unset,
+<a name="__line397"></a>				const function &amp;f5 = unset,
+<a name="__line398"></a>				const function &amp;f6 = unset);
+<a name="__line399"></a>    
+<a name="__line400"></a>
+<a name="__line401"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line402"></a>    <span class=comment>// plot blocks (separated by empty lines) of a file</span>
+<a name="__line403"></a><span class=comment>/*
+<a name="__line404"></a>    plottables plot_blocks(const var &amp;filename,
+<a name="__line405"></a>                           const function &amp;f1 = unset,
+<a name="__line406"></a>                           const function &amp;f2 = unset,
+<a name="__line407"></a>                           const function &amp;f3 = unset,
+<a name="__line408"></a>                           const function &amp;f4 = unset,
+<a name="__line409"></a>                           const function &amp;f5 = unset,
+<a name="__line410"></a>                           const function &amp;f6 = unset);
+<a name="__line411"></a>    inline plottables plot_blocks(const std::string &amp;filename,
+<a name="__line412"></a>                                  const function &amp;f1 = unset,
+<a name="__line413"></a>                                  const function &amp;f2 = unset,
+<a name="__line414"></a>                                  const function &amp;f3 = unset,
+<a name="__line415"></a>                                  const function &amp;f4 = unset,
+<a name="__line416"></a>                                  const function &amp;f5 = unset,
+<a name="__line417"></a>                                  const function &amp;f6 = unset) { return plot_blocks(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line418"></a>    inline plottables plot_blocks(const char *filename,
+<a name="__line419"></a>                                  const function &amp;f1 = unset,
+<a name="__line420"></a>                                  const function &amp;f2 = unset,
+<a name="__line421"></a>                                  const function &amp;f3 = unset,
+<a name="__line422"></a>                                  const function &amp;f4 = unset,
+<a name="__line423"></a>                                  const function &amp;f5 = unset,
+<a name="__line424"></a>                                  const function &amp;f6 = unset) { return plot_blocks(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line425"></a>    plottables mplot_blocks(const var &amp;filename,
+<a name="__line426"></a>                           const function &amp;f1 = unset,
+<a name="__line427"></a>                           const function &amp;f2 = unset,
+<a name="__line428"></a>                           const function &amp;f3 = unset,
+<a name="__line429"></a>                           const function &amp;f4 = unset,
+<a name="__line430"></a>                           const function &amp;f5 = unset,
+<a name="__line431"></a>                           const function &amp;f6 = unset);
+<a name="__line432"></a>    inline plottables mplot_blocks(const std::string &amp;filename,
+<a name="__line433"></a>                                  const function &amp;f1 = unset,
+<a name="__line434"></a>                                  const function &amp;f2 = unset,
+<a name="__line435"></a>                                  const function &amp;f3 = unset,
+<a name="__line436"></a>                                  const function &amp;f4 = unset,
+<a name="__line437"></a>                                  const function &amp;f5 = unset,
+<a name="__line438"></a>                                  const function &amp;f6 = unset) { return mplot_blocks(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line439"></a>    inline plottables mplot_blocks(const char *filename,
+<a name="__line440"></a>                                  const function &amp;f1 = unset,
+<a name="__line441"></a>                                  const function &amp;f2 = unset,
+<a name="__line442"></a>                                  const function &amp;f3 = unset,
+<a name="__line443"></a>                                  const function &amp;f4 = unset,
+<a name="__line444"></a>                                  const function &amp;f5 = unset,
+<a name="__line445"></a>                                  const function &amp;f6 = unset) { return mplot_blocks(var(filename), f1, f2, f3, f4, f5, f6); }
+<a name="__line446"></a>*/</span>  
+<a name="__line447"></a>
+<a name="__line448"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line449"></a>    <span class=comment>// plot several files (use a filename pattern)</span>
+<a name="__line450"></a>
+<a name="__line451"></a>    plottables plot_many(const var &amp;filename_pattern,
+<a name="__line452"></a>			  const function &amp;f1 = unset,
+<a name="__line453"></a>			  const function &amp;f2 = unset,
+<a name="__line454"></a>			  const function &amp;f3 = unset,
+<a name="__line455"></a>			  const function &amp;f4 = unset,
+<a name="__line456"></a>			  const function &amp;f5 = unset,
+<a name="__line457"></a>			  const function &amp;f6 = unset);
+<a name="__line458"></a>    plottables mplot_many(const var &amp;filename_pattern,
+<a name="__line459"></a>			   const function &amp;f1 = unset,
+<a name="__line460"></a>			   const function &amp;f2 = unset,
+<a name="__line461"></a>			   const function &amp;f3 = unset,
+<a name="__line462"></a>			   const function &amp;f4 = unset,
+<a name="__line463"></a>			   const function &amp;f5 = unset,
+<a name="__line464"></a>			   const function &amp;f6 = unset);
+<a name="__line465"></a>
+<a name="__line466"></a>    <span class=comment>// ---------- plot functions ------------------------------------------------------</span>
+<a name="__line467"></a>    <span class=comment>// The following functions plot functions</span>
+<a name="__line468"></a>
+<a name="__line469"></a>    fgraph &amp;plot(const function &amp;f1,
+<a name="__line470"></a>		 const function &amp;f2 = unset,
+<a name="__line471"></a>		 const function &amp;f3 = unset,
+<a name="__line472"></a>		 const function &amp;f4 = unset,
+<a name="__line473"></a>		 const function &amp;f5 = unset);
+<a name="__line474"></a>
+<a name="__line475"></a>
+<a name="__line476"></a>    fgraph &amp;mplot(const function &amp;f1,
+<a name="__line477"></a>		  const function &amp;f2 = unset,
+<a name="__line478"></a>		  const function &amp;f3 = unset,
+<a name="__line479"></a>		  const function &amp;f4 = unset,
+<a name="__line480"></a>		  const function &amp;f5 = unset);
+<a name="__line481"></a>
+<a name="__line482"></a>
+<a name="__line483"></a>    <span class=comment>// these function are defined in blop_cint.cc</span>
+<a name="__line484"></a>    fgraph &amp;plot(void *f1,
+<a name="__line485"></a>		 void *f2=0,
+<a name="__line486"></a>		 void *f3=0,
+<a name="__line487"></a>		 void *f4=0,
+<a name="__line488"></a>		 void *f5=0);
+<a name="__line489"></a>
+<a name="__line490"></a>    fgraph &amp;plot(const function &amp;f1,
+<a name="__line491"></a>		 void *f2,
+<a name="__line492"></a>		 void *f3=0,
+<a name="__line493"></a>		 void *f4=0,
+<a name="__line494"></a>		 void *f5=0);
+<a name="__line495"></a>
+<a name="__line496"></a>    fgraph &amp;plot(void *f1,
+<a name="__line497"></a>		 const function &amp;f2,
+<a name="__line498"></a>		 void *f3=0,
+<a name="__line499"></a>		 void *f4=0,
+<a name="__line500"></a>		 void *f5=0);
+<a name="__line501"></a>    
+<a name="__line502"></a>    fgraph &amp;mplot(void *f1,
+<a name="__line503"></a>		  void *f2=0,
+<a name="__line504"></a>		  void *f3=0,
+<a name="__line505"></a>		  void *f4=0,
+<a name="__line506"></a>		  void *f5=0);
+<a name="__line507"></a>
+<a name="__line508"></a>    <span class=comment>// ---------- plot with a condition -----------------------------------------------</span>
+<a name="__line509"></a>
+<a name="__line510"></a>    dgraph &amp;plot_if(const var &amp;filename,
+<a name="__line511"></a>		    const function &amp;condition,
+<a name="__line512"></a>		    const function &amp;f1 = unset,
+<a name="__line513"></a>		    const function &amp;f2 = unset,
+<a name="__line514"></a>		    const function &amp;f3 = unset,
+<a name="__line515"></a>		    const function &amp;f4 = unset,
+<a name="__line516"></a>                    const function &amp;f5 = unset);
+<a name="__line517"></a>    inline dgraph &amp;plot_if(const char *filename,
+<a name="__line518"></a>			   const function &amp;condition,
+<a name="__line519"></a>			   const function &amp;f1 = unset,
+<a name="__line520"></a>			   const function &amp;f2 = unset,
+<a name="__line521"></a>			   const function &amp;f3 = unset,
+<a name="__line522"></a>			   const function &amp;f4 = unset,
+<a name="__line523"></a>                           const function &amp;f5 = unset) { return plot_if(var(filename), condition, f1, f2, f3, f4, f5); }
+<a name="__line524"></a>    inline dgraph &amp;plot_if(const string &amp;filename,
+<a name="__line525"></a>			   const function &amp;condition,
+<a name="__line526"></a>			   const function &amp;f1 = unset,
+<a name="__line527"></a>			   const function &amp;f2 = unset,
+<a name="__line528"></a>			   const function &amp;f3 = unset,
+<a name="__line529"></a>			   const function &amp;f4 = unset,
+<a name="__line530"></a>                           const function &amp;f5 = unset) { return plot_if(var(filename), condition, f1, f2, f3, f4, f5); }
+<a name="__line531"></a>
+<a name="__line532"></a>
+<a name="__line533"></a>    dgraph &amp;mplot_if(const var &amp;filename,
+<a name="__line534"></a>		     const function &amp;condition,
+<a name="__line535"></a>		     const function &amp;f1 = unset,
+<a name="__line536"></a>		     const function &amp;f2 = unset,
+<a name="__line537"></a>		     const function &amp;f3 = unset,
+<a name="__line538"></a>		     const function &amp;f4 = unset,
+<a name="__line539"></a>                     const function &amp;f5 = unset);
+<a name="__line540"></a>    inline dgraph &amp;mplot_if(const char *filename,
+<a name="__line541"></a>			    const function &amp;condition,
+<a name="__line542"></a>			    const function &amp;f1 = unset,
+<a name="__line543"></a>			    const function &amp;f2 = unset,
+<a name="__line544"></a>			    const function &amp;f3 = unset,
+<a name="__line545"></a>			    const function &amp;f4 = unset,
+<a name="__line546"></a>                            const function &amp;f5 = unset) { return mplot_if(var(filename), condition, f1, f2, f3, f4, f5); }
+<a name="__line547"></a>    inline dgraph &amp;mplot_if(const string &amp;filename,
+<a name="__line548"></a>			    const function &amp;condition,
+<a name="__line549"></a>			    const function &amp;f1 = unset,
+<a name="__line550"></a>			    const function &amp;f2 = unset,
+<a name="__line551"></a>			    const function &amp;f3 = unset,
+<a name="__line552"></a>			    const function &amp;f4 = unset,
+<a name="__line553"></a>                            const function &amp;f5 = unset) { return mplot_if(var(filename), condition, f1, f2, f3, f4, f5); }
+<a name="__line554"></a>
+<a name="__line555"></a>    <span class=comment>// ---------- plot_if/mplot_if for vectors, arrays, etc ---------------------------</span>
+<a name="__line556"></a>
+<a name="__line557"></a>    dgraph &amp;plot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line558"></a>		    const function &amp;condition,
+<a name="__line559"></a>		    const function &amp;f1 = unset,
+<a name="__line560"></a>		    const function &amp;f2 = unset,
+<a name="__line561"></a>		    const function &amp;f3 = unset,
+<a name="__line562"></a>		    const function &amp;f4 = unset);
+<a name="__line563"></a>    dgraph &amp;mplot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line564"></a>		     const function &amp;condition,
+<a name="__line565"></a>		     const function &amp;f1 = unset,
+<a name="__line566"></a>		     const function &amp;f2 = unset,
+<a name="__line567"></a>		     const function &amp;f3 = unset,
+<a name="__line568"></a>		     const function &amp;f4 = unset);
+<a name="__line569"></a>    dgraph &amp;plot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line570"></a>		    const std::vector&lt;double&gt; &amp;y,
+<a name="__line571"></a>		    const function &amp;condition,
+<a name="__line572"></a>		    const function &amp;f1 = unset,
+<a name="__line573"></a>		    const function &amp;f2 = unset,
+<a name="__line574"></a>		    const function &amp;f3 = unset,
+<a name="__line575"></a>		    const function &amp;f4 = unset);
+<a name="__line576"></a>    dgraph &amp;mplot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line577"></a>		     const std::vector&lt;double&gt; &amp;y,
+<a name="__line578"></a>		     const function &amp;condition,
+<a name="__line579"></a>		     const function &amp;f1 = unset,
+<a name="__line580"></a>		     const function &amp;f2 = unset,
+<a name="__line581"></a>		     const function &amp;f3 = unset,
+<a name="__line582"></a>		     const function &amp;f4 = unset);
+<a name="__line583"></a>    dgraph &amp;plot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line584"></a>		    const std::vector&lt;double&gt; &amp;y,
+<a name="__line585"></a>		    const std::vector&lt;double&gt; &amp;z,
+<a name="__line586"></a>		    const function &amp;condition,
+<a name="__line587"></a>		    const function &amp;f1 = unset,
+<a name="__line588"></a>		    const function &amp;f2 = unset,
+<a name="__line589"></a>		    const function &amp;f3 = unset,
+<a name="__line590"></a>		    const function &amp;f4 = unset);
+<a name="__line591"></a>    dgraph &amp;mplot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line592"></a>		     const std::vector&lt;double&gt; &amp;y,
+<a name="__line593"></a>		     const std::vector&lt;double&gt; &amp;z,
+<a name="__line594"></a>		     const function &amp;condition,
+<a name="__line595"></a>		     const function &amp;f1 = unset,
+<a name="__line596"></a>		     const function &amp;f2 = unset,
+<a name="__line597"></a>		     const function &amp;f3 = unset,
+<a name="__line598"></a>		     const function &amp;f4 = unset);
+<a name="__line599"></a>    dgraph &amp;plot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line600"></a>		    const std::vector&lt;double&gt; &amp;y,
+<a name="__line601"></a>		    const std::vector&lt;double&gt; &amp;z,
+<a name="__line602"></a>		    const std::vector&lt;double&gt; &amp;w,
+<a name="__line603"></a>		    const function &amp;condition,
+<a name="__line604"></a>		    const function &amp;f1 = unset,
+<a name="__line605"></a>		    const function &amp;f2 = unset,
+<a name="__line606"></a>		    const function &amp;f3 = unset,
+<a name="__line607"></a>		    const function &amp;f4 = unset);
+<a name="__line608"></a>    dgraph &amp;mplot_if(const std::vector&lt;double&gt; &amp;x,
+<a name="__line609"></a>		     const std::vector&lt;double&gt; &amp;y,
+<a name="__line610"></a>		     const std::vector&lt;double&gt; &amp;z,
+<a name="__line611"></a>		     const std::vector&lt;double&gt; &amp;w,
+<a name="__line612"></a>		     const function &amp;condition,
+<a name="__line613"></a>		     const function &amp;f1 = unset,
+<a name="__line614"></a>		     const function &amp;f2 = unset,
+<a name="__line615"></a>		     const function &amp;f3 = unset,
+<a name="__line616"></a>		     const function &amp;f4 = unset);
+<a name="__line617"></a>
+<a name="__line618"></a>    dgraph &amp;plot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line619"></a>		    const function &amp;condition,
+<a name="__line620"></a>		    const function &amp;f1 = unset,
+<a name="__line621"></a>		    const function &amp;f2 = unset,
+<a name="__line622"></a>		    const function &amp;f3 = unset,
+<a name="__line623"></a>		    const function &amp;f4 = unset);
+<a name="__line624"></a>    dgraph &amp;mplot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line625"></a>		     const function &amp;condition,
+<a name="__line626"></a>		     const function &amp;f1 = unset,
+<a name="__line627"></a>		     const function &amp;f2 = unset,
+<a name="__line628"></a>		     const function &amp;f3 = unset,
+<a name="__line629"></a>		     const function &amp;f4 = unset);
+<a name="__line630"></a>    dgraph &amp;plot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line631"></a>		    const std::vector&lt;var&gt; &amp;y,
+<a name="__line632"></a>		    const function &amp;condition,
+<a name="__line633"></a>		    const function &amp;f1 = unset,
+<a name="__line634"></a>		    const function &amp;f2 = unset,
+<a name="__line635"></a>		    const function &amp;f3 = unset,
+<a name="__line636"></a>		    const function &amp;f4 = unset);
+<a name="__line637"></a>    dgraph &amp;mplot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line638"></a>		     const std::vector&lt;var&gt; &amp;y,
+<a name="__line639"></a>		     const function &amp;condition,
+<a name="__line640"></a>		     const function &amp;f1 = unset,
+<a name="__line641"></a>		     const function &amp;f2 = unset,
+<a name="__line642"></a>		     const function &amp;f3 = unset,
+<a name="__line643"></a>		     const function &amp;f4 = unset);
+<a name="__line644"></a>    dgraph &amp;plot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line645"></a>		    const std::vector&lt;var&gt; &amp;y,
+<a name="__line646"></a>		    const std::vector&lt;var&gt; &amp;z,
+<a name="__line647"></a>		    const function &amp;condition,
+<a name="__line648"></a>		    const function &amp;f1 = unset,
+<a name="__line649"></a>		    const function &amp;f2 = unset,
+<a name="__line650"></a>		    const function &amp;f3 = unset,
+<a name="__line651"></a>		    const function &amp;f4 = unset);
+<a name="__line652"></a>    dgraph &amp;mplot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line653"></a>		     const std::vector&lt;var&gt; &amp;y,
+<a name="__line654"></a>		     const std::vector&lt;var&gt; &amp;z,
+<a name="__line655"></a>		     const function &amp;condition,
+<a name="__line656"></a>		     const function &amp;f1 = unset,
+<a name="__line657"></a>		     const function &amp;f2 = unset,
+<a name="__line658"></a>		     const function &amp;f3 = unset,
+<a name="__line659"></a>		     const function &amp;f4 = unset);
+<a name="__line660"></a>    dgraph &amp;plot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line661"></a>		    const std::vector&lt;var&gt; &amp;y,
+<a name="__line662"></a>		    const std::vector&lt;var&gt; &amp;z,
+<a name="__line663"></a>		    const std::vector&lt;var&gt; &amp;w,
+<a name="__line664"></a>		    const function &amp;condition,
+<a name="__line665"></a>		    const function &amp;f1 = unset,
+<a name="__line666"></a>		    const function &amp;f2 = unset,
+<a name="__line667"></a>		    const function &amp;f3 = unset,
+<a name="__line668"></a>		    const function &amp;f4 = unset);
+<a name="__line669"></a>    dgraph &amp;mplot_if(const std::vector&lt;var&gt; &amp;x,
+<a name="__line670"></a>		     const std::vector&lt;var&gt; &amp;y,
+<a name="__line671"></a>		     const std::vector&lt;var&gt; &amp;z,
+<a name="__line672"></a>		     const std::vector&lt;var&gt; &amp;w,
+<a name="__line673"></a>		     const function &amp;condition,
+<a name="__line674"></a>		     const function &amp;f1 = unset,
+<a name="__line675"></a>		     const function &amp;f2 = unset,
+<a name="__line676"></a>		     const function &amp;f3 = unset,
+<a name="__line677"></a>		     const function &amp;f4 = unset);
+<a name="__line678"></a>
+<a name="__line679"></a>
+<a name="__line680"></a>    <span class=comment>// ---------- plot_if/mplot_if for functions --------------------------------------</span>
+<a name="__line681"></a>
+<a name="__line682"></a>
+<a name="__line683"></a>    fgraph &amp;plot_if(const function &amp;condition,
+<a name="__line684"></a>		    const function &amp;f1,
+<a name="__line685"></a>		    const function &amp;f2 = unset,
+<a name="__line686"></a>		    const function &amp;f3 = unset,
+<a name="__line687"></a>		    const function &amp;f4 = unset);
+<a name="__line688"></a>
+<a name="__line689"></a>    fgraph &amp;mplot_if(const function &amp;condition,
+<a name="__line690"></a>		     const function &amp;f1,
+<a name="__line691"></a>		     const function &amp;f2 = unset,
+<a name="__line692"></a>		     const function &amp;f3 = unset,
+<a name="__line693"></a>		     const function &amp;f4 = unset);
+<a name="__line694"></a>
+<a name="__line695"></a>
+<a name="__line696"></a>    
+<a name="__line697"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line698"></a>    <span class=comment>// These functions plot already existing graphs (add it to the current frame, etc)</span>
+<a name="__line699"></a>
+<a name="__line700"></a>    plottable &amp;plot(plottable &amp;g);
+<a name="__line701"></a>    inline plottable &amp;plot(plottable *g) { return plot(*g); }
+<a name="__line702"></a>    plottable &amp;mplot(plottable &amp;g);
+<a name="__line703"></a>    inline plottable &amp;mplot(plottable *g) { return mplot(*g); }
+<a name="__line704"></a>
+<a name="__line705"></a>
+<a name="__line706"></a>    <span class=comment>// plot already existing graphs transformed. the _0 function can be also</span>
+<a name="__line707"></a>    <span class=comment>// used to define f1, f2 etc, which evaluates to the index of the current</span>
+<a name="__line708"></a>    <span class=comment>// datapoint of the graph</span>
+<a name="__line709"></a>    <span class=comment>// The graphs are NOT copied!</span>
+<a name="__line710"></a>    dgraph &amp;plot(dgraph &amp;g,
+<a name="__line711"></a>		 const function &amp;f1=unset,
+<a name="__line712"></a>		 const function &amp;f2=unset,
+<a name="__line713"></a>		 const function &amp;f3=unset,
+<a name="__line714"></a>		 const function &amp;f4=unset);
+<a name="__line715"></a>    inline dgraph &amp;plot(dgraph *g,
+<a name="__line716"></a>		 const function &amp;f1=unset,
+<a name="__line717"></a>		 const function &amp;f2=unset,
+<a name="__line718"></a>		 const function &amp;f3=unset,
+<a name="__line719"></a>		 const function &amp;f4=unset)
+<a name="__line720"></a>    {
+<a name="__line721"></a>        return plot(*g,f1,f2,f3,f4);
+<a name="__line722"></a>    }
+<a name="__line723"></a>
+<a name="__line724"></a>
+<a name="__line725"></a>
+<a name="__line726"></a>    dgraph &amp;mplot(dgraph &amp;g,
+<a name="__line727"></a>		  const function &amp;f1=unset,
+<a name="__line728"></a>		  const function &amp;f2=unset,
+<a name="__line729"></a>		  const function &amp;f3=unset,
+<a name="__line730"></a>		  const function &amp;f4=unset);
+<a name="__line731"></a>    inline dgraph &amp;mplot(dgraph *g,
+<a name="__line732"></a>		  const function &amp;f1=unset,
+<a name="__line733"></a>		  const function &amp;f2=unset,
+<a name="__line734"></a>		  const function &amp;f3=unset,
+<a name="__line735"></a>		  const function &amp;f4=unset)
+<a name="__line736"></a>    {
+<a name="__line737"></a>        return mplot(*g,f1,f2,f3,f4);
+<a name="__line738"></a>    }
+<a name="__line739"></a>
+<a name="__line740"></a>    
+<a name="__line741"></a>
+<a name="__line742"></a>    dgraph &amp;plot_if(dgraph &amp;g,
+<a name="__line743"></a>		    const function &amp;condition,
+<a name="__line744"></a>		    const function &amp;f1=unset,
+<a name="__line745"></a>		    const function &amp;f2=unset,
+<a name="__line746"></a>		    const function &amp;f3=unset,
+<a name="__line747"></a>		    const function &amp;f4=unset);
+<a name="__line748"></a>
+<a name="__line749"></a>    dgraph &amp;mplot_if(dgraph &amp;g,
+<a name="__line750"></a>		     const function &amp;condition,
+<a name="__line751"></a>		     const function &amp;f1=unset,
+<a name="__line752"></a>		     const function &amp;f2=unset,
+<a name="__line753"></a>		     const function &amp;f3=unset,
+<a name="__line754"></a>		     const function &amp;f4=unset);
+<a name="__line755"></a>    inline dgraph &amp;plot_if(dgraph *g,
+<a name="__line756"></a>		    const function &amp;condition,
+<a name="__line757"></a>		    const function &amp;f1=unset,
+<a name="__line758"></a>		    const function &amp;f2=unset,
+<a name="__line759"></a>		    const function &amp;f3=unset,
+<a name="__line760"></a>		    const function &amp;f4=unset)
+<a name="__line761"></a>    {
+<a name="__line762"></a>        return plot_if(*g,condition,f1,f2,f3,f4);
+<a name="__line763"></a>    }
+<a name="__line764"></a>
+<a name="__line765"></a>    inline dgraph &amp;mplot_if(dgraph *g,
+<a name="__line766"></a>		     const function &amp;condition,
+<a name="__line767"></a>		     const function &amp;f1=unset,
+<a name="__line768"></a>		     const function &amp;f2=unset,
+<a name="__line769"></a>		     const function &amp;f3=unset,
+<a name="__line770"></a>		     const function &amp;f4=unset)
+<a name="__line771"></a>    {
+<a name="__line772"></a>        return mplot_if(*g,condition,f1,f2,f3,f4);
+<a name="__line773"></a>    }
+<a name="__line774"></a>
+<a name="__line775"></a>    
+<a name="__line776"></a>    
+<a name="__line777"></a>}
+<a name="__line778"></a>
+<a name="__line779"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

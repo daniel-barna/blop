@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: mcontainer.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_MCONTAINER_H__
+<a name="__line1"></a>#define __BLOP_MCONTAINER_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="container.h.html">container.h</a>"
+<a name="__line4"></a>#include &lt;vector&gt;
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>class mcontainer
+<a name="__line9"></a>{
+<a name="__line10"></a><span class=protected>protected:
+<a name="__line11"></a>    int direction_;
+<a name="__line12"></a>    int nx_, ny_;
+<a name="__line13"></a>    int current_ix_, current_iy_;
+<a name="__line14"></a>    virtual int ind(int i,int j) const;
+<a name="__line15"></a>    virtual void cd_to_sub_(int i) = 0;
+<a name="__line16"></a>
+<a name="__line17"></a>    void init_(int i, int j, int dir=right_down);
+<a name="__line18"></a>
+<a name="__line19"></a>    static void get_gridsize_(int n, int &amp;xdim, int &amp;ydim);
+<a name="__line20"></a>
+<a name="__line21"></a></span><span class=public>public:
+<a name="__line22"></a>    enum {right_down = 1,  right_up = 2 , down_right = 4 , up_right = 8,
+<a name="__line23"></a>	  left_down  = 16, left_up  = 32, down_left  = 64, up_left  = 128,
+<a name="__line24"></a>	  jump = 256 };
+<a name="__line25"></a>
+<a name="__line26"></a>    mcontainer(int i, int j,int dir=right_down);
+<a name="__line27"></a>    mcontainer();
+<a name="__line28"></a>    virtual ~mcontainer() {}
+<a name="__line29"></a>
+<a name="__line30"></a>    int ncols() const { return nx_; }
+<a name="__line31"></a>    int nrows() const { return ny_; }
+<a name="__line32"></a>
+<a name="__line33"></a>    virtual mcontainer &amp;direction(int d);
+<a name="__line34"></a>    virtual mcontainer &amp;cd(int i, int j);
+<a name="__line35"></a>    virtual mcontainer &amp;cd(int i);
+<a name="__line36"></a>
+<a name="__line37"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line38"></a>    <span class=comment>// loop over all subpads in a specified direction (see below)</span>
+<a name="__line39"></a>    <span class=comment>// if the 'jump' bit is not set in the direction (see below), and the</span>
+<a name="__line40"></a>    <span class=comment>// looping has already reached the last subpad, no action is taken,</span>
+<a name="__line41"></a>    <span class=comment>// and false is returned</span>
+<a name="__line42"></a>
+<a name="__line43"></a>    virtual bool         cd_next();
+<a name="__line44"></a>    virtual mcontainer  &amp;cd_first(); <span class=comment>// change to the first subcontainer, according to direction</span>
+<a name="__line45"></a>    
+<a name="__line46"></a>    <span class=comment>// --------------------------------------------------------------------------------</span>
+<a name="__line47"></a>    <span class=comment>// Get the current indices. Indices are 1-based,</span>
+<a name="__line48"></a>    <span class=comment>// i.e. ix=1 means the leftmost column, iy=1 means the bottom row.</span>
+<a name="__line49"></a>
+<a name="__line50"></a>    virtual int current_ix() const { return current_ix_; }
+<a name="__line51"></a>    virtual int current_iy() const { return current_iy_; }
+<a name="__line52"></a>
+<a name="__line53"></a>};
+<a name="__line54"></a>}
+<a name="__line55"></a>
+<a name="__line56"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

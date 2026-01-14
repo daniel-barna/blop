@@ -1,0 +1,1424 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: blopeps.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="blopeps.h.html">blopeps.h</a>"
+<a name="__line1"></a>#include "<a href="var.h.html">var.h</a>"
+<a name="__line2"></a>#include "<a href="exc.hh.html">exc.hh</a>"
+<a name="__line3"></a>#include "<a href="canvas.h.html">canvas.h</a>"
+<a name="__line4"></a>#include "<a href="blop_bookkeeper.h.html">blop_bookkeeper.h</a>"
+<a name="__line5"></a>#include "<a href="units.h.html">units.h</a>"
+<a name="__line6"></a>#include &lt;cstdio&gt;
+<a name="__line7"></a>#include &lt;unistd.h&gt;
+<a name="__line8"></a>#include &lt;iomanip&gt;
+<a name="__line9"></a>
+<a name="__line10"></a>#define LAYERS
+<a name="__line11"></a>
+<a name="__line12"></a>namespace blop
+<a name="__line13"></a>{
+<a name="__line14"></a>    using namespace std;
+<a name="__line15"></a>
+<a name="__line16"></a>    bool blopeps::clip(const terminal::coord &amp;lower_left,
+<a name="__line17"></a>		       const terminal::coord &amp;upper_right)
+<a name="__line18"></a>    {
+<a name="__line19"></a>	write(lower_left);
+<a name="__line20"></a>	write(upper_right);
+<a name="__line21"></a>	file_tmp_&lt;&lt;"cl"&lt;&lt;endl;
+<a name="__line22"></a>	return true;
+<a name="__line23"></a>    }
+<a name="__line24"></a>
+<a name="__line25"></a>    void blopeps::noclip()
+<a name="__line26"></a>    {
+<a name="__line27"></a>	file_tmp_&lt;&lt;"initclip"&lt;&lt;endl;
+<a name="__line28"></a>    }
+<a name="__line29"></a>
+<a name="__line30"></a>    void blopeps::open_layer(const var &amp; layer)
+<a name="__line31"></a>    {
+<a name="__line32"></a>#ifdef LAYERS
+<a name="__line33"></a>	var ll = layer;
+<a name="__line34"></a>	ll.replace(" ","");
+<a name="__line35"></a>	<span class=comment>// check if the given layer is switched on</span>
+<a name="__line36"></a>	file_tmp_&lt;&lt;"/BlopLayer@"&lt;&lt;ll&lt;&lt;" where {pop BlopLayer@"&lt;&lt;ll&lt;&lt;" 1 eq}{false} i"&lt;&lt;endl;
+<a name="__line37"></a>
+<a name="__line38"></a>	<span class=comment>// check if the parent layer is switched on (i.e. current layer == last switched-on</span>
+<a name="__line39"></a>	<span class=comment>// layer)</span>
+<a name="__line40"></a>	file_tmp_&lt;&lt;"BlopLayerLevel BlopLayerOn eq"&lt;&lt;endl;
+<a name="__line41"></a>
+<a name="__line42"></a>	<span class=comment>// take their 'and'</span>
+<a name="__line43"></a>	file_tmp_&lt;&lt;"and"&lt;&lt;endl;
+<a name="__line44"></a>
+<a name="__line45"></a>	<span class=comment>// increase the layer level by 1</span>
+<a name="__line46"></a>	file_tmp_&lt;&lt;"/BlopLayerLevel BlopLayerLevel 1 a d"&lt;&lt;endl;
+<a name="__line47"></a>
+<a name="__line48"></a>	<span class=comment>// if the previous condition was true, set the last-switched-on to the current level</span>
+<a name="__line49"></a>	file_tmp_&lt;&lt;"{/BlopLayerOn BlopLayerLevel d} if"&lt;&lt;endl;
+<a name="__line50"></a>#endif
+<a name="__line51"></a>    }
+<a name="__line52"></a>    void blopeps::close_layer(const var &amp;)
+<a name="__line53"></a>    {
+<a name="__line54"></a>#ifdef LAYERS
+<a name="__line55"></a>	<span class=comment>// Decrease BlopLayerLevel by 1</span>
+<a name="__line56"></a>	file_tmp_&lt;&lt;"/BlopLayerLevel BlopLayerLevel -1 a d"&lt;&lt;endl;
+<a name="__line57"></a>
+<a name="__line58"></a>	<span class=comment>// BlopLayerOn</span>
+<a name="__line59"></a>	file_tmp_&lt;&lt;"BlopLayerOn BlopLayerLevel gt {/BlopLayerOn BlopLayerLevel d} if"&lt;&lt;endl;
+<a name="__line60"></a>#endif
+<a name="__line61"></a>    }
+<a name="__line62"></a>	
+<a name="__line63"></a>
+<a name="__line64"></a>    void blopeps::print(const var &amp;name, const var &amp;pref_width, const var &amp;pref_height)
+<a name="__line65"></a>	TRY
+<a name="__line66"></a>    {
+<a name="__line67"></a>	blopeps t(name);
+<a name="__line68"></a>	t.preferred_width(pref_width).preferred_height(pref_height);
+<a name="__line69"></a>	canvas::current().print(&amp;t);
+<a name="__line70"></a>    }
+<a name="__line71"></a>    CATCH("blopeps::print(const var &amp;)")
+<a name="__line72"></a>
+<a name="__line73"></a>    string blopeps::i2length(int i)
+<a name="__line74"></a>	TRY
+<a name="__line75"></a>    {
+<a name="__line76"></a>	if(i &lt;= 0 || i &gt; max_length_index_)
+<a name="__line77"></a>	{
+<a name="__line78"></a>	    char s[300];
+<a name="__line79"></a>	    sprintf(s,"Bad length id in blopeps::i2length: %i  [max_length_index_ = %i]",i,max_length_index_);
+<a name="__line80"></a>	    err(s);
+<a name="__line81"></a>	}
+<a name="__line82"></a>	if(i == ZERO) return "@Z0";
+<a name="__line83"></a>	if(i == PW  ) return "@PW";
+<a name="__line84"></a>	if(i == PH  ) return "@PH";
+<a name="__line85"></a>	if(i == PS  ) return "@PS";
+<a name="__line86"></a>	if(i == LW  ) return "@LW";
+<a name="__line87"></a>	if(i == CM  ) return "@CM";
+<a name="__line88"></a>	if(i == MM  ) return "@MM";
+<a name="__line89"></a>	if(i == PT  ) return "@PT";
+<a name="__line90"></a>	if(i == EM  ) return "@EM";
+<a name="__line91"></a>	if(i == EX  ) return "@EX";
+<a name="__line92"></a>
+<a name="__line93"></a>	string s = "@";
+<a name="__line94"></a>	for(; i; i /= 26)
+<a name="__line95"></a>	{
+<a name="__line96"></a>	    s += 'a' + i%26;
+<a name="__line97"></a>	}
+<a name="__line98"></a>	return s;
+<a name="__line99"></a>    }
+<a name="__line100"></a>    CATCH("blopeps::i2length(int)")
+<a name="__line101"></a>
+<a name="__line102"></a>    blopeps::blopeps(const blopeps &amp;o)
+<a name="__line103"></a>	TRY
+<a name="__line104"></a>    {
+<a name="__line105"></a>	err("this should not be called");
+<a name="__line106"></a>    }
+<a name="__line107"></a>    CATCH("blopeps::blopeps(const blopeps &amp;)")
+<a name="__line108"></a>
+<a name="__line109"></a>    const blopeps &amp;blopeps::operator= (const blopeps &amp;)
+<a name="__line110"></a>	TRY
+<a name="__line111"></a>    {
+<a name="__line112"></a>	err("this should not be called");
+<a name="__line113"></a>	return *this;
+<a name="__line114"></a>    }
+<a name="__line115"></a>    CATCH("blopeps::operator= (const blopeps &amp;)")
+<a name="__line116"></a>
+<a name="__line117"></a>    blopeps::blopeps(const var &amp;fname,int w,int h)
+<a name="__line118"></a>    {
+<a name="__line119"></a>	width_ = w;
+<a name="__line120"></a>	height_ = h;
+<a name="__line121"></a>	filename_ = fname.str();
+<a name="__line122"></a>	tmpfilename_ = blop_bookkeeper::tmpfile("beps-XXXXXX");
+<a name="__line123"></a>
+<a name="__line124"></a>	current_linestyle_ = sym::solid;
+<a name="__line125"></a>	current_linewidth_ = terminal::LW;
+<a name="__line126"></a>	current_color_     = black;
+<a name="__line127"></a>	current_transformation_ = 0;
+<a name="__line128"></a>
+<a name="__line129"></a>	Ra_written_ = Rt_written_ = Sc_written_ = Sr_written_ = false;
+<a name="__line130"></a>    }
+<a name="__line131"></a>
+<a name="__line132"></a>
+<a name="__line133"></a>    blopeps::~blopeps()
+<a name="__line134"></a>    {
+<a name="__line135"></a>    }
+<a name="__line136"></a>
+<a name="__line137"></a>    void blopeps::comment(const string &amp;s)
+<a name="__line138"></a>    {
+<a name="__line139"></a>	file_tmp_&lt;&lt;"%--&gt;  "&lt;&lt;s&lt;&lt;endl;
+<a name="__line140"></a>    }
+<a name="__line141"></a>
+<a name="__line142"></a>    int blopeps::newlength()
+<a name="__line143"></a>    {
+<a name="__line144"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line145"></a>	return max_length_index_;
+<a name="__line146"></a>    }
+<a name="__line147"></a>
+<a name="__line148"></a>    void blopeps::write(const terminal::coord &amp;c)
+<a name="__line149"></a>    {
+<a name="__line150"></a>	write(c.x);
+<a name="__line151"></a>	write(c.y);
+<a name="__line152"></a>	file_tmp_&lt;&lt;"K ";
+<a name="__line153"></a>    }
+<a name="__line154"></a>
+<a name="__line155"></a>    void blopeps::write(const terminal::id &amp;i, ostream *out)
+<a name="__line156"></a>    {
+<a name="__line157"></a>	if(!out) out = &amp;file_tmp_;
+<a name="__line158"></a>	<span class=comment>// immediate execution</span>
+<a name="__line159"></a>#ifndef LAYERS
+<a name="__line160"></a>	if(i.length_id) (*out)&lt;&lt;"<span class=comment>//"&lt;&lt;i2length(i.length_id);</span>
+<a name="__line161"></a>#else
+<a name="__line162"></a>	if(i.length_id) (*out)&lt;&lt;i2length(i.length_id);
+<a name="__line163"></a>#endif	
+<a name="__line164"></a>	else
+<a name="__line165"></a>	{
+<a name="__line166"></a>	    if(i.direction == 1) (*out)&lt;&lt;" "&lt;&lt;i.relcoord&lt;&lt;" X";
+<a name="__line167"></a>	    else                 (*out)&lt;&lt;" "&lt;&lt;i.relcoord&lt;&lt;" Y";
+<a name="__line168"></a>	}
+<a name="__line169"></a>	(*out)&lt;&lt;" ";
+<a name="__line170"></a>    }
+<a name="__line171"></a>
+<a name="__line172"></a>    int blopeps::overwrite(int id,double f1,const terminal::id &amp;i1)
+<a name="__line173"></a>    {
+<a name="__line174"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(id)&lt;&lt;" "&lt;&lt;f1&lt;&lt;" ";
+<a name="__line175"></a>	write(i1);
+<a name="__line176"></a>	file_tmp_&lt;&lt;"m d"&lt;&lt;endl;
+<a name="__line177"></a>	return 1;
+<a name="__line178"></a>    }
+<a name="__line179"></a>
+<a name="__line180"></a>    int blopeps::overwrite(int id,double f1,const terminal::id &amp;i1,double f2,const terminal::id &amp;i2)
+<a name="__line181"></a>    {
+<a name="__line182"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(id)&lt;&lt;" "&lt;&lt;f1&lt;&lt;" ";
+<a name="__line183"></a>	write(i1);
+<a name="__line184"></a>	file_tmp_&lt;&lt;"m "&lt;&lt;f2&lt;&lt;" ";
+<a name="__line185"></a>	write(i2);
+<a name="__line186"></a>	file_tmp_&lt;&lt;"m a d"&lt;&lt;endl;
+<a name="__line187"></a>	return 1;
+<a name="__line188"></a>    }
+<a name="__line189"></a>
+<a name="__line190"></a>    int blopeps::lincombi(double_id f,const id &amp;i)
+<a name="__line191"></a>    {
+<a name="__line192"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_);
+<a name="__line193"></a>
+<a name="__line194"></a>	if(f.id &gt; 0)
+<a name="__line195"></a>	{
+<a name="__line196"></a>	    file_tmp_&lt;&lt;i2length(f.id)&lt;&lt;" ";
+<a name="__line197"></a>	}
+<a name="__line198"></a>	else
+<a name="__line199"></a>	{
+<a name="__line200"></a>	    if(::fabs(f.value) &lt; 0.000001) file_tmp_&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line201"></a>	    else if(::fabs(f.value-1) &lt; 0.000001)
+<a name="__line202"></a>	    {
+<a name="__line203"></a>		file_tmp_&lt;&lt;" ";
+<a name="__line204"></a>		write(i);
+<a name="__line205"></a>		file_tmp_&lt;&lt;"d"&lt;&lt;endl;
+<a name="__line206"></a>	    }
+<a name="__line207"></a>	    else if(::fabs(f.value+1) &lt; 0.000001)
+<a name="__line208"></a>	    {
+<a name="__line209"></a>		file_tmp_&lt;&lt;" ";
+<a name="__line210"></a>		write(i);
+<a name="__line211"></a>		file_tmp_&lt;&lt;"n d"&lt;&lt;endl;
+<a name="__line212"></a>	    }
+<a name="__line213"></a>	    else
+<a name="__line214"></a>	    {
+<a name="__line215"></a>		file_tmp_&lt;&lt;" "&lt;&lt;f.value&lt;&lt;" ";
+<a name="__line216"></a>		write(i);
+<a name="__line217"></a>		file_tmp_&lt;&lt;"m d"&lt;&lt;endl;
+<a name="__line218"></a>	    }
+<a name="__line219"></a>	}
+<a name="__line220"></a>	return max_length_index_;
+<a name="__line221"></a>    }
+<a name="__line222"></a>    
+<a name="__line223"></a>    int blopeps::lincombi(double_id f1,const id &amp;i1,
+<a name="__line224"></a>			  double_id f2,const id &amp;i2)
+<a name="__line225"></a>    {
+<a name="__line226"></a>	if(f1.id == 0 &amp;&amp; ::fabs(f1.value) &lt; 0.00001) return lincombi(f2,i2);
+<a name="__line227"></a>	if(f2.id == 0 &amp;&amp; ::fabs(f2.value) &lt; 0.00001) return lincombi(f1,i1);
+<a name="__line228"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" ";
+<a name="__line229"></a>
+<a name="__line230"></a>	if(f1.id == 0 &amp;&amp; ::fabs(f1.value+1) &lt; 0.00001)
+<a name="__line231"></a>	{
+<a name="__line232"></a>	    write(i2);
+<a name="__line233"></a>	    if(f2.id &gt; 0)
+<a name="__line234"></a>	    {
+<a name="__line235"></a>		file_tmp_&lt;&lt;i2length(f2.id)&lt;&lt;" ";
+<a name="__line236"></a>	    }
+<a name="__line237"></a>	    else
+<a name="__line238"></a>	    {
+<a name="__line239"></a>		if(::fabs(f2.value-1) &lt; 0.00001) {}
+<a name="__line240"></a>		else if(::fabs(f2.value+1) &lt; 0.00001) file_tmp_&lt;&lt;"n ";
+<a name="__line241"></a>		else file_tmp_&lt;&lt;f2.value&lt;&lt;" m ";
+<a name="__line242"></a>	    }
+<a name="__line243"></a>	    write(i1);
+<a name="__line244"></a>	    file_tmp_&lt;&lt;"s d"&lt;&lt;endl;
+<a name="__line245"></a>	    return max_length_index_;
+<a name="__line246"></a>	}
+<a name="__line247"></a>
+<a name="__line248"></a>	if(f2.id == 0 &amp;&amp; ::fabs(f2.value+1) &lt; 0.00001)
+<a name="__line249"></a>	{
+<a name="__line250"></a>	    write(i1);
+<a name="__line251"></a>	    if(f1.id &gt; 0)
+<a name="__line252"></a>	    {
+<a name="__line253"></a>		file_tmp_&lt;&lt;i2length(f1.id)&lt;&lt;" ";
+<a name="__line254"></a>	    }
+<a name="__line255"></a>	    else
+<a name="__line256"></a>	    {
+<a name="__line257"></a>		if(::fabs(f1.value-1) &lt; 0.00001) {}
+<a name="__line258"></a>		else if(::fabs(f1.value+1) &lt; 0.00001) file_tmp_&lt;&lt;"n ";
+<a name="__line259"></a>		else file_tmp_&lt;&lt;f1.value&lt;&lt;" m ";
+<a name="__line260"></a>	    }
+<a name="__line261"></a>	    write(i2);
+<a name="__line262"></a>	    file_tmp_&lt;&lt;"s d"&lt;&lt;endl;
+<a name="__line263"></a>	    return max_length_index_;
+<a name="__line264"></a>	}
+<a name="__line265"></a>
+<a name="__line266"></a>	write(i1);
+<a name="__line267"></a>
+<a name="__line268"></a>	if(f1.id &gt; 0)
+<a name="__line269"></a>	{
+<a name="__line270"></a>	    file_tmp_&lt;&lt;i2length(f1.id)&lt;&lt;" m ";
+<a name="__line271"></a>	}
+<a name="__line272"></a>	else
+<a name="__line273"></a>	{
+<a name="__line274"></a>	    if(::fabs(f1.value-1) &lt; 0.00001) {}
+<a name="__line275"></a>	    else file_tmp_&lt;&lt;f1.value&lt;&lt;" m ";
+<a name="__line276"></a>	}
+<a name="__line277"></a>
+<a name="__line278"></a>	write(i2);
+<a name="__line279"></a>
+<a name="__line280"></a>	if(f2.id &gt; 0)
+<a name="__line281"></a>	{
+<a name="__line282"></a>	    file_tmp_&lt;&lt;i2length(f2.id)&lt;&lt;" m ";
+<a name="__line283"></a>	}
+<a name="__line284"></a>	else
+<a name="__line285"></a>	{
+<a name="__line286"></a>	    if(::fabs(f2.value-1) &lt; 0.00001) {}
+<a name="__line287"></a>	    else file_tmp_&lt;&lt;f2.value&lt;&lt;" m ";
+<a name="__line288"></a>	}
+<a name="__line289"></a>
+<a name="__line290"></a>	file_tmp_&lt;&lt;"a d"&lt;&lt;endl;
+<a name="__line291"></a>
+<a name="__line292"></a>	return max_length_index_;
+<a name="__line293"></a>    }
+<a name="__line294"></a>
+<a name="__line295"></a>    int blopeps::lincombi(const std::vector&lt;double&gt; &amp;f,
+<a name="__line296"></a>			  const std::vector&lt;id&gt; &amp;ids)
+<a name="__line297"></a>    {
+<a name="__line298"></a>	if(ids.size() == 1) return lincombi(f[0], ids[0]);
+<a name="__line299"></a>	if(ids.size() == 2) return lincombi(f[0], ids[0], f[1], ids[1]);
+<a name="__line300"></a>
+<a name="__line301"></a>	unsigned int written = 0;
+<a name="__line302"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" ";
+<a name="__line303"></a>	for(unsigned int i=0; i&lt;f.size(); ++i)
+<a name="__line304"></a>	{
+<a name="__line305"></a>	    if(::fabs(f[i]) &lt; 0.000001) continue;
+<a name="__line306"></a>
+<a name="__line307"></a>	    ++written;
+<a name="__line308"></a>
+<a name="__line309"></a>	    write(ids[i]);
+<a name="__line310"></a>	    if(::fabs(f[i]-1) &lt; 0.001) {}
+<a name="__line311"></a>	    else if(::fabs(f[i]+1) &lt; 0.001) {file_tmp_&lt;&lt;"n ";}
+<a name="__line312"></a>	    else file_tmp_&lt;&lt;f[i]&lt;&lt;" m ";
+<a name="__line313"></a>	}
+<a name="__line314"></a>
+<a name="__line315"></a>	if(written == 0)
+<a name="__line316"></a>	{
+<a name="__line317"></a>	    file_tmp_&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line318"></a>	}
+<a name="__line319"></a>	else if(written == 1)
+<a name="__line320"></a>	{
+<a name="__line321"></a>	    file_tmp_&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line322"></a>	}
+<a name="__line323"></a>	else
+<a name="__line324"></a>	{
+<a name="__line325"></a>	    for(unsigned int i=0; i&lt;written-1; ++i)
+<a name="__line326"></a>	    {
+<a name="__line327"></a>		file_tmp_&lt;&lt;"a ";
+<a name="__line328"></a>	    }
+<a name="__line329"></a>	    file_tmp_&lt;&lt;"d"&lt;&lt;endl;
+<a name="__line330"></a>	}
+<a name="__line331"></a>	return max_length_index_;
+<a name="__line332"></a>    }
+<a name="__line333"></a>
+<a name="__line334"></a>    int blopeps::maxlength(const std::vector&lt;id&gt; &amp;ids)
+<a name="__line335"></a>    {
+<a name="__line336"></a>	if(ids.empty()) return ZERO;
+<a name="__line337"></a>
+<a name="__line338"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)
+<a name="__line339"></a>		&lt;&lt;" 0 d";
+<a name="__line340"></a>	for(unsigned int i=0; i&lt;ids.size(); ++i)
+<a name="__line341"></a>	{
+<a name="__line342"></a>	    file_tmp_&lt;&lt;" ";
+<a name="__line343"></a>	    write(ids[i]);
+<a name="__line344"></a>	}
+<a name="__line345"></a>	file_tmp_&lt;&lt;" "&lt;&lt;ids.size()
+<a name="__line346"></a>		&lt;&lt;" { dup "&lt;&lt;i2length(max_length_index_)
+<a name="__line347"></a>		&lt;&lt;" gt { /"&lt;&lt;i2length(max_length_index_)
+<a name="__line348"></a>		&lt;&lt;" exch d}{pop} i} repeat"
+<a name="__line349"></a>		&lt;&lt;endl;
+<a name="__line350"></a>
+<a name="__line351"></a>	return max_length_index_;
+<a name="__line352"></a>    }
+<a name="__line353"></a>
+<a name="__line354"></a>    int blopeps::minlength(const std::vector&lt;id&gt; &amp;ids)
+<a name="__line355"></a>    {
+<a name="__line356"></a>	if(ids.empty()) return ZERO;
+<a name="__line357"></a>
+<a name="__line358"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)
+<a name="__line359"></a>		 &lt;&lt;" ";
+<a name="__line360"></a>	write(ids[0]);
+<a name="__line361"></a>	file_tmp_&lt;&lt;" d";
+<a name="__line362"></a>
+<a name="__line363"></a>	if(ids.size() &gt; 1)
+<a name="__line364"></a>	{
+<a name="__line365"></a>	    for(unsigned int i=1; i&lt;ids.size(); ++i)
+<a name="__line366"></a>	    {
+<a name="__line367"></a>		file_tmp_&lt;&lt;" ";
+<a name="__line368"></a>		write(ids[i]);
+<a name="__line369"></a>	    }
+<a name="__line370"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;ids.size()-1
+<a name="__line371"></a>		     &lt;&lt;" { dup "&lt;&lt;i2length(max_length_index_)
+<a name="__line372"></a>		     &lt;&lt;" lt { /"&lt;&lt;i2length(max_length_index_)
+<a name="__line373"></a>		     &lt;&lt;" exch d}{pop} i} repeat"
+<a name="__line374"></a>		     &lt;&lt;endl;
+<a name="__line375"></a>	}
+<a name="__line376"></a>	return max_length_index_;
+<a name="__line377"></a>    }
+<a name="__line378"></a>
+<a name="__line379"></a>
+<a name="__line380"></a>    int blopeps::max_textwidth(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line381"></a>    {
+<a name="__line382"></a>	if(s.empty())
+<a name="__line383"></a>	{
+<a name="__line384"></a>	    file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line385"></a>	    return max_length_index_;
+<a name="__line386"></a>	}
+<a name="__line387"></a>
+<a name="__line388"></a>	file_&lt;&lt;"%\\setbox\\blop@tmp@box\\vbox{";
+<a name="__line389"></a>	unsigned int maxsize = 0;
+<a name="__line390"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line391"></a>	{
+<a name="__line392"></a>	    file_&lt;&lt;"\\hbox{"&lt;&lt;s[i]&lt;&lt;"}";
+<a name="__line393"></a>	    if(s[i].size() &gt; maxsize) maxsize = s[i].size();
+<a name="__line394"></a>	}
+<a name="__line395"></a>	file_&lt;&lt;"}\\blopdimen{\\wd\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line396"></a>	     &lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line397"></a>
+<a name="__line398"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line399"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line400"></a>		&lt;&lt;" "&lt;&lt;maxsize*10&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line401"></a>	return max_length_index_;
+<a name="__line402"></a>    }
+<a name="__line403"></a>
+<a name="__line404"></a>    int blopeps::max_textheight(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line405"></a>    {
+<a name="__line406"></a>	if(s.empty())
+<a name="__line407"></a>	{
+<a name="__line408"></a>	    file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line409"></a>	    return max_length_index_;
+<a name="__line410"></a>	}
+<a name="__line411"></a>
+<a name="__line412"></a>	file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{";
+<a name="__line413"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line414"></a>	{
+<a name="__line415"></a>	    file_&lt;&lt;s[i];
+<a name="__line416"></a>	}
+<a name="__line417"></a>	file_&lt;&lt;"}\\blop@dimen=\\ht\\blop@tmp@box\\advance \\blop@dimen by \\dp\\blop@tmp@box\\blopdimen{\\blop@dimen}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line418"></a>	     &lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line419"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line420"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line421"></a>		&lt;&lt;" 12 d} i"&lt;&lt;endl;
+<a name="__line422"></a>	return max_length_index_;
+<a name="__line423"></a>    }
+<a name="__line424"></a>
+<a name="__line425"></a>    int blopeps::max_textlheight(const std::vector&lt;std::string&gt; &amp;s)
+<a name="__line426"></a>    {
+<a name="__line427"></a>	if(s.empty())
+<a name="__line428"></a>	{
+<a name="__line429"></a>	    file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" 0 d"&lt;&lt;endl;
+<a name="__line430"></a>	    return max_length_index_;
+<a name="__line431"></a>	}
+<a name="__line432"></a>
+<a name="__line433"></a>	file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{";
+<a name="__line434"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line435"></a>	{
+<a name="__line436"></a>	    file_&lt;&lt;s[i];
+<a name="__line437"></a>	}
+<a name="__line438"></a>	file_&lt;&lt;"}\\blopdimen{\\ht\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line439"></a>	     &lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line440"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line441"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line442"></a>		&lt;&lt;" 12 d} i"&lt;&lt;endl;
+<a name="__line443"></a>	return max_length_index_;
+<a name="__line444"></a>    }
+<a name="__line445"></a>
+<a name="__line446"></a>    void blopeps::picture_begin()
+<a name="__line447"></a>    {
+<a name="__line448"></a>
+<a name="__line449"></a><span class=comment>/*
+<a name="__line450"></a>  BLOP@CTM refers to the current transformation matrix
+<a name="__line451"></a>  [ a b c d tx ty ]
+<a name="__line452"></a>  Coordinates are calculated by the K operator (defined below) 
+<a name="__line453"></a>  as follows:
+<a name="__line454"></a>  x' = a*x + c*y + tx
+<a name="__line455"></a>  y' = b*x + d*y + ty
+<a name="__line456"></a> */</span>	
+<a name="__line457"></a>
+<a name="__line458"></a>	n_texts_ = 0;
+<a name="__line459"></a>
+<a name="__line460"></a>	file_.open(filename_.c_str());
+<a name="__line461"></a>	file_tmp_.open(tmpfilename_.c_str());
+<a name="__line462"></a>	file_tmp_&lt;&lt;setprecision(4);
+<a name="__line463"></a>	n_texts_ = 0;
+<a name="__line464"></a>
+<a name="__line465"></a>	Ra_written_ = false;
+<a name="__line466"></a>	Rt_written_ = false;
+<a name="__line467"></a>	Sc_written_ = false;
+<a name="__line468"></a>	Sr_written_ = false;
+<a name="__line469"></a>	current_transformation_ = 0;
+<a name="__line470"></a>	current_color_ = black;
+<a name="__line471"></a>	current_linestyle_ = sym::solid;
+<a name="__line472"></a>	current_linewidth_ = terminal::LW;
+<a name="__line473"></a>	max_length_index_ = NOF_UNITS-1;
+<a name="__line474"></a>
+<a name="__line475"></a>
+<a name="__line476"></a>	file_&lt;&lt;"%!PS-Adobe-2.0 EPSF-2.0"&lt;&lt;endl;
+<a name="__line477"></a>	file_&lt;&lt;"%%Title: ...."&lt;&lt;endl;
+<a name="__line478"></a>	file_&lt;&lt;"%%Creator: blop (Author: D. Barna, http:<span class=comment>//blopplot.sourceforge.net)"&lt;&lt;endl;</span>
+<a name="__line479"></a>	file_&lt;&lt;"%%BoundingBox: 0 0 "&lt;&lt;width_&lt;&lt;" "&lt;&lt;height_&lt;&lt;endl;
+<a name="__line480"></a>	file_&lt;&lt;"%%EndComments"&lt;&lt;endl;
+<a name="__line481"></a>	if(preferred_width_ != "") file_&lt;&lt;"%preferred_width "&lt;&lt;preferred_width_&lt;&lt;endl;
+<a name="__line482"></a>	if(preferred_height_ != "") file_&lt;&lt;"%preferred_height "&lt;&lt;preferred_height_&lt;&lt;endl;
+<a name="__line483"></a>	file_&lt;&lt;"%latexsection"&lt;&lt;endl;
+<a name="__line484"></a>
+<a name="__line485"></a>	<span class=comment>//file_tmp_&lt;&lt;"/blopdict 100 dict def"&lt;&lt;endl;</span>
+<a name="__line486"></a>	<span class=comment>//file_tmp_&lt;&lt;"blopdict begin"&lt;&lt;endl;</span>
+<a name="__line487"></a>	file_tmp_&lt;&lt;"/d {def} def"&lt;&lt;endl;
+<a name="__line488"></a>	file_tmp_&lt;&lt;"/i {ifelse} d"&lt;&lt;endl;
+<a name="__line489"></a>	file_tmp_&lt;&lt;"/@PW where {pop}{/@PW "&lt;&lt;width_&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line490"></a>	file_tmp_&lt;&lt;"/@PH where {pop}{/@PH "&lt;&lt;height_&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line491"></a>	file_tmp_&lt;&lt;"/@PS where {pop}{/@PS 5 d} i"&lt;&lt;endl;
+<a name="__line492"></a>	file_tmp_&lt;&lt;"/@LW where {pop}{/@LW 0.5 d} i"&lt;&lt;endl;
+<a name="__line493"></a>	file_tmp_&lt;&lt;"/@CM 28.452756 d"&lt;&lt;endl;
+<a name="__line494"></a>	file_tmp_&lt;&lt;"/@MM 2.8452756 d"&lt;&lt;endl;
+<a name="__line495"></a>	file_tmp_&lt;&lt;"/@PT 1 d"&lt;&lt;endl;
+<a name="__line496"></a>	file_tmp_&lt;&lt;"/@Z0 0 d"&lt;&lt;endl;
+<a name="__line497"></a>	file_tmp_&lt;&lt;"/@EM where {pop}{/@EM 5 d} i"&lt;&lt;endl;
+<a name="__line498"></a>	file_tmp_&lt;&lt;"/@EX where {pop}{/@EX 5 d} i"&lt;&lt;endl;
+<a name="__line499"></a>
+<a name="__line500"></a>	file_tmp_&lt;&lt;"/n {neg} d"&lt;&lt;endl;
+<a name="__line501"></a>	file_tmp_&lt;&lt;"/m {mul} d"&lt;&lt;endl;
+<a name="__line502"></a>	file_tmp_&lt;&lt;"/a {add} d"&lt;&lt;endl;
+<a name="__line503"></a>	file_tmp_&lt;&lt;"/s {sub} d"&lt;&lt;endl;
+<a name="__line504"></a><span class=comment>//	file_tmp_&lt;&lt;"/p {[ currentlinewidth 1.5 m currentlinewidth 3 m] 0 setdash} d"&lt;&lt;endl;  // dotted line</span>
+<a name="__line505"></a><span class=comment>//	file_tmp_&lt;&lt;"/v {[ currentlinewidth 7 m currentlinewidth 5 m] 0 setdash} d"&lt;&lt;endl;    // dashed line</span>
+<a name="__line506"></a><span class=comment>//	file_tmp_&lt;&lt;"/pv {[ currentlinewidth 6 m currentlinewidth 2.5 m currentlinewidth 1.5 m currentlinewidth 2.5 m] 0 setdash} d"&lt;&lt;endl;    // dash-dotted line</span>
+<a name="__line507"></a><span class=comment>//	file_tmp_&lt;&lt;"/ppv {[ currentlinewidth 6 m currentlinewidth 2.5 m currentlinewidth 1.5 m currentlinewidth 2.5 m currentlinewidth 1.5 m currentlinewidth 2.5 m] 0 setdash} d"&lt;&lt;endl;    // dash-doubledotted line</span>
+<a name="__line508"></a><span class=comment>//	file_tmp_&lt;&lt;"/f {[] 0 setdash} d"&lt;&lt;endl;  // solid</span>
+<a name="__line509"></a>	file_tmp_&lt;&lt;"/w {setlinewidth} d"&lt;&lt;endl;
+<a name="__line510"></a>	file_tmp_&lt;&lt;"/c {setrgbcolor} d"&lt;&lt;endl;
+<a name="__line511"></a>	file_tmp_&lt;&lt;"/t {dup where {pop}{10 d} i} d"&lt;&lt;endl;
+<a name="__line512"></a>
+<a name="__line513"></a>	<span class=comment>// Clipping</span>
+<a name="__line514"></a>	file_tmp_&lt;&lt;"/cl {4 2 roll 2 copy 6 2 roll exch 4 1 roll s 3 1 roll "
+<a name="__line515"></a>                   "exch s exch rectclip} d"&lt;&lt;endl;
+<a name="__line516"></a>
+<a name="__line517"></a>	<span class=comment>// change the CTM by this translation</span>
+<a name="__line518"></a>	file_tmp_&lt;&lt;"/Tr { /BLOP@CTM BLOP@CTM 4 2 roll [ 1 0 0 1 0 0 ] translate "
+<a name="__line519"></a>                   "[ 1 0 0 1 0 0 ] concatmatrix d } d"&lt;&lt;endl;
+<a name="__line520"></a>
+<a name="__line521"></a>	file_tmp_&lt;&lt;"/G {gsave} d"&lt;&lt;endl;
+<a name="__line522"></a>	file_tmp_&lt;&lt;"/E {grestore} d"&lt;&lt;endl;
+<a name="__line523"></a>	file_tmp_&lt;&lt;"/N {newpath} d"&lt;&lt;endl;
+<a name="__line524"></a>	file_tmp_&lt;&lt;"/M {moveto} d"&lt;&lt;endl;
+<a name="__line525"></a>
+<a name="__line526"></a>	file_tmp_&lt;&lt;"/L {lineto} d"&lt;&lt;endl;
+<a name="__line527"></a>	file_tmp_&lt;&lt;"/R {rlineto} d"&lt;&lt;endl;
+<a name="__line528"></a>	file_tmp_&lt;&lt;"/Q {/Y2@ exch d /X2@ exch d /Y1@ exch d /X1@ exch d X1@ Y1@ M "
+<a name="__line529"></a>                   "X1@ Y2@ L X2@ Y2@ L X2@ Y1@ L C} d"&lt;&lt;endl;
+<a name="__line530"></a>	<span class=comment>//file_tmp_&lt;&lt;"/S {stroke} d"&lt;&lt;endl;</span>
+<a name="__line531"></a>	file_tmp_&lt;&lt;"/S {BlopLayerLevel BlopLayerOn eq {stroke}{newpath} i} d"&lt;&lt;endl;
+<a name="__line532"></a>	<span class=comment>//file_tmp_&lt;&lt;"/F {fill} d"&lt;&lt;endl;</span>
+<a name="__line533"></a>	file_tmp_&lt;&lt;"/F {BlopLayerLevel BlopLayerOn eq {fill}{newpath} i} d"&lt;&lt;endl;
+<a name="__line534"></a>	<span class=comment>//file_tmp_&lt;&lt;"/T {show} d"&lt;&lt;endl;</span>
+<a name="__line535"></a>	file_tmp_&lt;&lt;"/T {BlopLayerLevel BlopLayerOn eq {show}{pop} i} d"&lt;&lt;endl;
+<a name="__line536"></a>
+<a name="__line537"></a>	file_tmp_&lt;&lt;"/C {closepath} d"&lt;&lt;endl;
+<a name="__line538"></a>	file_tmp_&lt;&lt;"/x{exch d}d"&lt;&lt;endl;
+<a name="__line539"></a>	file_tmp_&lt;&lt;"/max{2 copy gt {pop}{exch pop}ifelse}d"&lt;&lt;endl;
+<a name="__line540"></a>	file_tmp_&lt;&lt;"/min{2 copy gt {exch pop}{pop}ifelse}d"&lt;&lt;endl;
+<a name="__line541"></a>	file_tmp_&lt;&lt;"/Daa {G 0 setlinewidth 1 setlinecap [] 0 setdash M 0 0 "
+<a name="__line542"></a>                   "rlineto S E} d"&lt;&lt;endl;
+<a name="__line543"></a>	file_tmp_&lt;&lt;"/X {BLOP@W m} d"&lt;&lt;endl;
+<a name="__line544"></a>	file_tmp_&lt;&lt;"/Y {BLOP@H m} d"&lt;&lt;endl;
+<a name="__line545"></a>	file_tmp_&lt;&lt;"0.9962 0.9962 scale"&lt;&lt;endl;
+<a name="__line546"></a>	file_tmp_&lt;&lt;"@LW w"&lt;&lt;endl;
+<a name="__line547"></a>	file_tmp_&lt;&lt;"/Helvetica findfont 10 scalefont setfont"&lt;&lt;endl;
+<a name="__line548"></a>	file_tmp_&lt;&lt;"/BLOP@X 0 d"&lt;&lt;endl;
+<a name="__line549"></a>	file_tmp_&lt;&lt;"/BLOP@Y 0 d"&lt;&lt;endl;
+<a name="__line550"></a>
+<a name="__line551"></a>	file_tmp_&lt;&lt;"/BLOP@CTM { [ 1 0 0 1 0 0 ] } d"&lt;&lt;endl;
+<a name="__line552"></a>	file_tmp_&lt;&lt;"/K { BLOP@CTM transform BLOP@Y a exch BLOP@X a exch } d"&lt;&lt;endl;
+<a name="__line553"></a>	file_tmp_&lt;&lt;"/BLOP@W @PW d"&lt;&lt;endl;
+<a name="__line554"></a>	file_tmp_&lt;&lt;"/BLOP@H @PH d"&lt;&lt;endl;
+<a name="__line555"></a>
+<a name="__line556"></a>	<span class=comment>// If BlopCalculateBBox is defined (i.e. when we call beps2eps), then</span>
+<a name="__line557"></a>	<span class=comment>// draw a line across the whole canvas, so that beps2eps does not crop</span>
+<a name="__line558"></a>	<span class=comment>// the empty spaces at the margins. This line is not visible otherwise,</span>
+<a name="__line559"></a>	<span class=comment>// because then BlopCalculateBBox is not defined</span>
+<a name="__line560"></a>	file_tmp_&lt;&lt;"/BlopCalculateBBox where {pop 0 0 moveto @PW 0 lineto @PW @PH lineto 0 @PH lineto closepath stroke} if "&lt;&lt;endl;
+<a name="__line561"></a>
+<a name="__line562"></a>#ifdef LAYERS
+<a name="__line563"></a>	<span class=comment>// Switch on the default layers: frame, legend, .... ?</span>
+<a name="__line564"></a>	<span class=comment>// define these to be 1 (unless they have been defined already)</span>
+<a name="__line565"></a>	file_tmp_&lt;&lt;"/BlopLayer@default where {pop}{/BlopLayer@default  1 d} ifelse"&lt;&lt;endl;
+<a name="__line566"></a>	file_tmp_&lt;&lt;"/BlopLayer@frame  where {pop}{/BlopLayer@frame  1 d} ifelse"&lt;&lt;endl;
+<a name="__line567"></a>	file_tmp_&lt;&lt;"/BlopLayer@legend where {pop}{/BlopLayer@legend 1 d} ifelse"&lt;&lt;endl;
+<a name="__line568"></a>	file_tmp_&lt;&lt;"/BlopLayer@grid where {pop}{/BlopLayer@grid 1 d} ifelse"&lt;&lt;endl;
+<a name="__line569"></a>	file_tmp_&lt;&lt;"/BlopLayerLevel 1 d"&lt;&lt;endl;
+<a name="__line570"></a>	file_tmp_&lt;&lt;"/BlopLayerOn 1 d"&lt;&lt;endl;
+<a name="__line571"></a>#endif
+<a name="__line572"></a>        file_tmp_&lt;&lt;"1 setlinejoin"&lt;&lt;endl; <span class=comment>// round line joining</span>
+<a name="__line573"></a>
+<a name="__line574"></a>	file_tmp_&lt;&lt;"%endsetup"&lt;&lt;endl;
+<a name="__line575"></a>    }
+<a name="__line576"></a>    void blopeps::picture_end() 
+<a name="__line577"></a>    {
+<a name="__line578"></a>	<span class=comment>// end blopdict dictionary</span>
+<a name="__line579"></a>	<span class=comment>//file_tmp_&lt;&lt;"end"&lt;&lt;endl;</span>
+<a name="__line580"></a>
+<a name="__line581"></a>	file_tmp_&lt;&lt;"showpage"&lt;&lt;endl;
+<a name="__line582"></a>	file_tmp_.close();
+<a name="__line583"></a>	file_&lt;&lt;"%endlatexsection"&lt;&lt;endl;
+<a name="__line584"></a>	ifstream in(tmpfilename_.c_str());
+<a name="__line585"></a>	string line;
+<a name="__line586"></a>	while(getline(in,line))
+<a name="__line587"></a>	{
+<a name="__line588"></a>	    file_&lt;&lt;line&lt;&lt;endl;
+<a name="__line589"></a>	}
+<a name="__line590"></a>	in.close();
+<a name="__line591"></a>	file_&lt;&lt;"%--EndOfFile--"&lt;&lt;endl;
+<a name="__line592"></a>	file_.close();
+<a name="__line593"></a>    }
+<a name="__line594"></a>
+<a name="__line595"></a>    void blopeps::subpicture_end()
+<a name="__line596"></a>	TRY
+<a name="__line597"></a>    {
+<a name="__line598"></a>	if(coordsys_x.empty())
+<a name="__line599"></a>	    err("Unbalanced subpicture_begin -- subpicture_end");
+<a name="__line600"></a>	coordsys_x.pop();
+<a name="__line601"></a>	coordsys_y.pop();
+<a name="__line602"></a>	coordsys_w.pop();
+<a name="__line603"></a>	coordsys_h.pop();
+<a name="__line604"></a>
+<a name="__line605"></a>	if(!coordsys_x.empty())
+<a name="__line606"></a>	{
+<a name="__line607"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line608"></a>#ifndef LAYERS
+<a name="__line609"></a>	    file_tmp_&lt;&lt;"/BLOP@X  <span class=comment>//"&lt;&lt;coordsys_x.top()&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line610"></a>	    file_tmp_&lt;&lt;"/BLOP@Y  <span class=comment>//"&lt;&lt;coordsys_y.top()&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line611"></a>	    file_tmp_&lt;&lt;"/BLOP@W  <span class=comment>//"&lt;&lt;coordsys_w.top()&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line612"></a>	    file_tmp_&lt;&lt;"/BLOP@H  <span class=comment>//"&lt;&lt;coordsys_h.top()&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line613"></a>#else
+<a name="__line614"></a>	    file_tmp_&lt;&lt;"/BLOP@X  "&lt;&lt;coordsys_x.top()&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line615"></a>	    file_tmp_&lt;&lt;"/BLOP@Y  "&lt;&lt;coordsys_y.top()&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line616"></a>	    file_tmp_&lt;&lt;"/BLOP@W  "&lt;&lt;coordsys_w.top()&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line617"></a>	    file_tmp_&lt;&lt;"/BLOP@H  "&lt;&lt;coordsys_h.top()&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line618"></a>#endif
+<a name="__line619"></a>	}
+<a name="__line620"></a>	else
+<a name="__line621"></a>	{
+<a name="__line622"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line623"></a>#ifndef LAYERS
+<a name="__line624"></a>	    file_tmp_&lt;&lt;"/BLOP@X 0 d"&lt;&lt;endl;
+<a name="__line625"></a>	    file_tmp_&lt;&lt;"/BLOP@Y 0 d"&lt;&lt;endl;
+<a name="__line626"></a>	    file_tmp_&lt;&lt;"/BLOP@W <span class=comment>//@PW d"&lt;&lt;endl;</span>
+<a name="__line627"></a>	    file_tmp_&lt;&lt;"/BLOP@H <span class=comment>//@PH d"&lt;&lt;endl;</span>
+<a name="__line628"></a>#else
+<a name="__line629"></a>	    file_tmp_&lt;&lt;"/BLOP@X 0 d"&lt;&lt;endl;
+<a name="__line630"></a>	    file_tmp_&lt;&lt;"/BLOP@Y 0 d"&lt;&lt;endl;
+<a name="__line631"></a>	    file_tmp_&lt;&lt;"/BLOP@W @PW d"&lt;&lt;endl;
+<a name="__line632"></a>	    file_tmp_&lt;&lt;"/BLOP@H @PH d"&lt;&lt;endl;
+<a name="__line633"></a>#endif
+<a name="__line634"></a>	}
+<a name="__line635"></a>    }
+<a name="__line636"></a>    CATCH("blopeps::subpicture_end()")
+<a name="__line637"></a>
+<a name="__line638"></a>    void blopeps::subpicture_begin(const coord &amp;lower_left,
+<a name="__line639"></a>				   const coord &amp;upper_right)
+<a name="__line640"></a>	TRY
+<a name="__line641"></a>    {
+<a name="__line642"></a>	<span class=comment>// first calculate the new width and origin</span>
+<a name="__line643"></a>	<span class=comment>// of the new coordinate system</span>
+<a name="__line644"></a>	string new_x,new_y,new_w,new_h;
+<a name="__line645"></a>	new_x = i2length(++max_length_index_);
+<a name="__line646"></a>	new_y = i2length(++max_length_index_);
+<a name="__line647"></a>	new_w = i2length(++max_length_index_);
+<a name="__line648"></a>	new_h = i2length(++max_length_index_);
+<a name="__line649"></a>
+<a name="__line650"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_w&lt;&lt;" ";
+<a name="__line651"></a>	if(lower_left.x.length_id == 0 &amp;&amp; upper_right.x.length_id == 0)
+<a name="__line652"></a>	{
+<a name="__line653"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;(upper_right.x.relcoord - lower_left.x.relcoord)
+<a name="__line654"></a>		<span class=comment>// immediate execution</span>
+<a name="__line655"></a>#ifndef LAYERS
+<a name="__line656"></a>		    &lt;&lt;" <span class=comment>//BLOP@W m d"&lt;&lt;endl;</span>
+<a name="__line657"></a>#else
+<a name="__line658"></a>		    &lt;&lt;" BLOP@W m d"&lt;&lt;endl;
+<a name="__line659"></a>#endif	    
+<a name="__line660"></a>	}
+<a name="__line661"></a>	else if(lower_left.x.length_id == 0)
+<a name="__line662"></a>	{
+<a name="__line663"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line664"></a>#ifndef LAYERS
+<a name="__line665"></a>	    file_tmp_&lt;&lt;" <span class=comment>//"&lt;&lt;i2length(upper_right.x.length_id)</span>
+<a name="__line666"></a>		    &lt;&lt;" "&lt;&lt;lower_left.x.relcoord&lt;&lt;" <span class=comment>//BLOP@W m s d"&lt;&lt;endl;</span>
+<a name="__line667"></a>#else
+<a name="__line668"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;i2length(upper_right.x.length_id)
+<a name="__line669"></a>		    &lt;&lt;" "&lt;&lt;lower_left.x.relcoord&lt;&lt;" BLOP@W m s d"&lt;&lt;endl;
+<a name="__line670"></a>#endif
+<a name="__line671"></a>	}
+<a name="__line672"></a>	else if(upper_right.x.length_id == 0)
+<a name="__line673"></a>	{
+<a name="__line674"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line675"></a>#ifndef LAYERS
+<a name="__line676"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;upper_right.x.relcoord&lt;&lt;" <span class=comment>//BLOP@W m //"</span>
+<a name="__line677"></a>		    &lt;&lt;i2length(lower_left.x.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line678"></a>#else
+<a name="__line679"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;upper_right.x.relcoord&lt;&lt;" BLOP@W m "
+<a name="__line680"></a>		    &lt;&lt;i2length(lower_left.x.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line681"></a>#endif
+<a name="__line682"></a>	}
+<a name="__line683"></a>	else
+<a name="__line684"></a>	{
+<a name="__line685"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line686"></a>#ifndef LAYERS
+<a name="__line687"></a>	    file_tmp_&lt;&lt;" <span class=comment>//"&lt;&lt;i2length(upper_right.x.length_id)&lt;&lt;" //"</span>
+<a name="__line688"></a>		    &lt;&lt;i2length(lower_left.x.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line689"></a>#else
+<a name="__line690"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;i2length(upper_right.x.length_id)&lt;&lt;" "
+<a name="__line691"></a>		    &lt;&lt;i2length(lower_left.x.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line692"></a>#endif
+<a name="__line693"></a>	}
+<a name="__line694"></a>
+<a name="__line695"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_h&lt;&lt;" ";
+<a name="__line696"></a>	if(lower_left.y.length_id == 0 &amp;&amp; upper_right.y.length_id == 0)
+<a name="__line697"></a>	{
+<a name="__line698"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line699"></a>#ifndef LAYERS
+<a name="__line700"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;(upper_right.y.relcoord - lower_left.y.relcoord)
+<a name="__line701"></a>		    &lt;&lt;" <span class=comment>//BLOP@H m d"&lt;&lt;endl;</span>
+<a name="__line702"></a>#else
+<a name="__line703"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;(upper_right.y.relcoord - lower_left.y.relcoord)
+<a name="__line704"></a>		    &lt;&lt;" BLOP@H m d"&lt;&lt;endl;
+<a name="__line705"></a>#endif
+<a name="__line706"></a>	}
+<a name="__line707"></a>	else if(lower_left.y.length_id == 0)
+<a name="__line708"></a>	{
+<a name="__line709"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line710"></a>#ifndef LAYERS
+<a name="__line711"></a>	    file_tmp_&lt;&lt;" <span class=comment>//"&lt;&lt;i2length(upper_right.y.length_id)</span>
+<a name="__line712"></a>		    &lt;&lt;" "&lt;&lt;lower_left.y.relcoord&lt;&lt;" <span class=comment>//BLOP@H m s d"&lt;&lt;endl;</span>
+<a name="__line713"></a>#else
+<a name="__line714"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;i2length(upper_right.y.length_id)
+<a name="__line715"></a>		    &lt;&lt;" "&lt;&lt;lower_left.y.relcoord&lt;&lt;" BLOP@H m s d"&lt;&lt;endl;
+<a name="__line716"></a>#endif
+<a name="__line717"></a>	}
+<a name="__line718"></a>	else if(upper_right.y.length_id == 0)
+<a name="__line719"></a>	{
+<a name="__line720"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line721"></a>#ifndef LAYERS
+<a name="__line722"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;upper_right.y.relcoord&lt;&lt;" <span class=comment>//BLOP@H m //"</span>
+<a name="__line723"></a>		    &lt;&lt;i2length(lower_left.y.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line724"></a>#else
+<a name="__line725"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;upper_right.y.relcoord&lt;&lt;" BLOP@H m "
+<a name="__line726"></a>		    &lt;&lt;i2length(lower_left.y.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line727"></a>#endif
+<a name="__line728"></a>	}
+<a name="__line729"></a>	else
+<a name="__line730"></a>	{
+<a name="__line731"></a>	    <span class=comment>// immediate execution</span>
+<a name="__line732"></a>#ifndef LAYERS
+<a name="__line733"></a>	    file_tmp_&lt;&lt;" <span class=comment>//"&lt;&lt;i2length(upper_right.y.length_id)&lt;&lt;" //"</span>
+<a name="__line734"></a>		    &lt;&lt;i2length(lower_left.y.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line735"></a>#else
+<a name="__line736"></a>	    file_tmp_&lt;&lt;" "&lt;&lt;i2length(upper_right.y.length_id)&lt;&lt;" "
+<a name="__line737"></a>		    &lt;&lt;i2length(lower_left.y.length_id)&lt;&lt;" s d"&lt;&lt;endl;
+<a name="__line738"></a>#endif
+<a name="__line739"></a>	}
+<a name="__line740"></a>
+<a name="__line741"></a>	<span class=comment>// immediate execution</span>
+<a name="__line742"></a>#ifndef LAYERS
+<a name="__line743"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_x&lt;&lt;" <span class=comment>//BLOP@X ";</span>
+<a name="__line744"></a>#else
+<a name="__line745"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_x&lt;&lt;" BLOP@X ";
+<a name="__line746"></a>#endif
+<a name="__line747"></a>	write(lower_left.x);
+<a name="__line748"></a>	file_tmp_&lt;&lt;"a d"&lt;&lt;endl;
+<a name="__line749"></a>
+<a name="__line750"></a>	<span class=comment>// immediate execution</span>
+<a name="__line751"></a>#ifndef LAYERS
+<a name="__line752"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_y&lt;&lt;" <span class=comment>//BLOP@Y ";</span>
+<a name="__line753"></a>#else
+<a name="__line754"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;new_y&lt;&lt;" BLOP@Y ";
+<a name="__line755"></a>#endif
+<a name="__line756"></a>	write(lower_left.y);
+<a name="__line757"></a>	file_tmp_&lt;&lt;"a d"&lt;&lt;endl;
+<a name="__line758"></a>
+<a name="__line759"></a>	coordsys_x.push(new_x);
+<a name="__line760"></a>	coordsys_y.push(new_y);
+<a name="__line761"></a>	coordsys_w.push(new_w);
+<a name="__line762"></a>	coordsys_h.push(new_h);
+<a name="__line763"></a>
+<a name="__line764"></a>	<span class=comment>// and now redefine BLOP@X, etc</span>
+<a name="__line765"></a>	<span class=comment>// immediate execution</span>
+<a name="__line766"></a>#ifndef LAYERS
+<a name="__line767"></a>	file_tmp_&lt;&lt;"/BLOP@X <span class=comment>//"&lt;&lt;new_x&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line768"></a>	file_tmp_&lt;&lt;"/BLOP@Y <span class=comment>//"&lt;&lt;new_y&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line769"></a>	file_tmp_&lt;&lt;"/BLOP@W <span class=comment>//"&lt;&lt;new_w&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line770"></a>	file_tmp_&lt;&lt;"/BLOP@H <span class=comment>//"&lt;&lt;new_h&lt;&lt;" d"&lt;&lt;endl;</span>
+<a name="__line771"></a>#else
+<a name="__line772"></a>	file_tmp_&lt;&lt;"/BLOP@X "&lt;&lt;new_x&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line773"></a>	file_tmp_&lt;&lt;"/BLOP@Y "&lt;&lt;new_y&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line774"></a>	file_tmp_&lt;&lt;"/BLOP@W "&lt;&lt;new_w&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line775"></a>	file_tmp_&lt;&lt;"/BLOP@H "&lt;&lt;new_h&lt;&lt;" d"&lt;&lt;endl;
+<a name="__line776"></a>#endif
+<a name="__line777"></a>
+<a name="__line778"></a>    }
+<a name="__line779"></a>    CATCH("blopeps::subpicture_begin(...)")
+<a name="__line780"></a>
+<a name="__line781"></a>
+<a name="__line782"></a>    <span class=comment>/*
+<a name="__line783"></a>    int blopeps::textwidth(const string &amp;s,double angle)
+<a name="__line784"></a>    {
+<a name="__line785"></a>	++max_length_index_;
+<a name="__line786"></a>	if(angle==0)
+<a name="__line787"></a>	{
+<a name="__line788"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{"&lt;&lt;s&lt;&lt;"}"
+<a name="__line789"></a>		 &lt;&lt;"\\blopdimen{\\wd\\blop@tmp@box}{"&lt;&lt;i2length(max_length_index_)&lt;&lt;"}"
+<a name="__line790"></a>		 &lt;&lt;"\\ignorespaces"&lt;&lt;endl;
+<a name="__line791"></a>	}
+<a name="__line792"></a>	else
+<a name="__line793"></a>	{
+<a name="__line794"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{\\rotatebox{"
+<a name="__line795"></a>		&lt;&lt;angle&lt;&lt;"}{"&lt;&lt;s
+<a name="__line796"></a>		&lt;&lt;"}}\\blopdimen{\\wd\\blop@tmp@box}{"&lt;&lt;i2length(max_length_index_)
+<a name="__line797"></a>		&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line798"></a>	}
+<a name="__line799"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line800"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)&lt;&lt;" "
+<a name="__line801"></a>		&lt;&lt;10*s.size()&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line802"></a>	return max_length_index_;
+<a name="__line803"></a>    }
+<a name="__line804"></a>    */</span>
+<a name="__line805"></a>
+<a name="__line806"></a>    int blopeps::textwidth(const string &amp;s,double angle)
+<a name="__line807"></a>    {
+<a name="__line808"></a>	++max_length_index_;
+<a name="__line809"></a>	file_&lt;&lt;"%\\blop@textsize{"&lt;&lt;s&lt;&lt;"}{";
+<a name="__line810"></a>	if(angle == 0) file_&lt;&lt;"@";
+<a name="__line811"></a><span class=comment>//kaki</span>
+<a name="__line812"></a><span class=comment>//	else file_&lt;&lt;angle;</span>
+<a name="__line813"></a>	else file_&lt;&lt;angle/unit::deg;
+<a name="__line814"></a>	file_&lt;&lt;"}{"&lt;&lt;i2length(max_length_index_)&lt;&lt;"}{0}{0}\\ignorespaces"&lt;&lt;endl;
+<a name="__line815"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line816"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)&lt;&lt;" "
+<a name="__line817"></a>		&lt;&lt;10*s.size()&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line818"></a>	return max_length_index_;
+<a name="__line819"></a>    }
+<a name="__line820"></a>
+<a name="__line821"></a><span class=comment>/*
+<a name="__line822"></a>    int blopeps::textheight(const string &amp;s,double angle)
+<a name="__line823"></a>    {
+<a name="__line824"></a>	++max_length_index_;
+<a name="__line825"></a>	if(angle==0)
+<a name="__line826"></a>	{
+<a name="__line827"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{"&lt;&lt;s&lt;&lt;"}"
+<a name="__line828"></a>		&lt;&lt;"\\blop@dimen=\\ht\\blop@tmp@box\\advance \\blop@dimen by \\dp\\blop@tmp@box\\blopdimen{\\blop@dimen}{"
+<a name="__line829"></a>		&lt;&lt;i2length(max_length_index_)&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line830"></a>	}
+<a name="__line831"></a>	else
+<a name="__line832"></a>	{
+<a name="__line833"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{\\rotatebox{"
+<a name="__line834"></a>		&lt;&lt;angle&lt;&lt;"}{"&lt;&lt;s
+<a name="__line835"></a>		&lt;&lt;"}}\\blop@dimen=\\ht\\blop@tmp@box\\advance\\blop@dimen by \\dp\\blop@tmp@box\\blopdimen{\\blop@dimen}{"&lt;&lt;i2length(max_length_index_)
+<a name="__line836"></a>		&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line837"></a>	}
+<a name="__line838"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line839"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line840"></a>		&lt;&lt;" 10 d} i"&lt;&lt;endl;
+<a name="__line841"></a>	return max_length_index_;
+<a name="__line842"></a>    }
+<a name="__line843"></a>*/</span>
+<a name="__line844"></a>
+<a name="__line845"></a>    int blopeps::textheight(const string &amp;s,double angle)
+<a name="__line846"></a>    {
+<a name="__line847"></a>	++max_length_index_;
+<a name="__line848"></a>	file_&lt;&lt;"%\\blop@textsize{"&lt;&lt;s&lt;&lt;"}{";
+<a name="__line849"></a>	if(angle == 0) file_&lt;&lt;"@";
+<a name="__line850"></a><span class=comment>//kaki</span>
+<a name="__line851"></a><span class=comment>//	else file_&lt;&lt;angle;</span>
+<a name="__line852"></a>	else file_&lt;&lt;angle/unit::deg;
+<a name="__line853"></a>	file_&lt;&lt;"}{0}{"&lt;&lt;i2length(max_length_index_)&lt;&lt;"}{0}\\ignorespaces"&lt;&lt;endl;
+<a name="__line854"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line855"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)&lt;&lt;" "
+<a name="__line856"></a>		&lt;&lt;10*s.size()&lt;&lt;" d} i"&lt;&lt;endl;
+<a name="__line857"></a>	return max_length_index_;
+<a name="__line858"></a>    }
+<a name="__line859"></a>
+<a name="__line860"></a>    int blopeps::textlheight(const string &amp;s,double angle)
+<a name="__line861"></a>    {
+<a name="__line862"></a>	++max_length_index_;
+<a name="__line863"></a>	file_&lt;&lt;"%\\blop@textsize{"&lt;&lt;s&lt;&lt;"}{";
+<a name="__line864"></a>	if(angle == 0) file_&lt;&lt;"@";
+<a name="__line865"></a><span class=comment>//kaki</span>
+<a name="__line866"></a><span class=comment>//	else file_&lt;&lt;angle;</span>
+<a name="__line867"></a>	else file_&lt;&lt;angle/unit::deg;
+<a name="__line868"></a>	file_&lt;&lt;"}{0}{0}{"&lt;&lt;i2length(max_length_index_)&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line869"></a>
+<a name="__line870"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line871"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line872"></a>		&lt;&lt;" 10 d} i"&lt;&lt;endl;
+<a name="__line873"></a>	return max_length_index_;
+<a name="__line874"></a>    }
+<a name="__line875"></a>
+<a name="__line876"></a><span class=comment>/*
+<a name="__line877"></a>    int blopeps::textsize(const string &amp;s,double angle)
+<a name="__line878"></a>    {
+<a name="__line879"></a>	if(angle==0)
+<a name="__line880"></a>	{
+<a name="__line881"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{"&lt;&lt;s&lt;&lt;"}"
+<a name="__line882"></a>		&lt;&lt;"\\blopdimen{\\wd\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line883"></a>		&lt;&lt;"}"
+<a name="__line884"></a>		&lt;&lt;"\\blopdimen{\\ht\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line885"></a>		&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line886"></a>	}
+<a name="__line887"></a>	else
+<a name="__line888"></a>	{
+<a name="__line889"></a>	    file_&lt;&lt;"%\\setbox\\blop@tmp@box\\hbox{\\rotatebox{"&lt;&lt;angle&lt;&lt;"}{"&lt;&lt;s&lt;&lt;"}}"
+<a name="__line890"></a>		&lt;&lt;"\\blopdimen{\\wd\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line891"></a>		&lt;&lt;"}"
+<a name="__line892"></a>		&lt;&lt;"\\blopdimen{\\ht\\blop@tmp@box}{"&lt;&lt;i2length(++max_length_index_)
+<a name="__line893"></a>		&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line894"></a>	}
+<a name="__line895"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line896"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line897"></a>		&lt;&lt;" 50 d} i"&lt;&lt;endl;
+<a name="__line898"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_-1)
+<a name="__line899"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_-1)
+<a name="__line900"></a>		&lt;&lt;" 50 d} i"&lt;&lt;endl;
+<a name="__line901"></a>	return max_length_index_;
+<a name="__line902"></a>    }
+<a name="__line903"></a>*/</span>
+<a name="__line904"></a>
+<a name="__line905"></a>    int blopeps::textsize(const string &amp;s,double angle)
+<a name="__line906"></a>    {
+<a name="__line907"></a>	file_&lt;&lt;"%\\blop@textsize{"&lt;&lt;s&lt;&lt;"}{";
+<a name="__line908"></a>	if(angle==0) file_&lt;&lt;"@";
+<a name="__line909"></a><span class=comment>//kaki</span>
+<a name="__line910"></a><span class=comment>//	else file_&lt;&lt;angle;</span>
+<a name="__line911"></a>	else file_&lt;&lt;angle/unit::deg;
+<a name="__line912"></a>	file_&lt;&lt;"}{"&lt;&lt;i2length(max_length_index_+1)&lt;&lt;"}{"&lt;&lt;i2length(max_length_index_+2)&lt;&lt;"}{0}\\ignorespaces"&lt;&lt;endl;
+<a name="__line913"></a>	max_length_index_ += 2;
+<a name="__line914"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_)
+<a name="__line915"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_)
+<a name="__line916"></a>		&lt;&lt;" 50 d} i"&lt;&lt;endl;
+<a name="__line917"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(max_length_index_-1)
+<a name="__line918"></a>		&lt;&lt;" where {pop}{/"&lt;&lt;i2length(max_length_index_-1)
+<a name="__line919"></a>		&lt;&lt;" 50 d} i"&lt;&lt;endl;
+<a name="__line920"></a>	return max_length_index_;
+<a name="__line921"></a>    }
+<a name="__line922"></a>
+<a name="__line923"></a>
+<a name="__line924"></a>    void blopeps::convertstr(const std::string &amp;s,int n,
+<a name="__line925"></a>			     std::string &amp;ps)
+<a name="__line926"></a>    {
+<a name="__line927"></a>	char sss[100];
+<a name="__line928"></a>	sprintf(sss,"&lt;%i&gt;:",n);
+<a name="__line929"></a>	ps     = "";
+<a name="__line930"></a>	for(unsigned int i=0; i&lt;s.size(); ++i)
+<a name="__line931"></a>	{
+<a name="__line932"></a>	    if(s[i] == ')')      { ps += ']';   }
+<a name="__line933"></a>	    else if(s[i] == '(') { ps += '[';   }
+<a name="__line934"></a>	    else if(s[i] == '{') { ps += '[';   }
+<a name="__line935"></a>	    else if(s[i] == '}') { ps += ']';   }
+<a name="__line936"></a>	    else if(s[i] == '\\'){ ps += '|';   }
+<a name="__line937"></a>	    else if(s[i] == '#' ){ ps += '@';   }
+<a name="__line938"></a>	    else if(s[i] == ' ') { ps += ' ';   }
+<a name="__line939"></a>	    else if(s[i] == '~') { ps += '^';   }
+<a name="__line940"></a>	    else {ps += s[i]; }
+<a name="__line941"></a>	}
+<a name="__line942"></a>    }
+<a name="__line943"></a>
+<a name="__line944"></a>    void blopeps::draw_dot(const coord &amp;c)
+<a name="__line945"></a>    {
+<a name="__line946"></a>	write(c);
+<a name="__line947"></a>	file_tmp_&lt;&lt;"Daa"&lt;&lt;endl;
+<a name="__line948"></a>    }
+<a name="__line949"></a>
+<a name="__line950"></a>
+<a name="__line951"></a>    void blopeps::draw_text(const coord &amp;pos,
+<a name="__line952"></a>			    const string &amp;s,
+<a name="__line953"></a>			    int xalign,int yalign,
+<a name="__line954"></a>			    const blop::terminal::id &amp;angle_dx,
+<a name="__line955"></a>			    const blop::terminal::id &amp;angle_dy,
+<a name="__line956"></a>			    bool rotatedsystem)
+<a name="__line957"></a>    {
+<a name="__line958"></a>	if(s == "") return;
+<a name="__line959"></a>
+<a name="__line960"></a>	++n_texts_;
+<a name="__line961"></a>
+<a name="__line962"></a>	string psmacro = "bloptextmacro";
+<a name="__line963"></a>	{
+<a name="__line964"></a>	    int nchars = (int)'z' - (int)'a';
+<a name="__line965"></a>	    for(int i=n_texts_; i&gt;0; i/=nchars) psmacro += (char)((int)'a' + i%nchars);
+<a name="__line966"></a>	}
+<a name="__line967"></a>
+<a name="__line968"></a>	string ps;
+<a name="__line969"></a>	convertstr(s,n_texts_,ps);
+<a name="__line970"></a>
+<a name="__line971"></a>	write(pos);
+<a name="__line972"></a>	file_tmp_&lt;&lt;"M ";
+<a name="__line973"></a>	if(current_transformation_&amp;rotation_)
+<a name="__line974"></a>	{
+<a name="__line975"></a>	    file_tmp_&lt;&lt;"G BLOP@CTM 1 get BLOP@CTM 0 get atan rotate"&lt;&lt;endl;
+<a name="__line976"></a>	}
+<a name="__line977"></a>	<span class=comment>//file_tmp_&lt;&lt;"("&lt;&lt;ps&lt;&lt;") T"&lt;&lt;endl;</span>
+<a name="__line978"></a>	file_tmp_&lt;&lt;"blopdict /"&lt;&lt;psmacro&lt;&lt;" known {"&lt;&lt;psmacro&lt;&lt;"}{("&lt;&lt;ps&lt;&lt;")T}i"&lt;&lt;endl;
+<a name="__line979"></a>	if(current_transformation_&amp;rotation_)
+<a name="__line980"></a>	{
+<a name="__line981"></a>	    file_tmp_&lt;&lt;"E"&lt;&lt;endl;
+<a name="__line982"></a>	}
+<a name="__line983"></a>	file_&lt;&lt;"%\\blop@text{";
+<a name="__line984"></a>	file_&lt;&lt;s;
+<a name="__line985"></a>	file_&lt;&lt;"}{"&lt;&lt;psmacro&lt;&lt;"}{";
+<a name="__line986"></a>	if(xalign == sym::left) file_&lt;&lt;"l";
+<a name="__line987"></a>	else if(xalign == sym::right) file_&lt;&lt;"r";
+<a name="__line988"></a>	else file_&lt;&lt;"c";
+<a name="__line989"></a>	file_&lt;&lt;"}{";
+<a name="__line990"></a>	if(yalign == sym::base) file_&lt;&lt;"a";
+<a name="__line991"></a>	else if(yalign == sym::bottom) file_&lt;&lt;"b";
+<a name="__line992"></a>	else if(yalign == sym::top) file_&lt;&lt;"t";
+<a name="__line993"></a>	else file_&lt;&lt;"c";
+<a name="__line994"></a>	file_&lt;&lt;"}";
+<a name="__line995"></a>	if(rotatedsystem) file_&lt;&lt;"{R}";
+<a name="__line996"></a>	else file_&lt;&lt;"{O}";
+<a name="__line997"></a>	file_&lt;&lt;"{";
+<a name="__line998"></a>	write(angle_dy,&amp;file_);
+<a name="__line999"></a>	write(angle_dx,&amp;file_);
+<a name="__line1000"></a>	file_&lt;&lt;" atan";
+<a name="__line1001"></a>	file_&lt;&lt;"}{"&lt;&lt;current_color_.red()&lt;&lt;","&lt;&lt;current_color_.green()&lt;&lt;","&lt;&lt;current_color_.blue()&lt;&lt;"}\\ignorespaces"&lt;&lt;endl;
+<a name="__line1002"></a>    }
+<a name="__line1003"></a>
+<a name="__line1004"></a>    void blopeps::reset_transformation()
+<a name="__line1005"></a>    {
+<a name="__line1006"></a>	current_transformation_ = 0;
+<a name="__line1007"></a>	file_tmp_&lt;&lt;"/BLOP@CTM { [ 1 0 0 1 0 0 ] } def"&lt;&lt;endl;
+<a name="__line1008"></a>    }
+<a name="__line1009"></a>
+<a name="__line1010"></a>    void blopeps::translate(const id &amp;x, const id &amp;y)
+<a name="__line1011"></a>    {
+<a name="__line1012"></a>	current_transformation_ |= translation_;
+<a name="__line1013"></a>	write(x);
+<a name="__line1014"></a>	write(y);
+<a name="__line1015"></a>	file_tmp_&lt;&lt;"Tr"&lt;&lt;endl;
+<a name="__line1016"></a>    }
+<a name="__line1017"></a>
+<a name="__line1018"></a>    void blopeps::rotate(double angle)
+<a name="__line1019"></a>    {
+<a name="__line1020"></a>	current_transformation_ |= rotation_;
+<a name="__line1021"></a>	if(!Ra_written_)
+<a name="__line1022"></a>	{
+<a name="__line1023"></a>	    Ra_written_ = true;
+<a name="__line1024"></a>	    <span class=comment>// rotate by angle the CTM</span>
+<a name="__line1025"></a>	    file_tmp_&lt;&lt;"/Ra { /BLOP@CTM BLOP@CTM 3 2 roll [ 1 0 0 1 0 0 ] rotate "
+<a name="__line1026"></a>		       "[ 1 0 0 1 0 0 ] concatmatrix def } def"&lt;&lt;endl;
+<a name="__line1027"></a>	}
+<a name="__line1028"></a><span class=comment>//kaki</span>
+<a name="__line1029"></a><span class=comment>//	file_tmp_&lt;&lt;angle&lt;&lt;" Ra"&lt;&lt;endl;</span>
+<a name="__line1030"></a>	file_tmp_&lt;&lt;angle/unit::deg&lt;&lt;" Ra"&lt;&lt;endl;
+<a name="__line1031"></a>    }
+<a name="__line1032"></a>
+<a name="__line1033"></a>    void blopeps::rotate(const id &amp;x, const id &amp;y)
+<a name="__line1034"></a>    {
+<a name="__line1035"></a>	current_transformation_ |= rotation_;
+<a name="__line1036"></a>
+<a name="__line1037"></a>	if(!Rt_written_)
+<a name="__line1038"></a>	{
+<a name="__line1039"></a>	    Rt_written_ = true;
+<a name="__line1040"></a>	    <span class=comment>// rotate the CTM by tangent</span>
+<a name="__line1041"></a>	    file_tmp_&lt;&lt;"/Rt { /BLOP@CTM BLOP@CTM 4 2 roll atan [ 1 0 0 1 0 0 ] rotate "
+<a name="__line1042"></a>		       "[ 1 0 0 1 0 0 ] concatmatrix def } def"&lt;&lt;endl;
+<a name="__line1043"></a>	}
+<a name="__line1044"></a>	write(y);
+<a name="__line1045"></a>	write(x);
+<a name="__line1046"></a>	file_tmp_&lt;&lt;"Rt"&lt;&lt;endl;
+<a name="__line1047"></a>    }
+<a name="__line1048"></a>
+<a name="__line1049"></a>    void blopeps::scale(double s)
+<a name="__line1050"></a>    {
+<a name="__line1051"></a>	current_transformation_ |= scaling_;
+<a name="__line1052"></a>
+<a name="__line1053"></a>	if(!Sc_written_)
+<a name="__line1054"></a>	{
+<a name="__line1055"></a>	    Sc_written_ = true;
+<a name="__line1056"></a>	    <span class=comment>// scale the CTM</span>
+<a name="__line1057"></a>	    file_tmp_&lt;&lt;"/Sc { /BLOP@CTM BLOP@CTM 4 2 roll [ 1 0 0 1 0 0 ] scale "
+<a name="__line1058"></a>		       "[ 1 0 0 1 0 0 ] concatmatrix def } def"&lt;&lt;endl;
+<a name="__line1059"></a>	}
+<a name="__line1060"></a>	file_tmp_&lt;&lt;s&lt;&lt;" "&lt;&lt;s&lt;&lt;" Sc"&lt;&lt;endl;
+<a name="__line1061"></a>    }
+<a name="__line1062"></a>    void blopeps::scale(double xs,double ys)
+<a name="__line1063"></a>    {
+<a name="__line1064"></a>	current_transformation_ |= scaling_;
+<a name="__line1065"></a>	if(!Sc_written_)
+<a name="__line1066"></a>	{
+<a name="__line1067"></a>	    Sc_written_ = true;
+<a name="__line1068"></a>	    <span class=comment>// scale the CTM</span>
+<a name="__line1069"></a>	    file_tmp_&lt;&lt;"/Sc { /BLOP@CTM BLOP@CTM 4 2 roll [ 1 0 0 1 0 0 ] scale "
+<a name="__line1070"></a>		       "[ 1 0 0 1 0 0 ] concatmatrix def } def"&lt;&lt;endl;
+<a name="__line1071"></a>	}
+<a name="__line1072"></a>	file_tmp_&lt;&lt;xs&lt;&lt;" "&lt;&lt;ys&lt;&lt;" Sc"&lt;&lt;endl;
+<a name="__line1073"></a>    }
+<a name="__line1074"></a>    void blopeps::scale(const id &amp;xfrom, const id &amp;xto,
+<a name="__line1075"></a>			const id &amp;yfrom, const id &amp;yto)
+<a name="__line1076"></a>    {
+<a name="__line1077"></a>	current_transformation_ |= scaling_;
+<a name="__line1078"></a>	if(!Sr_written_)
+<a name="__line1079"></a>	{
+<a name="__line1080"></a>	    Sr_written_ = true;
+<a name="__line1081"></a>	    file_tmp_&lt;&lt;"/Sr { /BLOP@CTM BLOP@CTM 6 2 roll div 3 1 roll div exch "
+<a name="__line1082"></a>                       "[ 1 0 0 1 0 0 ] scale [ 1 0 0 1 0 0 ] concatmatrix def } def"&lt;&lt;endl;
+<a name="__line1083"></a>	}
+<a name="__line1084"></a>	write(xfrom);
+<a name="__line1085"></a>	write(xto);
+<a name="__line1086"></a>	write(yfrom);
+<a name="__line1087"></a>	write(yto);
+<a name="__line1088"></a>	file_tmp_&lt;&lt;"Sr"&lt;&lt;endl;
+<a name="__line1089"></a>    }
+<a name="__line1090"></a>
+<a name="__line1091"></a><span class=comment>/*
+<a name="__line1092"></a>    void blopeps::move_origin(const id &amp;x,const id &amp;y)
+<a name="__line1093"></a>    {
+<a name="__line1094"></a>	file_tmp_&lt;&lt;"/BLOP@X@TMP //BLOP@X ";
+<a name="__line1095"></a>	if(x.length_id == 0) file_tmp_&lt;&lt;x.relcoord&lt;&lt;" //BLOP@W m ";
+<a name="__line1096"></a>	else file_tmp_&lt;&lt;"//"&lt;&lt;i2length(x.length_id)&lt;&lt;" ";
+<a name="__line1097"></a>	file_tmp_&lt;&lt;" a d"&lt;&lt;endl;
+<a name="__line1098"></a>
+<a name="__line1099"></a>	file_tmp_&lt;&lt;"/BLOP@Y@TMP //BLOP@Y ";
+<a name="__line1100"></a>	if(y.length_id == 0) file_tmp_&lt;&lt;y.relcoord&lt;&lt;" //BLOP@H m ";
+<a name="__line1101"></a>	else file_tmp_&lt;&lt;"//"&lt;&lt;i2length(y.length_id)&lt;&lt;" ";
+<a name="__line1102"></a>	file_tmp_&lt;&lt;" a d"&lt;&lt;endl;
+<a name="__line1103"></a>    }
+<a name="__line1104"></a>*/</span>
+<a name="__line1105"></a>
+<a name="__line1106"></a>    void blopeps::draw_arc_base(const coord &amp;center, const id &amp;r, double ang1, double ang2)
+<a name="__line1107"></a>    {
+<a name="__line1108"></a>	file_tmp_&lt;&lt;"N"&lt;&lt;endl;
+<a name="__line1109"></a>	write(center);
+<a name="__line1110"></a>	write(r);
+<a name="__line1111"></a>	file_tmp_&lt;&lt;ang1/unit::deg&lt;&lt;" "&lt;&lt;ang2/unit::deg&lt;&lt;" arc"&lt;&lt;endl;
+<a name="__line1112"></a>
+<a name="__line1113"></a><span class=comment>/*
+<a name="__line1114"></a>	file_tmp_&lt;&lt;"BLOP@X@TMP ";
+<a name="__line1115"></a>	if(x.length_id) file_tmp_&lt;&lt;i2length(x.length_id)&lt;&lt;" ";
+<a name="__line1116"></a>	else file_tmp_&lt;&lt;x.relcoord&lt;&lt;" BLOP@W m ";
+<a name="__line1117"></a>	file_tmp_&lt;&lt;"a ";
+<a name="__line1118"></a>
+<a name="__line1119"></a>	file_tmp_&lt;&lt;"BLOP@Y@TMP ";
+<a name="__line1120"></a>	if(y.length_id) file_tmp_&lt;&lt;i2length(y.length_id)&lt;&lt;" ";
+<a name="__line1121"></a>	else file_tmp_&lt;&lt;y.relcoord&lt;&lt;" BLOP@H m ";
+<a name="__line1122"></a>	file_tmp_&lt;&lt;"a ";
+<a name="__line1123"></a>
+<a name="__line1124"></a>	if(r.length_id) file_tmp_&lt;&lt;i2length(r.length_id)&lt;&lt;" ";
+<a name="__line1125"></a>	else file_tmp_&lt;&lt;r.relcoord&lt;&lt;" blopdef m ";
+<a name="__line1126"></a>	file_tmp_&lt;&lt;ang1&lt;&lt;" "&lt;&lt;ang2&lt;&lt;" arc"&lt;&lt;endl;
+<a name="__line1127"></a>*/</span>
+<a name="__line1128"></a>    }
+<a name="__line1129"></a>    
+<a name="__line1130"></a>    void blopeps::draw_arc(const terminal::coord &amp;center,
+<a name="__line1131"></a>			   const id &amp;r,
+<a name="__line1132"></a>			   double ang1, double ang2)
+<a name="__line1133"></a>    {
+<a name="__line1134"></a>	draw_arc_base(center,r,ang1,ang2);
+<a name="__line1135"></a>	file_tmp_&lt;&lt;"S"&lt;&lt;endl;
+<a name="__line1136"></a>    }
+<a name="__line1137"></a>
+<a name="__line1138"></a>    void blopeps::fill_arc(const terminal::coord &amp;center,
+<a name="__line1139"></a>			   const id &amp;r,
+<a name="__line1140"></a>			   double ang1, double ang2)
+<a name="__line1141"></a>    {
+<a name="__line1142"></a>	draw_arc_base(center,r,ang1,ang2);
+<a name="__line1143"></a>	file_tmp_&lt;&lt;"F"&lt;&lt;endl;
+<a name="__line1144"></a>    }
+<a name="__line1145"></a>
+<a name="__line1146"></a>    void blopeps::draw_line(const terminal::coord &amp;c1,
+<a name="__line1147"></a>			    const terminal::coord &amp;c2)
+<a name="__line1148"></a>    {
+<a name="__line1149"></a>	file_tmp_&lt;&lt;"N"&lt;&lt;endl;
+<a name="__line1150"></a>	write(c1);
+<a name="__line1151"></a>	file_tmp_&lt;&lt;"M"&lt;&lt;endl;
+<a name="__line1152"></a>	write(c2);
+<a name="__line1153"></a>	file_tmp_&lt;&lt;"L S"&lt;&lt;endl;
+<a name="__line1154"></a>    }
+<a name="__line1155"></a>
+<a name="__line1156"></a><span class=comment>/*
+<a name="__line1157"></a>    void blopeps::draw_lines_base(const std::vector&lt;blop::terminal::id&gt; &amp;x_id,
+<a name="__line1158"></a>				  const std::vector&lt;blop::terminal::id&gt; &amp;y_id,
+<a name="__line1159"></a>				  bool rlines)
+<a name="__line1160"></a>    {
+<a name="__line1161"></a>
+<a name="__line1162"></a>	if(x_id.empty() || y_id.empty()) return;
+<a name="__line1163"></a>	int n = min(x_id.size(), y_id.size());
+<a name="__line1164"></a>
+<a name="__line1165"></a>	if(x_id.size() == 5 &amp;&amp; rlines == false)
+<a name="__line1166"></a>	{
+<a name="__line1167"></a>	    if( ( x_id[0] == x_id[1] &amp;&amp; x_id[2] == x_id[3] &amp;&amp; x_id[4] == x_id[0] &amp;&amp;
+<a name="__line1168"></a>		  y_id[1] == y_id[2] &amp;&amp; y_id[3] == y_id[4] &amp;&amp; y_id[3] == y_id[0]) ||
+<a name="__line1169"></a>		( x_id[0] == x_id[3] &amp;&amp; x_id[0] == x_id[4] &amp;&amp; x_id[1] == x_id[2] &amp;&amp;
+<a name="__line1170"></a>		  y_id[0] == y_id[1] &amp;&amp; y_id[2] == y_id[3] &amp;&amp; y_id[0] == y_id[4]) )
+<a name="__line1171"></a>
+<a name="__line1172"></a>	    {
+<a name="__line1173"></a>		if(x_id[0].length_id == 0)
+<a name="__line1174"></a>		{
+<a name="__line1175"></a>		    if(::fabs(x_id[0].relcoord) &lt; 0.0001) file_tmp_&lt;&lt;"0 ";
+<a name="__line1176"></a>		    else if(::fabs(x_id[0].relcoord-1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@W ";
+<a name="__line1177"></a>		    else if(::fabs(x_id[0].relcoord+1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@W n ";
+<a name="__line1178"></a>		    else file_tmp_&lt;&lt;x_id[0].relcoord&lt;&lt;" X ";
+<a name="__line1179"></a>		}
+<a name="__line1180"></a>		else file_tmp_&lt;&lt;i2length(x_id[0].length_id)&lt;&lt;" ";
+<a name="__line1181"></a>		if(y_id[0].length_id == 0)
+<a name="__line1182"></a>		{
+<a name="__line1183"></a>		    if(::fabs(y_id[0].relcoord) &lt; 0.0001) file_tmp_&lt;&lt;"0 ";
+<a name="__line1184"></a>		    else if(::fabs(y_id[0].relcoord-1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@H ";
+<a name="__line1185"></a>		    else if(::fabs(y_id[0].relcoord+1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@H n ";
+<a name="__line1186"></a>		    else file_tmp_&lt;&lt;y_id[0].relcoord&lt;&lt;" Y ";
+<a name="__line1187"></a>		}
+<a name="__line1188"></a>		else file_tmp_&lt;&lt;i2length(y_id[0].length_id)&lt;&lt;" ";
+<a name="__line1189"></a>
+<a name="__line1190"></a>		if(x_id[2].length_id == 0)
+<a name="__line1191"></a>		{
+<a name="__line1192"></a>		    if(::fabs(x_id[2].relcoord) &lt; 0.0001) file_tmp_&lt;&lt;"0 ";
+<a name="__line1193"></a>		    else if(::fabs(x_id[2].relcoord-1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@W ";
+<a name="__line1194"></a>		    else if(::fabs(x_id[2].relcoord+1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@W n ";
+<a name="__line1195"></a>		    else file_tmp_&lt;&lt;x_id[2].relcoord&lt;&lt;" X ";
+<a name="__line1196"></a>		}
+<a name="__line1197"></a>		else file_tmp_&lt;&lt;i2length(x_id[2].length_id)&lt;&lt;" ";
+<a name="__line1198"></a>		if(y_id[2].length_id == 0)
+<a name="__line1199"></a>		{
+<a name="__line1200"></a>		    if(::fabs(y_id[2].relcoord) &lt; 0.0001) file_tmp_&lt;&lt;"0 ";
+<a name="__line1201"></a>		    else if(::fabs(y_id[2].relcoord-1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@H ";
+<a name="__line1202"></a>		    else if(::fabs(y_id[2].relcoord+1) &lt; 0.0001) file_tmp_&lt;&lt;"BLOP@H n ";
+<a name="__line1203"></a>		    else file_tmp_&lt;&lt;y_id[2].relcoord&lt;&lt;" Y ";
+<a name="__line1204"></a>		}
+<a name="__line1205"></a>		else file_tmp_&lt;&lt;i2length(y_id[2].length_id)&lt;&lt;" ";
+<a name="__line1206"></a>		file_tmp_&lt;&lt;" Q ";
+<a name="__line1207"></a>		return;
+<a name="__line1208"></a>	    }
+<a name="__line1209"></a>	}
+<a name="__line1210"></a>
+<a name="__line1211"></a>	file_tmp_&lt;&lt;"N"&lt;&lt;endl;
+<a name="__line1212"></a>	bool closepath = false;
+<a name="__line1213"></a>	if(x_id[n-1] == x_id[0] &amp;&amp; y_id[n-1] == y_id[0] &amp;&amp; rlines == false)
+<a name="__line1214"></a>	{
+<a name="__line1215"></a>	    --n;
+<a name="__line1216"></a>	    closepath = true;
+<a name="__line1217"></a>	}
+<a name="__line1218"></a>
+<a name="__line1219"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line1220"></a>	{
+<a name="__line1221"></a>	    if(x_id[i].length_id == 0) file_tmp_&lt;&lt;x_id[i].relcoord&lt;&lt;" X ";
+<a name="__line1222"></a>	    else file_tmp_&lt;&lt;i2length(x_id[i].length_id)&lt;&lt;" ";
+<a name="__line1223"></a>	    if(y_id[i].length_id == 0) file_tmp_&lt;&lt;y_id[i].relcoord&lt;&lt;" Y ";
+<a name="__line1224"></a>	    else file_tmp_&lt;&lt;i2length(y_id[i].length_id)&lt;&lt;" ";
+<a name="__line1225"></a>	    if(i == 0) file_tmp_&lt;&lt;"M"&lt;&lt;endl;
+<a name="__line1226"></a>	    else
+<a name="__line1227"></a>	    {
+<a name="__line1228"></a>		if(rlines == false) file_tmp_&lt;&lt;"L"&lt;&lt;endl;
+<a name="__line1229"></a>		else file_tmp_&lt;&lt;"R"&lt;&lt;endl;
+<a name="__line1230"></a>	    }
+<a name="__line1231"></a>	}
+<a name="__line1232"></a>	if(closepath) file_tmp_&lt;&lt;"C"&lt;&lt;endl;
+<a name="__line1233"></a>    }
+<a name="__line1234"></a>*/</span>
+<a name="__line1235"></a>
+<a name="__line1236"></a>    void blopeps::draw_lines_base(const std::vector&lt;blop::terminal::coord&gt; &amp;c)
+<a name="__line1237"></a>    {
+<a name="__line1238"></a>	file_tmp_&lt;&lt;"N"&lt;&lt;endl;
+<a name="__line1239"></a>	bool closepath = false;
+<a name="__line1240"></a>	int n = (int)c.size();
+<a name="__line1241"></a>	if(c[n-1].x == c[0].x &amp;&amp; c[n-1].y == c[0].y)
+<a name="__line1242"></a>	{
+<a name="__line1243"></a>	    --n;
+<a name="__line1244"></a>	    closepath = true;
+<a name="__line1245"></a>	}
+<a name="__line1246"></a>	for(int i=0; i&lt;n; ++i)
+<a name="__line1247"></a>	{
+<a name="__line1248"></a>	    write(c[i]);
+<a name="__line1249"></a>	    if(i == 0) file_tmp_&lt;&lt;"M"&lt;&lt;endl;
+<a name="__line1250"></a>	    else file_tmp_&lt;&lt;"L"&lt;&lt;endl;
+<a name="__line1251"></a>	}
+<a name="__line1252"></a>	if(closepath) file_tmp_&lt;&lt;"C ";
+<a name="__line1253"></a>    }
+<a name="__line1254"></a>
+<a name="__line1255"></a>    void blopeps::draw_lines(const std::vector&lt;blop::terminal::coord&gt; &amp;c)
+<a name="__line1256"></a>    {
+<a name="__line1257"></a>	draw_lines_base(c);
+<a name="__line1258"></a>	file_tmp_&lt;&lt;"S"&lt;&lt;endl;
+<a name="__line1259"></a>    }
+<a name="__line1260"></a>
+<a name="__line1261"></a>    void blopeps::fill_polygon(const std::vector&lt;blop::terminal::coord&gt; &amp;c)
+<a name="__line1262"></a>    {
+<a name="__line1263"></a>	draw_lines_base(c);
+<a name="__line1264"></a>	file_tmp_&lt;&lt;"F"&lt;&lt;endl;
+<a name="__line1265"></a>    }
+<a name="__line1266"></a>
+<a name="__line1267"></a>
+<a name="__line1268"></a>    void blopeps::draw_rlines(const blop::terminal::coord &amp;start,
+<a name="__line1269"></a>			      const std::vector&lt;blop::terminal::id&gt; &amp;dx,
+<a name="__line1270"></a>			      const std::vector&lt;blop::terminal::id&gt; &amp;dy)
+<a name="__line1271"></a>    {
+<a name="__line1272"></a>	file_tmp_&lt;&lt;"N"&lt;&lt;endl;
+<a name="__line1273"></a>	write(start);
+<a name="__line1274"></a>	file_tmp_&lt;&lt;" M"&lt;&lt;endl;
+<a name="__line1275"></a>	for(unsigned int i=0; i&lt;dx.size(); ++i)
+<a name="__line1276"></a>	{
+<a name="__line1277"></a>	    write(dx[i]);
+<a name="__line1278"></a>	    write(dy[i]);
+<a name="__line1279"></a>	    file_tmp_&lt;&lt;"R"&lt;&lt;endl;
+<a name="__line1280"></a>	}
+<a name="__line1281"></a>	file_tmp_&lt;&lt;"S"&lt;&lt;endl;
+<a name="__line1282"></a>    }
+<a name="__line1283"></a>
+<a name="__line1284"></a>
+<a name="__line1285"></a>    void blopeps::set_color(const color &amp;c)
+<a name="__line1286"></a>    {
+<a name="__line1287"></a>	if(current_color_ == c) return;
+<a name="__line1288"></a>	current_color_ = c;
+<a name="__line1289"></a>	file_tmp_&lt;&lt;c.red()&lt;&lt;" "&lt;&lt;c.green()&lt;&lt;" "&lt;&lt;c.blue()&lt;&lt;" c"&lt;&lt;endl;
+<a name="__line1290"></a>    }
+<a name="__line1291"></a>
+<a name="__line1292"></a>    void blopeps::set_linewidth(const id &amp;i)
+<a name="__line1293"></a>    {
+<a name="__line1294"></a>	if(i.length_id)
+<a name="__line1295"></a>	{
+<a name="__line1296"></a>	    if(current_linewidth_ == i.length_id) return;
+<a name="__line1297"></a>	    current_linewidth_ = i.length_id;
+<a name="__line1298"></a>	}
+<a name="__line1299"></a>	else current_linewidth_ = 0;
+<a name="__line1300"></a>	write(i);
+<a name="__line1301"></a>	file_tmp_&lt;&lt;"w";
+<a name="__line1302"></a>
+<a name="__line1303"></a>        file_tmp_&lt;&lt;"[";
+<a name="__line1304"></a>        for(unsigned int i=0; i&lt;current_linestyle_.size(); ++i)
+<a name="__line1305"></a>        {
+<a name="__line1306"></a>            if(i&gt;0) file_tmp_&lt;&lt;" ";
+<a name="__line1307"></a>            file_tmp_&lt;&lt;"currentlinewidth "&lt;&lt;current_linestyle_[i]&lt;&lt;" m";
+<a name="__line1308"></a>        }
+<a name="__line1309"></a>        file_tmp_&lt;&lt;"] 0 setdash"&lt;&lt;endl;
+<a name="__line1310"></a>
+<a name="__line1311"></a><span class=comment>/*        
+<a name="__line1312"></a>	if(current_linestyle_ == sym::dotted) file_tmp_&lt;&lt;" p";
+<a name="__line1313"></a>	else if(current_linestyle_ == sym::dashed) file_tmp_&lt;&lt;" v";
+<a name="__line1314"></a>	else if(current_linestyle_ == sym::dashdotted) file_tmp_&lt;&lt;" pv";
+<a name="__line1315"></a>	else if(current_linestyle_ == sym::dashddotted) file_tmp_&lt;&lt;" ppv";
+<a name="__line1316"></a>	file_tmp_&lt;&lt;endl;
+<a name="__line1317"></a>*/</span>
+<a name="__line1318"></a>    }
+<a name="__line1319"></a>
+<a name="__line1320"></a>    void blopeps::set_linestyle(sym::linestyle ls)
+<a name="__line1321"></a>    {
+<a name="__line1322"></a>        if(current_linestyle_.size() == ls.size())
+<a name="__line1323"></a>        {
+<a name="__line1324"></a>            bool same = true;
+<a name="__line1325"></a>            for(unsigned int i=0; i&lt;ls.size(); ++i)
+<a name="__line1326"></a>            {
+<a name="__line1327"></a>                if(current_linestyle_[i] != ls[i])
+<a name="__line1328"></a>                {
+<a name="__line1329"></a>                    same = false; 
+<a name="__line1330"></a>                    break;
+<a name="__line1331"></a>                }
+<a name="__line1332"></a>            }
+<a name="__line1333"></a>            if(same) return;
+<a name="__line1334"></a>        }
+<a name="__line1335"></a>
+<a name="__line1336"></a>	current_linestyle_ = ls;
+<a name="__line1337"></a>
+<a name="__line1338"></a>        file_tmp_&lt;&lt;"[";
+<a name="__line1339"></a>        for(unsigned int i=0; i&lt;current_linestyle_.size(); ++i)
+<a name="__line1340"></a>        {
+<a name="__line1341"></a>            if(i&gt;0) file_tmp_&lt;&lt;" ";
+<a name="__line1342"></a>            file_tmp_&lt;&lt;"currentlinewidth "&lt;&lt;current_linestyle_[i]&lt;&lt;" m";
+<a name="__line1343"></a>        }
+<a name="__line1344"></a>        file_tmp_&lt;&lt;"] 0 setdash"&lt;&lt;endl;
+<a name="__line1345"></a>
+<a name="__line1346"></a><span class=comment>/*
+<a name="__line1347"></a>	if(i == sym::dotted) file_tmp_&lt;&lt;" p"&lt;&lt;endl;
+<a name="__line1348"></a>	else if(i == sym::dashed) file_tmp_&lt;&lt;" v"&lt;&lt;endl;
+<a name="__line1349"></a>	else if(i == sym::dashdotted) file_tmp_&lt;&lt;" pv"&lt;&lt;endl;
+<a name="__line1350"></a>	else if(i == sym::dashddotted) file_tmp_&lt;&lt;" ppv"&lt;&lt;endl;
+<a name="__line1351"></a>	else file_tmp_&lt;&lt;" f"&lt;&lt;endl;
+<a name="__line1352"></a>*/</span>
+<a name="__line1353"></a>        
+<a name="__line1354"></a>    }
+<a name="__line1355"></a>	
+<a name="__line1356"></a>
+<a name="__line1357"></a>    int blopeps::atan(const id &amp;x,const id &amp;y)
+<a name="__line1358"></a>    {
+<a name="__line1359"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" ";
+<a name="__line1360"></a>	write(y);
+<a name="__line1361"></a>	write(x);
+<a name="__line1362"></a>	file_tmp_&lt;&lt;"atan d"&lt;&lt;endl;
+<a name="__line1363"></a>	return max_length_index_;
+<a name="__line1364"></a>    }
+<a name="__line1365"></a>
+<a name="__line1366"></a>    int blopeps::add_dbl(const double_id &amp;a,const double_id &amp;b)
+<a name="__line1367"></a>    {
+<a name="__line1368"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" ";
+<a name="__line1369"></a>	if(a.id &gt; 0) file_tmp_&lt;&lt;i2length(a.id)&lt;&lt;" ";
+<a name="__line1370"></a>	else file_tmp_&lt;&lt;a.value&lt;&lt;" ";
+<a name="__line1371"></a>	if(b.id &gt; 0) file_tmp_&lt;&lt;i2length(b.id)&lt;&lt;" ";
+<a name="__line1372"></a>	else file_tmp_&lt;&lt;b.value&lt;&lt;" a d"&lt;&lt;endl;
+<a name="__line1373"></a>	return max_length_index_;
+<a name="__line1374"></a>    }
+<a name="__line1375"></a>
+<a name="__line1376"></a>    int blopeps::sin_dbl(int i)
+<a name="__line1377"></a>    {
+<a name="__line1378"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" "&lt;&lt;i2length(i)&lt;&lt;" sin d"&lt;&lt;endl;
+<a name="__line1379"></a>	return max_length_index_;
+<a name="__line1380"></a>    }
+<a name="__line1381"></a>
+<a name="__line1382"></a>    int blopeps::cos_dbl(int i)
+<a name="__line1383"></a>    {
+<a name="__line1384"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" "&lt;&lt;i2length(i)&lt;&lt;" cos d"&lt;&lt;endl;
+<a name="__line1385"></a>	return max_length_index_;
+<a name="__line1386"></a>    }
+<a name="__line1387"></a>
+<a name="__line1388"></a>    int blopeps::neg_dbl(int i)
+<a name="__line1389"></a>    {
+<a name="__line1390"></a>	file_tmp_&lt;&lt;"/"&lt;&lt;i2length(++max_length_index_)&lt;&lt;" "&lt;&lt;i2length(i)&lt;&lt;" neg d"&lt;&lt;endl;
+<a name="__line1391"></a>	return max_length_index_;
+<a name="__line1392"></a>    }
+<a name="__line1393"></a>
+<a name="__line1394"></a>
+<a name="__line1395"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

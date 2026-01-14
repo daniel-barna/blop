@@ -1,0 +1,235 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: vec3.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_VEC3_H__
+<a name="__line1"></a>#define __BLOP_VEC3_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;iostream&gt;
+<a name="__line4"></a>#include &lt;cmath&gt;
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    namespace geom
+<a name="__line9"></a>    {
+<a name="__line10"></a>        class transformation;
+<a name="__line11"></a>        class rotation;
+<a name="__line12"></a>
+<a name="__line13"></a>	class vec3
+<a name="__line14"></a>	{
+<a name="__line15"></a><span class=public>	public:
+<a name="__line16"></a>	    double x,y,z;
+<a name="__line17"></a>
+<a name="__line18"></a>            <span class=comment>// References to x,y,z</span>
+<a name="__line19"></a>            double &amp;x1, &amp;x2, &amp;x3;
+<a name="__line20"></a>
+<a name="__line21"></a>
+<a name="__line22"></a>	    vec3 ()            : x(0),y(0),z(0),x1(x),x2(y),x3(z) {}
+<a name="__line23"></a>	    vec3 (double X, double Y, double Z) : x(X),y(Y),z(Z),x1(x),x2(y),x3(z) {}
+<a name="__line24"></a>
+<a name="__line25"></a>            <span class=comment>// Create a vector with the given components, normalized to 'norm'</span>
+<a name="__line26"></a>            vec3 (double X, double Y, double Z, double norm) : x1(x), x2(y), x3(z)
+<a name="__line27"></a>            {
+<a name="__line28"></a>                const double d = std::sqrt(X*X+Y*Y+Z*Z);
+<a name="__line29"></a>                x = X/d*norm;
+<a name="__line30"></a>                y = Y/d*norm;
+<a name="__line31"></a>                z = Z/d*norm;
+<a name="__line32"></a>            }
+<a name="__line33"></a>
+<a name="__line34"></a>	    vec3 (const vec3 &amp;v) : x(v.x),y(v.y),z(v.z),x1(x),x2(y),x3(z) {}
+<a name="__line35"></a>
+<a name="__line36"></a>            <span class=comment>// Set the vector to v, and normalize to 'norm', i.e. *this = v/abs(v)*norm;</span>
+<a name="__line37"></a>            vec3 (const vec3 &amp;v, double norm) : x(v.x), y(v.y), z(v.z),x1(x),x2(y),x3(z) { normalize(norm); }
+<a name="__line38"></a>
+<a name="__line39"></a>	    inline const vec3&amp; operator= (const vec3 &amp;rhs)
+<a name="__line40"></a>		{
+<a name="__line41"></a>		    x = rhs.x;
+<a name="__line42"></a>		    y = rhs.y;
+<a name="__line43"></a>		    z = rhs.z;
+<a name="__line44"></a>		    return *this;
+<a name="__line45"></a>		}
+<a name="__line46"></a>
+<a name="__line47"></a>	    inline void     assign (double X,double Y,double Z) {x = X; y = Y; z = Z; } 
+<a name="__line48"></a>
+<a name="__line49"></a>	    <span class=comment>// set the vectorcomponents to the given values</span>
+<a name="__line50"></a>
+<a name="__line51"></a>	    inline void  operator/= (double r)  {x /= r; y /= r; z /= r;}
+<a name="__line52"></a>	    inline void  operator/= (int r)  {x /= r; y /= r; z /= r;}
+<a name="__line53"></a>	    inline void  operator/= (short r)  {x /= r; y /= r; z /= r;}
+<a name="__line54"></a>	    inline void  operator/= (unsigned int r)  {x /= r; y /= r; z /= r;}
+<a name="__line55"></a>	    inline void  operator*= (double r)  {x *= r; y *= r; z *= r;}
+<a name="__line56"></a>	    inline void  operator*= (int r)  {x *= r; y *= r; z *= r;}
+<a name="__line57"></a>	    inline void  operator*= (short r)  {x *= r; y *= r; z *= r;}
+<a name="__line58"></a>	    inline void  operator*= (unsigned int r)  {x *= r; y *= r; z *= r;}
+<a name="__line59"></a>
+<a name="__line60"></a>	    inline void  operator+= (const vec3 &amp;v)
+<a name="__line61"></a>	    {
+<a name="__line62"></a>		x += v.x; 
+<a name="__line63"></a>		y += v.y;
+<a name="__line64"></a>		z += v.z;
+<a name="__line65"></a>	    }
+<a name="__line66"></a>	    inline void  operator-= (const vec3 &amp;v)
+<a name="__line67"></a>	    {
+<a name="__line68"></a>		x -= v.x; 
+<a name="__line69"></a>		y -= v.y;
+<a name="__line70"></a>		z -= v.z;
+<a name="__line71"></a>	    }
+<a name="__line72"></a>
+<a name="__line73"></a>	    inline vec3 &amp;normalize(double length=1)
+<a name="__line74"></a>	    {
+<a name="__line75"></a>		(*this) *= length/std::sqrt(x*x + y*y + z*z);
+<a name="__line76"></a>                return *this;
+<a name="__line77"></a>	    } 
+<a name="__line78"></a>
+<a name="__line79"></a>	    <span class=comment>// a vec3 converts to true if all 3 components are finite</span>
+<a name="__line80"></a>	    operator bool() const
+<a name="__line81"></a>	    {
+<a name="__line82"></a>		return finite(x) &amp;&amp; finite(y) &amp;&amp; finite(z);
+<a name="__line83"></a>	    }
+<a name="__line84"></a>
+<a name="__line85"></a>            const vec3 &amp;operator*= (const rotation &amp;);
+<a name="__line86"></a>	};
+<a name="__line87"></a>
+<a name="__line88"></a>        inline vec3 normalize(vec3 v, double norm = 1) { return v.normalize(norm); }
+<a name="__line89"></a>
+<a name="__line90"></a>	inline bool operator== (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line91"></a>	{
+<a name="__line92"></a>	    return (v1.x==v2.x &amp;&amp; v1.y==v2.y &amp;&amp; v1.z==v2.z);
+<a name="__line93"></a>	}
+<a name="__line94"></a>	inline bool operator!= (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line95"></a>	{
+<a name="__line96"></a>	    return !(v1==v2);
+<a name="__line97"></a>	}
+<a name="__line98"></a>	inline bool operator&lt; (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line99"></a>	{
+<a name="__line100"></a>	    if(v1.x&lt;v2.x) return true;
+<a name="__line101"></a>	    if(v1.x&gt;v2.x) return false;
+<a name="__line102"></a>	    if(v1.y&lt;v2.y) return true;
+<a name="__line103"></a>	    if(v1.y&gt;v2.y) return false;
+<a name="__line104"></a>	    if(v1.z&lt;v2.z) return true;
+<a name="__line105"></a>	    if(v1.z&gt;v2.z) return false;
+<a name="__line106"></a>            return false;
+<a name="__line107"></a>	}
+<a name="__line108"></a>	inline bool operator&gt; (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line109"></a>	{
+<a name="__line110"></a>	    if(v1.x&gt;v2.x) return true;
+<a name="__line111"></a>	    if(v1.x&lt;v2.x) return false;
+<a name="__line112"></a>	    if(v1.y&gt;v2.y) return true;
+<a name="__line113"></a>	    if(v1.y&lt;v2.y) return false;
+<a name="__line114"></a>	    if(v1.z&gt;v2.z) return true;
+<a name="__line115"></a>	    if(v1.z&lt;v2.z) return false;
+<a name="__line116"></a>            return false;
+<a name="__line117"></a>	}
+<a name="__line118"></a>
+<a name="__line119"></a>	inline bool operator&lt;= (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line120"></a>	{
+<a name="__line121"></a>	    return !(v1&gt;v2);
+<a name="__line122"></a>	}
+<a name="__line123"></a>
+<a name="__line124"></a>	inline bool operator&gt;= (const vec3 &amp;v1, const vec3 &amp;v2)
+<a name="__line125"></a>	{
+<a name="__line126"></a>	    return !(v1&lt;v2);
+<a name="__line127"></a>	}
+<a name="__line128"></a>
+<a name="__line129"></a>	inline double operator* (const vec3 &amp;v1,const vec3 &amp;v2)
+<a name="__line130"></a>	{
+<a name="__line131"></a>	    return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+<a name="__line132"></a>	}
+<a name="__line133"></a>
+<a name="__line134"></a>	inline double abs(const vec3 &amp;v)
+<a name="__line135"></a>	{
+<a name="__line136"></a>	    return std::sqrt(v*v);
+<a name="__line137"></a>	}
+<a name="__line138"></a>
+<a name="__line139"></a>	inline vec3  operator* (const vec3 &amp;v,double factor)
+<a name="__line140"></a>	{
+<a name="__line141"></a>	    return vec3(v.x*factor,v.y*factor,v.z*factor);
+<a name="__line142"></a>	}
+<a name="__line143"></a>	inline vec3  operator* (const vec3 &amp;v,int factor)
+<a name="__line144"></a>	{
+<a name="__line145"></a>	    return vec3(v.x*factor,v.y*factor,v.z*factor);
+<a name="__line146"></a>	}
+<a name="__line147"></a>
+<a name="__line148"></a>	inline vec3  operator* (double factor,const vec3 &amp;v)
+<a name="__line149"></a>	{
+<a name="__line150"></a>	    return vec3(v.x*factor,v.y*factor,v.z*factor);
+<a name="__line151"></a>	}
+<a name="__line152"></a>	inline vec3  operator* (int factor,const vec3 &amp;v)
+<a name="__line153"></a>	{
+<a name="__line154"></a>	    return vec3(v.x*factor,v.y*factor,v.z*factor);
+<a name="__line155"></a>	}
+<a name="__line156"></a>
+<a name="__line157"></a>	inline vec3 operator/ (const vec3 &amp;v,double d)
+<a name="__line158"></a>	{
+<a name="__line159"></a>	    return vec3(v.x/d,v.y/d,v.z/d);
+<a name="__line160"></a>	}
+<a name="__line161"></a>	inline vec3 operator/ (const vec3 &amp;v,int d)
+<a name="__line162"></a>	{
+<a name="__line163"></a>	    return vec3(v.x/d,v.y/d,v.z/d);
+<a name="__line164"></a>	}
+<a name="__line165"></a>
+<a name="__line166"></a>	inline vec3  operator+ (const vec3 &amp;v1,
+<a name="__line167"></a>				 const vec3 &amp;v2)
+<a name="__line168"></a>	{
+<a name="__line169"></a>	    return vec3(v1.x+v2.x,v1.y+v2.y,v1.z+v2.z);
+<a name="__line170"></a>	}
+<a name="__line171"></a>
+<a name="__line172"></a>	inline vec3  operator- (const vec3 &amp;v1,
+<a name="__line173"></a>				 const vec3 &amp;v2)
+<a name="__line174"></a>	{
+<a name="__line175"></a>	    return vec3(v1.x-v2.x,v1.y-v2.y,v1.z-v2.z);
+<a name="__line176"></a>	}
+<a name="__line177"></a>
+<a name="__line178"></a>	inline vec3 operator- (const vec3 &amp;v)
+<a name="__line179"></a>	{
+<a name="__line180"></a>	    return (-1.0) * v;
+<a name="__line181"></a>	}
+<a name="__line182"></a>
+<a name="__line183"></a>        <span class=comment>// vectorial product of two vectors. chosing the % operator for this role is </span>
+<a name="__line184"></a>        <span class=comment>// maybe a surprise, but this operator has the multiplicative precedence.</span>
+<a name="__line185"></a>
+<a name="__line186"></a>	inline vec3 operator% (const vec3 &amp;v1,
+<a name="__line187"></a>				const vec3 &amp;v2)
+<a name="__line188"></a>	{
+<a name="__line189"></a>	    return vec3(v1.y*v2.z-v1.z*v2.y,
+<a name="__line190"></a>			v1.z*v2.x-v1.x*v2.z,
+<a name="__line191"></a>			v1.x*v2.y-v1.y*v2.x);
+<a name="__line192"></a>	}
+<a name="__line193"></a>
+<a name="__line194"></a>	inline std::ostream &amp;operator&lt;&lt;(std::ostream &amp;output,const vec3 &amp;v)
+<a name="__line195"></a>	{
+<a name="__line196"></a>	    output&lt;&lt;v.x&lt;&lt;" "&lt;&lt;v.y&lt;&lt;" "&lt;&lt;v.z;
+<a name="__line197"></a>	    return output;
+<a name="__line198"></a>	}
+<a name="__line199"></a>
+<a name="__line200"></a>
+<a name="__line201"></a>    }
+<a name="__line202"></a>}
+<a name="__line203"></a>
+<a name="__line204"></a>
+<a name="__line205"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

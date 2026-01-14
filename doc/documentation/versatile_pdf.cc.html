@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: versatile_pdf.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="versatile_pdf.h.html">versatile_pdf.h</a>"
+<a name="__line1"></a>#include "<a href="bloputils.h.html">bloputils.h</a>"
+<a name="__line2"></a>#include &lt;unistd.h&gt;
+<a name="__line3"></a>
+<a name="__line4"></a>namespace blop
+<a name="__line5"></a>{
+<a name="__line6"></a>
+<a name="__line7"></a>    void versatile_pdf::assemble_pages(const std::vector&lt;std::string&gt; &amp;filenames)
+<a name="__line8"></a>    {
+<a name="__line9"></a>        std::string cmd = "pdftk ";
+<a name="__line10"></a>        for(unsigned int i=0; i&lt;filenames.size(); ++i) cmd += filenames[i] + " ";
+<a name="__line11"></a>        cmd += "cat output " + outfilename_;
+<a name="__line12"></a>        if(system(cmd) != 0)
+<a name="__line13"></a>        {
+<a name="__line14"></a>            warning::print("Failed to assemble versatile_pdf: " + outfilename_,
+<a name="__line15"></a>                           "versatile_pdf::assemble_pages(...)");
+<a name="__line16"></a>        }
+<a name="__line17"></a>    }
+<a name="__line18"></a>
+<a name="__line19"></a>    versatile_pdf::~versatile_pdf()
+<a name="__line20"></a>    {
+<a name="__line21"></a>        if(needs_flush_) assemble_pages(page_filenames_);
+<a name="__line22"></a>    }
+<a name="__line23"></a>
+<a name="__line24"></a>    void versatile_pdf::include(const var &amp;fn, const var &amp;convert_options)
+<a name="__line25"></a>    {
+<a name="__line26"></a>        string filename(fn);
+<a name="__line27"></a>        if(filename[0] != '/')
+<a name="__line28"></a>        {
+<a name="__line29"></a>            char buf[1000];
+<a name="__line30"></a>            char *cwd = getcwd(buf,999);
+<a name="__line31"></a>            if(cwd) filename = string(cwd) + "/" + filename;
+<a name="__line32"></a>        }
+<a name="__line33"></a>
+<a name="__line34"></a>        ifstream test(filename.c_str());
+<a name="__line35"></a>        if(!test.good()) 
+<a name="__line36"></a>        {
+<a name="__line37"></a>            warning::print("File does not exist: " &amp; filename,
+<a name="__line38"></a>                           "versatile_pdf::include_pdf(filename)");
+<a name="__line39"></a>            return;
+<a name="__line40"></a>        }
+<a name="__line41"></a>
+<a name="__line42"></a>        if(filename.rfind(".pdf") == filename.size()-4 ||
+<a name="__line43"></a>           filename.rfind(".PDF") == filename.size()-4)
+<a name="__line44"></a>        {
+<a name="__line45"></a>            ++pagecounter_;
+<a name="__line46"></a>            page_filenames_.push_back(filename);
+<a name="__line47"></a>        }
+<a name="__line48"></a>        else
+<a name="__line49"></a>        {
+<a name="__line50"></a>            char tmpfilename[200];
+<a name="__line51"></a>            sprintf(tmpfilename,"%s/page_%i.pdf",tmpdir_.c_str(),pagecounter_++);
+<a name="__line52"></a>            string cmd = string("convert ") + convert_options.str() + " '" + filename + "' " + tmpfilename;
+<a name="__line53"></a>            if(system(cmd)==0)
+<a name="__line54"></a>            {
+<a name="__line55"></a>                page_filenames_.push_back(tmpfilename);
+<a name="__line56"></a>            }
+<a name="__line57"></a>            else
+<a name="__line58"></a>            {
+<a name="__line59"></a>                warning::print("Conversion failed: " + cmd,
+<a name="__line60"></a>                               "versatile_pdf::include(\"" + filename + "\")");
+<a name="__line61"></a>            }
+<a name="__line62"></a>        }
+<a name="__line63"></a>        if(pagecounter_%flush_frequency_==0)
+<a name="__line64"></a>        {
+<a name="__line65"></a>            assemble_pages(page_filenames_);
+<a name="__line66"></a>            needs_flush_ = false;
+<a name="__line67"></a>        }
+<a name="__line68"></a>        else needs_flush_ = true;
+<a name="__line69"></a>    }
+<a name="__line70"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>
