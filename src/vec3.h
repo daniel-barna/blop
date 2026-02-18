@@ -20,11 +20,18 @@ namespace blop
             double &x1, &x2, &x3;
 
 
-	    vec3 ()            : x(0),y(0),z(0),x1(x),x2(y),x3(z) {}
-	    vec3 (double X, double Y, double Z) : x(X),y(Y),z(Z),x1(x),x2(y),x3(z) {}
+	    vec3 ()            : 
+                x(0),y(0),z(0)
+                ,x1(x),x2(y),x3(z) 
+                {}
+	    vec3 (double X, double Y, double Z) : 
+                x(X),y(Y),z(Z)
+                ,x1(x),x2(y),x3(z) 
+                {}
 
             // Create a vector with the given components, normalized to 'norm'
-            vec3 (double X, double Y, double Z, double norm) : x1(x), x2(y), x3(z)
+            vec3 (double X, double Y, double Z, double norm)
+                : x1(x), x2(y), x3(z)
             {
                 const double d = std::sqrt(X*X+Y*Y+Z*Z);
                 x = X/d*norm;
@@ -32,10 +39,16 @@ namespace blop
                 z = Z/d*norm;
             }
 
-	    vec3 (const vec3 &v) : x(v.x),y(v.y),z(v.z),x1(x),x2(y),x3(z) {}
+	    vec3 (const vec3 &v) : 
+                x(v.x),y(v.y),z(v.z)
+                ,x1(x),x2(y),x3(z) 
+                {}
 
             // Set the vector to v, and normalize to 'norm', i.e. *this = v/abs(v)*norm;
-            vec3 (const vec3 &v, double norm) : x(v.x), y(v.y), z(v.z),x1(x),x2(y),x3(z) { normalize(norm); }
+            vec3 (const vec3 &v, double norm) : 
+                x(v.x), y(v.y), z(v.z)
+                ,x1(x),x2(y),x3(z) 
+                { normalize(norm); }
 
 	    inline const vec3& operator= (const vec3 &rhs)
 		{

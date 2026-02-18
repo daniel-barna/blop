@@ -28,6 +28,12 @@ namespace blop
         versatile_pdf(const std::filesystem::path &filename)
             : outfilename_(filename.c_str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
         {}
+        versatile_pdf(const char *filename)
+            : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+        {}
+        versatile_pdf(const std::string &filename)
+            : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+        {}
 
         virtual ~versatile_pdf();
 

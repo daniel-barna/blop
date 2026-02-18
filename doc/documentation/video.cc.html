@@ -74,7 +74,7 @@
 <a name="__line56"></a>	char s[100];
 <a name="__line57"></a>	sprintf(s,"%s/frame-%06d.beps",tmpdir_.c_str(),frameno_);
 <a name="__line58"></a>	string bepsname = s;
-<a name="__line59"></a>	blopeps::print(bepsname);
+<a name="__line59"></a>	blopeps::print(var(bepsname));
 <a name="__line60"></a>
 <a name="__line61"></a>	<span class=comment>// don't let too many processes run in parallel.... </span>
 <a name="__line62"></a>	if(pids_.size()&gt;20) wait_all_();

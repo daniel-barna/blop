@@ -81,6 +81,7 @@ namespace blop
 	    // (to be used by 'beps2eps', if not overwritten by command line arguments)
 
 	    static void print(const var &filename, const var &pref_width="", const var &pref_height="");
+            static void print(const std::filesystem::path &filename, const var &pref_width="", const var &pref_height="") { blopeps::print(var(filename.c_str()), pref_width, pref_height); }
 
 
 	    // -------- Following functions are not supposed to be called by user ----------

@@ -57,7 +57,7 @@ namespace blop
 	char s[100];
 	sprintf(s,"%s/frame-%06d.beps",tmpdir_.c_str(),frameno_);
 	string bepsname = s;
-	blopeps::print(bepsname);
+	blopeps::print(var(bepsname));
 
 	// don't let too many processes run in parallel.... 
 	if(pids_.size()>20) wait_all_();

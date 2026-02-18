@@ -15,6 +15,7 @@ namespace blop
     {
         class point;
 	class line;
+        class segment;
 	class plane;
 	class triangle;
         class transformation;
@@ -31,7 +32,7 @@ namespace blop
         inline double distance(const line &l, const point &p);
         inline double distance(const point &p, const line &l);
 
-
+        double distance(const segment &s1, const segment &s2);
 
         // ----------------------------- point -------------------------------------------------
 
@@ -103,6 +104,20 @@ namespace blop
         {
             return point(p.coord-v);
         }
+
+        class segment
+        {
+        private:
+            point p1_, p2_;
+
+        public:
+            segment() {}
+            segment(const point &p1, const point &p2) : p1_(p1), p2_(p2) {}
+            const point &p1() const { return p1_; }
+            const point &p2() const { return p2_; }
+
+        };
+            
 
 	class line
 	{
