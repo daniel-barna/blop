@@ -94,7 +94,7 @@ namespace blop
             virtual bool      uses_par(int i) const {return false;}
 	
             // return the character-representation of this expression
-            virtual var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const = 0;
+            virtual var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const = 0;
             virtual var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
                                      const var &x="x", const var &y="y", const var &z="z") const
             {
@@ -299,9 +299,11 @@ namespace blop
 
         void init_();
         mutable std::vector<blop::var>    result_;
+
         std::vector<blop::var>    parameters_;
-        std::vector<blop::var>    parnames_;
-        std::map<int, blop::var>  parformats_;
+//        std::vector<blop::var>    parnames_;
+        std::map<unsigned int, blop::var>  parnames_;
+        std::map<unsigned int, blop::var>  parformats_;
 
         function(const std::vector<function::core*> &bases, bool clone_them=true);
 
@@ -473,7 +475,7 @@ namespace blop
         // --- Print the function's formula into a 'var' --------------------
 
         var sprint() const;
-        var sprint(std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names={}) const;
+        var sprint(std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names={}) const;
         var sprint_latex(const var &x="x", const var &y="y", const var &z="z") const;
         void print(std::ostream &out = cout) const;
 

@@ -47,7 +47,7 @@ namespace blop
 	    bool      uses_arg(int i) const { return func_->uses_arg(i) || format_->uses_arg(i); }
 	    bool      uses_par(int i) const { return func_->uses_par(i) || format_->uses_par(i); }
 
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 
 	    bool equals(const function::core *rhs) const;
 
@@ -84,7 +84,7 @@ namespace blop
 	    int       npars()          const { return std::max(start_->npars(),end_->npars()); }
 	    bool      uses_arg(int i) const { return false; }
 	    bool      uses_par(int i) const { return start_->uses_par(i) || end_->uses_par(i); }
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *rhs) const;
 	    int n_out() const { return 1; }
 	    bool is_constant() const { return false; }
@@ -120,7 +120,7 @@ namespace blop
 	    int       npars()          const;
 	    bool      uses_arg(int i) const;
 	    bool      uses_par(int i) const;
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *) const;
 	    int n_out() const;
 	    bool is_constant() const;
@@ -154,7 +154,7 @@ namespace blop
 	    int       npars()          const;
 	    bool      uses_arg(int i) const;
 	    bool      uses_par(int i) const;
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *) const;
 	    int n_out() const;
 	    bool is_constant() const;
@@ -187,7 +187,7 @@ public:
     int npars() const { return 0; }
     bool uses_arg(int i) const { return i==1; }
     bool uses_par(int i) const { return false; }
-    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
         {
             return "stepfunc";
         }
@@ -271,7 +271,7 @@ public:
                     }
                     return false; 
 		}
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    string result;
 		    //if(base_.size()>1) result += "[";
@@ -354,7 +354,7 @@ public:
 	    int npars() const { return base_->npars(); }
 	    bool uses_arg(int i) const { return base_->uses_arg(i); }
 	    bool uses_par(int i) const { return base_->uses_par(i); }
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    function::core *create_derivative(int) const;
 	    bool equals(const function::core *) const;
 	    int n_out() const { return 1; }
@@ -380,7 +380,7 @@ public:
 	    void init_(void *);
 
 	public:
-	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
     
 	    bool uses_arg(int i) const;
     
@@ -453,7 +453,7 @@ public:
                     if(nout_*2>tmp_.size()) tmp_.resize(nout_*2);
                 }
 	public:
-	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "Not yet implemented"; }
+	    var sprint(const std::vector<blop::var> &par, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const { return "Not yet implemented"; }
     
 	    bool uses_arg(int i) const { return i>0 && i<=nargs_; }
             bool uses_par(int i) const { return i>0 && i<=npars_; }
@@ -553,7 +553,7 @@ public:
 	    int npars() const { return 0; }
 
 	    // its character representation. 
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    if(value_.is_dbl()) return value_;
 		    var result = "\""; result &= value_; result &= "\""; return result;
@@ -617,7 +617,7 @@ public:
 	    int npars() const { return 0; }
 
 	    // its character representation. 
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = "random(";
 		    result &= from_;
@@ -682,7 +682,7 @@ public:
 	    int npars() const { return 0; }
 
 	    // its character representation. 
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
                     return var("_n(") & id_ & ")";
 		}
@@ -758,7 +758,7 @@ public:
 	    bool uses_arg(int i) const { return (i==1 || low_->uses_arg(i) || high_->uses_arg(i) ); }
 
 	    // character representation
-	    var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &p, bool v, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = "charfunc";
 		    if(low_in_) result &= "[";
@@ -836,7 +836,7 @@ public:
 
 	    // Its representation is _N (this symbol is defined in the C++ interface
 	    // to refer to this expression)
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "_N"; }
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const { return "_N"; }
 	    var sprint_latex(const std::vector<blop::var> &, bool,
 			     const var &, const var &, const var &) const
 		{
@@ -922,7 +922,7 @@ public:
 	    // determining the argument index. This symbol is defined in the
 	    // c++ interface to access this expression, therefore this character
 	    // representation can again be pasted as it is to the c++ interpreter
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    return "PREV";
 		}
@@ -1012,7 +1012,7 @@ public:
 	    // determining the argument index. This symbol is defined in the
 	    // c++ interface to access this expression, therefore this character
 	    // representation can again be pasted as it is to the c++ interpreter
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
                     auto pos = variable_names.find(arg_index_+1);
                     if(pos != variable_names.end()) return (*pos).second;
@@ -1093,7 +1093,7 @@ public:
 	    // determining the argument index. This symbol is defined in the
 	    // c++ interface to access this expression, therefore this character
 	    // representation can again be pasted as it is to the c++ interpreter
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    return string("_c(\"") + name_ + string("\")");
 		}
@@ -1313,7 +1313,7 @@ public:
 
 	    // return the character representation, the operator symbol (name above)
 	    // placed between the two operands
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
 			     const var &x="x", const var &y="y", const var &z="z") const;
 
@@ -1333,7 +1333,7 @@ public:
 	    binary_function(const binary_function &o) : binary_base(o.name_,o.left_,o.right_) {}
 
 	    // return the character representation
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = name_;
 		    result &= "(";
@@ -1645,7 +1645,7 @@ public:
             bool uses_arg(int i) const;
             bool uses_par(int i) const;
             int n_out() const;
-            var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+            var sprint(const std::vector<blop::var> &p, bool v, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    var sprint_latex(const std::vector<blop::var> &p, bool v,
 			     const var &x, const var &y, const var &z) const;
 	    function::core *create_derivative(int) const
@@ -1694,7 +1694,7 @@ public:
 	    bool uses_arg(int i) const;
 	    bool uses_par(int i) const;
 	    int n_out() const;
-	    var sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &p, bool v, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    var sprint_latex(const std::vector<blop::var> &p, bool v,
 			     const var &x, const var &y, const var &z) const;
 	    
@@ -2574,7 +2574,7 @@ public:
 	    // character representation is pow(operand,n). This function is defined in the C++
 	    // interface (and returns an Ipow), so this representation can be directly pasted
 	    // into the interpreter
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = "";
 		    if(type_ == J) result = "bessel_J";
@@ -2682,7 +2682,7 @@ public:
 	    // character representation is pow(operand,n). This function is defined in the C++
 	    // interface (and returns an Ipow), so this representation can be directly pasted
 	    // into the interpreter
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = name_;
 		    result &= "(";
@@ -2710,7 +2710,7 @@ public:
 	    unary_function(const unary_function &o) : unary_base(o.name_, o.operand_) {}
 
 	    // character representation: functionname(arg)
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = name_;
 		    result &= "(";
@@ -2742,7 +2742,7 @@ public:
 	    unary_operator(const unary_operator &o) : unary_base(o.name_, o.operand_) {}
 
 	    // character representation: operatorsymbol(arg)
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
 		{
 		    var result = name_;
 		    result &= "(";
@@ -3100,7 +3100,7 @@ public:
             bool uses_arg(int) const { return false; }
 	    bool uses_par(int i) const { return i-1==(int)parameter_index_;}
 
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
 			     const var &x, const var &y, const var &z) const;
 
@@ -3154,7 +3154,7 @@ public:
 	    int npars() const;
 
 	    function::core *create_derivative(int) const;
-	    var sprint(const std::vector<blop::var> &, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    virtual var sprint_latex(const std::vector<blop::var> &pars, bool parvalue,
 				     const var &x="x", const var &y="y", const var &z="z") const;
 
@@ -3233,7 +3233,7 @@ public:
 	    int       npars()          const;
 	    bool      uses_arg(int i) const;
 	    bool      uses_par(int i) const;
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *) const;
 	    int n_out() { return 1; }
 	    bool is_constant() const;
@@ -3280,7 +3280,7 @@ public:
 	    int       npars()          const { return std::max(base_->npars(),std::max(from_->npars(),to_->npars())); }
 	    bool      uses_arg(int i) const { return (from_->uses_arg(i) || to_->uses_arg(i) || base_->uses_arg(i)); }
 	    bool      uses_par(int i) const { return (from_->uses_par(i) || to_->uses_par(i) || base_->uses_par(i)); }
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *) const;
 
 	    int n_out() const { return base_->n_out(); }
@@ -3362,7 +3362,7 @@ public:
 	    int       npars()          const { return std::max(string_->npars(),std::max(from_->npars(),to_->npars())); }
 	    bool      uses_arg(int i) const { return (from_->uses_arg(i) || to_->uses_arg(i) || string_->uses_arg(i)); }
 	    bool      uses_par(int i) const { return (from_->uses_par(i) || to_->uses_par(i) || string_->uses_par(i)); }
-	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    bool equals(const function::core *) const;
 
 	    int n_out() const { return string_->n_out(); }
@@ -3402,7 +3402,7 @@ public:
 
 	    int nargs() const;
 	    int npars() const;
-	    var sprint(const std::vector<blop::var> &, bool, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const;
+	    var sprint(const std::vector<blop::var> &, bool, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const;
 	    function::core *create_derivative(int) const { return new constant(0.0); }
 	    bool equals(const function::core *o) const { return false; }
 
@@ -3496,7 +3496,7 @@ public:
             int npars() const { return 0; }
             bool uses_arg(int i) { return i==1; }
             bool uses_par(int i) { return false; }
-            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const { return "piecewisepolynomialfunction"; }
+            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const { return "piecewisepolynomialfunction"; }
  
             function::core *create_derivative(int i) const
                 {
@@ -3531,7 +3531,7 @@ public:
             int nargs() const { return 1; }
             int npars() const { return 0; }
             bool uses_arg(int i) const { return i==1; }
-            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names = {}, std::map<int,blop::var> param_names = {}) const
+            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
                 {
                     return ("date2epoch");
                 }

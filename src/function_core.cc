@@ -127,7 +127,7 @@ namespace blop
             }
 	}
 
-        var format::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+        var format::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             var result = "\\mbox{format}(" & func_->sprint(pars,parvalue,variable_names,param_names) & "," & format_->sprint(pars,parvalue,variable_names,param_names) & ")";
             return result;
@@ -235,7 +235,7 @@ namespace blop
             result[(*ind)++].dbl() = 0;
 	}
 
-        var between_lines::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+        var between_lines::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             var result = "\\mbox{BETWEENLINES}(" & start_->sprint(pars,parvalue,variable_names,param_names) & "," & end_->sprint(pars,parvalue,variable_names,param_names) & ")";
             return result;
@@ -337,7 +337,7 @@ namespace blop
         int periodic::npars() const { return func_->npars(); }
         bool periodic::uses_arg(int i) const { return func_->uses_arg(i); }
         bool periodic::uses_par(int i) const { return func_->uses_par(i); }
-        var periodic::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+        var periodic::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             var result = "\\mbox{PERIODIC}(" & func_->sprint(pars,parvalue,variable_names,param_names) & ")";
             return result;
@@ -413,7 +413,7 @@ namespace blop
 	bool ifelse::uses_arg(int i) const { return condition_->uses_arg(i) || iftrue_->uses_arg(i) || iffalse_->uses_arg(i); }
 	bool ifelse::uses_par(int i) const { return condition_->uses_par(i) || iftrue_->uses_par(i) || iffalse_->uses_par(i); }
 
-	var ifelse::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var ifelse::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    return var("(") & condition_->sprint(pars,parvalue,variable_names,param_names) & "?" & iftrue_->sprint(pars,parvalue,variable_names,param_names) & ":" & iffalse_->sprint(pars,parvalue,variable_names,param_names) & ")";
 	}
@@ -505,7 +505,7 @@ namespace blop
 	bool join_args::uses_arg(int i) const { return from_->uses_arg(i) || to_->uses_arg(i) || separator_->uses_arg(i); }
 	bool join_args::uses_par(int i) const { return from_->uses_par(i) || to_->uses_par(i) || separator_->uses_par(i); }
 
-	var join_args::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var join_args::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    return var("join_args(") & separator_->sprint(pars,parvalue,variable_names,param_names) & "," & from_->sprint(pars,parvalue,variable_names,param_names) & "," & to_->sprint(pars,parvalue,variable_names,param_names) & ")";
 	}
@@ -578,7 +578,7 @@ namespace blop
             eval(args, def_args, params, result, ind);
         }
 
-        var replace::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+        var replace::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             return var("replace(") & from_->sprint(pars,parvalue,variable_names,param_names) & "," & to_->sprint(pars,parvalue,variable_names,param_names) & "," & base_->sprint(pars,parvalue,variable_names,param_names) & ")";
         }
@@ -619,7 +619,7 @@ namespace blop
             eval(args, def_args, params, result, ind);
         }
 
-        var substr::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+        var substr::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             return var("substr(") & string_->sprint(pars,parvalue,variable_names,param_names) & "," & from_->sprint(pars,parvalue,variable_names,param_names) & "," & to_->sprint(pars,parvalue,variable_names,param_names) & ")";
         }
@@ -949,7 +949,7 @@ namespace blop
 
 	// -----------------  function parameter -----------------------------
 
-	var funcparameter::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var funcparameter::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
             auto pos = param_names.find(parameter_index_+1);
             if(pos != param_names.end()) return (*pos).second;
@@ -1097,7 +1097,7 @@ namespace blop
 	    result[(*ind)++].dbl(tmp_[index_].dbl());
 	}
 
-	var component::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var component::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
             function_core::multiple *m = dynamic_cast<function_core::multiple*>(base_);
             if(m)
@@ -1157,7 +1157,7 @@ namespace blop
 	    return 0;
 	}
 
-	var cfunc::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names)  const
+	var cfunc::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names)  const
 	{
 	    if(wrapper_ == 0) return "UNINITIALIZED_CFUNC";
 	    var result = wrapper_->name();
@@ -1697,7 +1697,7 @@ namespace blop
 	    return true;
 	}
 
-	var argument_subst::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var argument_subst::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    if(!base_ || !args_) return "";
 	    var result = base_->sprint(pars, parvalue,variable_names,param_names);
@@ -2139,7 +2139,7 @@ namespace blop
 
         // ------------------- function_core::binary_operator -----------------------
 
-	var binary_operator::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var binary_operator::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    bool left_paren = true;
 	    if(dynamic_cast<const constant*>(left_) ||
@@ -2332,7 +2332,7 @@ namespace blop
 	    return in_this_->npars();
 	}
 
-	var contained_in::sprint(const std::vector<blop::var> &pars, bool print_parvalue, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var contained_in::sprint(const std::vector<blop::var> &pars, bool print_parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    var result = "contained_in{";
 	    result &= in_this_->sprint(pars,print_parvalue,variable_names,param_names);
@@ -2390,7 +2390,7 @@ namespace blop
 	{
 	    return 1;
 	}
-	var find_root::sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var find_root::sprint(const std::vector<blop::var> &p, bool v, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
         {
             return "find_root::sprint is not yet implemented";
         }
@@ -2526,7 +2526,7 @@ namespace blop
 	{
 	    return func_->n_out();
 	}
-	var value_in_interval::sprint(const std::vector<blop::var> &p, bool v, std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+	var value_in_interval::sprint(const std::vector<blop::var> &p, bool v, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
 	{
 	    var result = var(name_) & "(";
 	    result &= (func_->n_out()>1?"[":"") & func_->sprint(p,v,variable_names,param_names) & (func_->n_out()>1?"]":"");

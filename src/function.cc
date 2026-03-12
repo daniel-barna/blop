@@ -377,8 +377,9 @@ namespace blop
     function::function(const function &f1, const function &f2)
     {
 	parnames_ = f1.parnames_;
-	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
-	    parnames_.push_back(f2.parnames_[i]);
+        for(auto it : f2.parnames_) parnames_[it.first] = it.second;
+//	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
+//	    parnames_.push_back(f2.parnames_[i]);
 
 	function_core::multiple *m = new function_core::multiple;
 	base_ = m;
@@ -414,10 +415,12 @@ namespace blop
     function::function(const function &f1, const function &f2, const function &f3)
     {
 	parnames_ = f1.parnames_;
-	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
-	    parnames_.push_back(f2.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
-	    parnames_.push_back(f3.parnames_[i]);
+        for(auto it : f2.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f3.parnames_) parnames_[it.first] = it.second;
+//	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
+//	    parnames_.push_back(f2.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
+//	    parnames_.push_back(f3.parnames_[i]);
 
 	function_core::multiple *m = new function_core::multiple;
 	base_ = m;
@@ -460,12 +463,16 @@ namespace blop
     function::function(const function &f1, const function &f2, const function &f3, const function &f4)
     {
 	parnames_ = f1.parnames_;
-	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
-	    parnames_.push_back(f2.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
-	    parnames_.push_back(f3.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
-	    parnames_.push_back(f4.parnames_[i]);
+        for(auto it : f2.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f3.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f4.parnames_) parnames_[it.first] = it.second;
+
+//        for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
+//	    parnames_.push_back(f2.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
+//	    parnames_.push_back(f3.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
+//	    parnames_.push_back(f4.parnames_[i]);
 
 	function_core::multiple *m = new function_core::multiple;
 	base_ = m;
@@ -512,14 +519,19 @@ namespace blop
     function::function(const function &f1, const function &f2, const function &f3, const function &f4, const function &f5)
     {
 	parnames_ = f1.parnames_;
-	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
-	    parnames_.push_back(f2.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
-	    parnames_.push_back(f3.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
-	    parnames_.push_back(f4.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f5.parnames_.size(); ++i)
-	    parnames_.push_back(f5.parnames_[i]);
+        for(auto it : f2.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f3.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f4.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f5.parnames_) parnames_[it.first] = it.second;
+
+//	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
+//	    parnames_.push_back(f2.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
+//	    parnames_.push_back(f3.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
+//	    parnames_.push_back(f4.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f5.parnames_.size(); ++i)
+//	    parnames_.push_back(f5.parnames_[i]);
 
 	function_core::multiple *m = new function_core::multiple;
 	base_ = m;
@@ -570,16 +582,22 @@ namespace blop
     function::function(const function &f1, const function &f2, const function &f3, const function &f4, const function &f5, const function &f6)
     {
 	parnames_ = f1.parnames_;
-	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
-	    parnames_.push_back(f2.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
-	    parnames_.push_back(f3.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
-	    parnames_.push_back(f4.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f5.parnames_.size(); ++i)
-	    parnames_.push_back(f5.parnames_[i]);
-	for(unsigned int i=parnames_.size(); i<f6.parnames_.size(); ++i)
-	    parnames_.push_back(f6.parnames_[i]);
+        for(auto it : f2.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f3.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f4.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f5.parnames_) parnames_[it.first] = it.second;
+        for(auto it : f6.parnames_) parnames_[it.first] = it.second;
+
+//	for(unsigned int i=parnames_.size(); i<f2.parnames_.size(); ++i)
+//	    parnames_.push_back(f2.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f3.parnames_.size(); ++i)
+//	    parnames_.push_back(f3.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f4.parnames_.size(); ++i)
+//	    parnames_.push_back(f4.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f5.parnames_.size(); ++i)
+//	    parnames_.push_back(f5.parnames_[i]);
+//	for(unsigned int i=parnames_.size(); i<f6.parnames_.size(); ++i)
+//	    parnames_.push_back(f6.parnames_[i]);
 
 	function_core::multiple *m = new function_core::multiple;
 	base_ = m;
@@ -824,11 +842,16 @@ namespace blop
 			   "function::param(int parindex, const var &value)");
 	    return *this;
 	}
-	--i;
-	if(i >= (int)parameters_.size())  parameters_.resize(i+1);
-	parameters_[i] = value;
-        if(i >= (int)parnames_.size()) parnames_.resize(i+1);
+
+//	--i;
+//	if(i >= (int)parameters_.size())  parameters_.resize(i+1);
+//	parameters_[i] = value;
+	if(i-1 >= (int)parameters_.size())  parameters_.resize(i);
+	parameters_[i-1] = value;
+
+//        if(i >= (int) parnames_.size()) parnames_.resize(i+1);
         parnames_[i] = name;
+
         return *this;
     }
 
@@ -891,15 +914,20 @@ namespace blop
     function &function::parname(unsigned int i, const var &name)
     {
 	if(i<1) return *this;
-	--i;
-	if(i>=parnames_.size()) parnames_.resize(i+1);
+
+//	--i;
+//	if(i>=parnames_.size()) parnames_.resize(i+1);
 	parnames_[i] = name;
+
 	return *this;
     }
     var function::parname(unsigned int i)
     {
-	if(i<1 || parnames_.size()<i) return var("parameter[") & var(i) & var("]");
-	return parnames_[i-1];
+//	if(i<1 || parnames_.size()<i) return var("parameter[") & var(i) & var("]");
+//	return parnames_[i-1];
+        auto it = parnames_.find(i);
+        if(it==parnames_.end()) return var("PAR(") & var(i) & var(")");
+        return (*it).second;
     }
 
 
@@ -1071,11 +1099,11 @@ namespace blop
 	    warning::print("Uninitialized function","function::sprint()");
 	    return "";
 	}
-	string result = base_->sprint(parameters_,print_param_value_);
+	string result = base_->sprint(parameters_,print_param_value_,{},parnames_);
 	if(base_->n_out()>1) result = "[" + result + "]";
 	return result;
     }
-    var function::sprint(std::map<int,blop::var> variable_names, std::map<int,blop::var> param_names) const
+    var function::sprint(std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const
     {
 	if(!base_)
 	{

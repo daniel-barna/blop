@@ -159,7 +159,7 @@ namespace blop
             return i<=dim();
         }
         bool uses_par(int i) const { return false; }
-        var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<int,blop::var> variable_names={}, std::map<int,blop::var> param_names={}) const { return "Interpolatedfunc"; }
+        var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names={}, std::map<unsigned int,blop::var> param_names={}) const { return "Interpolatedfunc"; }
         bool equals(const function::core *) const { return false; }
         int n_out() const { return components(); }
 
