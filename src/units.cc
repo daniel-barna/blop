@@ -52,6 +52,7 @@ namespace blop
             PUTU(s);
             PUTU(ms);
             put("mus","{\\textmu}s",unit::mus);
+            put("us","{\\textmu}s",unit::mus);
             PUTU(ns);
             PUTU(ps);
             put("minute","min",unit::minute);
