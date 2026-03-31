@@ -188,6 +188,7 @@ ${DESTDIR}${INCDIR}/blop.h : Makefile
 	   @$(ECHO) '#include "blop-plot/matrix.h"' >> $@
 	   @$(ECHO) '#include "blop-plot/kinematics.h"' >> $@
 	   @$(ECHO) '#include "blop-plot/discretizer.h"' >> $@
+	   @$(ECHO) '#include "blop-plot/progress.h"' >> $@
 	   @$(ECHO) '#ifdef USE_NAMESPACE_BLOP' >> $@
 	   @$(ECHO) 'using namespace blop;'     >> $@
 	   @$(ECHO) '#endif' >> $@

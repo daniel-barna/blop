@@ -15,7 +15,10 @@
   }
 
   
- */
+*/
+
+namespace blop
+{
 
 class progress
 {
@@ -56,5 +59,7 @@ public:
             }
         }
 };
+
+}
 
 #endif
