@@ -171,10 +171,17 @@ namespace blop
 	fit_result.covar.index_base(0,0);
 
 	vector<blop::function> fitfunc_derivs(fitfunc.npars());
+
 	for(int i=0; i<fitfunc.npars(); ++i)
 	{
-	    if(parameter_free[i]) fitfunc_derivs[i] = fitfunc.derivative(-(i+1));
-	    else fitfunc_derivs[i] = 0.0;
+	    if(parameter_free[i])
+            {
+                fitfunc_derivs[i] = fitfunc.derivative(-(i+1));
+            }
+	    else
+            {
+                fitfunc_derivs[i] = 0.0;
+            }
 	}
 
 	fitfunc.print_param_value(true);

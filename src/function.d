@@ -283,7 +283,7 @@ function.o: function.cc /usr/include/stdc-predef.h function.h \
  /usr/include/c++/13/bits/chrono_io.h /usr/include/c++/13/format \
  /usr/include/c++/13/charconv /usr/include/c++/13/optional \
  /usr/include/c++/13/span /usr/include/c++/13/variant type_traits.h \
- geometry.h vec3.h blop_time.hh dgraph.h graph.h plottable.h \
+ geometry.h vec3.h blop_time.hh logger.h dgraph.h graph.h plottable.h \
  graph_drawer.h length.h terminal.h color.h sym.h tic.h axis.h label.h \
  box.h grob.h units.h /usr/include/c++/13/utility \
  /usr/include/c++/13/bits/stl_relops.h arrowhead.h point_drawer.h \

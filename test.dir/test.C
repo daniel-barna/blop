@@ -4,6 +4,7 @@ using namespace blop;
 #endif
 #include <iostream>
 
+
 var setlabels(var a)
 {
     if(a == 1) return "one";
@@ -16,6 +17,7 @@ var setlabels(var a)
 
 const double R_bending = 500*unit::mm;
 const double r0 = 20*unit::mm;
+
 
 
 int main()

@@ -252,7 +252,7 @@ function_core.o: function_core.cc /usr/include/stdc-predef.h function.h \
  /usr/include/c++/13/format /usr/include/c++/13/charconv \
  /usr/include/c++/13/optional /usr/include/c++/13/span \
  /usr/include/c++/13/variant type_traits.h geometry.h vec3.h blop_time.hh \
- cfunc_wrapper.hh /usr/include/c++/13/stdlib.h \
+ logger.h cfunc_wrapper.hh /usr/include/c++/13/stdlib.h \
  /usr/include/gsl/gsl_sf_bessel.h /usr/include/gsl/gsl_mode.h \
  /usr/include/gsl/gsl_inline.h /usr/include/gsl/gsl_precision.h \
  /usr/include/gsl/gsl_types.h /usr/include/gsl/gsl_sf_result.h

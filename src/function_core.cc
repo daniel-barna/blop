@@ -1395,6 +1395,7 @@ namespace blop
 
 	function::core *Sub::create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
 	{
+
 	    constant *c;
 	    if((c=dynamic_cast<constant*>(leftderiv)) != 0 && c->value_ == 0.0)
 	    {
@@ -1415,6 +1416,13 @@ namespace blop
 
 	function::core *Div::create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
 	{
+            if(dynamic_cast<const constant *>(left_) && dynamic_cast<const constant *>(right_))
+            {
+                delete leftderiv;
+                delete rightderiv;
+                return new constant(0.0);
+            }
+
 	    if(dynamic_cast<const constant *>(right_))
 	    {
 		Div *result = new Div;
@@ -1480,14 +1488,20 @@ namespace blop
 	    {
 		constant *aprimeb_c = dynamic_cast<constant *>(aprimeb);
 		constant *abprime_c = dynamic_cast<constant *>(abprime);
-		if(nominator==0 && aprimeb_c && abprime_c) nominator = new constant(aprimeb_c->value_.dbl() - abprime_c->value_.dbl());
+		if(nominator==0 && aprimeb_c && abprime_c)
+                {
+                    nominator = new constant(aprimeb_c->value_.dbl() - abprime_c->value_.dbl());
+                }
 		if(nominator==0 && aprimeb_c && aprimeb_c->value_ == 0)
 		{
 		    Neg *n = new Neg;
-		    n->operand_ = abprime;
+		    n->operand(abprime); 
 		    nominator = n;
 		}
-		if(nominator==0 && abprime_c && abprime_c->value_ == 0) nominator = aprimeb;
+		if(nominator==0 && abprime_c && abprime_c->value_ == 0)
+                {
+                    nominator = aprimeb;
+                }
 		if(nominator==0)
 		{
 		    Sub *s = new Sub;

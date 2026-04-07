@@ -13,6 +13,7 @@
 #include <chrono>
 #include "type_traits.h"
 #include "blop_time.hh"
+#include "logger.h"
 
 namespace blop
 {
@@ -2420,7 +2421,7 @@ public:
 	public:
 	    // initialization. the operand 'op' is cloned, and this cloned pointer
 	    // is stored
-	    unary_base(const var &name, const function::core *op) : tmp_(op->n_out())
+	    unary_base(const var &name, const function::core *op) : tmp_(op?op->n_out():0)
 		{
 		    name_ = name;
 		    if(op)
@@ -2430,7 +2431,7 @@ public:
 		    }
 		    else operand_ = 0;
 		}
-	    unary_base(const unary_base &o) : tmp_(o.operand_->n_out())
+	    unary_base(const unary_base &o) : tmp_(o.operand_?o.operand_->n_out():0)
 		{
 		    name_ = o.name_;
 		    if(o.operand_)
@@ -2479,6 +2480,8 @@ public:
 	    // return the derivative f'(g(x)) * g'(x)
 	    function::core *create_derivative(int i) const
 		{
+                    if(!operand_) return 0;
+
 		    // calculate the operand's derivative
 		    function::core *op_deriv = operand_->create_derivative(i);
 		    if(op_deriv == 0) return 0;
@@ -2514,6 +2517,7 @@ public:
 
 	    bool equals(const function::core *o) const
 		{
+                    if(!operand_) return false;
 		    const unary_base *c = dynamic_cast<const unary_base *>(o);
 		    return (c && c->name_.str() == name_.str() && operand_->equals(c->operand_));
 		}
@@ -2587,7 +2591,7 @@ public:
 		    else if(type_ == k_scaled) result = "bessel_k_scaled";
 		    else result = "bessel_?";
 		    result &= "(" & var(n_) & ",";
-		    result &= operand_->sprint(pars, parvalue,variable_names,param_names);
+		    result &= (operand_ ? operand_->sprint(pars, parvalue,variable_names,param_names) : "?");
 		    result &= ")";
 		    return result;
 		}
@@ -2605,7 +2609,7 @@ public:
 		    else if(type_ == k_scaled) result = "bessel\\_k\\_scaled";
 		    else result = "bessel\\_?";
 		    result &= "(" & var(n_) & ",";
-		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= (operand_ ? operand_->sprint_latex(pars, parvalue, x, y, z) : "?");
 		    result &= ")";
 		    return result;
 		}
@@ -2649,6 +2653,7 @@ public:
 		      std::vector<blop::var> &result,
 		      int *ind) const
 		{
+                    if(!operand_) { result[(*ind)++] = 0; return; }
 		    if(exponent_ == 0) {result[(*ind)++] = 1; return; }
 		    int dummy = 0;
 		    operand_->eval(args,def_args,params,tmp_,&dummy);
@@ -2664,6 +2669,7 @@ public:
 			  std::vector<blop::var> &result,
 			  int *ind) const
 		{
+                    if(!operand_) {result[(*ind)++] = 0; return; }
 		    if(exponent_ == 0) {result[(*ind)++] = 1; return; }
 		    int dummy = 0;
 		    operand_->eval_dbl(args,def_args,params,tmp_,&dummy);
@@ -2686,7 +2692,7 @@ public:
 		{
 		    var result = name_;
 		    result &= "(";
-		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= (operand_ ? operand_->sprint(pars, parvalue, variable_names,param_names) : "?");
 		    result &= ",";
 		    result &= var(exponent_);
 		    result &= ")";
@@ -2714,7 +2720,7 @@ public:
 		{
 		    var result = name_;
 		    result &= "(";
-		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= (operand_ ? operand_->sprint(pars, parvalue, variable_names,param_names) : "?");
 		    result &= ")";
 		    return result;
 		}
@@ -2723,7 +2729,7 @@ public:
 		{
 		    var result = var("\\mathrm{") & name_ & var("}");
 		    result &= "\\left(";
-		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= (operand_ ? operand_->sprint_latex(pars, parvalue, x, y, z) : "?");
 		    result &= "\\right)";
 		    return result;
 		}
@@ -2738,7 +2744,7 @@ public:
 	{
 	public:
 	    // initialization. operand is cloned (if not 0)
-	    unary_operator(const var &name,function::core *operand) : unary_base(name,operand) {}
+	    unary_operator(const var &name,function::core *operand) : unary_base(name,operand) { } 
 	    unary_operator(const unary_operator &o) : unary_base(o.name_, o.operand_) {}
 
 	    // character representation: operatorsymbol(arg)
@@ -2746,7 +2752,7 @@ public:
 		{
 		    var result = name_;
 		    result &= "(";
-		    result &= operand_->sprint(pars, parvalue, variable_names,param_names);
+		    result &= (operand_ ? operand_->sprint(pars, parvalue, variable_names,param_names) : "?");
 		    result &= ")";
 		    return result;
 		}
@@ -2755,7 +2761,7 @@ public:
 		{
 		    var result = name_;
 		    result &= "(";
-		    result &= operand_->sprint_latex(pars, parvalue, x, y, z);
+		    result &= (operand_ ? operand_->sprint_latex(pars, parvalue, x, y, z) : "?");
 		    result &= ")";
 		    return result;
 		}
@@ -2769,7 +2775,7 @@ public:
 	{
 	public:
 	    // initialization. operand is cloned (if not 0)
-	    Neg(function::core *operand = 0) : unary_operator("-",operand) {}
+	    Neg(function::core *operand = 0) : unary_operator("-",operand) { } 
 	    Neg(const Neg &o) : unary_operator("-",o.operand_) {}
 
 	    // clone: create a new Neg

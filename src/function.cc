@@ -19,6 +19,7 @@
 #include "geometry.h"
 #include "blop_time.hh"
 #include "plottable.h"
+#include "logger.h"
 
 #ifdef HAVE_GSL
 #include <gsl/gsl_sf_bessel.h>
@@ -2993,6 +2994,7 @@ namespace blop
 
     function function::derivative(int derivindex) const
     {
+
 	if(!base_)
 	{
 	    warning::print("Uninitialized functions derivative...","function::derivative(in)");
@@ -3023,9 +3025,12 @@ namespace blop
 			   "function::derivative(int)");
 	    deriv = new constant(0.0);
 	}
+
 	function result(deriv);
+
 	result.parameters_ = parameters_;
 	result.print_param_value_ = print_param_value_;
+
 	return result;
     }
 
