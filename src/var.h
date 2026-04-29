@@ -125,12 +125,13 @@ namespace blop
         // as strings (to the string representation of the
         // variable)
 
-        virtual const var &operator &= (double);
-        virtual const var &operator &= (const string &);
-        virtual const var &operator &= (const var &);
-        virtual const var &operator &= (const char *);
-        virtual const var &operator &= (int i);
-        virtual const var &operator &= (char);
+        virtual const var &operator&= (double);
+        virtual const var &operator&= (const string &);
+        virtual const var &operator&= (const var &);
+        virtual const var &operator&= (const char *);
+        virtual const var &operator&= (int i);
+        virtual const var &operator&= (unsigned int i);
+        virtual const var &operator&= (char);
 
 
         // -----  CHARACTER INDEXING ----------------------------------------
@@ -303,6 +304,7 @@ namespace blop
 	virtual const var &operator&= (const var &s)     {var::operator&=(s); update_var(); return *this;}
 	virtual const var &operator&= (const char *s)    {var::operator&=(s); update_var(); return *this;}
 	virtual const var &operator&= (int s)            {var::operator&=(s); update_var(); return *this;}
+	virtual const var &operator&= (unsigned int s)   {var::operator&=(s); update_var(); return *this;}
 	virtual const var &operator&= (char s)           {var::operator&=(s); update_var(); return *this;}
 	
     };
@@ -400,6 +402,8 @@ namespace blop
     var operator& (const std::string &,double);
     var operator& (const var &v, int i);
     var operator& (int i, const var &v);
+    var operator& (const var &v, unsigned int i);
+    var operator& (unsigned int i, const var &v);
     var operator& (const var &v, char c);
     var operator& (char c, const var &v);
 

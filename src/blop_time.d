@@ -199,4 +199,7 @@ blop_time.o: blop_time.cc /usr/include/stdc-predef.h blop_time.hh \
  /usr/include/c++/13/bits/enable_special_members.h \
  /usr/include/c++/13/span /usr/include/c++/13/variant \
  /usr/include/c++/13/bits/ranges_algobase.h var.h \
- /usr/include/c++/13/iostream
+ /usr/include/c++/13/iostream /usr/include/c++/13/filesystem \
+ /usr/include/c++/13/bits/fs_fwd.h /usr/include/c++/13/bits/fs_path.h \
+ /usr/include/c++/13/codecvt /usr/include/c++/13/bits/fs_dir.h \
+ /usr/include/c++/13/bits/fs_ops.h

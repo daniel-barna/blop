@@ -599,6 +599,14 @@ namespace blop
 	double_ = atof(string_.c_str());
 	return *this;
     }
+    const var &var::operator&= (unsigned int i)
+    {
+	char s[100];
+	std::sprintf(s,"%i",i);
+	string_ += s;
+	double_ = atof(string_.c_str());
+	return *this;
+    }
 
     const var &var::operator&= (const var &v)
     {
@@ -1038,6 +1046,20 @@ namespace blop
 	return result;
     }
 
+    var operator& (const var &v, unsigned int i)
+    {
+	var result = v;
+	result &= i;
+	return result;
+    }
+
+    var operator& (unsigned int i, const var &v)
+    {
+	var result = i;
+	result &= v;
+	return result;
+    }
+    
     var operator& (const var &v, char c)
     {
 	var result = v;
