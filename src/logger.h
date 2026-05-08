@@ -1,6 +1,8 @@
 #ifndef __BLOP_LOGGER_H__
 #define __BLOP_LOGGER_H__
 
+#include <vector>
+
 /*
 
 A utility class to write hierarchical and well organized logfiles in an easy way.
@@ -82,11 +84,12 @@ private:
         {
             switch(c)
             {
-            case '&': os << "&amp;";  break;
-            case '<': os << "&lt;";   break;
-            case '>': os << "&gt;";   break;
-            case '"': os << "&quot;"; break;
-            default:  os << c;        break;
+            case '&':  os << "&amp;";  break;
+            case '<':  os << "&lt;";   break;
+            case '>':  os << "&gt;";   break;
+            case '"':  os << "&quot;"; break;
+            case '\n': os << "<br>";   break;
+            default:   os << c;        break;
             }
         }
     }    
@@ -94,7 +97,49 @@ private:
     static void write_escaped(std::ostream &os, const char *s) { write_escaped(os,std::string_view(s)); }
     static void write_escaped(std::ostream &os, char c) { write_escaped(os,std::string_view(&c,1)); }
 
+    unsigned int n_formats_ = 0;
+
 public:
+    class format_setter
+    {
+    private:
+        std::string console_set_, html_set_;
+        friend class logger;
+        int n_ = 0;
+        int max_ = 0;
+    public:
+        format_setter(const std::string &console_set, const std::string &html_set)
+            : console_set_(console_set), html_set_(html_set) {}
+        format_setter operator()(int max)
+            {
+                format_setter result(*this);
+                result.max_ = max;
+                return result;
+            }
+    };
+
+    class format_resetter
+    {
+    };
+
+private:
+    std::vector<format_setter> format_setters_;
+    
+public:
+
+    static format_setter red;
+    static format_setter green;
+    static format_setter blue;
+    static format_setter red_bg;
+    static format_setter green_bg;
+    static format_setter blue_bg;
+    static format_setter bold;
+
+    static format_resetter reset;
+
+    logger &operator<<(const format_setter &f);
+    logger &operator<<(const format_resetter &r);
+
     logger(const std::string &name, bool one_line=false, bool silent=false);
     ~logger();
 
@@ -125,10 +170,8 @@ public:
             if(html_file_)
             {
                 (*html_file_)<<"<div class='expandable'><div class='header'>"<<header_;
-                (*html_file_)<<R"LIMIT(
-    <div class='expandbutton'>[Expand all]</div>
-    <div class='collapsebutton'>[Collapse all]</div>)LIMIT";
-                (*html_file_)<<"</div><div class='content'>"<<std::endl;
+                (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>";
+                (*html_file_)<<"<div class='content'>"<<std::endl;
             }
         }
         had_messages_ = true;
@@ -142,6 +185,24 @@ public:
         if(file_) (*file_)<<t;
         //if(html_file_) (*html_file_)<<t;
         if(html_file_) write_escaped(*html_file_,t);
+
+        // Increment the number of calls for all setters
+        for(auto &s : format_setters_) ++s.n_;
+
+        // From the top of the stack, check which format has been called the specified amount of times
+        // and remove it
+        bool removed_format = false;
+        while(!format_setters_.empty() && format_setters_.back().max_ > 0 && format_setters_.back().n_ >= format_setters_.back().max_)
+        {
+            if(html_file_) (*html_file_)<<"</span>";
+            format_setters_.pop_back();
+            removed_format = true;
+        }
+        if(removed_format)
+        {
+            std::cerr<<"\e[0m";  // Reset
+            for(const auto &f : format_setters_) std::cerr<<f.console_set_;  // reapply the remaining format
+        }
         return *this;
     }
 

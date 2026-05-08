@@ -4,6 +4,33 @@ using namespace std;
 
 namespace blop {
 
+    logger::format_resetter logger::reset;
+    logger::format_setter logger::red("\e[31m","<span style='color:red;'>");
+    logger::format_setter logger::green("\e[32m","<span style='color:green;'>");
+    logger::format_setter logger::blue("\e[34m","<span style='color:blue;'>");
+    logger::format_setter logger::red_bg("\e[41m","<span style='background-color:red;'>");
+    logger::format_setter logger::green_bg("\e[42m","<span style='background-color:green;'>");
+    logger::format_setter logger::blue_bg("\e[44m","<span style='background-color:blue;'>");
+    logger::format_setter logger::bold("\e[2m","<span style='font-weight:bold;'>");
+
+    logger &logger::operator<<(const format_setter &f)
+    {
+        format_setters_.push_back(f);
+        format_setters_.back().n_ = 0;
+        cerr<<format_setters_.back().console_set_;
+        if(file_) (*file_)<<format_setters_.back().console_set_;
+        if(html_file_) (*html_file_)<<format_setters_.back().html_set_;
+        return *this;
+    }
+    logger &logger::operator<<(const format_resetter &)
+    {
+        cerr<<"\e[0m";
+        if(file_) (*file_)<<"\e[0m";
+        if(html_file_) for(int i=0; i<format_setters_.size(); ++i) (*html_file_)<<"</span>";
+        format_setters_.clear();
+        return *this;
+    }
+
     unsigned int logger::level_ = 0;
     std::ofstream *logger::file_ = 0;
     std::ofstream *logger::html_file_ = 0;
@@ -38,10 +65,7 @@ namespace blop {
                 {
                     (*html_file_)<<"<div class='expandable'>"<<endl;
                     (*html_file_)<<"<div class='header'>"<<name_;
-                    (*html_file_)<<R"LIMIT(
-    <div class='expandbutton'>[Expand all]</div>
-    <div class='collapsebutton'>[Collapse all]</div>)LIMIT";
-                    (*html_file_)<<"</div>"<<endl;
+                    (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>"<<endl;
                     (*html_file_)<<"<div class='content'>"<<endl;
                 }
             }
@@ -89,6 +113,17 @@ namespace blop {
                         std::cerr<<"   ";
                         if(file_) (*file_)<<"   ";
                     }
+
+                    cerr<<"\e[0m";
+                    if(html_file_)
+                    {
+                        while(!format_setters_.empty())
+                        {
+                            (*html_file_)<<"</span>";
+                            format_setters_.pop_back();
+                        }
+                    }                        
+
                     std::cerr<<"<< ";
                     std::cerr<<name_<<" finished ("<<duration<<")"<<std::endl;
                     if(file_)
@@ -137,6 +172,7 @@ namespace blop {
   padding-left: 2em;
   position: relative;
 }
+
 
 .footer {
   display: flex;
@@ -208,6 +244,9 @@ namespace blop {
 .expandbutton, .collapsebutton {
     color: blue;
     display: inline;
+}
+body {
+    font-family: Consolas;
 }
 
 </style>      
