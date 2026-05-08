@@ -249,6 +249,11 @@ namespace blop {
               event.currentTarget.parentElement.classList.toggle("open");
           });
       });
+      document.querySelectorAll(".footer").forEach(el=>{
+          el.addEventListener("click",event => {
+              event.currentTarget.parentElement.classList.toggle("open");
+          });
+      });
       document.querySelectorAll(".expandbutton").forEach(el=>{
           el.addEventListener("click",event => {
               o =event.currentTarget;

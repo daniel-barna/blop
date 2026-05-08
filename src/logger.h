@@ -72,6 +72,28 @@ private:
     // A private constructor to be used by the global topmost logger instance only
     logger() : name_(""), one_line_(false), silent_(false), my_level_(0) {}
 
+
+    template <typename T>
+    static void write_escaped(std::ostream &os, const T &t) {os<<t;}
+
+    static void write_escaped(std::ostream &os, std::string_view s)
+    {
+        for(char c : s)
+        {
+            switch(c)
+            {
+            case '&': os << "&amp;";  break;
+            case '<': os << "&lt;";   break;
+            case '>': os << "&gt;";   break;
+            case '"': os << "&quot;"; break;
+            default:  os << c;        break;
+            }
+        }
+    }    
+    static void write_escaped(std::ostream &os, const std::string &s) { write_escaped(os,std::string_view(s)); }
+    static void write_escaped(std::ostream &os, const char *s) { write_escaped(os,std::string_view(s)); }
+    static void write_escaped(std::ostream &os, char c) { write_escaped(os,std::string_view(&c,1)); }
+
 public:
     logger(const std::string &name, bool one_line=false, bool silent=false);
     ~logger();
@@ -118,7 +140,8 @@ public:
         }
         std::cerr<<t;
         if(file_) (*file_)<<t;
-        if(html_file_) (*html_file_)<<t;
+        //if(html_file_) (*html_file_)<<t;
+        if(html_file_) write_escaped(*html_file_,t);
         return *this;
     }
 
