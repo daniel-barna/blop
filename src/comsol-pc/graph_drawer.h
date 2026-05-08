@@ -1,0 +1,1291 @@
+#ifndef __BLOP_GRAPH_DRAWER_H__
+#define __BLOP_GRAPH_DRAWER_H__
+
+#include "length.h"
+#include "function.h"
+#include "axis.h"
+#include "constants.h"
+#include "arrowhead.h"
+#include "sym.h"
+#ifndef __MAKECINT__
+#include <variant>
+#endif
+
+namespace blop
+{
+    
+
+    class point_drawer;
+    class terminal;
+    class graph;
+    class frame;
+    class axis;
+    class plottable;
+
+    class color_mapping_base
+    {
+    public:
+        // Return the mapped color corresponding to 'val', in the range defined by mini..maxi
+        virtual color map(double val, double mini, double maxi, bool logscale=false) const = 0;
+        virtual color_mapping_base *clone() const = 0;
+        virtual ~color_mapping_base() {}
+    };
+
+    class color_mapping_interpolated : public color_mapping_base
+    {
+    private:
+        std::vector<double>      values_; // the list of values in the range 0..1, 0 meaning the minimum, 1 meaning the maximum, or absolute values.
+        bool values_normalized_; // flag indicating whether the stored values are 0..1 (normalized), or absolute values
+        std::vector<blop::color> colors_;
+        
+    public:
+        color_mapping_base *clone() const
+            {
+                return new color_mapping_interpolated(*this);
+            }
+
+        color_mapping_interpolated(const std::vector<blop::color> &c) :  values_normalized_(true), colors_(c)
+            { 
+                const double d = 1.0/(c.size()-1);
+                for(unsigned int i=0; i<c.size(); ++i) values_.push_back(d*i);
+            }
+
+        color_mapping_interpolated(const std::vector<blop::color> &colors, 
+                                   const std::vector<double> &values, 
+                                   bool values_normalized=true) : values_normalized_(values_normalized)
+            { 
+                auto size = std::min(colors.size(), values.size());
+                for(unsigned int i=0; i<size; ++i)
+                {
+                    colors_.push_back(colors[i]);
+                    values_.push_back(values[i]);
+                }
+            }
+        
+
+        color map(double val, double mini, double maxi, bool logscale=false) const;
+    };
+
+    class color_mapping_function : public color_mapping_base
+    {
+    private:
+	void *p2f_cint_;
+	color (*p2f_)(double,double,double);
+	string fname_;
+	color map_interpreted(double,double,double) const; // defined in blop_cint.cc/blop_nocint.cc
+
+#ifdef __MAKECINT__
+        static blop::color the_color_;
+#endif        
+
+    public:
+        color_mapping_function();
+
+        color_mapping_base *clone() const 
+            {
+                return new color_mapping_function(*this);
+            }
+
+	// The default color-mapping function
+	static color def(double value, double mini, double maxi);
+	static color cold_warm(double value, double mini, double maxi);  // http://www.kennethmoreland.com/color-maps/
+
+	color map(double val, double mini, double maxi, bool logscale=false) const;
+
+	color_mapping_function(color (*p)(double,double,double)) :  p2f_cint_(0), p2f_(p), fname_("this_should_not_happen") {}
+	color_mapping_function(void *p);  // defined in blop_cint.cc or blop_nocint.cc
+    };
+
+    class color_legend;
+
+    class graph_drawer
+	{
+	public:
+	    // These two member-functions return the blop-function, which
+	    // calculates the values to be used as x- or y- coordinates
+
+	    virtual function get_x(const plottable *) const;
+	    virtual function get_y(const plottable *) const;
+
+	    virtual void set_ranges(plottable *g,axis *x,axis *y) = 0;
+	    virtual void draw(plottable *g,frame *f,terminal *t) = 0;
+	    virtual void draw_sample(const length &x,
+				     const length &y,
+				     const length &size,
+				     const plottable *style,
+				     terminal *) {}
+	    virtual bool draws_sample() const {return true;}
+	    virtual graph_drawer *clone() const = 0;
+	    virtual void prepare_for_draw(plottable *,frame *, int count) = 0;
+	    virtual ~graph_drawer() {}
+	    
+	    virtual int req_components() const = 0;
+
+	    // A function which will be called at the moment when the
+	    // graph is added to a frame
+	    virtual void setup_when_added(plottable *p, frame *f) {}
+
+	    virtual bool uses_linecolor() const { return true; }
+            virtual bool uses_linestyle() const { return true; }
+            virtual bool uses_linewidth() const { return true; }
+            virtual bool uses_pointcolor() const { return true; }
+            virtual bool uses_pointsize() const { return true; }
+            virtual bool uses_fillcolor() const { return true; }
+
+	    virtual bool draws_points() const { return true; }
+	};
+
+
+    // A base class for all graph-drawers, which use a color-scale
+    // to indicate some value
+    class graphd_colorscale : public graph_drawer
+    {
+    protected:
+	friend class color_legend;
+	color_legend *colorlegend_;
+	double color_min_, color_max_;
+	bool color_logscale_;
+	bool color_min_fixed_, color_max_fixed_;
+	int color_samples_;
+	color_mapping_base* color_mapping_;
+        // Future version...
+        //std::function<blop::color(double, double, double, bool)> color_mapping_;
+	color underflow_color_, overflow_color_;
+	var color_title_;
+	int draw_colorlegend_;    // 0 - do not create any colorlegend. 1 - create colorlegend but do not draw. 2 - create and draw.
+	std::string legendname_;
+
+    public:
+	graphd_colorscale();
+	graphd_colorscale(const graphd_colorscale &o);
+	void copy(const graphd_colorscale &rhs);
+	virtual ~graphd_colorscale();
+
+	virtual graphd_colorscale &color_min(double v);
+	virtual double             color_min() const { return color_min_; }
+	virtual graphd_colorscale &color_max(double v);
+	virtual double             color_max() const { return color_max_; }
+
+	virtual graphd_colorscale &color_range(double min, double max);
+	virtual graphd_colorscale &color_range(const color &startcolor, const color &endcolor);
+
+	// ---------------------------------------------------------------
+	// set/get the number of samples used by the colorlegend bar.
+
+	virtual int                color_samples() const { return color_samples_; }
+	virtual graphd_colorscale &color_samples(int n)  { color_samples_ = n; return *this; }
+
+	// ---------------------------------------------------------------
+	// set/get wether the colorscale uses logscale
+	
+	virtual bool               color_logscale() const { return color_logscale_; }
+	virtual graphd_colorscale &color_logscale(bool f) { color_logscale_ = f; return *this; }
+	
+	// ---------------------------------------------------------------
+	// set/get the title of the color-legendbar
+
+	virtual var                color_title() const       { return color_title_; }
+	virtual graphd_colorscale &color_title(const var &t) { color_title_ = t;  return *this; }
+
+	virtual bool   color_min_fixed() const { return color_min_fixed_; }
+	virtual bool   color_max_fixed() const { return color_max_fixed_; }
+
+	virtual graphd_colorscale &underflow_color(const color &c) { underflow_color_ = c; return *this; }
+	virtual graphd_colorscale &overflow_color(const color &c) { overflow_color_ = c; return *this; }
+
+	virtual graphd_colorscale &draw_colorlegend(bool f);
+
+	virtual color map_color(double val, double mini, double maxi) const;
+
+        graphd_colorscale &color_mapping(void *p)
+            {
+                if(color_mapping_) delete color_mapping_;
+                color_mapping_ = new color_mapping_function(p);
+                return *this;
+            }
+
+        graphd_colorscale &color_mapping(color(*p)(double,double,double))
+            {
+                if(color_mapping_) delete color_mapping_;
+                color_mapping_ = new color_mapping_function(p);
+                return *this;
+            }
+        graphd_colorscale &color_mapping(const std::vector<blop::color> &colors, const std::vector<double> &values, bool values_normalized=true)
+            {
+                if(color_mapping_) delete color_mapping_;
+                color_mapping_ = new color_mapping_interpolated(colors,values,values_normalized);
+                return *this;
+            }
+        graphd_colorscale &color_mapping(const std::vector<blop::color> &colors)
+            {
+                if(color_mapping_) delete color_mapping_;
+                color_mapping_ = new color_mapping_interpolated(colors);
+                return *this;
+            }
+
+
+
+	virtual void setup_when_added(plottable *p, frame *f);
+
+	virtual void set_colorlegend(color_legend *);
+        virtual color_legend *get_colorlegend() { return colorlegend_; }
+
+    };
+
+
+    // ===============================================================
+
+    class dots : public graph_drawer
+	{
+	public:
+
+	    void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    virtual void draw_sample(const length &x,
+				     const length &y,
+				     const length &size,
+				     const plottable *style,
+				     terminal *);
+	    bool draws_sample() const {return true;}
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int) {};
+	    virtual int req_components() const {return 2;}
+
+	    bool draws_points() const { return false; }
+
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return false; }
+	};
+
+
+    // ===============================================================
+
+    class lines : public graph_drawer
+	{
+        private:
+            bool break_line_; // break the line at empty datalines
+	public:
+
+            lines() : break_line_(true) {}
+
+            virtual lines &break_line(bool f) { break_line_ = f; return *this; }
+
+	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void draw_sample(const length &x,
+			     const length &y,
+			     const length &size,
+			     const plottable *style,
+			     terminal *);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 2;}
+	    bool draws_points() const { return false; }
+
+            virtual bool uses_pointcolor() const { return false; }
+            virtual bool uses_pointsize() const { return false; }
+	};
+
+    // ===============================================================
+
+    class splines : public lines
+	{
+	public:
+	    graph_drawer *clone() const;
+	    void draw(plottable *g,frame *f,terminal *t);	    
+	    void draw_sample(const length &x, const length &y,
+			     const length &samplen, const plottable *s, terminal *t);
+            virtual bool uses_pointcolor() const { return false; }
+            virtual bool uses_pointsize() const { return false; }
+	};
+
+    // ===============================================================
+
+    class histo : public lines
+	{
+	private:
+	    bool fill_;
+	public:
+	    void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    graph_drawer *clone() const;
+	    int req_components() const {return 2;}
+	    bool draws_points() const { return false; }
+            virtual bool uses_pointcolor() const { return false; }
+            virtual bool uses_pointsize() const { return false; }
+	};
+
+    // ===============================================================
+
+    class points : public graph_drawer
+    {
+	protected:
+	    point_drawer *point_drawer_;
+
+	public:
+	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void draw_sample(const length &x,const length &y,
+			     const length &size,
+			     const plottable *s,
+			     terminal *t);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 2;}
+
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+    };
+
+    // ===============================================================
+
+    class linespoints : public graph_drawer
+    {
+	protected:
+	    point_drawer *point_drawer_;
+            bool break_line_ = true;
+
+	public:
+            linespoints &break_line(bool b) { break_line_ = b; return *this; }
+	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void draw_sample(const length &x,const length &y,
+			     const length &size,
+			     const plottable *s,
+			     terminal *t);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 2;}
+    };
+
+    // ===============================================================
+
+    class spoints : public points
+    {
+	public:
+	    int req_components() const {return 3;}
+	    graph_drawer *clone() const;
+	    void draw(plottable *g,frame *f,terminal *t);
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+    };
+
+    // ===============================================================
+
+    class cpoints : public points
+    {
+	public:
+	    int req_components() const {return 5;}
+	    graph_drawer *clone() const;
+	    void draw(plottable *g,frame *f,terminal *t);
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+    };
+
+    // ===============================================================
+
+    class bars : public graph_drawer
+    {
+	private:
+	    length l1_,l2_;
+            sym::horizontal_vertical dir_;
+            function      from_value_;
+            sym::position from_side_;
+
+	public:
+
+	    //bars();
+	    bars(const length &width=4*blop::MM, const length &offset=0.0);
+	    bars &operator() (const length &width,const length &offset);
+
+	    void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void draw_sample(const length &x,
+			     const length &y,
+			     const length &size,
+			     const plottable *style,
+			     terminal *);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 2;}
+	    bool draws_points() const { return false; }
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+    };
+
+
+    // ===============================================================
+
+    class labels : public graph_drawer
+    {
+	private:
+	    length x_offset_,y_offset_;
+	    sym::position xalign_,yalign_;
+	    double angle_;
+	public:
+
+	    labels &operator() (sym::position xal = sym::left,
+				sym::position yal = sym::bottom,
+				double angle = 0,
+				const length &xoff = length(),
+				const length &yoff = length());
+
+	    labels &xalign(sym::position a);
+	    labels &yalign(sym::position a);
+	    labels &align(sym::position xa, sym::position ya);
+	    labels &angle(double a);
+	    labels &xoffset(const length &xoff);
+	    labels &yoffset(const length &yoff);
+	    labels &offset(const length &xoff, const length &yoff);
+
+	    bool draws_sample() const {return false;}
+	    virtual void set_ranges(plottable *g,axis *x,axis *y);
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void draw_sample(const length &x,
+			     const length &y,
+			     const length &size,
+			     const plottable *style,
+			     terminal *);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+
+	    labels(sym::position xal=sym::center, sym::position yal = sym::center, double ang=0,
+			  const length &xoff = length(), const length &yoff = length());
+	    int req_components() const {return 3;}
+	    bool draws_points() const { return false; }
+
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return false; }
+            
+    };
+
+
+    // ===============================================================
+
+    class errorbars : public graph_drawer
+    {
+    private:
+	bool x_,y_,symmetric_x_,symmetric_y_;
+	static bool default_clip_errorbars_, default_clip_points_;
+	bool clip_errorbars_, clip_points_;
+	void get_functions(const plottable *g,
+			   function &x, function &x1, function &x2,
+			   function &y, function &y1, function &y2);
+	length endmarker_size_;
+        static length &default_endmarker_size_();
+
+    public:
+	
+	static void default_clip_errorbars(bool f) { default_clip_errorbars_ = f; }
+	static void default_clip_points   (bool f) { default_clip_points_   = f; }
+        static void default_endmarker_size(const length &l) { default_endmarker_size_() = l; }
+	errorbars &clip_errorbars(bool);
+	errorbars &clip_points   (bool);
+	errorbars &endmarker_size(const length &l);
+
+	errorbars(bool x=false,bool sx=false,bool y=true,bool sy=true);
+	errorbars(const errorbars &);
+	void set_ranges(plottable *g,axis *x,axis *y);
+	void draw(plottable *g,frame *f,terminal *t);
+	void draw_sample(const length &x,
+			 const length &y,
+			 const length &size,
+			 const plottable *style,
+			 terminal *);
+	graph_drawer *clone() const;
+	void prepare_for_draw(plottable *, frame *, int count);
+	
+	int req_components() const;
+        bool uses_fillcolor() const { return false; }
+    };
+
+    // draws errorbars on y, columns 3 and 4 specify the
+    // lower and upper ends of the errorbars
+    class yerrorbars : public errorbars
+    {public: yerrorbars() : errorbars(false,false,true,false) {}};
+
+    // draws symmetric (==>s) errorbars on y, the 3rd column
+    // specifies the error (which is +- -ed to the 2nd column)
+    class syerrorbars : public errorbars
+    {public: syerrorbars() : errorbars(false,false,true,true) {}};
+
+    // the same as yerrorbars and syerrorbars, but in the x direction
+    class xerrorbars : public errorbars
+    {public: xerrorbars() : errorbars(true,false,false,false) {}};
+    class sxerrorbars : public errorbars
+    {public: sxerrorbars() : errorbars(true,true,false,false) {}};
+
+    // errorbars in both x and y
+    class xyerrorbars : public errorbars
+    {public: xyerrorbars() : errorbars(true,false,true,false) {}};
+    class sxyerrorbars : public errorbars
+    {public: sxyerrorbars() : errorbars(true,true,true,true) {}};
+
+    // ---------------------------  graphd_ticlabels --------------------------
+    // graphd_ticlabels
+    // This is a wrapper class: besides calling another graph_drawer,
+    // this class additionally puts labels to the x axis (xticlabels),
+    // to the y axis (yticlabels), or both (xyticlabels).
+    // You can specify the real draw-style in parentheses, for example:
+    // plot("datafile",_1,_2,_3).ds(xticlabels(lines));
+    // This command will plot the 2nd column vs. the 1st columns of the
+    // file 'datafile' with 'lines' draw-style, and instead of the automatic
+    // tics it will put ticlabels to the x coordinates (1st column) of the
+    // data, as specified in the 3rd column. For xticlabels and yticlabels
+    // you have to specify 1 more component in the plot(...) command (which
+    // is the label to be displayed), for xyticlabels you need two more
+
+    class ticlabels : public graph_drawer
+    {
+    private:
+	bool x_,y_;
+	graph_drawer *drawer_;
+    public:
+	function get_x(const plottable *g) const { return drawer_->get_x(g); }
+	function get_y(const plottable *g) const { return drawer_->get_y(g); }
+	
+	ticlabels(bool x,bool y,const graph_drawer & = blop::points());
+	ticlabels(const ticlabels &);
+	ticlabels operator() (const graph_drawer &);
+	void set_ranges(plottable *g,axis *x,axis *y);
+	void draw(plottable *g,frame *f,terminal *t);
+	void draw_sample(const length &x,
+			 const length &y,
+			 const length &size,
+			 const plottable *style,
+			 terminal *);
+	graph_drawer *clone() const;
+	void prepare_for_draw(plottable *, frame *, int count);
+	
+	int req_components() const;
+	bool draws_points() const { return (drawer_?drawer_->draws_points():false); }
+
+        bool uses_linecolor() const { return drawer_ && drawer_->uses_linecolor(); }
+        bool uses_linestyle() const { return drawer_ && drawer_->uses_linestyle(); }
+        bool uses_linewidth() const { return drawer_ && drawer_->uses_linewidth(); }
+        bool uses_pointcolor() const { return drawer_ && drawer_->uses_pointcolor(); }
+        bool uses_pointsize() const { return drawer_ && drawer_->uses_pointsize(); }
+        bool uses_fillcolor() const { return drawer_ && drawer_->uses_fillcolor(); }
+        
+    };
+    
+    class xticlabels : public ticlabels
+    {
+    public:
+        xticlabels() : ticlabels(true,false) {}
+        xticlabels(const graph_drawer &d) : ticlabels(true,false,d) {}
+    };
+    class yticlabels : public ticlabels
+    {
+    public:
+        yticlabels() : ticlabels(false,true) {}
+        yticlabels(const graph_drawer &d) : ticlabels(false,true,d) {}
+    };
+    class xyticlabels : public ticlabels
+    {
+    public:
+        xyticlabels() : ticlabels(true,true) {}
+        xyticlabels(const graph_drawer &d) : ticlabels(true,true,d) {}
+    };
+
+    // ---------------------  cbox_base -------------------------
+    
+    class cbox_base : public virtual graphd_colorscale
+    {
+    private:
+	friend class color_legend;
+	void init_lengths();
+	
+    protected:
+	std::vector<double> labelpositions_;
+
+    public:
+	
+	cbox_base(const cbox_base &);
+	cbox_base(void *cmapfunc);
+	cbox_base(color (*p)(double,double,double));
+	cbox_base(double mini, double maxi);
+	cbox_base(const color &start, const color &end);
+	cbox_base();
+	~cbox_base();
+
+	void draw_sample(const length &x,
+			 const length &y,
+			 const length &size,
+			 const plottable *style,
+			 terminal *);
+	
+	
+	double min() const { return color_min_; }
+	double max() const { return color_max_; }
+
+	bool draws_points() const { return false; }
+        bool uses_pointsize() const { return false; }
+        bool uses_pointcolor() const { return false; }
+
+    };
+
+
+    // ---------------------  cbox ---------------------------------
+
+/*
+    class cboxes : public cbox_base
+	{
+	private:
+	    double dx_,dy_;
+	    void calc(plottable *g,axis *,axis *);
+
+	    static bool default_frame_foreground_;
+	    static bool default_grid_foreground_;
+	    bool frame_foreground_, grid_foreground_;
+	    bool skip_outrange_;
+
+	public:
+
+	    cboxes();
+	    cboxes(double mini, double maxi);             // give z-range
+	    cboxes(const color &start, const color &end); // give color-range
+	    cboxes(void *p);                              // specify color-mapping func
+	    cboxes(color (*p)(double,double,double));     // specify color-mapping func
+	    cboxes(const cboxes &);
+
+
+	    // ------------------- switch on/off legend -----------------------------
+
+	    //cboxes &legend(bool f) { draw_clegend_ = f; return *this; }
+	    cboxes &legend(color_legend *l);
+	    cboxes &legend(const var &legendname);
+
+
+
+	    cboxes &operator() (double mini=unset, double maxi=unset)
+	    { value_range(mini,maxi); return *this; }
+
+	    cboxes &operator() (const color &start, const color &end)
+	    { color_range(start,end); return *this; }
+
+	    cboxes &operator() (void *p) { map_function(p); return *this; }
+		
+	    cboxes &operator() (color (*p)(double,double,double))
+	    { map_function(p); return *this; }
+
+	    cboxes &title(const var &t) { color_title_ = t; return *this; }
+
+	    cboxes &underflow(const color &c) { underflow_color_ = c; return *this; }
+	    cboxes &overflow (const color &c) { overflow_color_  = c; return *this; }
+	    cboxes &skip_outrange(bool f)     { skip_outrange_ = f; return *this; }
+
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void set_ranges(plottable *g,axis *x,axis *y);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 3;}
+
+	};
+*/
+
+    //--------------------------  graphd_scbox --------------------------------------
+
+    class csboxes : public cbox_base
+	{
+	private:
+	    void init_csboxes_();
+	    void calc_box_x_(double x, double dx, double *x1, double *x2);
+	    void calc_box_y_(double y, double dy, double *y1, double *y2);
+            
+	protected:
+	    function boxsize_x_func_, boxsize_y_func_, color_func_;
+
+	    double cell_dx_, cell_dy_;
+	    bool   cell_dx_fixed_, cell_dy_fixed_;
+
+	    bool   normalize_xsize_, normalize_ysize_;
+	    double xsize_min_, xsize_max_, ysize_min_, ysize_max_;
+	    bool   xsize_min_fixed_;
+	    bool   xsize_max_fixed_;
+	    bool   ysize_min_fixed_;
+	    bool   ysize_max_fixed_;
+	    double xsize_goal_min_, xsize_goal_max_, ysize_goal_min_, ysize_goal_max_;
+	    bool   skip_outrange_x_, skip_outrange_y_, skip_outrange_color_;
+	    
+	    bool fill_;
+
+	    friend class hist;
+	    void calc(plottable *g, axis *xaxis, axis *yaxis);
+	    static bool default_frame_foreground_;
+	    static bool default_grid_foreground_;
+	    bool frame_foreground_, grid_foreground_;
+	    void get_functions(plottable *g,
+			       function &getx,
+			       function &gety,
+			       function &boxsizex,
+			       function &boxsizey,
+			       function &getz);
+
+	public:
+
+	    csboxes();
+	    csboxes(const csboxes &);
+	    csboxes(const color &startcolor, const color &endcolor);
+	    csboxes(double min, double max);
+            csboxes(const std::vector<blop::color> &colors);
+            csboxes(const std::vector<blop::color> &colors, const std::vector<double> &values, bool values_normalized=true);
+
+	    // ----------------------------------------------------------------------
+	    // set the normalization limits for the box sizes in x/y.
+	    // All boxes will be normalized/scaled such that a box with a size-value
+	    // == max will match the cell size (which is the grid-spacing of the points),
+	    // and a size-value == min will appear as a 0-sized box (invisibly small)
+
+	    csboxes &xsize_range(double min, double max);
+	    csboxes &xsize_min  (double min);
+	    csboxes &xsize_max  (double max);
+
+	    csboxes &ysize_range(double min, double max);
+	    csboxes &ysize_min  (double min);
+	    csboxes &ysize_max  (double max);
+
+	    csboxes &color_range(double min, double max) { graphd_colorscale::color_range(min,max); return *this; }
+	    csboxes &color_range(const color &startcolor, const color &endcolor) { graphd_colorscale::color_range(startcolor,endcolor); return *this; }
+
+	    // ----------------------------------------------------------------------
+	    // Set the goal size of the boxes (note that calling this function automatically
+	    // switches on boxsize normalization in the given direction x/y)
+	    // min,max (both of which should be in principle in the range 0-1) means that
+	    // the value-range of the data (either the full range of the data, or the range
+	    // requested by the user via xsize_range, etc functions) will be represented by
+	    // boxes in the range [min..max]*cellsize
+	    // the default value is 0 for minimum (i.e. 'invisibly small box' for the minimum value)
+	    // and 1 for maximum (i.e. the full cellsize of the data grid)
+
+	    csboxes &xsize_goal_range(double min, double max);
+	    csboxes &xsize_goal_min  (double min);
+	    csboxes &xsize_goal_max  (double max);
+	    csboxes &ysize_goal_range(double min, double max);
+	    csboxes &ysize_goal_min  (double min);
+	    csboxes &ysize_goal_max  (double max);
+
+	    // ----------------------------------------------------------------------
+	    // Skip points which fall outside of the ranges. 
+
+	    csboxes &skip_outrange_x    (bool f) { skip_outrange_x_ = f; return *this; }
+	    csboxes &skip_outrange_y    (bool f) { skip_outrange_y_ = f; return *this; }
+	    csboxes &skip_outrange_color(bool f) { skip_outrange_y_ = f; return *this; }
+
+	    // ----------------------------------------------------------------------
+	    // Specify the colors used to display the under/overflow values.
+
+	    csboxes &underflow(const color &c) { graphd_colorscale::underflow_color(c); skip_outrange_color_ = false; return *this; }
+	    csboxes &underflow_color(const color &c) { graphd_colorscale::underflow_color(c); skip_outrange_color_ = false; return *this; }
+	    csboxes &overflow(const color &c)  { graphd_colorscale::overflow_color(c);  skip_outrange_color_ = false; return *this; }
+	    csboxes &overflow_color(const color &c)  { graphd_colorscale::overflow_color(c);  skip_outrange_color_ = false; return *this; }
+
+	    // ----------------------------------------------------------------------
+	    // Set the normalization of the boxes. If this is set to true, then
+	    // the box will be scaled such that a value equal to 'max' will match the
+	    // cell size (which by default is calculated from the grid spacing of the datapoints),
+	    // and a value equal to 'min' will appear as a 0-sized box.
+	    // 'max' and 'min' are the maximum and minimum values over the whole graph,
+	    // unless overwritten by the norm_dx/norm_dy functions, see above. 
+
+	    csboxes &normalize_xsize(bool f) { normalize_xsize_ = f; return *this; }
+	    csboxes &normalize_ysize(bool f) { normalize_ysize_ = f; return *this; }
+	    csboxes &normalize_size (bool f) { normalize_xsize_ = normalize_ysize_ = f; return *this; }
+
+	    // ---------------------------------------------------------------
+	    // Scale the boxes in the x/y directions independently (or not)
+	    // If true, 2 columns (4 and 5) are used to determine the box-sizes
+	    // in the x/y direction. Otherwise just one column (4th) is used
+
+	    csboxes &independent_xy(bool f);
+
+	    // ----------------------------------------------------------------------
+	    // Specify manually the cellsize (the reference for scaling the boxes).
+	    // If the value 'unset' is given, then the grid spacing will be automatically
+	    // calculated from the data points, and this will be used.
+
+	    csboxes &dx(double v);
+	    csboxes &dy(double v);
+
+	    // ----------------------------------------------------------------------
+
+	    virtual csboxes &fill(bool f) { fill_ = f; return *this; }
+
+	    // ----------------------------------------------------------------------
+	    // set the number of samples used by the colorlegend bar. Just overwrite
+	    // the inherited function to return a csboxes
+
+	    csboxes &color_samples(int n)  { graphd_colorscale::color_samples(n); return *this; }
+
+	    // -----------------------------------------------------------------------
+	    // set logscale for the representation of the z-values by colors. Just overwrite
+	    // the inherited function to return csboxes
+
+	    csboxes &color_logscale(bool f) { graphd_colorscale::color_logscale(f); return *this; }
+
+	    // -----------------------------------------------------------------------
+	    // Set the title of the color-legendbar. Just overwrite the inherited function to return csboxes
+
+	    csboxes &color_title(const var &t) { graphd_colorscale::color_title(t); return *this; }
+	    csboxes &title(const var &t)       { color_title(t); return *this; }
+
+	    // ----------------------------------------------------------------------
+	    // call this function with 'true' to automatically bring the frame to 
+	    // the foreground, whenever a plottable is plotted with scbox style
+	    // The default behaviour is 'true'
+
+	    static void default_frame_foreground(bool f) { default_frame_foreground_ = f; }
+	    static void default_grid_foreground(bool f)  { default_grid_foreground_ = f; }
+	    csboxes &frame_foreground(bool f) { frame_foreground_ = f; return *this; }
+	    csboxes &grid_foreground (bool f) { grid_foreground_ = f; return *this; }
+
+
+	    csboxes &operator() (double mini=unset, double maxi=unset) { color_range(mini,maxi); return *this; }
+	    csboxes &operator() (const color &start, const color &end) { color_range(start,end); return *this; }
+	    csboxes &operator() (void *p) { color_mapping(p); return *this; }
+	    csboxes &operator() (color (*p)(double,double,double))     { color_mapping(p); return *this; }
+            csboxes &operator() (const std::vector<blop::color> &colors) { color_mapping(colors); return *this; }
+            csboxes &operator() (const std::vector<blop::color> &colors, const std::vector<double> &values, bool values_normalized=true) { color_mapping(colors,values,values_normalized); return *this; }
+
+	    csboxes &legend(color_legend *l)       { set_colorlegend(l); return *this; }
+	    csboxes &legend(bool f)                { draw_colorlegend(f); return *this; }
+	    csboxes &legend(const var &legendname) {legendname_ = legendname.str();return *this;}
+            color_legend *legend() { return get_colorlegend(); }
+
+	    void draw(plottable *g,frame *f,terminal *t);
+	    void set_ranges(plottable *g,axis *x,axis *y);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const {return 3;}
+
+	    bool draws_points() const { return false; }
+
+	    bool uses_linecolor() const { return !fill_; }
+            bool uses_linestyle() const { return !fill_; }
+            bool uses_linewidth() const { return !fill_; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return fill_; }
+            
+	};
+
+    class cboxes : public csboxes
+    {
+    private:
+	void init_();
+    public:
+	cboxes *clone() const { return new cboxes(*this); }
+	cboxes();
+        cboxes(const cboxes &rhs);
+        cboxes(const csboxes &rhs);
+	cboxes(double min, double max);                           // set the z-value-range
+	cboxes(const color &start, const color &stop);            // set the color-range
+        cboxes(const std::vector<blop::color> &colors);
+        cboxes(const std::vector<blop::color> &colors, const std::vector<double> &values, bool values_normalized=true);
+	cboxes(void *p);
+	cboxes(color (*p)(double,double,double));
+        template <typename... T>
+        cboxes(T... colors)
+            {
+                init_();
+                color_mapping({colors...});
+            }
+	cboxes &operator()(double min,double max) { color_range(min,max); return *this;}
+	cboxes &operator()(const color &start, const color &end) { color_range(start,end); return *this; }
+        cboxes &operator()(const std::vector<blop::color> &colors) { color_mapping(colors); return *this; }
+        cboxes &operator()(const std::vector<blop::color> &colors, const std::vector<double> &values, bool values_normalized) { color_mapping(colors,values,values_normalized); return *this; }
+	cboxes &operator()(void *p)    { color_mapping(p); return *this; }
+	cboxes &operator()(color (*p)(double,double,double))  { color_mapping(p); return *this; }
+	cboxes &title(const var &t) { color_title(t); return *this; }
+	cboxes &logscale(bool f) { color_logscale(f); return *this; }
+	cboxes &legend(color_legend *l)       { csboxes::legend(l); return *this; }
+	cboxes &legend(bool f)                { csboxes::legend(f); return *this; }
+	cboxes &legend(const var &legendname) { csboxes::legend(legendname); return *this;}
+        color_legend *legend() { return csboxes::legend(); }
+
+    };
+
+    class sboxes : public csboxes
+    {
+    private:
+	void init_();
+    public:
+	sboxes *clone() const { return new sboxes(*this); }
+	sboxes();
+        sboxes(const sboxes &rhs);
+        sboxes(const csboxes &rhs);
+	sboxes(double min, double max);
+	sboxes &operator()(double min, double max);   // set the boxsize-range (both x/y directions)
+
+	void draw_sample(const length &x,
+			 const length &y,
+			 const length &size,
+			 const plottable *s,
+			 terminal *t);
+    };
+
+
+    // ------------------  band drawstyle ----------------------------------------
+    // the 'band' style requires 3 components: 
+    // 1st: the x coordinate
+    // 2nd and 3rd: the lower and upper y coordinates, between which a
+    // band will be drawn. This is in an early status, it does not make
+    // clipping correctly: if the range of the frame is narrower than
+    // the data to be shown, it will go out of the frame
+
+    class bands : public graph_drawer
+	{
+	private:
+	    bool x_,y_;
+	    function get_x1_(plottable *) const;
+	    function get_x2_(plottable *) const;
+	    function get_y1_(plottable *) const;
+	    function get_y2_(plottable *) const;
+	public:
+	    bands(bool x=true, bool y=true) : x_(x), y_(y) {}
+
+	    void draw(plottable *g, frame *f, terminal *t);
+	    void draw_sample(const length &x, const length &y,
+			     const length &samplen, const plottable *s, terminal *t);
+	    void set_ranges(plottable *g, axis *x, axis *y);
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int) {}
+	    int req_components() const {if(x_ && y_) return 4; return 3;}
+	    bool draws_points() const { return false; }
+
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+
+	};
+
+    class xbands : public bands
+    {public: xbands() : bands(true,false) {}};
+    class ybands : public bands
+    {public: ybands() : bands(false,true) {}};
+
+    // ------------------  mosaic  ----------------------------------------------
+
+    class mosaic : public cbox_base
+	{
+	private:
+	    function  params_to_xy_;
+	    bool fixdp_; // wether parameters have a fix stepsize
+
+	    static bool default_frame_foreground_;
+	    static bool default_grid_foreground_;
+	    bool frame_foreground_, grid_foreground_;
+
+	public:
+	    // if initialized with a single function, this function MUST have
+	    // 2 components (to calculate the x and y values from the params)
+	    mosaic(const function &f1);
+	    mosaic(const function &f1, const function &f2);
+	    mosaic(const mosaic &rhs);
+
+	    void set_ranges(plottable *g, axis *x, axis *y);
+	    void draw(plottable *g, frame *f, terminal *t);
+	    bool draws_sample() const { return false; }
+	    graph_drawer *clone() const {return new mosaic(*this);}
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const { return 3; }
+
+	    // set the z-range (to calculate colors)
+	    mosaic &operator()(double mini, double maxi) { color_range(mini,maxi);return *this; }
+	    mosaic &operator()(double mini, int maxi   ) { color_range(mini,(double)maxi); return *this; }
+	    mosaic &operator()(int    mini, double maxi) { color_range((double)mini,maxi); return *this; }
+	    mosaic &operator()(int    mini, int    maxi) { color_range((double)mini,(double)maxi); return *this; }
+
+	    // Specify the start- and end-colors. A linear transition
+	    // from the start- to the end-color is done as a function
+	    // of the z-value
+	    mosaic &operator() (const color &s, const color &e) { color_range(s,e); return *this; }
+
+	    // Specify the color mapping functions
+	    mosaic &operator()(void *p) { color_mapping(p); return *this; }
+	    mosaic &operator()(color (*p)(double,double,double)) { color_mapping(p); return *this; }
+
+	    // specify the title (to be shown next to the legend
+	    mosaic &color_title(const var &t) { graphd_colorscale::color_title(t); return *this; }
+
+	    // specify logscale for the z values
+	    mosaic &color_logscale(bool v)    { graphd_colorscale::color_logscale(v); return *this; }
+
+	    mosaic &legend(bool f) { draw_colorlegend(f); return *this; }
+	    mosaic &legend(const var &legendname) {legendname_=legendname.str();return *this;}
+
+	    mosaic &fixdp(bool f) { fixdp_ = f; return *this; }
+
+	    static void default_frame_foreground(bool f) { default_frame_foreground_ = f; }
+	    static void default_grid_foreground(bool f)  { default_grid_foreground_ = f; }
+	    mosaic &frame_foreground(bool f) { frame_foreground_ = f; return *this; }
+	    mosaic &grid_foreground(bool f) { grid_foreground_ = f; return *this; }
+
+	    mosaic &underflow      (const color &c) { graphd_colorscale::underflow_color(c); return *this; }
+	    mosaic &underflow_color(const color &c) { graphd_colorscale::underflow_color(c); return *this; }
+	    mosaic &overflow       (const color &c) { graphd_colorscale::overflow_color (c); return *this; }
+	    mosaic &overflow_color (const color &c) { graphd_colorscale::overflow_color (c); return *this; }
+
+	    bool draws_points() const { return false; }
+	    bool uses_linecolor() const { return false; }
+            bool uses_linestyle() const { return false; }
+            bool uses_linewidth() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return false; }
+
+	};
+
+    class mosaic_polar : public mosaic
+    {
+    public:
+        mosaic_polar() : mosaic(ARG(1)*cos(ARG(2)), ARG(1)*sin(ARG(2))) {}
+        mosaic_polar(double mini, double maxi) : mosaic(ARG(1)*cos(ARG(2)), ARG(1)*sin(ARG(2)))
+	{
+	    operator()(mini,maxi);
+	}
+    };
+    
+
+    // ------------------ gts-based isoline drawer -----------------
+    class isolines : public graph_drawer
+	{
+	private:
+	    bool skip_(const var &, const var &, const var &, axis *xaxis, axis *yaxis,
+		       double xmin, double xmax, double ymin, double ymax);
+	    vector<double> isovalues_;
+	    bool isovalues_specified_;
+	    double min_, max_, step_, spec_val_;
+	    bool minfixed_, maxfixed_, stepfixed_;
+	    bool logscale_;
+	    std::vector<color> colors_;
+	    std::vector<var>   labels_;
+	    bool draw_labels_, turn_labels_;
+	    std::string labelformat_;
+	    bool center_labels_;
+	    static bool default_center_labels_;
+	    double x1repulsion_, x2repulsion_, y1repulsion_, y2repulsion_;
+	    double labelrepulsion_[3];
+	    sym::position label_xalign_, label_yalign_;
+
+            void init_();
+
+	public:
+	    isolines();
+
+            isolines(double Min, double Max);
+
+	    // use a logarithmic scale for calculating the iso-values
+	    isolines &logscale(bool f) { logscale_ = f; return *this; }
+
+	    // set the minimum/maximum iso-values
+	    isolines &min(double v) { min_ = v; minfixed_ = true; return *this; }
+	    isolines &max(double v) { max_ = v; maxfixed_ = true; return *this; }
+
+	    // set the stepsize between iso-values. If not specified, an automatic
+	    // calculation is done for the optimum
+	    isolines &step(double stepsize, double specval=unset)
+	    { step_ = stepsize; spec_val_ = specval; stepfixed_ = (stepsize!=unset); return *this; }
+
+	    // Set the format (printf style), which will be used to print
+	    // the labels on the isolines. The default is "%g". 
+	    isolines &labelformat(const var &format)
+	    { labelformat_ = format.str(); return *this; }
+
+	    // Specify the values, at which isolines should be drawn
+	    // if more than 10 values are needed, call .at(...) twice:
+	    // plot("filename").ds(isolines.at(1,2,3,4,..).at(11,12);
+	    // If these values are specified, the min,max,step are ignored
+            isolines &at(const vector<double> &values);
+
+	    isolines &at(double val1,
+			 double val2=unset,
+			 double val3=unset,
+			 double val4=unset,
+			 double val5=unset,
+			 double val6=unset,
+			 double val7=unset,
+			 double val8=unset,
+			 double val9=unset,
+			 double val10=unset,
+			 double val11=unset,
+			 double val12=unset,
+			 double val13=unset,
+			 double val14=unset,
+			 double val15=unset,
+			 double val16=unset,
+			 double val17=unset,
+			 double val18=unset,
+			 double val19=unset,
+			 double val20=unset);
+	    
+	    // switch on/off the drawing of isovalue-labels at the lines
+	    isolines &labels(bool f) { draw_labels_ = f; return *this; }
+
+	    // switch on/off turned labels (along the tangent of the given isoline)
+	    isolines &turn_labels(bool f) { turn_labels_ = f; return *this; }
+
+	    isolines &colors(const color &c1,
+			     const color &c2 = color(-1,-1,-1),
+			     const color &c3 = color(-1,-1,-1),
+			     const color &c4 = color(-1,-1,-1),
+			     const color &c5 = color(-1,-1,-1),
+			     const color &c6 = color(-1,-1,-1),
+			     const color &c7 = color(-1,-1,-1),
+			     const color &c8 = color(-1,-1,-1),
+			     const color &c9 = color(-1,-1,-1),
+			     const color &c10 = color(-1,-1,-1));
+
+	    // specify a sequence of labels to be printed on the isolines
+	    // (instead the isovalue itself)
+	    isolines &labels(const var &l1,
+			     const var &l2 = blop::unset,
+			     const var &l3 = blop::unset,
+			     const var &l4 = blop::unset,
+			     const var &l5 = blop::unset,
+			     const var &l6 = blop::unset,
+			     const var &l7 = blop::unset,
+			     const var &l8 = blop::unset,
+			     const var &l9 = blop::unset,
+			     const var &l10 = blop::unset);
+	    
+	    // try to center the labels on the lines, instead of
+	    // a more complicated algorithm to space them rather apart from
+	    // each other
+	    isolines &center_labels(bool f) { center_labels_ = f; return *this; }
+	    
+            //html <a name="isolines_label_align">
+	    // Alignment of the labels, default is center,center
+	    //html </a>
+	    isolines &label_align(sym::position xalign, sym::position yalign);
+
+	    // specify the weights to push away the line labels from the frame edges.
+	    // The bigger this weight, the further away they will be from the frame edges.
+	    // Default is 1.5
+	    isolines &label_repulsion_frame(double w);
+
+            // Specify the weights to push away the isovalue labels from individual axes.
+            // The bigger this wekght, the further away they will be positioned from the given axis.
+            // Example: plot(_1,_2,_1*_2).ds(isolines().label_repulsion_axis(axis::x1,20);
+            isolines &label_repulsion_axis(int axis_id, double w);
+
+	    // Set repulsion weights for the previous 3 isovalues. Default is 
+	    isolines &label_repulsion_label(double w1, double w2, double w3);
+
+	    void set_ranges(plottable *g, axis *x, axis *y);
+	    void draw(plottable *g, frame *f, terminal *t);
+	    void draw_sample(const length &, const length &, const length &,
+			     const plottable *, terminal*);
+	    bool draws_sample() const { return true; }
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const { return 3; }
+	    bool draws_points() const { return false; }
+	    bool uses_linecolor() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return false; }
+	};
+
+    // ------------------------ vectors -------------------------
+    class vectors :  public virtual graphd_colorscale
+	{
+	private:
+	    friend class color_legend;
+	    length xunit_, yunit_;
+	    arrowhead *arrow_;
+	    double dx_, dy_, norm_, min_length_cut_, max_length_cut_;
+	    bool norm_fixed_, min_length_cut_fixed_;
+	    sym::position pos_;
+	    double min_length_, max_length_;
+
+	    bool scale_arrow_;
+	    bool use_color_;
+
+	    // A function to calculate the numerical value from
+	    // the 4 columns of the dgraph, which will be used
+	    // to set a color. It defaults to sqrt(_3*_3+_4*_4),
+	    // i.e. the length of the arrow
+	    function colorfunc_;
+
+	    bool clip_;
+
+	public:
+	    vectors(const vectors &);
+	    vectors();
+	    ~vectors();
+
+	    vectors &norm(double val);
+	    vectors &pos(sym::position p);
+
+	    // --------------   Set the arrow ------------------------------
+	    vectors &arrow(const arrowhead &);
+
+	    // ---------------- length of the arrows -----------------------
+	    // Specify the length of the arrows (for the maximum value...
+	    // lower values will be normally scaled down by the
+	    // length of the vector)
+	    vectors &arrowlength(const length &l) { arrow_->size(l); return *this; }
+
+	    // --------------  angle arrow ---------------------------------
+	    // specify the angle of the arrows
+	    vectors &arrowangle(double a) { arrow_->angle(a); return *this; }
+
+	    // --------- skip values lower than this -----------------------
+	    vectors &min(double v);
+            vectors &max(double v);
+
+	    // ----------  change clipping outside of the frame ------------
+	    vectors &clip(bool f) { clip_ = f; return *this; }
+
+
+	    vectors &scale_arrow(bool f) { scale_arrow_ = f; return *this; }
+	    vectors &use_color(bool f) { use_color_ = f; return *this; }
+	    vectors &use_color(const function &f)
+	    { use_color_ = true; colorfunc_ = f; return *this; }
+
+	    void setup_when_added(plottable *, frame *);
+
+	    void set_ranges(plottable *g, axis *x, axis *y);
+	    void draw(plottable *g, frame *f, terminal *t);
+	    void draw_sample(const length &, const length &, const length &,
+			     const plottable *, terminal*);
+	    bool draws_sample() const { return true; }
+	    graph_drawer *clone() const;
+	    void prepare_for_draw(plottable *, frame *, int count);
+	    int req_components() const;
+	    bool draws_points() const { return false; }
+            bool uses_pointcolor() const { return false; }
+            bool uses_pointsize() const { return false; }
+            bool uses_fillcolor() const { return false; }
+
+	};
+
+#ifndef __MAKECINT__    
+    typedef std::variant<blop::dots,blop::lines,blop::splines,blop::histo,blop::points,blop::linespoints,blop::spoints,blop::cpoints,blop::bars,blop::labels,blop::errorbars,blop::yerrorbars,blop::syerrorbars,blop::xerrorbars,blop::sxerrorbars,blop::xyerrorbars,blop::sxyerrorbars,blop::ticlabels,blop::xticlabels,blop::yticlabels,blop::xyticlabels,blop::csboxes,blop::cboxes,blop::sboxes,blop::bands,blop::xbands,blop::ybands,blop::mosaic,blop::mosaic_polar,blop::isolines,blop::vectors> graph_drawers;
+#endif
+}
+
+#ifdef __MAKECINT__
+#pragma link off function operator<=(vector<blop::color>&,vector<blop::color>&);
+#pragma link off function operator<(vector<blop::color>&,vector<blop::color>&);
+#pragma link off function operator>=(vector<blop::color>&,vector<blop::color>&);
+#pragma link off function operator>(vector<blop::color>&,vector<blop::color>&);
+#endif
+
+#endif
+
