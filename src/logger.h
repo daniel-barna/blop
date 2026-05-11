@@ -21,7 +21,15 @@ int main()
   logger::html_file  logger_html_file("my_log.html"); // Until the end of the scoope of this helper variable, output will also be written in a dynamic, structured html file
 
   logger log("My program");  // creates an indented block until the end of this variable. Send output to this at this level
-  log<<"First log"<<endl;
+
+  // Set the font color to red for one item (i.e. the following "First log" text), and print text. If no number is given in parenthesis,
+  // the style change is permanent until the end of lifetime.
+  log<<logger:red(1)<<"First log"<<endl;  
+
+  // Note that a larger lifetime limit overrides previous ones in the following sense:
+  // log<<logger:red(1)<<logger::underline(3)<<"first "<<"second "<<"third "<<"fourth ";
+  // then "first", "second" and "third" will all be printed with red, underlined
+
   log<<"Second level"<<endl;
 
   {
@@ -44,6 +52,12 @@ namespace blop{
 class logger 
 {
 private:
+    static std::vector<logger*> &stack_()
+    {
+        static std::vector<logger*> the_stack;
+        return the_stack;
+    }
+
     std::string name_;
     unsigned int my_level_ = 0;
     static unsigned int level_;
@@ -72,8 +86,8 @@ private:
     std::chrono::time_point<clock> start_;
 
     // A private constructor to be used by the global topmost logger instance only
+    // Should this be stored in the logger stack?
     logger() : name_(""), one_line_(false), silent_(false), my_level_(0) {}
-
 
     template <typename T>
     static void write_escaped(std::ostream &os, const T &t) {os<<t;}
@@ -98,6 +112,8 @@ private:
     static void write_escaped(std::ostream &os, char c) { write_escaped(os,std::string_view(&c,1)); }
 
     unsigned int n_formats_ = 0;
+
+    void apply_format();
 
 public:
     class format_setter
@@ -127,13 +143,27 @@ private:
     
 public:
 
+    static format_setter black;
     static format_setter red;
     static format_setter green;
+    static format_setter yellow;
     static format_setter blue;
+    static format_setter magenta;
+    static format_setter cyan;
+    static format_setter white;
+
+    static format_setter black_bg;
     static format_setter red_bg;
     static format_setter green_bg;
+    static format_setter yellow_bg;
     static format_setter blue_bg;
+    static format_setter magenta_bg;
+    static format_setter cyan_bg;
+    static format_setter white_bg;
+
     static format_setter bold;
+//    static format_setter italic;  // doesn't seem to work in WSL at least
+    static format_setter underline;
 
     static format_resetter reset;
 
@@ -187,7 +217,7 @@ public:
         if(html_file_) write_escaped(*html_file_,t);
 
         // Increment the number of calls for all setters
-        for(auto &s : format_setters_) ++s.n_;
+        for(auto &f : format_setters_) ++f.n_;
 
         // From the top of the stack, check which format has been called the specified amount of times
         // and remove it
@@ -201,7 +231,7 @@ public:
         if(removed_format)
         {
             std::cerr<<"\e[0m";  // Reset
-            for(const auto &f : format_setters_) std::cerr<<f.console_set_;  // reapply the remaining format
+            for(const auto &f : format_setters_) std::cerr<<f.console_set_;  // reapply the remaining formats
         }
         return *this;
     }

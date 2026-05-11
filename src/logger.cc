@@ -5,13 +5,27 @@ using namespace std;
 namespace blop {
 
     logger::format_resetter logger::reset;
+    logger::format_setter logger::black("\e[30m","<span style='color:black;'>");
     logger::format_setter logger::red("\e[31m","<span style='color:red;'>");
     logger::format_setter logger::green("\e[32m","<span style='color:green;'>");
+    logger::format_setter logger::yellow("\e[33m","<span style='color:yellow;'>");
     logger::format_setter logger::blue("\e[34m","<span style='color:blue;'>");
+    logger::format_setter logger::magenta("\e[35m","<span style='color:magenta;'>");
+    logger::format_setter logger::cyan("\e[36m","<span style='color:cyan;'>");
+    logger::format_setter logger::white("\e[37m","<span style='color:white;'>");
+
+    logger::format_setter logger::black_bg("\e[40m","<span style='background-color:black;'>");
     logger::format_setter logger::red_bg("\e[41m","<span style='background-color:red;'>");
     logger::format_setter logger::green_bg("\e[42m","<span style='background-color:green;'>");
+    logger::format_setter logger::yellow_bg("\e[43m","<span style='background-color:yellow;'>");
     logger::format_setter logger::blue_bg("\e[44m","<span style='background-color:blue;'>");
-    logger::format_setter logger::bold("\e[2m","<span style='font-weight:bold;'>");
+    logger::format_setter logger::magenta_bg("\e[45m","<span style='background-color:magenta;'>");
+    logger::format_setter logger::cyan_bg("\e[46m","<span style='background-color:cyan;'>");
+    logger::format_setter logger::white_bg("\e[47m","<span style='background-color:white;'>");
+
+    logger::format_setter logger::bold("\e[1m","<span style='font-weight:bold;'>");
+//    logger::format_setter logger::italic("\e[3m","<span style='font-style:italic;'>");
+    logger::format_setter logger::underline("\e[4m","<span style='text-decoration:underline;'>");
 
     logger &logger::operator<<(const format_setter &f)
     {
@@ -41,6 +55,10 @@ namespace blop {
         my_level_ = ++level_;
         
         ostringstream sss;
+
+        // Reset the format of the console
+        if(!silent_) std::cerr<<"\e[0m";
+
         for(unsigned int i=0; i<my_level_-1; ++i) 
         {
             if(!silent_)
@@ -65,7 +83,8 @@ namespace blop {
                 {
                     (*html_file_)<<"<div class='expandable'>"<<endl;
                     (*html_file_)<<"<div class='header'>"<<name_;
-                    (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>"<<endl;
+                    (*html_file_)<<"<div class='duration'></div>";
+                    (*html_file_)<<"<div class='expandbutton'>&#9196;&#xFE0E;</div><div class='collapsebutton'>&#9195;&#xFE0E;</div></div>"<<endl;
                     (*html_file_)<<"<div class='content'>"<<endl;
                 }
             }
@@ -88,6 +107,8 @@ namespace blop {
         header_ = sss.str();
 
         start_ = clock::now();
+
+        stack_().push_back(this);
     }
 
     void logger::newline()
@@ -99,6 +120,7 @@ namespace blop {
     
     logger::~logger()
     {
+
         if(name_ != "")
         {
             auto stop = clock::now();
@@ -134,7 +156,7 @@ namespace blop {
                     if(html_file_)
                     {
                         (*html_file_)<<"</div>"<<endl;
-                        (*html_file_)<<"<script>document.currentScript.parentElement.querySelector(\".header\").insertAdjacentText(\"beforeend\",\" ("<<duration<<")\");</script>"<<endl;
+                        (*html_file_)<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<duration<<"\";</script>"<<endl;
                         (*html_file_)<<"<div class='footer'>"<<name_<<"</div>";
                         (*html_file_)<<"</div>"<<endl;
                     }
@@ -146,6 +168,21 @@ namespace blop {
                 }
             }
             --level_;
+        }
+        if(!stack_().empty() && stack_().back() == this)
+        {
+            stack_().pop_back();
+            std::cerr<<"\e[0m";  // Reset the format
+        }
+        // Reapply the format of the previous log level
+        if(!stack_().empty()) stack_().back()->apply_format();
+    }
+
+    void logger::apply_format() 
+    { 
+        for(const auto &f : format_setters_)
+        {
+            std::cerr<<f.console_set_;
         }
     }
 
@@ -164,7 +201,7 @@ namespace blop {
             indent();
             cerr<<"FAILED TO OPEN HTML LOG FILE"<<endl;
         }
-        (*html_file_)<<R"(<html>
+        (*html_file_)<<R"LIMIT(<html>
         <head>
 <style>
 
@@ -209,6 +246,10 @@ namespace blop {
 
 .expandable {
     position: relative;
+    color: black;
+    background-color: white;
+    font-weight: normal;
+    text-decoration: none;
 }
 
 .expandable.open::before {
@@ -244,14 +285,30 @@ namespace blop {
 .expandbutton, .collapsebutton {
     color: blue;
     display: inline;
+    margin: 0 2pt 0 2pt;
 }
+.expandbutton:hover, .collapsebutton:hover {
+    color: red;
+}
+
+.duration {
+    color: green;
+    display: inline;
+}
+.duration::before {
+    content: " (";
+}
+.duration::after {
+    content: ")";
+}
+
 body {
     font-family: Consolas;
 }
 
 </style>      
       </head>
-      <body>)"<<endl;
+      <body>)LIMIT"<<endl;
     }
 
     void logger::open_file(const std::filesystem::path &filename)

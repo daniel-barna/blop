@@ -1,0 +1,120 @@
+TITLE: Logger
+PREV:  streams.html
+NEXT:  terminals.html
+==>
+
+<div class=prguide><u>Practical Guide:</u>
+<pre>
+
+void f(double d, int i)
+{
+  logger log("f(" + std::to_string(d) + "," + std::to_string(i) + ")");  // Creates an indented block in the logfile
+  log<<"First log in this function"<<endl;
+}
+
+int main()
+{
+  logger::file       logger_file("my_log.txt");       // Until the end of the scope of this helper variable (i.e. program termination), output will also be written to the file
+  logger::html_file  logger_html_file("my_log.html"); // Until the end of the scoope of this helper variable, output will also be written in a dynamic, structured html file
+
+  logger log("My program");  // creates an indented block until the end of this variable. Send output to this at this level
+
+  // Set the font color to red for one item (i.e. the following "First log" text), and print text. If no number is given in parenthesis,
+  // the style change is permanent until the end of lifetime.
+  log<<logger:red(1)<<"First log"<<endl;  
+
+  // Note that a larger lifetime limit overrides previous ones in the following sense:
+  // log<<logger:red(1)<<logger::underline(3)<<"first "<<"second "<<"third "<<"fourth ";
+  // then "first", "second" and "third" will all be printed with red, underlined
+
+  log<<"Second level"<<endl;
+
+  {
+    logger log("Some sub-block, indented");
+    log<<"Indented first log"<<endl;
+  }
+  
+}
+</pre>
+</div>
+<hr>
+
+<div class=description> 
+
+<ul>
+<li><a href="#file">      Writing the log to a text file</a>
+<li><a href="#html">      Writing the log to a html file</a>
+<li><a href="#output">    Outputting text</a>
+<li><a href="#formatting"> Foramtting text</a>
+</ul>
+
+<p><div class=sectiontitle><a name="file">Writing the log to a text file</a></div>
+
+<p>The command <pre>logger::open_file("log.txt");</pre> opens the
+named file and the log will be written also to this file. The file is
+closed by <pre>logger::close_file();</pre> </p>
+
+<p>In order to automatically limit the scope of the log file, without
+the need to take care at the end of a block, or function, use the
+utility class <pre>logger::file</pre>:
+
+<pre>
+logger::file logfile("log.txt");
+</pre>
+
+The constructor of this file launches
+<pre>logger::open_file("log.txt")</pre>, and its destructor calls
+<pre>logger::close_file();</pre> automatically (whether due to its
+scope expiring, or an exception being thrown, etc)
+</p>
+
+
+<p><div class=sectiontitle><a name="html">Writing the log to a html file</a></div>
+
+<p>The command <pre>logger::open_html_file("log.html");</pre> opens the
+named file and the log will be written also to this html file with
+interactivity and pretty formatting. The file is
+closed by <pre>logger::close_html_file();</pre>. Calling the open
+function multiple times automatically closes the previous
+file. Indented blocks are collapsed by default in the html file, and
+can be interactively expanded</p>
+
+<p>In order to automatically limit the scope of the log file, without
+the need to take care at the end of a block, or function, use the
+utility class <pre>logger::html_file</pre>:
+
+<pre>
+logger::html_file html_logfile("log.html");
+</pre>
+
+The constructor of this file launches
+<pre>logger::open_html_file("log.html")</pre>, and its destructor calls
+<pre>logger::close_html_file();</pre> automatically (whether due to its
+scope expiring, or an exception being thrown, etc)
+</p>
+
+<p><div class=sectiontitle><a name="output">Outputting text</a></div>
+
+<p>
+Whatever data (text, double, etc) can be written to the log using the
+&lt;&lt; operator. It is a template function and can be called for any
+type for which the same operator for std::ostream is implemented.
+</p>
+
+<p><div class=sectiontitle><a name="format">Formatting text</a></div>
+
+<p>
+.... to be written
+</p>
+
+
+
+
+
+</div>
+<hr>
+<pre class=implementation>
+Source files
+   <a href="logger.h.html">logger.h</a>
+   <a href="logger.cc.html">logger.cc</a>
+</pre>
