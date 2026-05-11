@@ -217,22 +217,24 @@ namespace blop {
 }
 
 .expandable > .header::before {
-  content: "▶";
+  content: "▼";
+  //  content: "▶";
   position: absolute;
   left: 0;
-  top: 0;
+  top: 0.2em;
   width: 1em;
   text-align: center;
-  transform: translateY(-0.1em);
+  transform: rotate(-90deg);
 }
 
 .expandable.open > .header::before {
   content: "▼";
   position: absolute;
   left: 0;
-  top: 0;
+  top: 0.15em;
   width: 1em;
   text-align: center;
+  transform: rotate(0deg);
 }
 
 .footer::before {
