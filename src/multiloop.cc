@@ -1,43 +1,39 @@
 #include "multiloop.h"
+#include "warning.h"
 #include <iostream>
+#include <sstream>
 
+using namespace std;
 
-multiloop::multiloop(unsigned int size, int to, int from, bool permutations) : current_(size), from_(size), to_(size), permutations_(permutations) 
+namespace blop
 {
-    for(unsigned int i=0; i<size; ++i)
+    
+void multiloop::create_(unsigned int nvars, const std::vector<int> &from, const std::vector<int> &to)
+{
+    for(unsigned int i=0; i<nvars; ++i)
     {
-        from_[i] = from;
-        to_[i] = to;
+        const double from_value = (i<from.size() ? from[i] : from.back());
+        const double to_value   = (i<to.size()   ? to[i]   : to.back());
+        if(from_value > to_value)
+        {
+            ostringstream s;
+            s<<"multiloop::multiloop("<<nvars<<",vector<int>("<<from.size()<<"),vector<int>("<<to.size()<<"))";
+            warning::print("'to' must be larger than 'from'",s.str());
+        }
+        from_[i] = from_value;
+        to_[i] = to_value;
     }
-    // Initialize the state to 'false' in case init_() fails (which can happen if no permutations are allowed,
-    // and the limits are too low to allow all indices to be different)
     reset();
 }
 
 
 bool multiloop::init_(int j)
 {
-    if(permutations_)
-    {
-        for(unsigned int i=j; i<current_.size(); ++i) current_[i] = from_[i];
-    }
-    else
-    {
-        for(unsigned int i=j; i<current_.size(); ++i) 
-        {
-            current_[i] = (i==0?from_[i]:current_[i-1]+1);
-            if(current_[i]>=to_[i]) return false;
-        }
-    }
+    for(unsigned int i=j; i<current_.size(); ++i) current_[i] = from_[i];
     return true;
 }
 
-
-int &multiloop::operator[](int i) 
-{
-    return current_[i];
-}
-const int &multiloop::operator[](int i)  const
+int multiloop::operator[](int i)  const
 {
     return current_[i];
 }
@@ -79,11 +75,13 @@ bool multiloop::operator++()
     }
 
     std::cerr<<"This should never happen (?) in multiloop.cc"<<std::endl;
-    return true;
+    return false;
 }
 
 void multiloop::set(unsigned int i)
 {
     reset();
     for(unsigned int j=0; j<i; ++j) ++(*this);
+}
+
 }
