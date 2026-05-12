@@ -74,8 +74,12 @@ public:
     // i times from the initial state
     void set(unsigned int i);
 
-    
+    // get the global index of the current value combination (in the range [0:n_combinations()-1]
     unsigned int get() const { return pos_; }
+
+    // Returns the total number of value combinations
+    unsigned int n_values() const;
+    
 };
 
 }

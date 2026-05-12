@@ -7,7 +7,14 @@ using namespace std;
 
 namespace blop
 {
-    
+
+    unsigned int multiloop::n_values() const
+    {
+        unsigned int result = 1;
+        for(int i=0; i<current_.size(); ++i) result *= (to_[i]-from_[i]);
+        return result;
+    }
+
 void multiloop::create_(unsigned int nvars, const std::vector<int> &from, const std::vector<int> &to)
 {
     for(unsigned int i=0; i<nvars; ++i)
