@@ -40,7 +40,7 @@ namespace blop {
     {
         cerr<<"\e[0m";
         if(file_) (*file_)<<"\e[0m";
-        if(html_file_) for(int i=0; i<format_setters_.size(); ++i) (*html_file_)<<"</span>";
+        if(html_file_) for(unsigned int i=0; i<format_setters_.size(); ++i) (*html_file_)<<"</span>";
         format_setters_.clear();
         return *this;
     }
@@ -51,6 +51,11 @@ namespace blop {
     bool logger::indented_ = false;
     
     logger::logger(const std::string &name, bool one_line, bool silent) : name_(name), one_line_(one_line), silent_(silent)
+    {
+        init_();
+    }
+                                                                          
+    void logger::init_()
     {
         my_level_ = ++level_;
         
@@ -96,7 +101,7 @@ namespace blop {
         }
         else
         {
-            if(!silent)
+            if(!silent_)
             {
                 std::cerr<<name_<<"... ";
                 if(file_) (*file_)<<name_<<"... ";

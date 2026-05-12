@@ -2,6 +2,7 @@
 #define __BLOP_LOGGER_H__
 
 #include <vector>
+#include <utility>
 
 /*
 
@@ -52,6 +53,8 @@ namespace blop{
 class logger 
 {
 private:
+    void init_();
+
     static std::vector<logger*> &stack_()
     {
         static std::vector<logger*> the_stack;
@@ -87,7 +90,7 @@ private:
 
     // A private constructor to be used by the global topmost logger instance only
     // Should this be stored in the logger stack?
-    logger() : name_(""), one_line_(false), silent_(false), my_level_(0) {}
+    logger() : name_(""), my_level_(0), one_line_(false), silent_(false) {}
 
     template <typename T>
     static void write_escaped(std::ostream &os, const T &t) {os<<t;}
@@ -171,6 +174,17 @@ public:
     logger &operator<<(const format_resetter &r);
 
     logger(const std::string &name, bool one_line=false, bool silent=false);
+
+    template<typename... Args>
+    logger(Args&&... args) : one_line_(false), silent_(false)
+    {
+        std::ostringstream oss;
+        (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
+        name_ = oss.str();
+        init_();
+    }
+    
+
     ~logger();
 
     static void newline();
