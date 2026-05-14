@@ -1208,8 +1208,8 @@ namespace blop
 	    friend class color_legend;
 	    length xunit_, yunit_;
 	    arrowhead *arrow_;
-	    double dx_, dy_, norm_, min_length_cut_, max_length_cut_;
-	    bool norm_fixed_, min_length_cut_fixed_;
+	    double dx_, dy_, norm_, min_length_cut_, max_length_cut_, scale_=1;
+	    bool norm_fixed_=false, min_length_cut_fixed_=false;
 	    sym::position pos_;
 	    double min_length_, max_length_;
 
@@ -1229,7 +1229,14 @@ namespace blop
 	    vectors();
 	    ~vectors();
 
+            // Set the norm of vectors (in data range) that is scaled to the cell size);
 	    vectors &norm(double val);
+
+            // If you do not know your data range, you can specify this relative scale (by default: 1), by which
+            // the vectors are scaled w.r.t the (default) situation, when the longest vector is scaled to the cell size
+            vectors &scale(double s) { scale_ = s; return *this; }
+            double scale() const { return scale_; }
+
 	    vectors &pos(sym::position p);
 
 	    // --------------   Set the arrow ------------------------------

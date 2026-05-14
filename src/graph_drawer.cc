@@ -5960,6 +5960,7 @@ function bands::get_x1_(plottable *g) const
 	dy_ = rhs.dy_;
 	norm_ = rhs.norm_;
 	norm_fixed_ = rhs.norm_fixed_;
+        scale_ = rhs.scale_;
 	min_length_cut_ = rhs.min_length_cut_;
 	min_length_cut_fixed_ = rhs.min_length_cut_fixed_;
         max_length_cut_ = rhs.max_length_cut_;
@@ -6306,11 +6307,13 @@ function bands::get_x1_(plottable *g) const
 	    if(min_length_cut_ != unset && length<min_length_cut_) continue;
             if(max_length_cut_ != unset && length>max_length_cut_) continue;
 
+            // Coordinates of the position of the vector
 	    double xx = xaxis->map_point(x.dbl());
 	    double yy = yaxis->map_point(y.dbl());
 
-	    const double vxdbl = vx.dbl()/norm_;
-	    const double vydbl = vy.dbl()/norm_;
+            // Components of the vector
+	    const double vxdbl = vx.dbl()/norm_*scale_;
+	    const double vydbl = vy.dbl()/norm_*scale_;
 
             if(!finite(vxdbl) || !finite(vydbl)) continue;
 
