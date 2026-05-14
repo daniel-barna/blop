@@ -4,6 +4,9 @@ using namespace std;
 
 namespace blop {
 
+    logger::option logger::one_line(1);
+    logger::option logger::silent(2);
+
     logger::format_resetter logger::reset;
     logger::format_setter logger::black("\e[30m","<span style='color:black;'>");
     logger::format_setter logger::red("\e[31m","<span style='color:red;'>");
@@ -50,10 +53,10 @@ namespace blop {
     std::ofstream *logger::html_file_ = 0;
     bool logger::indented_ = false;
     
-    logger::logger(const std::string &name, bool one_line, bool silent) : name_(name), one_line_(one_line), silent_(silent)
-    {
-        init_();
-    }
+//    logger::logger(const std::string &name, bool one_line, bool silent) : name_(name), one_line_(one_line), silent_(silent)
+//    {
+//        init_();
+//    }
                                                                           
     void logger::init_()
     {
@@ -62,20 +65,24 @@ namespace blop {
         ostringstream sss;
 
         // Reset the format of the console
-        if(!silent_) std::cerr<<"\e[0m";
+        //if(!silent_) std::cerr<<"\e[0m";
+        if(!(flag_&silent.flag)) std::cerr<<"\e[0m";
 
         for(unsigned int i=0; i<my_level_-1; ++i) 
         {
-            if(!silent_)
+            //if(!silent_)
+            if(!(flag_&silent.flag))
             {
                 std::cerr<<"   ";
                 if(file_) (*file_)<<"   ";
             }
             else sss<<"   ";
         }
-        if(!one_line_)
+        //if(!one_line_)
+        if(!(flag_&one_line.flag))
         {
-            if(!silent_)
+            //if(!silent_)
+            if(!(flag_&silent.flag))
             {
                 std::cerr<<">> ";
                 std::cerr<<name_<<" started"<<std::endl;
@@ -101,7 +108,8 @@ namespace blop {
         }
         else
         {
-            if(!silent_)
+            //if(!silent_)
+            if(!(flag_&silent.flag))
             {
                 std::cerr<<name_<<"... ";
                 if(file_) (*file_)<<name_<<"... ";
@@ -131,9 +139,11 @@ namespace blop {
             auto stop = clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start_);
             
-            if(!silent_ || had_messages_)
+            //if(!silent_ || had_messages_)
+            if(!(flag_&silent.flag) || had_messages_)
             {
-                if(!one_line_)
+                //if(!one_line_)
+                if(!(flag_&one_line.flag))
                 {
                     for(unsigned int i=0; i<my_level_-1; ++i)
                     {

@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <utility>
+#include <type_traits>
+#include <concepts>
 
 /*
 
@@ -50,245 +52,287 @@ int main()
 
 namespace blop{
 
-class logger 
-{
-private:
-    void init_();
-
-    static std::vector<logger*> &stack_()
-    {
-        static std::vector<logger*> the_stack;
-        return the_stack;
-    }
-
-    std::string name_;
-    unsigned int my_level_ = 0;
-    static unsigned int level_;
-
-    // Print the start/end messages on a single line
-    bool one_line_ = false;
-
-    // If true, do not print the entry header line (">> XXX started") until some messages
-    // are printed. If no messages are printed to this logger during its lifetime, it does not
-    // produce any output
-    bool silent_ = false;
-
-    // The header (start) line is saved into this variable (rather than being printed to the output directly)
-    // in case the silent flag is true. It is then only printed to the output streams at the time of the first
-    // message is printed to this logger by the user
-    std::string header_;
-
-    // A flag indicating whether there have already been messages printed to the streams.
-    bool had_messages_ = false;
-
-    static bool indented_;
-    static std::ofstream *file_;
-    static std::ofstream *html_file_;
-
-    typedef std::chrono::steady_clock clock;
-    std::chrono::time_point<clock> start_;
-
-    // A private constructor to be used by the global topmost logger instance only
-    // Should this be stored in the logger stack?
-    logger() : name_(""), my_level_(0), one_line_(false), silent_(false) {}
-
-    template <typename T>
-    static void write_escaped(std::ostream &os, const T &t) {os<<t;}
-
-    static void write_escaped(std::ostream &os, std::string_view s)
-    {
-        for(char c : s)
-        {
-            switch(c)
-            {
-            case '&':  os << "&amp;";  break;
-            case '<':  os << "&lt;";   break;
-            case '>':  os << "&gt;";   break;
-            case '"':  os << "&quot;"; break;
-            case '\n': os << "<br>";   break;
-            default:   os << c;        break;
-            }
-        }
-    }    
-    static void write_escaped(std::ostream &os, const std::string &s) { write_escaped(os,std::string_view(s)); }
-    static void write_escaped(std::ostream &os, const char *s) { write_escaped(os,std::string_view(s)); }
-    static void write_escaped(std::ostream &os, char c) { write_escaped(os,std::string_view(&c,1)); }
-
-    unsigned int n_formats_ = 0;
-
-    void apply_format();
-
-public:
-    class format_setter
+    class logger 
     {
     private:
-        std::string console_set_, html_set_;
-        friend class logger;
-        int n_ = 0;
-        int max_ = 0;
-    public:
-        format_setter(const std::string &console_set, const std::string &html_set)
-            : console_set_(console_set), html_set_(html_set) {}
-        format_setter operator()(int max)
+        void init_();
+
+        static std::vector<logger*> &stack_()
             {
-                format_setter result(*this);
-                result.max_ = max;
-                return result;
+                static std::vector<logger*> the_stack;
+                return the_stack;
             }
-    };
 
-    class format_resetter
-    {
-    };
+        std::string name_;
+        unsigned int my_level_ = 0;
+        static unsigned int level_;
 
-private:
-    std::vector<format_setter> format_setters_;
+        unsigned int flag_=0;
+
+        // The header (start) line is saved into this variable (rather than being printed to the output directly)
+        // in case the silent flag is true. It is then only printed to the output streams at the time of the first
+        // message is printed to this logger by the user
+        std::string header_;
+
+        // A flag indicating whether there have already been messages printed to the streams.
+        bool had_messages_ = false;
+
+        static bool indented_;
+        static std::ofstream *file_;
+        static std::ofstream *html_file_;
+
+        typedef std::chrono::steady_clock clock;
+        std::chrono::time_point<clock> start_;
+
+        // A private constructor to be used by the global topmost logger instance only
+        // Should this be stored in the logger stack?
+        logger() : name_(""), my_level_(0) {}
+
+        template <typename T>
+        static void write_escaped(std::ostream &os, const T &t) {os<<t;}
+
+        static void write_escaped(std::ostream &os, std::string_view s)
+            {
+                for(char c : s)
+                {
+                    switch(c)
+                    {
+                    case '&':  os << "&amp;";  break;
+                    case '<':  os << "&lt;";   break;
+                    case '>':  os << "&gt;";   break;
+                    case '"':  os << "&quot;"; break;
+                    case '\n': os << "<br>";   break;
+                    default:   os << c;        break;
+                    }
+                }
+            }    
+        static void write_escaped(std::ostream &os, const std::string &s) { write_escaped(os,std::string_view(s)); }
+        static void write_escaped(std::ostream &os, const char *s) { write_escaped(os,std::string_view(s)); }
+        static void write_escaped(std::ostream &os, char c) { write_escaped(os,std::string_view(&c,1)); }
+
+        unsigned int n_formats_ = 0;
+
+        void apply_format();
+
+    public:
+        class format_setter
+        {
+        private:
+            std::string console_set_, html_set_;
+            friend class logger;
+            int n_ = 0;
+            int max_ = 0;
+        public:
+            format_setter(const std::string &console_set, const std::string &html_set)
+                : console_set_(console_set), html_set_(html_set) {}
+            format_setter operator()(int max)
+                {
+                    format_setter result(*this);
+                    result.max_ = max;
+                    return result;
+                }
+        };
+
+        class format_resetter
+        {
+        };
+
+    private:
+        std::vector<format_setter> format_setters_;
     
-public:
+    public:
 
-    static format_setter black;
-    static format_setter red;
-    static format_setter green;
-    static format_setter yellow;
-    static format_setter blue;
-    static format_setter magenta;
-    static format_setter cyan;
-    static format_setter white;
+        class option
+        {
+        public:
+            unsigned int flag = 0;
+            option(unsigned int f) : flag(f) {}
+        };
+        static option one_line, silent;
+    
 
-    static format_setter black_bg;
-    static format_setter red_bg;
-    static format_setter green_bg;
-    static format_setter yellow_bg;
-    static format_setter blue_bg;
-    static format_setter magenta_bg;
-    static format_setter cyan_bg;
-    static format_setter white_bg;
+        static format_setter black;
+        static format_setter red;
+        static format_setter green;
+        static format_setter yellow;
+        static format_setter blue;
+        static format_setter magenta;
+        static format_setter cyan;
+        static format_setter white;
 
-    static format_setter bold;
+        static format_setter black_bg;
+        static format_setter red_bg;
+        static format_setter green_bg;
+        static format_setter yellow_bg;
+        static format_setter blue_bg;
+        static format_setter magenta_bg;
+        static format_setter cyan_bg;
+        static format_setter white_bg;
+
+        static format_setter bold;
 //    static format_setter italic;  // doesn't seem to work in WSL at least
-    static format_setter underline;
+        static format_setter underline;
 
-    static format_resetter reset;
+        static format_resetter reset;
 
-    logger &operator<<(const format_setter &f);
-    logger &operator<<(const format_resetter &r);
+        logger &operator<<(const format_setter &f);
+        logger &operator<<(const format_resetter &r);
 
-    logger(const std::string &name, bool one_line=false, bool silent=false);
+//        logger(const std::string &name, ...);
 
-    template<typename... Args>
-    logger(Args&&... args) : one_line_(false), silent_(false)
-    {
-        std::ostringstream oss;
-        (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
-        name_ = oss.str();
-        init_();
-    }
-    
-
-    ~logger();
-
-    static void newline();
-
-    static void open_file(const std::filesystem::path &filename);
-    static void close_file();
-    static void open_html_file(const std::filesystem::path &filename);
-    static void close_html_file();
-
-    // Print indentation to the streams corresponding to the actual indentation level ,
-    // and return a reference to the global topmost logger instance so that subsequent << operations appear indented
-    // This can be used to emit messages at the actual indentation level without having a local logger instance
-    // logger::indent()<<"This text appears indented at the actual level"<<endl;
-    static logger &indent(unsigned int level=level_);
-
-    // Return reference to the global topmost logger instance. Following operations by << appear unindented:
-    // logger::top()<<"Unindented text starting at the beginning of the line"<<endl;
-    static logger &top(); 
-
-    template <typename T>
-    logger &operator<<(const T &t)
-    {
-        if(silent_ && !had_messages_)
-        {
-            std::cerr<<header_<<std::endl;
-            if(file_)      (*file_)<<header_<<std::endl;
-            if(html_file_)
+        // A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated
+        // to give the header line of this logger instance
+        template<typename... Args>
+        requires (sizeof...(Args) > 0 && !(std::same_as<std::decay_t<Args>, blop::logger::option> || ...))
+        logger(Args&&... args)
             {
-                (*html_file_)<<"<div class='expandable'><div class='header'>"<<header_;
-                (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>";
-                (*html_file_)<<"<div class='content'>"<<std::endl;
+                std::ostringstream oss;
+                (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
+                name_ = oss.str();
+                init_();
+            }        
+
+        // A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated
+        // to give the header line of this logger instance, and a final logger::option argument (logger::silent, logger::one_line or
+        // logger::silent|logger::one_line) which controls is behavior
+        template<typename... Args>
+        requires (sizeof...(Args) > 0 && !(std::same_as<std::decay_t<Args>, blop::logger::option> || ...))
+        logger(logger::option opt, Args&&... args) : flag_(opt.flag)
+            {
+                std::ostringstream oss;
+                (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
+                name_ = oss.str();
+                init_();
+            }        
+
+        
+
+        /*
+        template<typename... Args>
+        logger(Args&&... args) : one_line_(false), silent_(false)
+            {
+                std::ostringstream oss;
+                (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
+                name_ = oss.str();
+                init_();
             }
-        }
-        had_messages_ = true;
+        */
 
-        if(!indented_)
-        {
-            indent(my_level_);
-            indented_ = true;
-        }
-        std::cerr<<t;
-        if(file_) (*file_)<<t;
-        //if(html_file_) (*html_file_)<<t;
-        if(html_file_) write_escaped(*html_file_,t);
 
-        // Increment the number of calls for all setters
-        for(auto &f : format_setters_) ++f.n_;
+        ~logger();
 
-        // From the top of the stack, check which format has been called the specified amount of times
-        // and remove it
-        bool removed_format = false;
-        while(!format_setters_.empty() && format_setters_.back().max_ > 0 && format_setters_.back().n_ >= format_setters_.back().max_)
-        {
-            if(html_file_) (*html_file_)<<"</span>";
-            format_setters_.pop_back();
-            removed_format = true;
-        }
-        if(removed_format)
-        {
-            std::cerr<<"\e[0m";  // Reset
-            for(const auto &f : format_setters_) std::cerr<<f.console_set_;  // reapply the remaining formats
-        }
-        return *this;
-    }
+        static void newline();
 
-    logger &operator<<(std::ostream& (*manip)(std::ostream&)) 
-    {
-        if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)) 
-        {
-            indented_ = false;
-            if(html_file_) (*html_file_)<<"<br>"<<std::endl;
-        } 
-        std::cerr<<manip;
-        if(file_) (*file_)<<manip;
-        return *this;
-    }    
+        static void open_file(const std::filesystem::path &filename);
+        static void close_file();
+        static void open_html_file(const std::filesystem::path &filename);
+        static void close_html_file();
 
-    static void print() {}
+        // Print indentation to the streams corresponding to the actual indentation level ,
+        // and return a reference to the global topmost logger instance so that subsequent << operations appear indented
+        // This can be used to emit messages at the actual indentation level without having a local logger instance
+        // logger::indent()<<"This text appears indented at the actual level"<<endl;
+        static logger &indent(unsigned int level=level_);
+
+        // Return reference to the global topmost logger instance. Following operations by << appear unindented:
+        // logger::top()<<"Unindented text starting at the beginning of the line"<<endl;
+        static logger &top(); 
+
+        template <typename T>
+        logger &operator<<(const T &t)
+            {
+                //if(silent_ && !had_messages_)
+                // If we are silent (i.e. header is not printed upon creation by the constructor) and we had
+                // no messages so far (so the header was really not printed), then print the header
+                if((flag_&silent.flag) && !had_messages_)
+                {
+                    std::cerr<<"\e[0m";  // reset the format
+                    std::cerr<<header_<<std::endl;
+                    if(file_)      (*file_)<<header_<<std::endl;
+                    if(html_file_)
+                    {
+                        (*html_file_)<<"<div class='expandable'><div class='header'>"<<header_;
+                        (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>";
+                        (*html_file_)<<"<div class='content'>"<<std::endl;
+                    }
+                }
+                had_messages_ = true;
+
+                if(!indented_)
+                {
+                    indent(my_level_);
+                    indented_ = true;
+                }
+                std::cerr<<t;
+                if(file_) (*file_)<<t;
+                //if(html_file_) (*html_file_)<<t;
+                if(html_file_) write_escaped(*html_file_,t);
+
+                // Increment the number of calls for all setters
+                for(auto &f : format_setters_) ++f.n_;
+
+                // From the top of the stack, check which format has been called the specified amount of times
+                // and remove it
+                bool removed_format = false;
+                while(!format_setters_.empty() && format_setters_.back().max_ > 0 && format_setters_.back().n_ >= format_setters_.back().max_)
+                {
+                    if(html_file_) (*html_file_)<<"</span>";
+                    format_setters_.pop_back();
+                    removed_format = true;
+                }
+                if(removed_format)
+                {
+                    std::cerr<<"\e[0m";  // Reset
+                    for(const auto &f : format_setters_) std::cerr<<f.console_set_;  // reapply the remaining formats
+                }
+                return *this;
+            }
+
+        logger &operator<<(std::ostream& (*manip)(std::ostream&)) 
+            {
+                if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)) 
+                {
+                    indented_ = false;
+                    if(html_file_) (*html_file_)<<"<br>"<<std::endl;
+                } 
+                std::cerr<<manip;
+                if(file_) (*file_)<<manip;
+                return *this;
+            }    
+
+        static void print() {}
     
-    // Recursive case
-    template <typename T, typename... Args>
-    static void print(T first, Args... rest) 
-    {
-        std::cerr<<first;
-        if(file_) (*file_)<<first;
-        print(rest...);
-    }    
+        // Recursive case
+        template <typename T, typename... Args>
+        static void print(T first, Args... rest) 
+            {
+                std::cerr<<first;
+                if(file_) (*file_)<<first;
+                print(rest...);
+            }    
 
-    // Utility class to redirect the logger's output to a given file (as well), and automatically close this file
-    // when its scope exists. 
-    class file
-    {
-    public:
-        file(const std::filesystem::path &filename) {logger::open_file(filename);}
-        ~file() {logger::close_file();}
-    };
-    class html_file
-    {
-    public:
-        html_file(const std::filesystem::path &filename) {logger::open_html_file(filename);}
-        ~html_file() {logger::close_html_file();}
+        // Utility class to redirect the logger's output to a given file (as well), and automatically close this file
+        // when its scope exists. 
+        class file
+        {
+        public:
+            file(const std::filesystem::path &filename) {logger::open_file(filename);}
+            ~file() {logger::close_file();}
+        };
+        class html_file
+        {
+        public:
+            html_file(const std::filesystem::path &filename) {logger::open_html_file(filename);}
+            ~html_file() {logger::close_html_file();}
+        };
+
     };
 
-};
+    // bitwise OR operator to concatenate several options
+    inline logger::option operator| (logger::option o1, logger::option o2)
+    {
+        return o1.flag|o2.flag;
+    }
 
 }
 
