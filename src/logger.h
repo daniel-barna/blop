@@ -55,6 +55,11 @@ namespace blop{
     class logger 
     {
     private:
+
+        // html character codes for the "expand all" and "collapse all" buttons
+        const std::string collapse_ = "&#9195;&#xFE0E;";
+        const std::string expand_   = "&#9196;&#xFE0E;";
+
         void init_();
 
         static std::vector<logger*> &stack_()
@@ -68,11 +73,6 @@ namespace blop{
         static unsigned int level_;
 
         unsigned int flag_=0;
-
-        // The header (start) line is saved into this variable (rather than being printed to the output directly)
-        // in case the silent flag is true. It is then only printed to the output streams at the time of the first
-        // message is printed to this logger by the user
-        std::string header_;
 
         // A flag indicating whether there have already been messages printed to the streams.
         bool had_messages_ = false;
@@ -247,12 +247,27 @@ namespace blop{
                 if((flag_&silent.flag) && !had_messages_)
                 {
                     std::cerr<<"\e[0m";  // reset the format
-                    std::cerr<<header_<<std::endl;
-                    if(file_)      (*file_)<<header_<<std::endl;
+                    // Print the indentation
+                    for(unsigned int i=0; i<my_level_-1; ++i)
+                    {
+                        std::cerr<<"   ";
+                        if(file_) (*file_)<<"   ";
+                    }
+                    // print the header
+                    if(flag_&one_line.flag)
+                    {
+                        std::cerr<<name_<<"... ";
+                        if(file_) (*file_)<<name_<<"... ";
+                    }
+                    else
+                    {
+                        std::cerr<<">> "<<name_<<" started"<<std::endl;
+                        if(file_)      (*file_)<<">> "<<name_<<" started"<<std::endl;
+                    }
                     if(html_file_)
                     {
-                        (*html_file_)<<"<div class='expandable'><div class='header'>"<<header_;
-                        (*html_file_)<<"<div class='expandbutton'>[Expand all]</div> <div class='collapsebutton'>[Collapse all]</div></div>";
+                        (*html_file_)<<"<div class='expandable'><div class='header'>"<<name_;
+                        (*html_file_)<<"<div class='expandbutton'>"<<expand_<<"</div> <div class='collapsebutton'>"<<collapse_<<"</div></div>";
                         (*html_file_)<<"<div class='content'>"<<std::endl;
                     }
                 }

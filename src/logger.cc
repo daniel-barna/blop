@@ -62,8 +62,6 @@ namespace blop {
     {
         my_level_ = ++level_;
         
-        ostringstream sss;
-
         // Reset the format of the console
         //if(!silent_) std::cerr<<"\e[0m";
         if(!(flag_&silent.flag)) std::cerr<<"\e[0m";
@@ -76,10 +74,9 @@ namespace blop {
                 std::cerr<<"   ";
                 if(file_) (*file_)<<"   ";
             }
-            else sss<<"   ";
         }
-        //if(!one_line_)
-        if(!(flag_&one_line.flag))
+
+        if(!(flag_&one_line.flag))  // If not a one-line message
         {
             //if(!silent_)
             if(!(flag_&silent.flag))
@@ -96,28 +93,19 @@ namespace blop {
                     (*html_file_)<<"<div class='expandable'>"<<endl;
                     (*html_file_)<<"<div class='header'>"<<name_;
                     (*html_file_)<<"<div class='duration'></div>";
-                    (*html_file_)<<"<div class='expandbutton'>&#9196;&#xFE0E;</div><div class='collapsebutton'>&#9195;&#xFE0E;</div></div>"<<endl;
+                    (*html_file_)<<"<div class='expandbutton'>"<<expand_<<"</div><div class='collapsebutton'>"<<collapse_<<"</div></div>"<<endl;
                     (*html_file_)<<"<div class='content'>"<<endl;
                 }
             }
-            else
-            {
-                sss<<">> ";
-                sss<<name_<<" started";
-            }
         }
-        else
+        else  // one-line message
         {
-            //if(!silent_)
             if(!(flag_&silent.flag))
             {
                 std::cerr<<name_<<"... ";
                 if(file_) (*file_)<<name_<<"... ";
             }
-            else sss<<"... ";
         }
-
-        header_ = sss.str();
 
         start_ = clock::now();
 
@@ -229,6 +217,7 @@ namespace blop {
 .footer {
   display: flex;
   align-items: flex-end;
+  opacity: 0.5;
 }
 
 .expandable > .header::before {
