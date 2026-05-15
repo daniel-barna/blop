@@ -1,8 +1,35 @@
 #include "logger.h"
+#include <chrono>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cmath>
+
 using namespace std;
 
 
 namespace blop {
+
+
+    template<typename Rep, typename Period>
+    std::string format_duration(std::chrono::duration<Rep, Period> d)
+    {
+        using namespace std::chrono;
+
+        double seconds = duration<double>(d).count();
+
+        std::ostringstream oss;
+
+        if (seconds < 1.0) oss << std::round(seconds * 1000.0) << " ms";
+        else if (seconds < 10) oss << std::fixed << std::setprecision(2) << seconds << " s";
+        else if (seconds < 30) oss << std::fixed << std::setprecision(1) << seconds << " s";
+        else oss << std::round(seconds) << " s";
+
+        return oss.str();
+    }
+
+
 
     logger::option logger::one_line(1);
     logger::option logger::silent(2);
@@ -150,24 +177,24 @@ namespace blop {
                     }                        
 
                     std::cerr<<"<< ";
-                    std::cerr<<name_<<" finished ("<<duration<<")"<<std::endl;
+                    std::cerr<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
                     if(file_)
                     {
                         (*file_)<<"<< ";
-                        (*file_)<<name_<<" finished ("<<duration<<")"<<std::endl;
+                        (*file_)<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
                     }
                     if(html_file_)
                     {
                         (*html_file_)<<"</div>"<<endl;
-                        (*html_file_)<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<duration<<"\";</script>"<<endl;
+                        (*html_file_)<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<format_duration(duration)<<"\";</script>"<<endl;
                         (*html_file_)<<"<div class='footer'>"<<name_<<"</div>";
                         (*html_file_)<<"</div>"<<endl;
                     }
                 }
                 else 
                 {
-                    std::cerr<<"done ("<<duration<<")"<<endl;
-                    if(file_) (*file_)<<"done ("<<duration<<")"<<endl;
+                    std::cerr<<"done ("<<format_duration(duration)<<")"<<endl;
+                    if(file_) (*file_)<<"done ("<<format_duration(duration)<<")"<<endl;
                 }
             }
             --level_;
