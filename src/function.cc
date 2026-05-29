@@ -2770,7 +2770,12 @@ namespace blop
     function _n(const var &id) { return new function_core::named_param(id); }
 
     function ARG(int i) {return function_core::arg(i);}
-    function PAR(int i) {return function_core::funcparameter(i);}
+    function PAR(int i, double val) 
+    {
+        blop::function result = function_core::funcparameter(i);
+        result.param(i,val);
+        return result;
+    }
 
     // Returns a function which buffers its calling arguments from previous calls, 
     // and returns the arguments from the nth previous call

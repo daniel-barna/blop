@@ -38,8 +38,18 @@ namespace blop
     class dgraph;
 
     class function;
+
+    // -----------------------------------------------------------------------
+    // The symbols _1 ... _20 are defined to access the 1st .. 20th
+    // arguments of a function (they are functions, which return the
+    // value of the 1st, .... etc argument).
+    // If you have more than 20 arguments, you can use ARG(i) instead
+    // with arbitrary 'i', where 'i' denotes the index of the argument  
+    // This creates a function that returns its ith argument
     function ARG(int i);
-    function PAR(int i);
+
+    // Create a function that returns its ith parameter. Set the parameter's value too
+    function PAR(int i, double value=0.0);
 
     // --- Functions returning simply their 1st, 2nd, etc. arguments  --------
 
@@ -900,15 +910,9 @@ namespace blop
 
 
 
-// -----------------------------------------------------------------------
-// The symbols _1 ... _20 are defined to access the 1st .. 20th
-// arguments of a function (they are functions, which return the
-// value of the 1st, .... etc argument).
-// If you have more than 20 arguments, you can use ARG(i) instead
-// with arbitrary 'i', where 'i' denotes the index of the argument  
 
-    function     ARG(int i);
-    function     PAR(int i);
+//    function     ARG(int i);
+//    function     PAR(int i);
 
 // ------ Number of arguments --------------------------------------------
 // A function, which returns the number of arguments with which it was called
