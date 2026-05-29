@@ -500,21 +500,36 @@ namespace blop
 	    transformed_axis_->extend_range(transform_inverse_(a).dbl());
 	}
 
-	if(a == unset) return *this;
-	if(min_ == unset) min_ = a;
+	if(min_ == unset)
+        {
+            min_ = a;
+            modified_ = true;
+        }
 	else
 	{
 	    if(! min_fixed_)
 	    {
-		if(a < min_) min_ = a;
+		if(a < min_)
+                {
+                    min_ = a;
+                    modified_ = true;
+                }
 	    }
 	}
-	if(max_ == unset) max_ = a;
+	if(max_ == unset) 
+        {
+            max_ = a;
+            modified_ = true;
+        }
 	else
 	{
 	    if(! max_fixed_)
 	    {
-		if(max_ < a) max_ = a;
+		if(max_ < a) 
+                {
+                    max_ = a;
+                    modified_ = true;
+                }
 	    }
 	}
 	return *this;

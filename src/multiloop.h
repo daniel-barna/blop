@@ -19,12 +19,12 @@ private:
     std::vector<int> to_;
 
     // Initialize all variables starting at index 'j' to their starting values
-    bool init_(int j=0);
+    bool init_(int j=0,bool forward=true);
 
     // A state flag to indicate whether the loop is in a valid state (all variables
     // within their ranges)
     bool state_;
-    
+
     unsigned int pos_;
 
     void create_(unsigned int nvars, const std::vector<int> &from, const std::vector<int> &to);
@@ -58,6 +58,8 @@ public:
     // (i.e. all variables are within their range)
     bool operator++();
 
+    bool operator--();
+
     // Return the ith variable's current value
     int operator[](int) const;
 
@@ -73,6 +75,12 @@ public:
     // Set the multiloop to the ith combination of values (equivalent to executing the operator++
     // i times from the initial state
     void set(unsigned int i);
+
+    // Set to the starting value combination
+    void set_start() { set(0); }
+
+    // Set to the last value combination
+    void set_end() { set(n_values()-1); }
 
     // get the global index of the current value combination (in the range [0:n_combinations()-1]
     unsigned int get() const { return pos_; }
