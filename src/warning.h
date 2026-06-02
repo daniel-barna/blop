@@ -47,7 +47,7 @@ class warning
     // -------  Specify destination of warning messages (redirection) -----------
     static void   destination(ostream &dest);
     static void   destination(const var &filename);
-    std::ostream &destination() { return *destination_ ; }
+//    std::ostream &destination() { return *destination_ ; }
 
     static void   exclude(const var &);
 
@@ -99,7 +99,7 @@ class debug
     // -------  Specify destination of warning messages (redirection) -----------
     static void   destination(ostream &dest);
     static void   destination(const var &filename);
-    std::ostream &destination() { return *destination_ ; }
+//    std::ostream &destination() { return *destination_ ; }
 
     static void   exclude(const var &);
 

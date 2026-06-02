@@ -153,6 +153,7 @@ namespace blop{
 
         static format_setter black;
         static format_setter red;
+        static format_setter orange;
         static format_setter green;
         static format_setter yellow;
         static format_setter blue;

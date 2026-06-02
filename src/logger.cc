@@ -37,6 +37,7 @@ namespace blop {
     logger::format_resetter logger::reset;
     logger::format_setter logger::black("\e[30m","<span style='color:black;'>");
     logger::format_setter logger::red("\e[31m","<span style='color:red;'>");
+    logger::format_setter logger::orange("\033[38;5;208m","<span style='color:orange;'>");
     logger::format_setter logger::green("\e[32m","<span style='color:green;'>");
     logger::format_setter logger::yellow("\e[33m","<span style='color:yellow;'>");
     logger::format_setter logger::blue("\e[34m","<span style='color:blue;'>");

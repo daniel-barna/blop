@@ -1,5 +1,6 @@
 #include "warning.h"
 #include <fstream>
+#include "logger.h"
 
 using namespace std;
 
@@ -7,8 +8,8 @@ namespace blop
 {
     var warning::format_ = "%p %m\n%F";
     var warning::prompt_ = "[blop]";
-    var warning::fnformat_ = "%p      [in %f]\n";
-    std::ostream *warning::destination_ = &std::cerr;
+    var warning::fnformat_ = "%p      [in %f]";
+    std::ostream *warning::destination_ = 0; //&std::cerr;
     bool warning::delete_destination_ = false;
     vector<string> warning::exclude_;
 
@@ -33,7 +34,16 @@ namespace blop
 	m.replace("%p",prompt_);
 	m.replace("%m",message);
 
-	(*destination_)<<m;
+        if(destination_) (*destination_)<<m;
+        else
+        {
+            std::istringstream iss(m);
+            std::string line;
+            while(std::getline(iss,line))
+            {
+                logger::indent()<<logger::orange(1)<<line<<endl;
+            }
+        }
     }
 
     void warning::destination(ostream &dest)
@@ -54,7 +64,7 @@ namespace blop
     var debug::format_ = "%p %m\n%F";
     var debug::prompt_ = "[blop-debug]";
     var debug::fnformat_ = "%p      [in %f]\n";
-    std::ostream *debug::destination_ = &std::cerr;
+    std::ostream *debug::destination_ = 0; //&std::cerr;
     bool debug::delete_destination_ = false;
     vector<string> debug::exclude_;
     bool debug::on_ = false;
@@ -81,7 +91,8 @@ namespace blop
 	m.replace("%p",prompt_);
 	m.replace("%m",message);
 
-	(*destination_)<<m;
+	if(destination_) (*destination_)<<m;
+        else logger::indent()<<logger::orange(1)<<m;
     }
 
     void debug::destination(ostream &dest)
