@@ -13,7 +13,7 @@ namespace blop
     class versatile_pdf
     {
     protected:
-        std::string outfilename_;
+        std::string outfilename_ = "noname.pdf";
         bool        needs_flush_;
         std::vector<std::string> page_filenames_;
         std::string print_option_;
@@ -22,18 +22,16 @@ namespace blop
         int pagecounter_;
         int flush_frequency_;
     public:
-        versatile_pdf(const var &filename)
-            : outfilename_(filename.str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
-        {}
-        versatile_pdf(const std::filesystem::path &filename)
-            : outfilename_(filename.c_str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
-        {}
-        versatile_pdf(const char *filename)
-            : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
-        {}
-        versatile_pdf(const std::string &filename)
-            : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
-        {}
+        versatile_pdf() : needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+            {}
+        versatile_pdf(const var &filename) : outfilename_(filename.str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+            {}
+        versatile_pdf(const std::filesystem::path &filename) : outfilename_(filename.c_str()), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+            {}
+        versatile_pdf(const char *filename) : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+            {}
+        versatile_pdf(const std::string &filename) : outfilename_(filename), needs_flush_(false), tmpdir_(blop_bookkeeper::tmpdir("versatile_pdf_XXXXXX")), pagecounter_(0), flush_frequency_(1)
+            {}
 
         virtual ~versatile_pdf();
 
