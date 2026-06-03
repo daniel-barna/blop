@@ -37,6 +37,11 @@ namespace blop
 
         virtual ~versatile_pdf();
 
+        versatile_pdf &filename(const std::filesystem::path &filename) { outfilename_ = filename.c_str(); return *this; }
+        versatile_pdf &filename(const std::string &filename) { outfilename_ = filename; return *this; }
+        versatile_pdf &filename(const char *filename) { outfilename_ = filename; return *this; }
+        versatile_pdf &filename(const var &filename) { outfilename_ = filename.str(); return *this; }
+
         virtual void assemble_pages(const std::vector<std::string> &filenames);
         virtual void print_option(const var &opt) { print_option_ = opt.str(); }
 
