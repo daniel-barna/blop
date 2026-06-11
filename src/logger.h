@@ -5,6 +5,7 @@
 #include <utility>
 #include <type_traits>
 #include <concepts>
+#include <cassert>
 
 /*
 
@@ -54,7 +55,86 @@ namespace blop{
 
     class logger 
     {
+    public:
+        class file
+        {
+        private:
+            std::ofstream file_;
+            std::filesystem::path filename_;
+            void init_()
+            {
+                if(file_) logger::indent()<<"SAVING LOGS TO: "<<filename_<<std::endl;
+                else      logger::indent()<<"FAILED TO OPEN "<<filename_<<std::endl;
+            }
+
+            bool shared_ = false;
+
+            file(const std::string &filename, bool shared)           : file_(filename), filename_(filename) { assert(shared); init_();}
+            file(const std::filesystem::path &filename, bool shared) : file_(filename), filename_(filename) { assert(shared); init_();}
+            file(const char *filename, bool shared)                  : file_(filename), filename_(filename) { assert(shared); init_();}
+
+        public:
+            std::ofstream &stream() { return file_; }
+
+            // Constructors. All of them automatically store a shared_ptr in the global logger::files_ array. 
+            file(const std::string &filename)           : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr<logger::file>(this,[](auto*){})); }
+            file(const std::filesystem::path &filename) : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr<logger::file>(this,[](auto*){})); }
+            file(const char *filename)                  : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr<logger::file>(this,[](auto*){})); }
+
+            // Destructor. Only removes the referencing pointer from logger::files_ if it was not created by make_shared (i.e. it is
+            // a local variable, which is deleted at the end of its scope, in which case the referencing shared_ptr's deleter function is
+            // set to do nothing). If it is created by make_shared, the lifetime control is fully up to the stored shared_ptr, this object
+            // is deleted when the shared_ptr is removed, and the destructor must not remove the pointer
+            ~file() { if(!shared_) logger::remove_file(this); }
+
+            // Create an unnamed instance of this file (not referenced directly by a stack variable). Set the 'created_by_make_shared_' flag, so that the destructor 
+            static std::shared_ptr<logger::file> make_shared(const std::string &filename)           { auto result = std::shared_ptr<logger::file>(new logger::file(filename,true)); result->shared_ = true; return result; }
+            static std::shared_ptr<logger::file> make_shared(const std::filesystem::path &filename) { auto result = std::shared_ptr<logger::file>(new logger::file(filename,true)); result->shared_ = true; return result; }
+            static std::shared_ptr<logger::file> make_shared(const char *filename)                  { auto result = std::shared_ptr<logger::file>(new logger::file(filename,true)); result->shared_ = true; return result; }
+
+            bool shared() const { return shared_; }
+        };
+
+        class html
+        {
+        private:
+            std::ofstream file_;
+            std::filesystem::path filename_;
+            void init_();
+
+            bool shared_ = false;
+
+            html(const std::string &filename, bool shared)           : file_(filename), filename_(filename) { assert(shared); init_();}
+            html(const std::filesystem::path &filename, bool shared) : file_(filename), filename_(filename) { assert(shared); init_();}
+            html(const char *filename, bool shared)                  : file_(filename), filename_(filename) { assert(shared); init_();}
+
+        public:
+            std::ofstream &stream() { return file_; }
+
+            // Constructors. All of them automatically store a shared_ptr in the global logger::files_ array. 
+            html(const std::string &filename)           : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr<logger::html>(this,[](auto*){})); }
+            html(const std::filesystem::path &filename) : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr<logger::html>(this,[](auto*){})); }
+            html(const char *filename)                  : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr<logger::html>(this,[](auto*){})); }
+
+            // Destructor. Only removes the referencing pointer from logger::files_ if it was not created by make_shared (i.e. it is
+            // a local variable, which is deleted at the end of its scope, in which case the referencing shared_ptr's deleter function is
+            // set to do nothing). If it is created by make_shared, the lifetime control is fully up to the stored shared_ptr, this object
+            // is deleted when the shared_ptr is removed, and the destructor must not remove the pointer
+            ~html();
+
+            // Create an unnamed instance of this file (not referenced directly by a stack variable). Set the 'created_by_make_shared_' flag, so that the destructor 
+            static std::shared_ptr<logger::html> make_shared(const std::string &filename)           { auto result = std::shared_ptr<logger::html>(new logger::html(filename,true)); result->shared_ = true; return result; }
+            static std::shared_ptr<logger::html> make_shared(const std::filesystem::path &filename) { auto result = std::shared_ptr<logger::html>(new logger::html(filename,true)); result->shared_ = true; return result; }
+            static std::shared_ptr<logger::html> make_shared(const char *filename)                  { auto result = std::shared_ptr<logger::html>(new logger::html(filename,true)); result->shared_ = true; return result; }
+
+            bool shared() const { return shared_; }
+        };
+
+        
     private:
+
+        static std::vector<std::shared_ptr<file>> &files_();
+        static std::vector<std::shared_ptr<html>> &htmls_();
 
         // html character codes for the "expand all" and "collapse all" buttons
         const std::string collapse_ = "&#9195;&#xFE0E;";
@@ -78,8 +158,6 @@ namespace blop{
         bool had_messages_ = false;
 
         static bool indented_;
-        static std::ofstream *file_;
-        static std::ofstream *html_file_;
 
         typedef std::chrono::steady_clock clock;
         std::chrono::time_point<clock> start_;
@@ -115,6 +193,36 @@ namespace blop{
         void apply_format();
 
     public:
+        // Add a new file to the list of files, into which output is written
+        static void add_file(std::shared_ptr<file> file) { files_().push_back(file); }
+        static void add_html(std::shared_ptr<html> file) { htmls_().push_back(file); }
+
+        // Remove the given file from the list of output files
+        static void remove_file(logger::file *ptr) 
+            { 
+                for(int i=0; i<files_().size(); ++i)
+                {
+                    if(files_()[i].get()==ptr)
+                    {
+                        files_().erase(files_().begin()+i);
+                        break;
+                    }
+                }
+
+            }
+        static void remove_html(logger::html *ptr) 
+            { 
+                for(int i=0; i<htmls_().size(); ++i)
+                {
+                    if(htmls_()[i].get()==ptr)
+                    {
+                        htmls_().erase(htmls_().begin()+i);
+                        break;
+                    }
+                }
+
+            }
+
         class format_setter
         {
         private:
@@ -179,8 +287,6 @@ namespace blop{
         logger &operator<<(const format_setter &f);
         logger &operator<<(const format_resetter &r);
 
-//        logger(const std::string &name, ...);
-
         // A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated
         // to give the header line of this logger instance
         template<typename... Args>
@@ -207,27 +313,33 @@ namespace blop{
             }        
 
         
-
-        /*
-        template<typename... Args>
-        logger(Args&&... args) : one_line_(false), silent_(false)
-            {
-                std::ostringstream oss;
-                (oss << ... << std::forward<Args>(args)); // Fold expression over operator<<
-                name_ = oss.str();
-                init_();
-            }
-        */
-
-
         ~logger();
 
         static void newline();
 
-        static void open_file(const std::filesystem::path &filename);
+        // Open a plain text log file (it will still contain formatting ASCII commands so
+        // we recommend viewing it with "less -R"
+        // Send subsequent input into that file as well
+        // The text file is valid and can be viewed during the process for monitoring.
+        static void open_file(const std::filesystem::path &filename) { add_file(file::make_shared(filename)); }
+
+        // Close the last output file created by file::make_shared (i.e. not a local variable on the stack)
         static void close_file();
-        static void open_html_file(const std::filesystem::path &filename);
-        static void close_html_file();
+
+        // Open a structured, interactive (collapsible/expandable) html output file, send
+        // subsequent input into that file as well.
+        // The html file is structured, and is not complete (valid) before it is fully created
+        // and closed, so you can not open/view it before
+        // This function (the starting of the structured html file) will badly interfere with the structured
+        // log output if this function is not called before any output. So call it at the beginning of your code,
+        // before any log output (this is anyway the most realistic case)
+        static void open_html(const std::filesystem::path &filename) { add_html(html::make_shared(filename)); }
+
+        static void close_html();
+
+        // Open both a text and a html output. Provide the name without extension.
+        static void open(const std::filesystem::path &basename) { open_file(basename.string() + ".txt"); open_html(basename.string() + ".html"); }
+        static void close() { close_file(); close_html(); }
 
         // Print indentation to the streams corresponding to the actual indentation level ,
         // and return a reference to the global topmost logger instance so that subsequent << operations appear indented
@@ -252,24 +364,24 @@ namespace blop{
                     for(unsigned int i=0; i<my_level_-1; ++i)
                     {
                         std::cerr<<"   ";
-                        if(file_) (*file_)<<"   ";
+                        for(auto f : files_()) f->stream()<<"  ";
                     }
                     // print the header
                     if(flag_&one_line.flag)
                     {
                         std::cerr<<name_<<"... ";
-                        if(file_) (*file_)<<name_<<"... ";
+                        for(auto f : files_()) f->stream()<<name_<<"... ";
                     }
                     else
                     {
                         std::cerr<<">> "<<name_<<" started"<<std::endl;
-                        if(file_)      (*file_)<<">> "<<name_<<" started"<<std::endl;
+                        for(auto f : files_()) f->stream()<<">> "<<name_<<" started"<<std::endl;
                     }
-                    if(html_file_)
+                    for(auto h : htmls_())
                     {
-                        (*html_file_)<<"<div class='expandable'><div class='header'>"<<name_;
-                        (*html_file_)<<"<div class='expandbutton'>"<<expand_<<"</div> <div class='collapsebutton'>"<<collapse_<<"</div></div>";
-                        (*html_file_)<<"<div class='content'>"<<std::endl;
+                        h->stream()<<"<div class='expandable'><div class='header'>"<<name_;
+                        h->stream()<<"<div class='expandbutton'>"<<expand_<<"</div> <div class='collapsebutton'>"<<collapse_<<"</div></div>";
+                        h->stream()<<"<div class='content'>"<<std::endl;
                     }
                 }
                 had_messages_ = true;
@@ -280,9 +392,8 @@ namespace blop{
                     indented_ = true;
                 }
                 std::cerr<<t;
-                if(file_) (*file_)<<t;
-                //if(html_file_) (*html_file_)<<t;
-                if(html_file_) write_escaped(*html_file_,t);
+                for(auto f : files_()) f->stream()<<t;
+                for(auto h : htmls_()) write_escaped(h->stream(),t);
 
                 // Increment the number of calls for all setters
                 for(auto &f : format_setters_) ++f.n_;
@@ -292,7 +403,7 @@ namespace blop{
                 bool removed_format = false;
                 while(!format_setters_.empty() && format_setters_.back().max_ > 0 && format_setters_.back().n_ >= format_setters_.back().max_)
                 {
-                    if(html_file_) (*html_file_)<<"</span>";
+                    for(auto h : htmls_()) h->stream()<<"</span>";
                     format_setters_.pop_back();
                     removed_format = true;
                 }
@@ -309,10 +420,10 @@ namespace blop{
                 if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)) 
                 {
                     indented_ = false;
-                    if(html_file_) (*html_file_)<<"<br>"<<std::endl;
+                    for(auto h : htmls_()) h->stream()<<"<br>"<<std::endl;
                 } 
                 std::cerr<<manip;
-                if(file_) (*file_)<<manip;
+                for(auto f : files_()) f->stream()<<manip;
                 return *this;
             }    
 
@@ -323,25 +434,34 @@ namespace blop{
         static void print(T first, Args... rest) 
             {
                 std::cerr<<first;
-                if(file_) (*file_)<<first;
+                for(auto f : files_()) f->stream()<<first;
                 print(rest...);
             }    
 
         // Utility class to redirect the logger's output to a given file (as well), and automatically close this file
         // when its scope exists. 
+        // Use it within a code block as follows:
+        // {
+        //   logger::file logger_redirector("my-log.txt");
+        //   ... your code comes here, with log redirected into the file (besides being shown on the terminal)
+        // } // local variable goes out of scope and gets deleted, closing the output files
+
+        /*
         class file
         {
         public:
             file(const std::filesystem::path &filename) {logger::open_file(filename);}
             ~file() {logger::close_file();}
         };
-        class html_file
+        */
+/*
+        class html
         {
         public:
-            html_file(const std::filesystem::path &filename) {logger::open_html_file(filename);}
-            ~html_file() {logger::close_html_file();}
+            html(const std::filesystem::path &filename) {logger::open_html(filename);}
+            ~html() {logger::close_html();}
         };
-
+*/
     };
 
     // bitwise OR operator to concatenate several options

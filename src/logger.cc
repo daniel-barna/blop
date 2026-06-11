@@ -11,6 +11,17 @@ using namespace std;
 
 namespace blop {
 
+    std::vector<std::shared_ptr<logger::file>> &logger::files_()
+    {
+        static std::vector<std::shared_ptr<logger::file>> f;
+        return f;
+    }
+    std::vector<std::shared_ptr<logger::html>> &logger::htmls_()
+    {
+        static std::vector<std::shared_ptr<logger::html>> f;
+        return f;
+    }
+
 
     template<typename Rep, typename Period>
     std::string format_duration(std::chrono::duration<Rep, Period> d)
@@ -28,8 +39,6 @@ namespace blop {
 
         return oss.str();
     }
-
-
 
     logger::option logger::one_line(1);
     logger::option logger::silent(2);
@@ -63,66 +72,57 @@ namespace blop {
         format_setters_.push_back(f);
         format_setters_.back().n_ = 0;
         cerr<<format_setters_.back().console_set_;
-        if(file_) (*file_)<<format_setters_.back().console_set_;
-        if(html_file_) (*html_file_)<<format_setters_.back().html_set_;
+        for(auto f : files_()) f->stream()<<format_setters_.back().console_set_;
+        for(auto h : htmls_()) h->stream()<<format_setters_.back().html_set_;
         return *this;
     }
     logger &logger::operator<<(const format_resetter &)
     {
         cerr<<"\e[0m";
-        if(file_) (*file_)<<"\e[0m";
-        if(html_file_) for(unsigned int i=0; i<format_setters_.size(); ++i) (*html_file_)<<"</span>";
+        for(auto f : files_()) f->stream()<<"\e[0m";
+        for(auto h : htmls_()) for(unsigned int i=0; i<format_setters_.size(); ++i) h->stream()<<"</span>";
         format_setters_.clear();
         return *this;
     }
 
     unsigned int logger::level_ = 0;
-    std::ofstream *logger::file_ = 0;
-    std::ofstream *logger::html_file_ = 0;
     bool logger::indented_ = false;
     
-//    logger::logger(const std::string &name, bool one_line, bool silent) : name_(name), one_line_(one_line), silent_(silent)
-//    {
-//        init_();
-//    }
                                                                           
     void logger::init_()
     {
         my_level_ = ++level_;
         
         // Reset the format of the console
-        //if(!silent_) std::cerr<<"\e[0m";
         if(!(flag_&silent.flag)) std::cerr<<"\e[0m";
 
         for(unsigned int i=0; i<my_level_-1; ++i) 
         {
-            //if(!silent_)
             if(!(flag_&silent.flag))
             {
                 std::cerr<<"   ";
-                if(file_) (*file_)<<"   ";
+                for(auto f : files_()) f->stream()<<"  ";
             }
         }
 
         if(!(flag_&one_line.flag))  // If not a one-line message
         {
-            //if(!silent_)
             if(!(flag_&silent.flag))
             {
                 std::cerr<<">> ";
                 std::cerr<<name_<<" started"<<std::endl;
-                if(file_)
+                for(auto f : files_())
                 {
-                    (*file_)<<">> ";
-                    (*file_)<<name_<<" started"<<std::endl;
+                    f->stream()<<">> ";
+                    f->stream()<<name_<<" started"<<std::endl;
                 }
-                if(html_file_)
+                for(auto h : htmls_())
                 {
-                    (*html_file_)<<"<div class='expandable'>"<<endl;
-                    (*html_file_)<<"<div class='header'>"<<name_;
-                    (*html_file_)<<"<div class='duration'></div>";
-                    (*html_file_)<<"<div class='expandbutton'>"<<expand_<<"</div><div class='collapsebutton'>"<<collapse_<<"</div></div>"<<endl;
-                    (*html_file_)<<"<div class='content'>"<<endl;
+                    h->stream()<<"<div class='expandable'>"<<endl;
+                    h->stream()<<"<div class='header'>"<<name_;
+                    h->stream()<<"<div class='duration'></div>";
+                    h->stream()<<"<div class='expandbutton'>"<<expand_<<"</div><div class='collapsebutton'>"<<collapse_<<"</div></div>"<<endl;
+                    h->stream()<<"<div class='content'>"<<endl;
                 }
             }
         }
@@ -131,7 +131,7 @@ namespace blop {
             if(!(flag_&silent.flag))
             {
                 std::cerr<<name_<<"... ";
-                if(file_) (*file_)<<name_<<"... ";
+                for(auto f : files_()) f->stream()<<name_<<"... ";
             }
         }
 
@@ -143,7 +143,7 @@ namespace blop {
     void logger::newline()
     {
         cerr<<endl;
-        if(file_) (*file_)<<endl;
+        for(auto f : files_()) f->stream()<<endl;
         indented_ = false;
     }
     
@@ -155,47 +155,48 @@ namespace blop {
             auto stop = clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start_);
             
-            //if(!silent_ || had_messages_)
             if(!(flag_&silent.flag) || had_messages_)
             {
-                //if(!one_line_)
                 if(!(flag_&one_line.flag))
                 {
                     for(unsigned int i=0; i<my_level_-1; ++i)
                     {
                         std::cerr<<"   ";
-                        if(file_) (*file_)<<"   ";
+                        for(auto f : files_()) f->stream()<<"  ";
                     }
 
                     cerr<<"\e[0m";
-                    if(html_file_)
+
+                    for(auto h : htmls_())
                     {
                         while(!format_setters_.empty())
                         {
-                            (*html_file_)<<"</span>";
+                            h->stream()<<"</span>";
                             format_setters_.pop_back();
                         }
                     }                        
 
                     std::cerr<<"<< ";
                     std::cerr<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
-                    if(file_)
+
+                    for(auto f : files_())
                     {
-                        (*file_)<<"<< ";
-                        (*file_)<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
+                        f->stream()<<"<< ";
+                        f->stream()<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
                     }
-                    if(html_file_)
+
+                    for(auto h : htmls_())
                     {
-                        (*html_file_)<<"</div>"<<endl;
-                        (*html_file_)<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<format_duration(duration)<<"\";</script>"<<endl;
-                        (*html_file_)<<"<div class='footer'>"<<name_<<"</div>";
-                        (*html_file_)<<"</div>"<<endl;
+                        h->stream()<<"</div>"<<endl;
+                        h->stream()<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<format_duration(duration)<<"\";</script>"<<endl;
+                        h->stream()<<"<div class='footer'>"<<name_<<"</div>";
+                        h->stream()<<"</div>"<<endl;
                     }
                 }
                 else 
                 {
                     std::cerr<<"done ("<<format_duration(duration)<<")"<<endl;
-                    if(file_) (*file_)<<"done ("<<format_duration(duration)<<")"<<endl;
+                    for(auto f : files_()) f->stream()<<"done ("<<format_duration(duration)<<")"<<endl;
                 }
             }
             --level_;
@@ -217,22 +218,12 @@ namespace blop {
         }
     }
 
-    void logger::open_html_file(const std::filesystem::path &filename)
+    void logger::html::init_()
     {
-        if(html_file_) 
+        if(file_) 
         {
-            delete html_file_;
-            html_file_ = 0;
-        }
-        indent();
-        cerr<<"SAVING LOGS TO STRUCTURED HTML FILE: "<<filename<<endl;
-        html_file_ = new std::ofstream(filename);
-        if(!(*html_file_))
-        {
-            indent();
-            cerr<<"FAILED TO OPEN HTML LOG FILE"<<endl;
-        }
-        (*html_file_)<<R"LIMIT(<html>
+            logger::indent()<<"SAVING LOGS TO: "<<filename_<<std::endl;
+            file_<<R"LIMIT(<html>
         <head>
 <style>
 
@@ -343,34 +334,46 @@ body {
 </style>      
       </head>
       <body>)LIMIT"<<endl;
-    }
 
-    void logger::open_file(const std::filesystem::path &filename)
-    {
-        if(file_)
-        {
-            delete file_;
-            file_ = 0;
+            
         }
-        indent();
-        cerr<<"SAVING LOGS TO: "<<filename<<endl;
-        file_ = new std::ofstream(filename);
-        if(!(*file_))
-        {
-            indent();
-            cerr<<"FAILED TO OPEN LOG FILE"<<endl;
-        }
+        else      logger::indent()<<"FAILED TO OPEN "<<filename_<<std::endl;
+        
     }
+    
+
     void logger::close_file()
     {
-        delete file_;
-        file_ = 0;
-    }
-    void logger::close_html_file()
-    {
-        if(html_file_)
+        for(int i=files_().size()-1; i>=0; --i)
         {
-            (*html_file_)<<R"LIMIT(
+            if(files_()[i]->shared())
+            {
+                // files marked as 'shared' have been created by std::make_shared, and their lifetime is
+                // controlled by this shared_ptr. So simply erasing this shared_ptr will automatically
+                // close the file
+                files_().erase(files_().begin()+i);
+                break;
+            }
+        }
+    }
+    void logger::close_html()
+    {
+        for(int i=htmls_().size()-1; i>=0; --i)
+        {
+            if(htmls_()[i]->shared())
+            {
+                // files marked as 'shared' have been created by std::make_shared, and their lifetime is
+                // controlled by this shared_ptr. So simply erasing this shared_ptr will automatically
+                // close the file
+                htmls_().erase(htmls_().begin()+i);
+                break;
+            }
+        }
+    }
+
+    logger::html::~html()
+    {
+        file_<<R"LIMIT(
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -408,11 +411,10 @@ body {
 </script>
 )LIMIT"<<endl;
 
-            (*html_file_)<<"      </body>"<<endl;
-            (*html_file_)<<"</html>"<<endl;
-            delete html_file_;
-        }
-        html_file_ = 0;
+        file_<<"      </body>"<<endl;
+        file_<<"</html>"<<endl;
+        
+        if(!shared_) logger::remove_html(this); 
     }
 
     logger &logger::indent(unsigned int level)
@@ -420,7 +422,7 @@ body {
         for(unsigned int i=0; i<level; ++i)
         {
             std::cerr<<"   ";
-            if(file_) (*file_)<<"   ";
+            for(auto f : files_()) f->stream()<<"  ";
         }
         return top();
     }
