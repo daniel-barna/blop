@@ -1015,7 +1015,8 @@ namespace blop
     function implicit_solve(const dgraph   &g, double zcut);
     //html </a>
 
-    function date2epoch(const var &format="%y/%m/%d %H:%M:%S");
+    function date2epoch(const var &format="%Y-%m-%d %H:%M:%S");
+    function epoch2date(const var &format="%Y-%m-%d %H:%M:%S");
 
     // Create the vectorial cross-product of two functions. Both input functions, and the returned
     // function have 3 components

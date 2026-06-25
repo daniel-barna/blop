@@ -3531,8 +3531,10 @@ public:
         private:
             string format_;
         public:
-            date2epoch(const var &f="%y/%m/%d %H:%M:%S") : format_(f.str()) {}
+            date2epoch(const var &f="%Y-%m-%d %H:%M:%S") : format_(f.str()) {}
             function::core *clone() const { return new date2epoch(format_); }
+
+            const std::string format() const { return format_; }
 
             int nargs() const { return 1; }
             int npars() const { return 0; }
@@ -3557,6 +3559,40 @@ public:
                       vector<var> &result, int *ind) const;
             
         };
+
+        class epoch2date : public function::core
+        {
+        private:
+            string format_;
+        public:
+            epoch2date(const var &f="%Y-%m-%d %H:%M:%S") : format_(f.str()) {}
+            function::core *clone() const { return new epoch2date(format_); }
+
+            const std::string format() const { return format_; }
+
+            int nargs() const { return 1; }
+            int npars() const { return 0; }
+            bool uses_arg(int i) const { return i==1; }
+            var sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names = {}, std::map<unsigned int,blop::var> param_names = {}) const
+                {
+                    return ("epoch2date");
+                }
+            bool equals(const function::core* rhs) const
+                {
+                    if(const epoch2date *p = dynamic_cast<const epoch2date*>(rhs)) return p->format_ == format_;
+                    return 0;
+                }
+
+	void eval(const vector<var> &args,
+                  const std::vector<blop::var> &def_args,
+                  const vector<var> &pars,
+                  vector<var> &result, int *ind) const;
+	void eval_dbl(const vector<var> &args,
+                      const std::vector<blop::var> &def_args,
+                      const vector<var> &pars,
+                      vector<var> &result, int *ind) const;
+            
+        };        
     }
 }
 

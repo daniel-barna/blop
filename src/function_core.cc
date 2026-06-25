@@ -873,7 +873,7 @@ namespace blop
 	    if(first_call)
 	    {
 		time_t TIME;
-		time(&TIME);
+                std::time(&TIME);
 		srand48((unsigned int)(TIME));
 		first_call = false;
 	    }
@@ -2139,18 +2139,35 @@ namespace blop
                               const vector<var> &pars,
                               vector<var> &result, int *ind) const
         {
-            std::chrono::system_clock::time_point t = date2timepoint(args[0],format_);
+            std::chrono::system_clock::time_point t = blop::time::date2timepoint(args[0],format_);
             result[(*ind)++] = chrono::duration_cast<chrono::seconds>(t.time_since_epoch()).count();
         }
 	void date2epoch::eval_dbl(const vector<var> &args,
                   const std::vector<blop::var> &def_args,
                   const vector<var> &pars,
                   vector<var> &result, int *ind) const
-                {
-                    std::chrono::system_clock::time_point t = date2timepoint(args[0],format_);
-                    result[(*ind)++].dbl() = chrono::duration_cast<chrono::seconds>(t.time_since_epoch()).count();
-                }
+        {
+            std::chrono::system_clock::time_point t = blop::time::date2timepoint(args[0],format_);
+            result[(*ind)++].dbl() = chrono::duration_cast<chrono::seconds>(t.time_since_epoch()).count();
+        }
 
+
+	void epoch2date::eval(const vector<var> &args,
+                              const std::vector<blop::var> &def_args,
+                              const vector<var> &pars,
+                              vector<var> &result, int *ind) const
+        {
+            result[(*ind)++] = blop::time::epoch2date(args[0].dbl(),format_);
+        }
+	void epoch2date::eval_dbl(const vector<var> &args,
+                  const std::vector<blop::var> &def_args,
+                  const vector<var> &pars,
+                  vector<var> &result, int *ind) const
+        {
+            result[(*ind)++] = blop::time::epoch2date(args[0].dbl(),format_);
+        }
+
+        
         // ------------------- function_core::binary_operator -----------------------
 
 	var binary_operator::sprint(const std::vector<blop::var> &pars, bool parvalue, std::map<unsigned int,blop::var> variable_names, std::map<unsigned int,blop::var> param_names) const

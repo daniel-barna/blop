@@ -284,11 +284,12 @@ function.o: function.cc /usr/include/stdc-predef.h function.h \
  /usr/include/c++/13/charconv /usr/include/c++/13/optional \
  /usr/include/c++/13/span /usr/include/c++/13/variant type_traits.h \
  geometry.h vec3.h blop_time.hh logger.h /usr/include/c++/13/utility \
- /usr/include/c++/13/bits/stl_relops.h dgraph.h graph.h plottable.h \
- graph_drawer.h length.h terminal.h color.h sym.h tic.h axis.h label.h \
- box.h grob.h units.h arrowhead.h point_drawer.h bloputils.h frame.h \
- fgraph.h legendbox.h pad.h container.h line.h text.h interpolate.hh \
- blop_gts.h /usr/include/gts.h /usr/include/glib-2.0/glib.h \
+ /usr/include/c++/13/bits/stl_relops.h /usr/include/c++/13/cassert \
+ /usr/include/assert.h dgraph.h graph.h plottable.h graph_drawer.h \
+ length.h terminal.h color.h sym.h tic.h axis.h label.h box.h grob.h \
+ units.h arrowhead.h point_drawer.h bloputils.h frame.h fgraph.h \
+ legendbox.h pad.h container.h line.h text.h interpolate.hh blop_gts.h \
+ /usr/include/gts.h /usr/include/glib-2.0/glib.h \
  /usr/include/glib-2.0/glib/galloca.h /usr/include/glib-2.0/glib/gtypes.h \
  /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h \
  /usr/include/glib-2.0/glib/gmacros.h \

@@ -253,4 +253,8 @@ tic.o: tic.cc /usr/include/stdc-predef.h tic.h /usr/include/c++/13/string \
  /usr/include/c++/13/bits/stl_relops.h /usr/include/string.h \
  /usr/include/strings.h \
  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
- /usr/include/x86_64-linux-gnu/bits/string_fortified.h global.h units.h
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h global.h units.h \
+ blop_time.hh /usr/include/c++/13/chrono \
+ /usr/include/c++/13/bits/chrono_io.h /usr/include/c++/13/format \
+ /usr/include/c++/13/charconv /usr/include/c++/13/optional \
+ /usr/include/c++/13/span /usr/include/c++/13/variant

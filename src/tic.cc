@@ -7,6 +7,7 @@
 #include <cstdio>
 #include "global.h"
 #include "units.h"
+#include "blop_time.hh"
 #include <limits>
 
 using namespace std;
@@ -24,6 +25,113 @@ namespace blop
 	return value_ == o.value_ && label_ == o.label_;
     }
 
+    void calculate_tics_datetime(double &minimum, const bool minfixed, 
+                                 double &maximum, const bool maxfixed, 
+                                 double &step, const bool stepfixed, 
+                                 blop::function tic_format_func,
+                                 std::vector<blop::tic> &tics)
+    {
+        const double range = maximum-minimum;
+        const int ntics_hint = 5;
+
+        double chosen_step = 0;
+        if(range < 2*unit::min)
+        {
+            double fom = 0; // Figure of Merit
+            for(int ss : {1,2,5,10,15,20,30}) // Nice-looking steps in seconds
+            {
+                const double s = ss*unit::s;  
+                if(step==0 || step==unset)  // No hint is given, 
+                {
+                    if(fom==0 || std::abs(range/s-ntics_hint)<fom)
+                    {
+                        fom=std::abs(range/s-ntics_hint);
+                        chosen_step = s;
+                    }
+                }
+                else
+                {
+                    if(fom==0 || std::abs(s-step)<fom)
+                    {
+                        fom=std::abs(s-step);
+                        chosen_step = s;
+                    }
+                }
+            }
+        }
+        else if(range < 2*unit::h)
+        {
+            double fom = 0; // Figure of Merit
+            for(int ss : {1,2,5,10,15,20,30}) // Nice-looking steps in minutes
+            {
+                const double s = ss*unit::min;  
+                if(step==0 || step==unset)  // No hint is given, 
+                {
+                    if(fom==0 || std::abs(range/s-ntics_hint)<fom)
+                    {
+                        fom=std::abs(range/s-ntics_hint);
+                        chosen_step = s;
+                    }
+                }
+                else
+                {
+                    if(fom==0 || std::abs(s-step)<fom)
+                    {
+                        fom=std::abs(s-step);
+                        chosen_step = s;
+                    }
+                }
+            }
+        }
+        else if(range < 5*unit::day)
+        {
+            double fom = 0; // Figure of Merit
+            for(int ss : {1,2,3,4,6,12,24}) // Nice-looking steps 
+            {
+                const double s = ss*unit::h;
+                if(step==0 || step==unset)  // No hint is given, 
+                {
+                    if(fom==0 || std::abs(range/s-ntics_hint)<fom)
+                    {
+                        fom=std::abs(range/s-ntics_hint);
+                        chosen_step = s;
+                    }
+                }
+                else
+                {
+                    if(fom==0 || std::abs(s-step)<fom)
+                    {
+                        fom=std::abs(s-step);
+                        chosen_step = s;
+                    }
+                }
+            }
+        }
+        else 
+        {
+            int n = std::round(range/(ntics_hint*unit::day));
+            chosen_step = n*unit::day;
+        }
+
+        if(!stepfixed || step==0 || step==unset) step = chosen_step;
+        const double tic_start = std::floor(minimum/step)*step;
+        if(!minfixed) minimum = tic_start;
+        const double tic_end = std::ceil (maximum/step)*step;
+        if(!maxfixed) maximum = tic_end;
+
+        tics.clear();
+        for(double t = tic_start; t<=tic_end+step/100; t+=step)
+        {
+            if(minimum<=t && t<=maximum)
+            {
+                var label = tic_format_func(t);
+                label.replace("\n","\\\\");
+                label = "\\begin{varwidth}[b]{\\linewidth}\\vspace{0pt}\\centering" & label & "\\end{varwidth}";
+                tics.push_back({t,label});
+            }
+        }
+    }
+    
 
 void calculate_tics(double &minimum, const bool minfixed, 
 		    double &maximum, const bool maxfixed, 

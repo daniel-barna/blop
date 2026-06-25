@@ -16,6 +16,10 @@ namespace blop
     class axis  : public grob
 	{
 	private:
+            // A format string. If non-zero, the axis is displayed as a date/time axis, and tic labels
+            // are formatted via this format. 
+            std::string time_format_;
+
 	    axis *transformed_axis_;
 	    function transform_, transform_inverse_;
 	    bool own_tic_calculation_;
@@ -83,6 +87,14 @@ namespace blop
             static bool default_symmetric_range_;
 
 	public:
+            //html <a name='time_format'></a>
+            // With a non-empty string, set the axis to display time with the given format. To switch off time display,
+            // call this function with an empty string ""
+            axis &time_format(const std::string &fmt) { time_format_ = fmt; return *this; }
+
+            // Query the qctual time-format
+            std::string time_format() const { return time_format_; }
+
 	    //html <a name='tics'> </a>
 	    class tic_setter
 		{

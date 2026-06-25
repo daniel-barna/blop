@@ -435,6 +435,7 @@ $documentclass
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{mathtools}
+\usepackage{varwidth}
 \usepackage[hscale=0.95,vscale=0.95,dvips,a3paper$landscape]{geometry}
 EOF
 elif [ "$use_preamble" != "" ] ; then

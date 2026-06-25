@@ -32,6 +32,12 @@ namespace blop
 	};
 
 
+    void calculate_tics_datetime(double &minimum, const bool minfixed, 
+                                 double &maximum, const bool maxfixed, 
+                                 double &step, const bool stepfixed, 
+                                 blop::function tic_format_func,
+                                 std::vector<blop::tic> &tics);
+
 
 // This function determines an optimal scale parameters for a datarange.
 // Note that in the case of logscale the value 'minimum' and 'maximum' 

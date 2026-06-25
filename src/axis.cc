@@ -926,132 +926,143 @@ namespace blop
 	   user_tics_.empty())
 	   
 	{
-	    tic scaletic;
-	    scaletic.value(scale_);
-	    blop::calculate_tics(min_,
-				 min_fixed_ || (transformed_axis_!=0),
-				 max_,
-				 max_fixed_ || (transformed_axis_!=0),
-				 tic_incr_,
-				 tic_incr_fixed_,     // stepfixed
-				 (tic_start_fixed_?tic_start_:unset),
-				 (tic_end_fixed_  ?tic_end_  :unset),
-				 scaletic,
-				 unit_value_,
-				 //(unit_str_!=""?unit::value(unit_):1.0),
-				 cuts_,
-				 logscale_,
-				 (logscale_?2:0), // normalform tics
-				 true,      // normalform scale
-				 tics_,
-				 tics_format_.c_str(),
-                                 tics_format_func_,
-                                 "%g",
-                                 5,
-                                 symmetric_range_);
-	    scalelabel_.text(var("$\\times$") & scaletic.label());
+            if(time_format_ == "")
+            {
+                tic scaletic;
+                scaletic.value(scale_);
+                blop::calculate_tics(min_,
+                                     min_fixed_ || (transformed_axis_!=0),
+                                     max_,
+                                     max_fixed_ || (transformed_axis_!=0),
+                                     tic_incr_,
+                                     tic_incr_fixed_,     // stepfixed
+                                     (tic_start_fixed_?tic_start_:unset),
+                                     (tic_end_fixed_  ?tic_end_  :unset),
+                                     scaletic,
+                                     unit_value_,
+                                     //(unit_str_!=""?unit::value(unit_):1.0),
+                                     cuts_,
+                                     logscale_,
+                                     (logscale_?2:0), // normalform tics
+                                     true,      // normalform scale
+                                     tics_,
+                                     tics_format_.c_str(),
+                                     tics_format_func_,
+                                     "%g",
+                                     5,
+                                     symmetric_range_);
+                scalelabel_.text(var("$\\times$") & scaletic.label());
 
-	    if(draw_minor_tics_ && cuts_.empty())
-	    {
-                if(logscale_)
+                if(draw_minor_tics_ && cuts_.empty())
                 {
-                    if(!tics_.empty())
+                    if(logscale_)
                     {
-                        double scale = 1;
-                        if(scaletic.value() != unset) scale = scaletic.value();
-                        int    expint = (int)::round(::log10(tics_[0].value()*scale*unit_value_)-1);
-                        for(int m=2; m<10 && m*::pow(10.0,expint)<tics_[0].value()*scale*unit_value_; ++m)
+                        if(!tics_.empty())
                         {
-                            double v = m*::pow(10.0,expint);
-                            if(v<min_) continue;
-                            minor_tics_.push_back(tic(v,""));
+                            double scale = 1;
+                            if(scaletic.value() != unset) scale = scaletic.value();
+                            int    expint = (int)::round(::log10(tics_[0].value()*scale*unit_value_)-1);
+                            for(int m=2; m<10 && m*::pow(10.0,expint)<tics_[0].value()*scale*unit_value_; ++m)
+                            {
+                                double v = m*::pow(10.0,expint);
+                                if(v<min_) continue;
+                                minor_tics_.push_back(tic(v,""));
+                            }
+                        }
+                        for(unsigned int i=0; i<tics_.size(); ++i)
+                        {
+                            double scale = 1;
+                            if(scaletic.value() != unset) scale = scaletic.value();
+
+                            const double start = tics_[i].value()/(scale*unit_value_);
+                            const double stop  = (i<tics_.size()-1?tics_[i+1].value()/(scale*unit_value_):max_/(scale*unit_value_));
+
+                            //double expdbl = ::log10(start);
+                            //int    expint = (int)(0.1+::round(expdbl));
+                            const double    expdbl = ::log10(start);
+                            const int    expint = (int)(::round(expdbl));
+                            const int    mant   = int(::pow(10.0, expdbl-expint)+0.01);
+
+                            for(int m=mant+1; m<10 && m*::pow(10.0,expint)<stop; ++m)
+                            {
+                                minor_tics_.push_back(tic(m*::pow(10.0,expint)*scale*unit_value_,""));
+                            }
                         }
                     }
-                    for(unsigned int i=0; i<tics_.size(); ++i)
+                    else
                     {
-                        double scale = 1;
-                        if(scaletic.value() != unset) scale = scaletic.value();
-
-                        const double start = tics_[i].value()/(scale*unit_value_);
-                        const double stop  = (i<tics_.size()-1?tics_[i+1].value()/(scale*unit_value_):max_/(scale*unit_value_));
-
-                        //double expdbl = ::log10(start);
-                        //int    expint = (int)(0.1+::round(expdbl));
-                        const double    expdbl = ::log10(start);
-                        const int    expint = (int)(::round(expdbl));
-                        const int    mant   = int(::pow(10.0, expdbl-expint)+0.01);
-
-                        for(int m=mant+1; m<10 && m*::pow(10.0,expint)<stop; ++m)
+                        if(tics_.size() >= 2)
                         {
-                            minor_tics_.push_back(tic(m*::pow(10.0,expint)*scale*unit_value_,""));
+                            // check if they are equidistant
+                            bool equidistant = true;
+                            for(unsigned int i=2; i<tics_.size(); ++i)
+                            {
+                                if( ((tics_[i].value()-tics_[i-1].value())-(tics_[1].value()-tics_[0].value()))/(tics_[1].value()-tics_[0].value()) > 0.001)
+                                {
+                                    equidistant = false;
+                                    break;
+                                }
+                            }
+                            if(equidistant)
+                            {
+                                int n_minor_tic_intervals = n_minor_tics_;
+                                if(n_minor_tic_intervals == 0)
+                                {
+                                    n_minor_tic_intervals = 10;
+                                    int shown_tics = 0;
+                                    for(unsigned int i=0; i<tics_.size(); ++i)
+                                    {
+                                        if(min_ <= tics_[i].value() && tics_[i].value() <= max_) ++shown_tics;
+                                    }
+                                    if(shown_tics > 5) n_minor_tic_intervals = 5;
+                                    if(shown_tics > 6) n_minor_tic_intervals = 4;
+                                    if(shown_tics > 12) n_minor_tic_intervals = 2;
+                                }
+
+                                for(unsigned int i=0; i<tics_.size()-1; ++i)
+                                {
+                                    const double t1 = tics_[i].value();
+                                    const double t2 = tics_[i+1].value();
+                                    const double delta = (t2-t1)/n_minor_tic_intervals;
+                                    for(int m=1; m<n_minor_tic_intervals; ++m)
+                                    {
+                                        minor_tics_.push_back(tic(t1+m*delta,""));
+                                    }
+                                }
+                                {
+                                    const double delta = (tics_[1].value()-tics_[0].value())/n_minor_tic_intervals;
+                                    for(double m=tics_[0].value()-delta; m>min_; m-=delta)
+                                    {
+                                        minor_tics_.push_back(tic(m,""));
+                                    }
+
+                                }
+                                {
+                                    const double delta = (tics_.back().value()-tics_[tics_.size()-2].value())/n_minor_tic_intervals;
+                                    for(double m=tics_.back().value()+delta; m<max_; m+=delta)
+                                    {
+                                        minor_tics_.push_back(tic(m,""));
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                cerr<<"Non-equidistant tics, can not calculate minor tics"<<endl;
+                            }
                         }
                     }
                 }
-                else
-                {
-                    if(tics_.size() >= 2)
-                    {
-                        // check if they are equidistant
-                        bool equidistant = true;
-                        for(unsigned int i=2; i<tics_.size(); ++i)
-                        {
-                            if( ((tics_[i].value()-tics_[i-1].value())-(tics_[1].value()-tics_[0].value()))/(tics_[1].value()-tics_[0].value()) > 0.001)
-                            {
-                                equidistant = false;
-                                break;
-                            }
-                        }
-                        if(equidistant)
-                        {
-                            int n_minor_tic_intervals = n_minor_tics_;
-                            if(n_minor_tic_intervals == 0)
-                            {
-                                n_minor_tic_intervals = 10;
-                                int shown_tics = 0;
-                                for(unsigned int i=0; i<tics_.size(); ++i)
-                                {
-                                    if(min_ <= tics_[i].value() && tics_[i].value() <= max_) ++shown_tics;
-                                }
-                                if(shown_tics > 5) n_minor_tic_intervals = 5;
-                                if(shown_tics > 6) n_minor_tic_intervals = 4;
-                                if(shown_tics > 12) n_minor_tic_intervals = 2;
-                            }
-
-                            for(unsigned int i=0; i<tics_.size()-1; ++i)
-                            {
-                                const double t1 = tics_[i].value();
-                                const double t2 = tics_[i+1].value();
-                                const double delta = (t2-t1)/n_minor_tic_intervals;
-                                for(int m=1; m<n_minor_tic_intervals; ++m)
-                                {
-                                    minor_tics_.push_back(tic(t1+m*delta,""));
-                                }
-                            }
-                            {
-                                const double delta = (tics_[1].value()-tics_[0].value())/n_minor_tic_intervals;
-                                for(double m=tics_[0].value()-delta; m>min_; m-=delta)
-                                {
-                                    minor_tics_.push_back(tic(m,""));
-                                }
-
-                            }
-                            {
-                                const double delta = (tics_.back().value()-tics_[tics_.size()-2].value())/n_minor_tic_intervals;
-                                for(double m=tics_.back().value()+delta; m<max_; m+=delta)
-                                {
-                                    minor_tics_.push_back(tic(m,""));
-                                }
-
-                            }
-                        }
-                        else
-                        {
-                            cerr<<"Non-equidistant tics, can not calculate minor tics"<<endl;
-                        }
-                    }
-                }
-	    }
-	}
+            }
+            else
+            {
+                calculate_tics_datetime(min_, min_fixed_,
+                                        max_, max_fixed_,
+                                        tic_incr_, tic_incr_fixed_,
+                                        epoch2date(time_format_),
+                                        tics_);
+            }
+        }
 
 	// add the user-tics
 	if(!user_tics_.empty())
