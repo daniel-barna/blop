@@ -1,5 +1,10 @@
 #include "blop_time.hh"
+#include "warning.h"
 #include <cstdio>
+#include <iomanip>
+#include <sstream>
+#include <cmath>
+#include <cstring>
 
 using namespace std;
 
@@ -7,67 +12,39 @@ namespace blop
 {
     namespace time
     {
-        std::string timepoint2date(const std::chrono::system_clock::time_point &tp, var format)
+        double date2epoch(const var &datetime, const var &format)
         {
-            format = "{:" & format & "}";
-            return std::vformat(format.str(),std::make_format_args(tp));
-        }
-        std::string epoch2date(double seconds_since_epoch, var format, bool integer_seconds)
-        {
-            auto tp = std::chrono::system_clock::time_point{
-                std::chrono::duration_cast<std::chrono::system_clock::duration>(
-                    std::chrono::duration<double>(seconds_since_epoch))
-            };
-            if(integer_seconds)
-            {
-                auto tp_sec = std::chrono::round<std::chrono::seconds>(tp);
-                format = "{:" & format & "}";
-                return std::vformat(format.str(),std::make_format_args(tp_sec));
-            }
-            return timepoint2date(tp,format);
-        }
-        std::string epoch2date(int seconds_since_epoch, var format) { return epoch2date(std::int64_t(seconds_since_epoch),format); }
-        std::string epoch2date(unsigned int seconds_since_epoch, var format) { return epoch2date(std::int64_t(seconds_since_epoch),format); }
-        std::string epoch2date(std::int64_t seconds_since_epoch, var format)
-        {
-            auto tp = std::chrono::system_clock::time_point{
-                std::chrono::duration_cast<std::chrono::system_clock::duration>(
-                    std::chrono::duration<std::int64_t>(seconds_since_epoch))
-            };
-            auto tp_sec = std::chrono::round<std::chrono::seconds>(tp);
-            format = "{:" & format & "}";
-            return std::vformat(format.str(),std::make_format_args(tp_sec));
-            //return timepoint2date(tp,format);
-        }
+/*
+            std::tm tm{};
+            
+            std::istringstream is(datetime.str());
 
-        chrono::system_clock::time_point date2timepoint(int year, int mon, int day, int hour, int min, int sec)
-        {
-            struct std::tm t;
-            t.tm_sec = sec;        // second of minute (0 .. 59 and 60 for leap seconds)
-            t.tm_min = min;        // minute of hour (0 .. 59)
-            t.tm_hour = hour;      // hour of day (0 .. 23)
-            t.tm_mday = day;       // day of month (0 .. 31)
-            t.tm_mon = mon-1;      // month of year (0 .. 11)
-            t.tm_year = year-1900; // year since 1900
-            t.tm_isdst = 0;       // no daylight saving time
-            std::time_t tt = std::mktime(&t);
-            if (tt == -1) {
-                throw "no valid system time";
-            }
-            return std::chrono::system_clock::from_time_t(tt);
-        }
-    
-        chrono::system_clock::time_point date2timepoint(const var &datestr, const var &format)
-        {
-            int values[7];
-            for(int i=0; i<7; ++i) values[i] = 0;
-            int year_index=6;
-            int month_index=6;
-            int day_index=6;
-            int hour_index=6;
-            int minute_index=6;
-            int second_index=6;
-        
+            is >> std::get_time(&tm, format.c_str());
+            
+            if (is.fail()) warning::print(var("Failed to parse date '") & datetime & "'");
+            
+            std::chrono::year_month_day ymd{
+                std::chrono::year{tm.tm_year + 1900},
+                std::chrono::month{static_cast<unsigned>(tm.tm_mon + 1)},
+                std::chrono::day{static_cast<unsigned>(tm.tm_mday)}
+            };
+            
+            std::chrono::sys_days days{ymd};
+            
+            auto tp =
+                days
+                + std::chrono::hours{tm.tm_hour}
+                + std::chrono::minutes{tm.tm_min}
+                + std::chrono::seconds{tm.tm_sec};
+            
+            return duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+*/
+
+            int year, month, day, hour, minute;
+            double second;
+
+            void *ptr[6] = {0,0,0,0,0,0};
+
             int index=0;
             string sscanf_format="";
             for(unsigned int i=0; i<format.size(); ++i)
@@ -76,12 +53,12 @@ namespace blop
                 {
                     if(i+1<format.size())
                     {
-                        if(format[i+1]=='Y')      { year_index=index++;   sscanf_format += "%d"; ++i; }
-                        else if(format[i+1]=='m') { month_index=index++;  sscanf_format += "%d"; ++i; }
-                        else if(format[i+1]=='d') { day_index=index++;    sscanf_format += "%d"; ++i; }
-                        else if(format[i+1]=='H') { hour_index=index++;   sscanf_format += "%d"; ++i; }
-                        else if(format[i+1]=='M') { minute_index=index++; sscanf_format += "%d"; ++i; }
-                        else if(format[i+1]=='S') { second_index=index++; sscanf_format += "%d"; ++i; }
+                        if(format[i+1]=='Y')      { if(index<6) { ptr[index++] = &year;   sscanf_format += "%d"; } ++i; }
+                        else if(format[i+1]=='m') { if(index<6) { ptr[index++] = &month;  sscanf_format += "%d"; } ++i; }
+                        else if(format[i+1]=='d') { if(index<6) { ptr[index++] = &day;    sscanf_format += "%d"; } ++i; }
+                        else if(format[i+1]=='H') { if(index<6) { ptr[index++] = &hour;   sscanf_format += "%d"; } ++i; }
+                        else if(format[i+1]=='M') { if(index<6) { ptr[index++] = &minute; sscanf_format += "%d"; } ++i; }
+                        else if(format[i+1]=='S') { if(index<6) { ptr[index++] = &second; sscanf_format += "%lf"; } ++i; }
                         else if(format[i+1]=='%') { sscanf_format += "%%"; ++i; }
                         //else warning::print("Non-allowed specifier in format string");
                     }
@@ -89,23 +66,115 @@ namespace blop
                 }
                 else sscanf_format += format[i];
             }
-        
-            sscanf(datestr.c_str(),sscanf_format.c_str(),values+0, values+1, values+2, values+3, values+4, values+5);
-        
-            return date2timepoint(values[year_index], values[month_index], values[day_index], values[hour_index], values[minute_index], values[second_index]);
+            sscanf(datetime.c_str(),sscanf_format.c_str(),ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
+
+            int ns = round((second-std::floor(second))*1e9);
+
+            std::chrono::year_month_day ymd{
+                std::chrono::year{year},
+                std::chrono::month{month},
+                std::chrono::day{day}
+            };
+            
+            std::chrono::sys_days days{ymd};
+
+            auto tp =
+                days
+                + std::chrono::hours{hour}
+                + std::chrono::minutes{minute}
+                + std::chrono::seconds{(int)floor(second)}
+                + std::chrono::nanoseconds{ns};
+
+            return std::chrono::duration<double>(tp.time_since_epoch()).count();
+          
+//            return duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+
+//            return date2timepoint(values[year_index], values[month_index], values[day_index], values[hour_index], values[minute_index], values[second_index]);            
+
+
         }
 
-        std::int64_t date2epoch(const var &datestr, const var &format)
+        std::string epoch2date(double epoch_seconds, const var &format)
         {
-            const auto tp = date2timepoint(datestr,format);
-            return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+            const std::int64_t  seconds_int  = std::floor(epoch_seconds);
+            const double        seconds_frac = epoch_seconds - seconds_int;
+
+
+            // This does not support fractional seconds
+            std::chrono::sys_seconds tp{std::chrono::seconds{seconds_int}};
+            auto days = floor<chrono::days>(tp);
+            std::chrono::year_month_day ymd{days};
+            std::chrono::hh_mm_ss tod{tp - days};
+
+            std::tm tm{};
+
+            const int year  = int(ymd.year());
+            const int month = unsigned(ymd.month());
+            const int day   = unsigned(ymd.day());
+            const int hour = int(tod.hours().count());
+            const int min  = int(tod.minutes().count());
+            const double sec = int(tod.seconds().count()) + seconds_frac;
+
+            /*
+            tm.tm_year = int(ymd.year()) - 1900;
+            tm.tm_mon  = unsigned(ymd.month()) - 1;
+            tm.tm_mday = unsigned(ymd.day());
+            
+            tm.tm_hour = int(tod.hours().count());
+            tm.tm_min  = int(tod.minutes().count());
+            tm.tm_sec  = int(tod.seconds().count());
+            */
+
+            std::string result;
+            char tmp[30];
+            for(unsigned int i=0; i<format.size(); ++i)
+            {
+                if(format[i]=='%')
+                {
+                    if(i+1<format.size())
+                    {
+                        if(format[i+1]=='Y')      {sprintf(tmp,"%4d",year);   result += tmp; ++i;}
+                        else if(format[i+1]=='m') {sprintf(tmp,"%02d",month); result += tmp; ++i;}
+                        else if(format[i+1]=='d') {sprintf(tmp,"%02d",day);   result += tmp; ++i;}
+                        else if(format[i+1]=='H') {sprintf(tmp,"%02d",hour);  result += tmp; ++i;}
+                        else if(format[i+1]=='M') {sprintf(tmp,"%02d",min);   result += tmp; ++i;}
+                        else if(format[i+1]=='S') 
+                        {
+                            if(seconds_frac>=0.9999e-9) 
+                            {
+                                sprintf(tmp,"%.9f",sec);
+
+                                // Check if there is a decimal point
+                                auto dot = strchr(tmp,'.');
+
+                                if(dot)
+                                {
+                                    // discard trailing zeros
+                                    for(int j=strlen(tmp)-1; j>=0; --j)
+                                    {
+                                        if(tmp[j]!='0') break;
+                                        tmp[j]='\0';
+                                    }
+                                    for(int j=0; j<2-(dot-tmp); ++j) result += "0";
+                                }
+                                else
+                                {
+                                    for(int j=0; j<2-strlen(tmp); ++j) result += "0";
+                                }
+                            }
+                            else sprintf(tmp,"%02d",(int)floor(sec));
+                            result += tmp; 
+                            ++i;
+                        }
+                        else if(format[i+1]=='%') {result += "%"; }
+                    }
+                }
+                else result += format[i];
+            }
+
+            return result;
         }
-        std::int64_t date2epoch(int year, int month, int day, int hour, int min, int sec)
-        {
-            const auto tp = date2timepoint(year,month,day,hour,min,sec);
-            return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
-        }
-    
+
     
     }
 }

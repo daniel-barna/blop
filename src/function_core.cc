@@ -2139,16 +2139,14 @@ namespace blop
                               const vector<var> &pars,
                               vector<var> &result, int *ind) const
         {
-            std::chrono::system_clock::time_point t = blop::time::date2timepoint(args[0],format_);
-            result[(*ind)++] = chrono::duration_cast<chrono::seconds>(t.time_since_epoch()).count();
+            result[(*ind)++] = blop::time::date2epoch(args[0],format_);
         }
 	void date2epoch::eval_dbl(const vector<var> &args,
                   const std::vector<blop::var> &def_args,
                   const vector<var> &pars,
                   vector<var> &result, int *ind) const
         {
-            std::chrono::system_clock::time_point t = blop::time::date2timepoint(args[0],format_);
-            result[(*ind)++].dbl() = chrono::duration_cast<chrono::seconds>(t.time_since_epoch()).count();
+            result[(*ind)++].dbl() = blop::time::date2epoch(args[0],format_);
         }
 
 

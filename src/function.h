@@ -1015,7 +1015,23 @@ namespace blop
     function implicit_solve(const dgraph   &g, double zcut);
     //html </a>
 
+    // Create a function, which parses its (first) argument according to the given format, and
+    // interprets it as "seconds since epoch (UTC)", with double precision
     function date2epoch(const var &format="%Y-%m-%d %H:%M:%S");
+
+    // A shorthand for date2epoch(format)(substitute);
+    // Create a blop::function which parses the return value of the functino 'sub' (i.e. substitutes its
+    // first argument with the given expression)
+    inline function date2epoch(const var &format,const blop::function &sub) { return date2epoch(format)(sub); }
+
+    // The inverse of date2epoch. It can only interpret the %? specifiers given in the default value of the
+    // argument, it is not a general date/time formatting utility (it can not print dates with name of day etc)
+    // %Y --> 4-digit year
+    // %m --> 2-digit month
+    // %d --> 2-digit day
+    // %H --> 2-digit hour
+    // %M --> 2-digit minute
+    // %S --> 2-integer-digit second, followed by the fractional part of seconds if it is >= 1 ns.
     function epoch2date(const var &format="%Y-%m-%d %H:%M:%S");
 
     // Create the vectorial cross-product of two functions. Both input functions, and the returned
