@@ -1059,6 +1059,7 @@ namespace blop
                 calculate_tics_datetime(min_, min_fixed_,
                                         max_, max_fixed_,
                                         tic_incr_, tic_incr_fixed_,
+                                        cuts_,
                                         epoch2date(time_format_),
                                         tics_);
             }

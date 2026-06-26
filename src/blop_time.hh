@@ -10,8 +10,8 @@ namespace blop
 {
     namespace time
     {
-        double       date2epoch(const var &datetime, const var &format);
-        std::string  epoch2date(double epoch_seconds, const var &format);
+        double       date2epoch(const var &datetime, const var &format="%Y-%m-%d %H:%M:%S");
+        std::string  epoch2date(double epoch_seconds, const var &format="%Y-%m-%d %H:%M:%S");
 
         /*
         // Convert a date/time to std::chrono::system_clock::time_point

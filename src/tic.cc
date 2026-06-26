@@ -28,10 +28,41 @@ namespace blop
     void calculate_tics_datetime(double &minimum, const bool minfixed, 
                                  double &maximum, const bool maxfixed, 
                                  double &step, const bool stepfixed, 
+                                 const std::vector< std::pair<double,double> > &cuts, 
                                  blop::function tic_format_func,
                                  std::vector<blop::tic> &tics)
     {
-        const double range = maximum-minimum;
+        for ( unsigned int i=0 ; i<cuts.size() ; ++i )
+        {
+            if ( ! (cuts[i].first<cuts[i].second) )
+            {
+                warning::print("The lower border of a cut domain should be"
+                               " smaller than the higher border",
+                               "calculate_tics");
+                return;
+            }
+            for ( unsigned int j=i+1 ; j<cuts.size() ; ++j )
+            {
+                if ( ( cuts[i].first<=cuts[j].first && cuts[j].first<=cuts[i].second )
+                     || ( cuts[i].first<=cuts[j].second && cuts[j].second<=cuts[i].second ) )
+                {
+                    warning::print("There is overlap in cut domains", "calculate_tics(...)");
+                    return;
+                }
+            }
+        }
+        
+        double range = maximum-minimum;
+
+	for ( unsigned int i=0 ; i<cuts.size() ; ++i )
+	{
+	    if ( cuts[i].first<minimum && cuts[i].second<minimum ) continue;
+	    else if ( cuts[i].first<minimum && minimum<cuts[i].second && cuts[i].second<maximum ) range-=cuts[i].second-minimum;
+	    else if ( minimum<cuts[i].first && cuts[i].first<maximum && minimum<cuts[i].second && cuts[i].second<maximum ) range-=cuts[i].second-cuts[i].first;
+	    else if ( minimum<cuts[i].first && cuts[i].first<maximum && maximum<cuts[i].second ) range-=maximum-cuts[i].first;
+	    else continue;
+	}
+
         const int ntics_hint = 5;
 
         double chosen_step = 0;
@@ -124,9 +155,20 @@ namespace blop
         {
             if(minimum<=t && t<=maximum)
             {
+                bool cutflag=false;
+                for ( unsigned int i=0 ; i<cuts.size() ; ++i )
+                {
+                    if ( cuts[i].first<=t && t<=cuts[i].second )
+                    {
+                        cutflag=true;
+                        break;
+                    }
+                }
+                if(cutflag) continue;
+
                 var label = tic_format_func(t);
                 label.replace("\n","\\\\");
-                label = "\\begin{varwidth}[b]{\\linewidth}\\vspace{0pt}\\centering" & label & "\\end{varwidth}";
+                label = "\\begin{varwidth}[b]{\\linewidth}\\vspace{0pt}\\centering{}" & label & "\\end{varwidth}";
                 tics.push_back({t,label});
             }
         }

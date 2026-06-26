@@ -337,6 +337,7 @@ namespace blop
 	    const length &cut_gap() const;
 	    static void   default_cut_gap(length l);
 
+            const std::vector<std::pair<double,double>> cuts() const { return cuts_; }
 
 	    // ---------  Show transformed values of another axis -----
 

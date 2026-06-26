@@ -1265,16 +1265,50 @@ namespace blop
 	double ymax = yaxis->max();
 	if(g->ymax() != unset && g->ymax() < ymax) ymax = g->ymax();
 
-	vector<double> xx(g->size());
-	vector<double> yy(g->size());
+	vector<double> xx,yy;
+        xx.reserve(g->size());
+        yy.reserve(g->size());
+        var xorig_prev, yorig_prev;
 	for(plottable::size_type i=0; i<g->size(); ++i)
 	{
 	    const var xorig = getx.eval(*(g->get(i)));
 	    const var yorig = gety.eval(*(g->get(i)));
-	    if(ignore::it(xorig) || (xaxis->logscale() && !(xorig.dbl()>0.0))) xx[i] = unset;
-	    else xx[i] = xaxis->map_point(xorig.dbl());
-	    if(ignore::it(yorig) || (yaxis->logscale() && !(yorig.dbl()>0.0))) yy[i] = unset;
-	    else yy[i] = yaxis->map_point(yorig.dbl());
+	    double x,y;
+            
+	    if(ignore::it(xorig) || (xaxis->logscale() && !(xorig.dbl()>0.0))) x=unset;
+	    else x = xaxis->map_point(xorig.dbl());
+	    if(ignore::it(yorig) || (yaxis->logscale() && !(yorig.dbl()>0.0))) y=unset;
+	    else y = yaxis->map_point(yorig.dbl());
+
+            // If it is not the very first point, check if there was an axis-cut between the previous and the current point
+            // in this case insert an 'unset' value to the x/y array to break the linex
+            if(i>0)
+            {
+                for(auto c : xaxis->cuts())
+                {
+                    if(xorig_prev<=c.first && c.first<=xorig && x!=unset && y!=unset)
+                    {
+                        xx.push_back(unset);
+                        yy.push_back(unset);
+                        break;
+                    }
+                }
+                for(auto c : yaxis->cuts())
+                {
+                    if(yorig_prev<=c.first && c.first<=yorig && x!=unset && y!=unset)
+                    {
+                        xx.push_back(unset);
+                        yy.push_back(unset);
+                        break;
+                    }
+                }
+            }
+                
+            xorig_prev = xorig;
+            yorig_prev = yorig;
+
+            xx.push_back(x);
+            yy.push_back(y);
 	}	
 
 	term->reset_transformation();
@@ -1626,22 +1660,50 @@ namespace blop
 	term->set_linewidth(g->linewidth().termspecific_id());
 	term->set_linestyle(g->linestyle());
 
-	vector<double> xx(g->size());
-	vector<double> yy(g->size());
-
+	vector<double> xx, yy;
+        xx.reserve(g->size());
+        yy.reserve(g->size());
+        var xorig_prev, yorig_prev;
 	for(plottable::size_type i=0; i<g->size(); ++i)
 	{
 	    const var xorig = getx.eval(*(g->get(i)));
 	    const var yorig = gety.eval(*(g->get(i)));
 	    double x,y;
-
+            
 	    if(ignore::it(xorig) || (xaxis->logscale() && !(xorig.dbl()>0.0))) x=unset;
 	    else x = xaxis->map_point(xorig.dbl());
 	    if(ignore::it(yorig) || (yaxis->logscale() && !(yorig.dbl()>0.0))) y=unset;
 	    else y = yaxis->map_point(yorig.dbl());
 
-	    xx[i] = x;
-	    yy[i] = y;
+            // If it is not the very first point, check if there was an axis-cut between the previous and the current point
+            // in this case insert an 'unset' value to the x/y array to break the linex
+            if(i>0)
+            {
+                for(auto c : xaxis->cuts())
+                {
+                    if(xorig_prev<=c.first && c.first<=xorig && x!=unset && y!=unset)
+                    {
+                        xx.push_back(unset);
+                        yy.push_back(unset);
+                        break;
+                    }
+                }
+                for(auto c : yaxis->cuts())
+                {
+                    if(yorig_prev<=c.first && c.first<=yorig && x!=unset && y!=unset)
+                    {
+                        xx.push_back(unset);
+                        yy.push_back(unset);
+                        break;
+                    }
+                }
+            }
+                
+            xorig_prev = xorig;
+            yorig_prev = yorig;
+
+	    xx.push_back(x);
+            yy.push_back(y);
 
 	    if(xorig.dbl() < xmin) continue;
 	    if(xorig.dbl() > xmax) continue;

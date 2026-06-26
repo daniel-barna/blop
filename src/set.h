@@ -634,6 +634,7 @@ namespace blop
             frame::current().x1axis()->time_format(fmt);
             return replot_request();
         }
+        inline replot_request time_format_x1(const char *fmt) { return time_format_x1(var(fmt)); }
         inline replot_request time_format_x1(bool f)
         {
             if(f) frame::current().x1axis()->time_format("%Y-%m-%d\n%H:%M:%S");
@@ -646,6 +647,7 @@ namespace blop
             frame::current().x2axis()->time_format(fmt);
             return replot_request();
         }
+        inline replot_request time_format_x2(const char *fmt) { return time_format_x2(var(fmt)); }
         inline replot_request time_format_x2(bool f)
         {
             if(f) frame::current().x2axis()->time_format("%Y-%m-%d\n%H:%M:%S");
@@ -658,6 +660,7 @@ namespace blop
             frame::current().y1axis()->time_format(fmt);
             return replot_request();
         }
+        inline replot_request time_format_y1(const char *fmt) { return time_format_y1(var(fmt)); }
         inline replot_request time_format_y1(bool f)
         {
             if(f) frame::current().y1axis()->time_format("%Y-%m-%d\n%H:%M:%S");
@@ -670,6 +673,7 @@ namespace blop
             frame::current().y2axis()->time_format(fmt);
             return replot_request();
         }
+        inline replot_request time_format_y2(const char *fmt) { return time_format_y2(var(fmt)); }
         inline replot_request time_format_y2(bool f)
         {
             if(f) frame::current().y2axis()->time_format("%Y-%m-%d\n%H:%M:%S");
