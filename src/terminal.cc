@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "logger.h"
 
 using namespace std;
 
@@ -11,7 +12,7 @@ namespace blop
 	    if(length_id == o.length_id) return true;
 	    return false;
 	}
-	
+
 	if(relcoord == o.relcoord && direction == o.direction) return true;
 	return false;
     }

@@ -5629,37 +5629,45 @@ function bands::get_x1_(plottable *g) const
 	    if(maxfixed_) zmax_local = max_;
 	    double step = step_;
 
-	    if(stepfixed_ && spec_val_ != unset)
-	    {
-		for(double v = spec_val_; v<zmax; v += step_)
-		{
-		    isovalues_.push_back(v);
-		}
-		for(double v = spec_val_-step_; v>zmin; v -= step_)
-		{
-		    isovalues_.push_back(v);
-		}
-	    }
-	    else
-	    {
-		calculate_tics(zmin_local, minfixed_,  
-			       zmax_local, maxfixed_,   
-			       step, stepfixed_,  
-			       unset, unset,
-			       scale,
-			       1.0,
-			       cuts,
-			       logscale_,
-			       false, // normalform_tics
-			       false, // normalform_scale
-			       tics);
-		
-		for(unsigned int i=0; i<tics.size(); ++i)
-		{
-		    const double val = tics[i].value();
-		    if(zmin<val && val<zmax) isovalues_.push_back(val);
-		}
-	    }
+            if(n_levels_==0)
+            {
+                if(stepfixed_ && spec_val_ != unset)
+                {
+                    for(double v = spec_val_; v<zmax; v += step_)
+                    {
+                        isovalues_.push_back(v);
+                    }
+                    for(double v = spec_val_-step_; v>zmin; v -= step_)
+                    {
+                        isovalues_.push_back(v);
+                    }
+                }
+                else
+                {
+                    calculate_tics(zmin_local, minfixed_,  
+                                   zmax_local, maxfixed_,   
+                                   step, stepfixed_,  
+                                   unset, unset,
+                                   scale,
+                                   1.0,
+                                   cuts,
+                                   logscale_,
+                                   false, // normalform_tics
+                                   false, // normalform_scale
+                                   tics);
+                    
+                    for(unsigned int i=0; i<tics.size(); ++i)
+                    {
+                        const double val = tics[i].value();
+                        if(zmin<val && val<zmax) isovalues_.push_back(val);
+                    }
+                }
+            }
+            else
+            {
+                const double dz = (zmax_local-zmin_local)/n_levels_;
+                for(double z=zmin_local+dz/2; z<zmax_local; z+=dz) isovalues_.push_back(z);
+            }
 	}
 	if(isovalues_.empty())
 	{

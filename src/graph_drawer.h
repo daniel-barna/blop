@@ -1072,6 +1072,7 @@ namespace blop
 	    double min_, max_, step_, spec_val_;
 	    bool minfixed_, maxfixed_, stepfixed_;
 	    bool logscale_;
+            int n_levels_ = 0;
 	    std::vector<color> colors_;
 	    std::vector<var>   labels_;
 	    bool draw_labels_, turn_labels_;
@@ -1096,10 +1097,12 @@ namespace blop
 	    isolines &min(double v) { min_ = v; minfixed_ = true; return *this; }
 	    isolines &max(double v) { max_ = v; maxfixed_ = true; return *this; }
 
+            isolines &n_levels(int n) { n_levels_ = n; return *this; }
+
 	    // set the stepsize between iso-values. If not specified, an automatic
 	    // calculation is done for the optimum
 	    isolines &step(double stepsize, double specval=unset)
-	    { step_ = stepsize; spec_val_ = specval; stepfixed_ = (stepsize!=unset); return *this; }
+            { step_ = stepsize; spec_val_ = specval; stepfixed_ = (stepsize!=unset); n_levels_=0; return *this; }
 
 	    // Set the format (printf style), which will be used to print
 	    // the labels on the isolines. The default is "%g". 
