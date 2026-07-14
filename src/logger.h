@@ -162,9 +162,6 @@ namespace blop{
         typedef std::chrono::steady_clock clock;
         std::chrono::time_point<clock> start_;
 
-        // A private constructor to be used by the global topmost logger instance only
-        // Should this be stored in the logger stack?
-        logger() : name_(""), my_level_(0) {}
 
         template <typename T>
         static void write_escaped(std::ostream &os, const T &t) {os<<t;}
@@ -286,6 +283,9 @@ namespace blop{
 
         logger &operator<<(const format_setter &f);
         logger &operator<<(const format_resetter &r);
+
+        // Create a logger instance that does not print any header, only increases the indentation level for its lifetime
+        logger() : name_("") { init_(); }
 
         // A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated
         // to give the header line of this logger instance

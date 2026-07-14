@@ -96,12 +96,16 @@ namespace blop {
         // Reset the format of the console
         if(!(flag_&silent.flag)) std::cerr<<"\e[0m";
 
-        for(unsigned int i=0; i<my_level_-1; ++i) 
+        // Create the indentation on cerr and the output streams
+        if(name_ != "")
         {
-            if(!(flag_&silent.flag))
+            for(unsigned int i=0; i<my_level_-1; ++i) 
             {
-                std::cerr<<"   ";
-                for(auto f : files_()) f->stream()<<"  ";
+                if(!(flag_&silent.flag))
+                {
+                    std::cerr<<"   ";
+                    for(auto f : files_()) f->stream()<<"  ";
+                }
             }
         }
 
@@ -109,12 +113,15 @@ namespace blop {
         {
             if(!(flag_&silent.flag))
             {
-                std::cerr<<">> ";
-                std::cerr<<name_<<" started"<<std::endl;
-                for(auto f : files_())
+                if(name_ != "")
                 {
-                    f->stream()<<">> ";
-                    f->stream()<<name_<<" started"<<std::endl;
+                    std::cerr<<">> ";
+                    std::cerr<<name_<<" started"<<std::endl;
+                    for(auto f : files_())
+                    {
+                        f->stream()<<">> ";
+                        f->stream()<<name_<<" started"<<std::endl;
+                    }
                 }
                 for(auto h : htmls_())
                 {
@@ -130,8 +137,11 @@ namespace blop {
         {
             if(!(flag_&silent.flag))
             {
-                std::cerr<<name_<<"... ";
-                for(auto f : files_()) f->stream()<<name_<<"... ";
+                if(name_ != "")
+                {
+                    std::cerr<<name_<<"... ";
+                    for(auto f : files_()) f->stream()<<name_<<"... ";
+                }
             }
         }
 
@@ -149,8 +159,9 @@ namespace blop {
     
     logger::~logger()
     {
+        cerr<<"logger::~logger() started"<<endl;
 
-        if(name_ != "")
+//        if(name_ != "")
         {
             auto stop = clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(stop-start_);
@@ -159,10 +170,13 @@ namespace blop {
             {
                 if(!(flag_&one_line.flag))
                 {
-                    for(unsigned int i=0; i<my_level_-1; ++i)
+                    if(name_ != "")
                     {
-                        std::cerr<<"   ";
-                        for(auto f : files_()) f->stream()<<"  ";
+                        for(unsigned int i=0; i<my_level_-1; ++i)
+                        {
+                            std::cerr<<"   ";
+                            for(auto f : files_()) f->stream()<<"  ";
+                        }
                     }
 
                     cerr<<"\e[0m";
@@ -176,27 +190,36 @@ namespace blop {
                         }
                     }                        
 
-                    std::cerr<<"<< ";
-                    std::cerr<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
-
-                    for(auto f : files_())
+                    if(name_ != "")
                     {
-                        f->stream()<<"<< ";
-                        f->stream()<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
+                        std::cerr<<"<< ";
+                        std::cerr<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
+
+                        for(auto f : files_())
+                        {
+                            f->stream()<<"<< ";
+                            f->stream()<<name_<<" finished ("<<format_duration(duration)<<")"<<std::endl;
+                        }
                     }
 
                     for(auto h : htmls_())
                     {
                         h->stream()<<"</div>"<<endl;
-                        h->stream()<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<format_duration(duration)<<"\";</script>"<<endl;
-                        h->stream()<<"<div class='footer'>"<<name_<<"</div>";
+                        if(name_ != "")
+                        {
+                            h->stream()<<"<script>document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""<<format_duration(duration)<<"\";</script>"<<endl;
+                            h->stream()<<"<div class='footer'>"<<name_<<"</div>";
+                        }
                         h->stream()<<"</div>"<<endl;
                     }
                 }
                 else 
                 {
-                    std::cerr<<"done ("<<format_duration(duration)<<")"<<endl;
-                    for(auto f : files_()) f->stream()<<"done ("<<format_duration(duration)<<")"<<endl;
+                    if(name_ != "")
+                    {
+                        std::cerr<<"done ("<<format_duration(duration)<<")"<<endl;
+                        for(auto f : files_()) f->stream()<<"done ("<<format_duration(duration)<<")"<<endl;
+                    }
                 }
             }
             --level_;
@@ -208,6 +231,9 @@ namespace blop {
         }
         // Reapply the format of the previous log level
         if(!stack_().empty()) stack_().back()->apply_format();
+
+        cerr<<"logger::~logger() finished"<<endl;
+        
     }
 
     void logger::apply_format() 
@@ -430,6 +456,7 @@ body {
     logger &logger::top()
     {
         static logger the_logger;
+        the_logger.my_level_ = 0;
         return the_logger;
     }
 
