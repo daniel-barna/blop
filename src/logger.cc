@@ -159,7 +159,6 @@ namespace blop {
     
     logger::~logger()
     {
-        cerr<<"logger::~logger() started"<<endl;
 
 //        if(name_ != "")
         {
@@ -232,8 +231,6 @@ namespace blop {
         // Reapply the format of the previous log level
         if(!stack_().empty()) stack_().back()->apply_format();
 
-        cerr<<"logger::~logger() finished"<<endl;
-        
     }
 
     void logger::apply_format() 

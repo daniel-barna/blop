@@ -43,7 +43,8 @@ public:
 
     progress(const std::string &before="", double step=1) : step_(step), before_(before)
         {
-            std::cerr<<before_;
+            //std::cerr<<before_;
+            logger::indent()<<before_;
         }
     void operator()(double value, const std::string &after = "%")
         {
