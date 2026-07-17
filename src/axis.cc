@@ -150,6 +150,7 @@ namespace blop
             cut_mark_y2_.register_me();
             cut_mark_y3_.register_me();
             cut_mark_y4_.register_me();
+/*
 	    cut_x1_.register_me();
 	    cut_x2_.register_me();
 	    cut_x3_.register_me();
@@ -158,6 +159,7 @@ namespace blop
 	    cut_y2_.register_me();
 	    cut_y3_.register_me();
 	    cut_y4_.register_me();
+*/
 	}
     }
 
@@ -219,6 +221,7 @@ namespace blop
         cut_mark_y3_ =  0.5*!cut_mark_size_;
         cut_mark_y4_ =   !cut_mark_size_;
 
+        /*
 	cut_x1_ = -0.5*!cut_mark_size_-EX;
 	cut_x2_ = -0.5*!cut_mark_size_+EX;
 	cut_x3_ =  0.5*!cut_mark_size_-EX;
@@ -227,6 +230,7 @@ namespace blop
 	cut_y2_ = -1*EX;
 	cut_y3_ = EX;
 	cut_y4_ = 2*EX;
+        */
 
 	unit_value_  = 1;
 	unit_symbol_ = "";
@@ -317,6 +321,7 @@ namespace blop
         cut_mark_y2_ = o.cut_mark_y2_;
         cut_mark_y3_ = o.cut_mark_y3_;
         cut_mark_y4_ = o.cut_mark_y4_;
+/*
 	cut_x1_ = o.cut_x1_;
 	cut_x2_ = o.cut_x2_;
 	cut_x3_ = o.cut_x3_;
@@ -325,6 +330,7 @@ namespace blop
 	cut_y2_ = o.cut_y2_;
 	cut_y3_ = o.cut_y3_;
 	cut_y4_ = o.cut_y4_;
+*/
 
 	scale_ = o.scale_;
 	id_ = o.id_;
@@ -601,7 +607,7 @@ namespace blop
             cuts.push_back(terminal::coord(cut_mark_x2_.termspecific_id(),
                                            cut_mark_y4_.termspecific_id()));
 
-
+/*
 	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
 					    cut_y1_.termspecific_id()));
 	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
@@ -629,6 +635,7 @@ namespace blop
 	    cuts2.push_back(terminal::coord(cut_x4_.termspecific_id(),
 					    cut_y4_.termspecific_id()));
 
+*/
 	}
 	else
 	{
@@ -640,7 +647,7 @@ namespace blop
                                            cut_mark_x1_.termspecific_id()));
             cuts.push_back(terminal::coord(cut_mark_y4_.termspecific_id(),
                                            cut_mark_x2_.termspecific_id()));
-
+/*
 	    cuts1.push_back(terminal::coord(cut_y1_.termspecific_id(),
 					    cut_x1_.termspecific_id()));
 	    cuts1.push_back(terminal::coord(cut_y2_.termspecific_id(),
@@ -658,6 +665,7 @@ namespace blop
 					    cut_x3_.termspecific_id()));
 	    cuts2.push_back(terminal::coord(cut_y4_.termspecific_id(),
 					    cut_x4_.termspecific_id()));
+*/
 	}
 
 	for(unsigned int i=0; i<cuts_.size(); ++i)

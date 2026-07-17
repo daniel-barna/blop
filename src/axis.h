@@ -26,7 +26,7 @@ namespace blop
 
 	    vector<pair<double,double> > cuts_;
             length cut_mark_x1_, cut_mark_x2_, cut_mark_y1_, cut_mark_y2_, cut_mark_y3_, cut_mark_y4_;
-	    length cut_x1_,cut_x2_,cut_x3_,cut_x4_,cut_y1_,cut_y2_,cut_y3_,cut_y4_;
+//	    length cut_x1_,cut_x2_,cut_x3_,cut_x4_,cut_y1_,cut_y2_,cut_y3_,cut_y4_;
 	    length cut_mark_size_;
 
             // Fractional size of the cut gap for displaying the values
