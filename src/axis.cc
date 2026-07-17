@@ -143,7 +143,13 @@ namespace blop
 	scalelabel_.prepare_for_draw();
 	if(!cuts_.empty())
 	{
-	    cut_gap_.register_me();
+	    cut_mark_size_.register_me();
+            cut_mark_x1_.register_me();
+            cut_mark_x2_.register_me();
+            cut_mark_y1_.register_me();
+            cut_mark_y2_.register_me();
+            cut_mark_y3_.register_me();
+            cut_mark_y4_.register_me();
 	    cut_x1_.register_me();
 	    cut_x2_.register_me();
 	    cut_x3_.register_me();
@@ -204,11 +210,19 @@ namespace blop
 	pos_changed_ = false;
 	title_autoset_ = false;
 	transformed_axis_ = 0;
-	cut_gap_ = default_cut_gap_();
-	cut_x1_ = -0.5*!cut_gap_-EX;
-	cut_x2_ = -0.5*!cut_gap_+EX;
-	cut_x3_ =  0.5*!cut_gap_-EX;
-	cut_x4_ =  0.5*!cut_gap_+EX;
+	cut_mark_size_ = default_cut_mark_size_();
+
+        cut_mark_x1_ = -0.5*!cut_mark_size_;
+        cut_mark_x2_ =  0.5*!cut_mark_size_;
+        cut_mark_y1_ =  -!cut_mark_size_;
+        cut_mark_y2_ = -0.5*!cut_mark_size_;
+        cut_mark_y3_ =  0.5*!cut_mark_size_;
+        cut_mark_y4_ =   !cut_mark_size_;
+
+	cut_x1_ = -0.5*!cut_mark_size_-EX;
+	cut_x2_ = -0.5*!cut_mark_size_+EX;
+	cut_x3_ =  0.5*!cut_mark_size_-EX;
+	cut_x4_ =  0.5*!cut_mark_size_+EX;
 	cut_y1_ = -2*EX;
 	cut_y2_ = -1*EX;
 	cut_y3_ = EX;
@@ -296,7 +310,13 @@ namespace blop
 	pos_changed_ = o.pos_changed_;
 	title_autoset_ = o.title_autoset_;
 	transformed_axis_ = 0;
-	cut_gap_ = o.cut_gap_;
+	cut_mark_size_ = o.cut_mark_size_;
+        cut_mark_x1_ = o.cut_mark_x1_;
+        cut_mark_x2_ = o.cut_mark_x2_;
+        cut_mark_y1_ = o.cut_mark_y1_;
+        cut_mark_y2_ = o.cut_mark_y2_;
+        cut_mark_y3_ = o.cut_mark_y3_;
+        cut_mark_y4_ = o.cut_mark_y4_;
 	cut_x1_ = o.cut_x1_;
 	cut_x2_ = o.cut_x2_;
 	cut_x3_ = o.cut_x3_;
@@ -569,8 +589,28 @@ namespace blop
 	t->set_color(axiscolor_);
 
 	vector<terminal::coord> cuts1, cuts2;
+        vector<terminal::coord> cuts;
 	if(id_ == x1 || id_ == x2)
 	{
+            cuts.push_back(terminal::coord(cut_mark_x1_.termspecific_id(),
+                                           cut_mark_y1_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_x2_.termspecific_id(),
+                                           cut_mark_y2_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_x1_.termspecific_id(),
+                                           cut_mark_y3_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_x2_.termspecific_id(),
+                                           cut_mark_y4_.termspecific_id()));
+
+
+	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
+					    cut_y1_.termspecific_id()));
+	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
+					    cut_y2_.termspecific_id()));
+	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
+					    cut_y3_.termspecific_id()));
+	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
+					    cut_y4_.termspecific_id()));
+
 	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
 					    cut_y1_.termspecific_id()));
 	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
@@ -592,6 +632,15 @@ namespace blop
 	}
 	else
 	{
+            cuts.push_back(terminal::coord(cut_mark_y1_.termspecific_id(),
+                                           cut_mark_x1_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_y2_.termspecific_id(),
+                                           cut_mark_x2_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_y3_.termspecific_id(),
+                                           cut_mark_x1_.termspecific_id()));
+            cuts.push_back(terminal::coord(cut_mark_y4_.termspecific_id(),
+                                           cut_mark_x2_.termspecific_id()));
+
 	    cuts1.push_back(terminal::coord(cut_y1_.termspecific_id(),
 					    cut_x1_.termspecific_id()));
 	    cuts1.push_back(terminal::coord(cut_y2_.termspecific_id(),
@@ -613,22 +662,47 @@ namespace blop
 
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
-	    double norm = map_point(cuts_[i].second); //*(1+1e-6));
-	    if(norm == unset) continue;
+            // skip cuts which are outside of the axis range
+            if(cuts_[i].second<min_ || max_<cuts_[i].first) continue;
 
-	    int cutpos_id = t->lincombi(1-norm,beg_.termspecific_id(),
-					norm, end_.termspecific_id());
-	    if(id_ == x1 || id_ == x2)
-	    {
-		t->translate(cutpos_id,pos_.termspecific_id());
-	    }
-	    else
-	    {
-		t->translate(pos_.termspecific_id(),cutpos_id);
-	    }
-	    t->draw_lines(cuts1);
-	    t->draw_lines(cuts2);
-	    t->reset_transformation();
+            const double norm[2] = { map_point(cuts_[i].first), map_point(cuts_[i].second) };
+	    if(norm[0] == unset || norm[1] == unset) continue;
+
+            int cutpos_ids[2];
+
+            for(int i=0; i<2; ++i)
+            {
+                cutpos_ids[i] = t->lincombi(1-norm[i],beg_.termspecific_id(),
+                                            norm[i],  end_.termspecific_id());
+                if(id_ == x1 || id_ == x2)
+                {
+                    t->translate(cutpos_ids[i],pos_.termspecific_id());
+                }
+                else
+                {
+                    t->translate(pos_.termspecific_id(),cutpos_ids[i]);
+                }
+//	    t->draw_lines(cuts1);
+//	    t->draw_lines(cuts2);
+                t->draw_lines(cuts);
+                t->reset_transformation();
+            }
+            t->set_color(white);
+            t->set_linestyle(sym::dashed);
+            vector<terminal::coord> lin;
+            if(id_==x1 || id_==x2)
+            {
+                lin.push_back(terminal::coord(cutpos_ids[0],pos_.termspecific_id()));
+                lin.push_back(terminal::coord(cutpos_ids[1],pos_.termspecific_id()));
+            }
+            else
+            {
+                lin.push_back(terminal::coord(pos_.termspecific_id(),cutpos_ids[0]));
+                lin.push_back(terminal::coord(pos_.termspecific_id(),cutpos_ids[1]));
+            }
+            t->draw_lines(lin);
+            t->set_color(axiscolor_);
+            t->set_linestyle(sym::solid);
 	}
     }
 
@@ -833,35 +907,47 @@ namespace blop
 	    if(cuts_[i].first < p && p < cuts_[i].second) return unset;
 	}
 
-	double effective_range = max_ - min_;
-	double effective_value = p - min_;
+	double effective_source_range = max_ - min_;
+	double effective_source_value = p - min_;
+        double effective_target_range = 1;
+        double effective_target_offset = 0;
 
 	if(logscale_)
 	{
-	    effective_range = ::log10(max_) - ::log10(min_);
-	    effective_value = ::log10(p)    - ::log10(min_);
+	    effective_source_range = ::log10(max_) - ::log10(min_);
+	    effective_source_value = ::log10(p)    - ::log10(min_);
 	}
 
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
+            // skip cuts which are outside of the axis range
+            if(cuts_[i].second<min_ || max_<cuts_[i].first) continue;
+
 	    if(cuts_[i].first < max_ && min_ < cuts_[i].second)
 	    {
 		double l = std::max(cuts_[i].first,min_);
 		double h = std::min(cuts_[i].second,max_);
-		if(!logscale_) effective_range -= h-l;
-		else effective_range -= ::log10(h)-::log10(l);
+		if(!logscale_) effective_source_range -= h-l;
+		else           effective_source_range -= ::log10(h)-::log10(l);
+                effective_target_range -= cut_gap_;
 	    }
 
 	    if(cuts_[i].first < p && min_ < cuts_[i].second)
 	    {
 		double l = std::max(cuts_[i].first,min_);
 		double h = std::min(cuts_[i].second,p);
-		if(!logscale_) effective_value -= h-l;
-		else effective_value -= ::log10(h)-::log10(l);
+		if(!logscale_) effective_source_value -= h-l;
+		else effective_source_value -= ::log10(h)-::log10(l);
+                effective_target_offset += cut_gap_;
 	    }
 	}
 
-	double mapped = effective_value / effective_range;
+        if(effective_target_range < 0.5)
+        {
+            warning::print("Excessive number of cut ranges, effective value display range is too small","axis::map_point(" + std::to_string(p) + ")");
+        }
+
+	double mapped = effective_source_value / effective_source_range * effective_target_range + effective_target_offset;
 
 	if(mapped == unset || std::isnan(mapped) || std::isinf(mapped)) return unset;
 	return mapped;
@@ -1224,25 +1310,31 @@ namespace blop
 	return scale_;
     }
 
-    void axis::default_cut_gap(length l)
+    double &axis::default_cut_gap()
     {
-	default_cut_gap_() = l;
+        static double g = 0.02;
+        return g;
     }
 
-    length &axis::default_cut_gap_()
+    void axis::default_cut_mark_size(length l)
+    {
+	default_cut_mark_size_() = l;
+    }
+
+    length &axis::default_cut_mark_size_()
     {
 	static length l = length::base_id_t(terminal::EX);
 	return l;
     }
 
-    axis &axis::cut_gap(length l)
+    axis &axis::cut_mark_size(length l)
     {
 	modified_ = true;
-	cut_gap_ = l;
+	cut_mark_size_ = l;
 	return *this;
     }
 
-    const length &axis::cut_gap() const { return cut_gap_; }
+    const length &axis::cut_mark_size() const { return cut_mark_size_; }
 
     axis &axis::cut()
     {

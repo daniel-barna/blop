@@ -4461,6 +4461,8 @@ namespace blop
 	    double y1_mapped = yaxis->map_point(y1);
 	    double y2_mapped = yaxis->map_point(y2);
 
+            if(x1_mapped==unset || x2_mapped==unset || y1_mapped==unset || y2_mapped==unset) continue;
+
             const double xmin_mapped = xaxis->map_point(xmin);
             const double xmax_mapped = xaxis->map_point(xmax);
             const double ymin_mapped = yaxis->map_point(ymin);
