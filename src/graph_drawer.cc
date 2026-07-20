@@ -1286,7 +1286,7 @@ namespace blop
             {
                 for(auto c : xaxis->cuts())
                 {
-                    if(xorig_prev<=c.first && c.first<=xorig && x!=unset && y!=unset)
+                    if(xorig_prev<=std::get<0>(c) && std::get<0>(c)<=xorig && x!=unset && y!=unset)
                     {
                         xx.push_back(unset);
                         yy.push_back(unset);
@@ -1295,7 +1295,7 @@ namespace blop
                 }
                 for(auto c : yaxis->cuts())
                 {
-                    if(yorig_prev<=c.first && c.first<=yorig && x!=unset && y!=unset)
+                    if(yorig_prev<=std::get<0>(c) && std::get<0>(c)<=yorig && x!=unset && y!=unset)
                     {
                         xx.push_back(unset);
                         yy.push_back(unset);
@@ -1681,7 +1681,7 @@ namespace blop
             {
                 for(auto c : xaxis->cuts())
                 {
-                    if(xorig_prev<=c.first && c.first<=xorig && x!=unset && y!=unset)
+                    if(xorig_prev<=std::get<0>(c) && std::get<0>(c)<=xorig && x!=unset && y!=unset)
                     {
                         xx.push_back(unset);
                         yy.push_back(unset);
@@ -1690,7 +1690,7 @@ namespace blop
                 }
                 for(auto c : yaxis->cuts())
                 {
-                    if(yorig_prev<=c.first && c.first<=yorig && x!=unset && y!=unset)
+                    if(yorig_prev<=std::get<0>(c) && std::get<0>(c)<=yorig && x!=unset && y!=unset)
                     {
                         xx.push_back(unset);
                         yy.push_back(unset);

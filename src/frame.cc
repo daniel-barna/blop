@@ -1311,12 +1311,12 @@ namespace blop
                                 start_id = term->lincombi(1,terminal::id(start,2),
                                                           0.5,gridcut_.termspecific_id());
                             }
-                            double end = y1axis_->map_point(y1axis_->cuts_[c].first);
+                            double end = y1axis_->map_point(std::get<0>(y1axis_->cuts_[c]));
                             int end_id = term->lincombi(1,terminal::id(end,2),
                                                         -0.5,gridcut_.termspecific_id());
                             term->draw_line(terminal::coord(terminal::id(v,1),start_id),
                                             terminal::coord(terminal::id(v,1), end_id));
-                            start = y1axis_->map_point(y1axis_->cuts_[c].second);
+                            start = y1axis_->map_point(std::get<1>(y1axis_->cuts_[c]));
                         }
                         int start_id = term->lincombi(1,terminal::id(start,2),
                                                       0.5,gridcut_.termspecific_id());
@@ -1350,12 +1350,12 @@ namespace blop
                                     start_id = term->lincombi(1,terminal::id(start,2),
                                                               0.5,gridcut_.termspecific_id());
                                 }
-                                double end = y1axis_->map_point(y1axis_->cuts_[c].first);
+                                double end = y1axis_->map_point(std::get<0>(y1axis_->cuts_[c]));
                                 int end_id = term->lincombi(1,terminal::id(end,2),
                                                             -0.5,gridcut_.termspecific_id());
                                 term->draw_line(terminal::coord(terminal::id(v,1),start_id),
                                                 terminal::coord(terminal::id(v,1), end_id));
-                                start = y1axis_->map_point(y1axis_->cuts_[c].second);
+                                start = y1axis_->map_point(std::get<1>(y1axis_->cuts_[c]));
                             }
                             int start_id = term->lincombi(1,terminal::id(start,2),
                                                           0.5,gridcut_.termspecific_id());
@@ -1391,12 +1391,12 @@ namespace blop
                                 start_id = term->lincombi(1,terminal::id(start,1),
                                                           0.5,gridcut_.termspecific_id());
                             }
-                            double end = x1axis_->map_point(x1axis_->cuts_[c].first);
+                            double end = x1axis_->map_point(std::get<0>(x1axis_->cuts_[c]));
                             int end_id = term->lincombi(1,terminal::id(end,1),
                                                         -0.5,gridcut_.termspecific_id());
                             term->draw_line(terminal::coord(start_id,terminal::id(v,2)),
                                             terminal::coord(end_id,  terminal::id(v,2)));
-                            start = x1axis_->map_point(x1axis_->cuts_[c].second);
+                            start = x1axis_->map_point(std::get<1>(x1axis_->cuts_[c]));
                         }
                         int start_id = term->lincombi(1,terminal::id(start,1),
                                                       0.5,gridcut_.termspecific_id());
@@ -1430,12 +1430,12 @@ namespace blop
                                     start_id = term->lincombi(1,terminal::id(start,1),
                                                               0.5,gridcut_.termspecific_id());
                                 }
-                                double end = x1axis_->map_point(x1axis_->cuts_[c].first);
+                                double end = x1axis_->map_point(std::get<0>(x1axis_->cuts_[c]));
                                 int end_id = term->lincombi(1,terminal::id(end,1),
                                                             -0.5,gridcut_.termspecific_id());
                                 term->draw_line(terminal::coord(start_id,terminal::id(v,2)),
                                                 terminal::coord(end_id,  terminal::id(v,2)));
-                                start = x1axis_->map_point(x1axis_->cuts_[c].second);
+                                start = x1axis_->map_point(std::get<1>(x1axis_->cuts_[c]));
                             }
                             int start_id = term->lincombi(1,terminal::id(start,1),
                                                           0.5,gridcut_.termspecific_id());

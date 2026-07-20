@@ -150,16 +150,6 @@ namespace blop
             cut_mark_y2_.register_me();
             cut_mark_y3_.register_me();
             cut_mark_y4_.register_me();
-/*
-	    cut_x1_.register_me();
-	    cut_x2_.register_me();
-	    cut_x3_.register_me();
-	    cut_x4_.register_me();
-	    cut_y1_.register_me();
-	    cut_y2_.register_me();
-	    cut_y3_.register_me();
-	    cut_y4_.register_me();
-*/
 	}
     }
 
@@ -594,7 +584,6 @@ namespace blop
 
 	t->set_color(axiscolor_);
 
-	vector<terminal::coord> cuts1, cuts2;
         vector<terminal::coord> cuts;
 	if(id_ == x1 || id_ == x2)
 	{
@@ -607,35 +596,6 @@ namespace blop
             cuts.push_back(terminal::coord(cut_mark_x2_.termspecific_id(),
                                            cut_mark_y4_.termspecific_id()));
 
-/*
-	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
-					    cut_y1_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
-					    cut_y2_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
-					    cut_y3_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
-					    cut_y4_.termspecific_id()));
-
-	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
-					    cut_y1_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
-					    cut_y2_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x1_.termspecific_id(),
-					    cut_y3_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_x2_.termspecific_id(),
-					    cut_y4_.termspecific_id()));
-
-	    cuts2.push_back(terminal::coord(cut_x3_.termspecific_id(),
-					    cut_y1_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_x4_.termspecific_id(),
-					    cut_y2_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_x3_.termspecific_id(),
-					    cut_y3_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_x4_.termspecific_id(),
-					    cut_y4_.termspecific_id()));
-
-*/
 	}
 	else
 	{
@@ -647,33 +607,14 @@ namespace blop
                                            cut_mark_x1_.termspecific_id()));
             cuts.push_back(terminal::coord(cut_mark_y4_.termspecific_id(),
                                            cut_mark_x2_.termspecific_id()));
-/*
-	    cuts1.push_back(terminal::coord(cut_y1_.termspecific_id(),
-					    cut_x1_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_y2_.termspecific_id(),
-					    cut_x2_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_y3_.termspecific_id(),
-					    cut_x1_.termspecific_id()));
-	    cuts1.push_back(terminal::coord(cut_y4_.termspecific_id(),
-					    cut_x2_.termspecific_id()));
-
-	    cuts2.push_back(terminal::coord(cut_y1_.termspecific_id(),
-					    cut_x3_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_y2_.termspecific_id(),
-					    cut_x4_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_y3_.termspecific_id(),
-					    cut_x3_.termspecific_id()));
-	    cuts2.push_back(terminal::coord(cut_y4_.termspecific_id(),
-					    cut_x4_.termspecific_id()));
-*/
 	}
 
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
             // skip cuts which are outside of the axis range
-            if(cuts_[i].second<min_ || max_<cuts_[i].first) continue;
+            if(std::get<1>(cuts_[i])<min_ || max_<std::get<0>(cuts_[i])) continue;
 
-            const double norm[2] = { map_point(cuts_[i].first), map_point(cuts_[i].second) };
+            const double norm[2] = { map_point(std::get<0>(cuts_[i])), map_point(std::get<1>(cuts_[i])) };
 	    if(norm[0] == unset || norm[1] == unset) continue;
 
             int cutpos_ids[2];
@@ -690,8 +631,6 @@ namespace blop
                 {
                     t->translate(pos_.termspecific_id(),cutpos_ids[i]);
                 }
-//	    t->draw_lines(cuts1);
-//	    t->draw_lines(cuts2);
                 t->draw_lines(cuts);
                 t->reset_transformation();
             }
@@ -912,7 +851,7 @@ namespace blop
 	if(p == unset || std::isnan(p) || std::isinf(p)) return unset;
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
-	    if(cuts_[i].first < p && p < cuts_[i].second) return unset;
+	    if(std::get<0>(cuts_[i]) < p && p < std::get<1>(cuts_[i])) return unset;
 	}
 
 	double effective_source_range = max_ - min_;
@@ -926,27 +865,44 @@ namespace blop
 	    effective_source_value = ::log10(p)    - ::log10(min_);
 	}
 
+        double cut_gap_sum = 0;
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
             // skip cuts which are outside of the axis range
-            if(cuts_[i].second<min_ || max_<cuts_[i].first) continue;
+            if(std::get<1>(cuts_[i])<min_ || max_<std::get<0>(cuts_[i])) continue;
 
-	    if(cuts_[i].first < max_ && min_ < cuts_[i].second)
+	    if(std::get<0>(cuts_[i]) < max_ && min_ < std::get<1>(cuts_[i]))
 	    {
-		double l = std::max(cuts_[i].first,min_);
-		double h = std::min(cuts_[i].second,max_);
+		double l = std::max(std::get<0>(cuts_[i]),min_);
+		double h = std::min(std::get<1>(cuts_[i]),max_);
+                cut_gap_sum += std::get<2>(cuts_[i]);
+	    }
+        }
+
+        double cut_gap_factor = 1;
+        if(cut_gap_sum > 0.5) cut_gap_factor = 0.5/cut_gap_sum;
+
+	for(unsigned int i=0; i<cuts_.size(); ++i)
+	{
+            // skip cuts which are outside of the axis range
+            if(std::get<1>(cuts_[i])<min_ || max_<std::get<0>(cuts_[i])) continue;
+
+	    if(std::get<0>(cuts_[i]) < max_ && min_ < std::get<1>(cuts_[i]))
+	    {
+		double l = std::max(std::get<0>(cuts_[i]),min_);
+		double h = std::min(std::get<1>(cuts_[i]),max_);
 		if(!logscale_) effective_source_range -= h-l;
 		else           effective_source_range -= ::log10(h)-::log10(l);
-                effective_target_range -= cut_gap_;
+                effective_target_range -= std::get<2>(cuts_[i]);
 	    }
 
-	    if(cuts_[i].first < p && min_ < cuts_[i].second)
+	    if(std::get<0>(cuts_[i]) < p && min_ < std::get<1>(cuts_[i]))
 	    {
-		double l = std::max(cuts_[i].first,min_);
-		double h = std::min(cuts_[i].second,p);
+		double l = std::max(std::get<0>(cuts_[i]),min_);
+		double h = std::min(std::get<1>(cuts_[i]),p);
 		if(!logscale_) effective_source_value -= h-l;
 		else effective_source_value -= ::log10(h)-::log10(l);
-                effective_target_offset += cut_gap_;
+                effective_target_offset += std::get<2>(cuts_[i]);
 	    }
 	}
 
@@ -1020,6 +976,8 @@ namespace blop
 	   user_tics_.empty())
 	   
 	{
+            std::vector<std::pair<double,double>> cuts(cuts_.size());
+            for(int i=0; i<cuts_.size(); ++i) cuts[i] = {std::get<0>(cuts_[i]), std::get<1>(cuts_[i])};
             if(time_format_ == "")
             {
                 tic scaletic;
@@ -1035,7 +993,7 @@ namespace blop
                                      scaletic,
                                      unit_value_,
                                      //(unit_str_!=""?unit::value(unit_):1.0),
-                                     cuts_,
+                                     cuts,
                                      logscale_,
                                      (logscale_?2:0), // normalform tics
                                      true,      // normalform scale
@@ -1153,7 +1111,7 @@ namespace blop
                 calculate_tics_datetime(min_, min_fixed_,
                                         max_, max_fixed_,
                                         tic_incr_, tic_incr_fixed_,
-                                        cuts_,
+                                        cuts,
                                         epoch2date(time_format_),
                                         tics_);
             }
@@ -1356,8 +1314,9 @@ namespace blop
 	return *this;
     }
 
-    axis &axis::cut(double low, double high)
+    axis &axis::cut(double low, double high, double gap)
     {
+        if(gap<0) gap = default_cut_gap();
 	modified_ = true;
 	if(low >= high)
 	{
@@ -1368,47 +1327,41 @@ namespace blop
 
 	if(cuts_.empty())
 	{
-	    cuts_.push_back(pair<double,double>(low,high));
+	    cuts_.push_back({low,high,gap});
 	    return *this;
 	}
 
 	for(unsigned int i=0; i<cuts_.size(); )
 	{
 	    // if no overlap, do nothing
-	    if(cuts_[i].second < low || cuts_[i].first > high)
+	    if(std::get<1>(cuts_[i]) < low || std::get<0>(cuts_[i]) > high)
 	    {
 		++i;
 		continue;
 	    }
 
-	    low = std::min(low,cuts_[i].first);
-	    high = std::max(high,cuts_[i].second);
+	    low = std::min(low,std::get<0>(cuts_[i]));
+	    high = std::max(high,std::get<1>(cuts_[i]));
 	    for(unsigned int j=i+1; j<cuts_.size(); ++j)
 	    {
-		cuts_[j-1].first = cuts_[j].first;
-		cuts_[j-1].second = cuts_[j].second;
+                std::get<0>(cuts_[j-1]) = std::get<0>(cuts_[j]);
+                std::get<1>(cuts_[j-1]) = std::get<1>(cuts_[j]);
 	    }
 	    cuts_.pop_back();
 	}
 
 	// and finally insert it into the correct place
 
-/*
-  unsigned int i=0; 
-  for(; i<cuts_.size() && high < cuts_[i].first; ++i);
-  cuts_.insert(cuts_.begin()+i, pair<double,double>(low,high));
-*/
-
 	for(unsigned int i=0; i<cuts_.size(); ++i)
 	{
-	    if(high < cuts_[i].first)
+	    if(high < std::get<0>(cuts_[i]))
 	    {
-		cuts_.insert(cuts_.begin()+i, pair<double,double>(low,high));
+		cuts_.insert(cuts_.begin()+i, {low,high,gap});
 		return *this;
 	    }
 	}
 	// if no insertion, so we got here, put it to the end
-	cuts_.push_back(pair<double,double>(low,high));
+	cuts_.push_back({low,high,gap});
 	return *this;
     }
 

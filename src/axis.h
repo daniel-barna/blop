@@ -24,13 +24,13 @@ namespace blop
 	    function transform_, transform_inverse_;
 	    bool own_tic_calculation_;
 
-	    vector<pair<double,double> > cuts_;
+	    vector<std::tuple<double,double,double> > cuts_;
             length cut_mark_x1_, cut_mark_x2_, cut_mark_y1_, cut_mark_y2_, cut_mark_y3_, cut_mark_y4_;
 //	    length cut_x1_,cut_x2_,cut_x3_,cut_x4_,cut_y1_,cut_y2_,cut_y3_,cut_y4_;
 	    length cut_mark_size_;
 
             // Fractional size of the cut gap for displaying the values
-            double cut_gap_= default_cut_gap();
+//            double cut_gap_= default_cut_gap();
 
 	    static length &default_cut_mark_size_();
 
@@ -334,20 +334,23 @@ namespace blop
 
 	    // ---------  Cut out regions from the axis  --------------
 
-	    axis         &cut(double low, double high);
+	    axis         &cut(double low, double high, double gap = default_cut_gap());
 	    axis         &cut();  // reset: clear cut-out regions
 
 	    axis         &cut_mark_size(length l);
 	    const length &cut_mark_size() const;
 	    static void   default_cut_mark_size(length l);
 
-            axis         &cut_gap(double g) { cut_gap_ = g; return *this; }
-            double        cut_gap() const { return cut_gap_; }
+//            axis         &cut_gap(double g) { cut_gap_ = g; return *this; }
+//            double        cut_gap() const { return cut_gap_; }
 
             static double &default_cut_gap();
             static void    default_cut_gap(double g) { default_cut_gap() = g; }
 
-            const std::vector<std::pair<double,double>> cuts() const { return cuts_; }
+            // Return the actual set of cuts: a vector of tuples. The 0th element of the tuples is
+            // the lower limit, the 1st element of the tuples is the upper limit of the cut,
+            // the 2nd element is the relative gap compared to the full length of the axis. 
+            const std::vector<std::tuple<double,double,double>> cuts() const { return cuts_; }
 
 	    // ---------  Show transformed values of another axis -----
 
