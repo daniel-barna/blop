@@ -25,7 +25,7 @@ namespace blop
 	//  // now, after seeing the result, realize that I want to have it in red:
 	// get::last()->ac(red);
 	
-	static plottable *last() { return frame::current().last(); }
+	static smartptr<plottable> last() { return frame::current().last(); }
 
 	// ----------- get the last plotted function -----------------------
 	// this function may return 0, if no functions have been plotted yet
@@ -34,12 +34,12 @@ namespace blop
 	//   cosine instead:
 	// get::lastf()->set(_1,cos(_1));
 
-	static fgraph *lastf() { return frame::current().lastf(); }
+	static smartptr<fgraph> lastf() { return frame::current().lastf(); }
 
 	// ----------- get the last plotted dataset (graph) ----------------
 	// this funciton may return 0 if no graphs have been plotted yet
 
-	static dgraph *lastd   () { return frame::current().lastd(); }
+	static smartptr<dgraph> lastd   () { return frame::current().lastd(); }
 
 
     };

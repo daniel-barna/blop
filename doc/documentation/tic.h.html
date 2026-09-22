@@ -49,37 +49,44 @@
 <a name="__line31"></a>	};
 <a name="__line32"></a>
 <a name="__line33"></a>
-<a name="__line34"></a>
-<a name="__line35"></a><span class=comment>// This function determines an optimal scale parameters for a datarange.</span>
-<a name="__line36"></a><span class=comment>// Note that in the case of logscale the value 'minimum' and 'maximum' </span>
-<a name="__line37"></a><span class=comment>// has to be greater than zero. The value 'step' has to be greater than </span>
-<a name="__line38"></a><span class=comment>// zero if fixed. The axis cut-out ranges can be specified arbitrarily </span>
-<a name="__line39"></a><span class=comment>// provided that the cut-out domains do not overlap.</span>
-<a name="__line40"></a><span class=comment>// The function prepares a tic vector 'tics', with number of tics between </span>
-<a name="__line41"></a><span class=comment>// 'nmintics' and '2*nmintics'.</span>
-<a name="__line42"></a>void calculate_tics(double &amp;minimum,
-<a name="__line43"></a>		    const bool minfixed, 
-<a name="__line44"></a>		    double &amp;maximum,
-<a name="__line45"></a>		    const bool maxfixed, 
-<a name="__line46"></a>		    double &amp;step,
-<a name="__line47"></a>		    const bool stepfixed,
-<a name="__line48"></a>		    double tic_min,       <span class=comment>// specify a restricted range for the tics</span>
-<a name="__line49"></a>		    double tic_max,
-<a name="__line50"></a>		    blop::tic &amp;scale,
-<a name="__line51"></a>		    double unit, 
-<a name="__line52"></a>		    const std::vector&lt; std::pair&lt;double,double&gt; &gt; &amp;cuts, 
-<a name="__line53"></a>		    const bool logscale, 
-<a name="__line54"></a>		    const int normalform_tics,  <span class=comment>// 0 --&gt; no normal (with powers of ten) form. 1 --&gt; normal form. 2 --&gt; if range is beyond 0.1..10, use normalform, otherwise no normal form</span>
-<a name="__line55"></a>		    const bool normalform_scale, 
-<a name="__line56"></a>		    std::vector&lt;blop::tic&gt; &amp;tics, 
-<a name="__line57"></a>		    const char *tic_format="%g",
-<a name="__line58"></a>                    const blop::function &amp;tic_format_func=unset,
-<a name="__line59"></a>		    const char *scale_format="%g",
-<a name="__line60"></a>		    const int nmintics=5,
-<a name="__line61"></a>                    bool symmetric_range=false);
-<a name="__line62"></a>    
-<a name="__line63"></a>}
-<a name="__line64"></a>#endif
+<a name="__line34"></a>    void calculate_tics_datetime(double &amp;minimum, const bool minfixed, 
+<a name="__line35"></a>                                 double &amp;maximum, const bool maxfixed, 
+<a name="__line36"></a>                                 double &amp;step, const bool stepfixed, 
+<a name="__line37"></a>                                 const std::vector&lt; std::pair&lt;double,double&gt; &gt; &amp;cuts, 
+<a name="__line38"></a>                                 blop::function tic_format_func,
+<a name="__line39"></a>                                 std::vector&lt;blop::tic&gt; &amp;tics);
+<a name="__line40"></a>
+<a name="__line41"></a>
+<a name="__line42"></a><span class=comment>// This function determines an optimal scale parameters for a datarange.</span>
+<a name="__line43"></a><span class=comment>// Note that in the case of logscale the value 'minimum' and 'maximum' </span>
+<a name="__line44"></a><span class=comment>// has to be greater than zero. The value 'step' has to be greater than </span>
+<a name="__line45"></a><span class=comment>// zero if fixed. The axis cut-out ranges can be specified arbitrarily </span>
+<a name="__line46"></a><span class=comment>// provided that the cut-out domains do not overlap.</span>
+<a name="__line47"></a><span class=comment>// The function prepares a tic vector 'tics', with number of tics between </span>
+<a name="__line48"></a><span class=comment>// 'nmintics' and '2*nmintics'.</span>
+<a name="__line49"></a>void calculate_tics(double &amp;minimum,
+<a name="__line50"></a>		    const bool minfixed, 
+<a name="__line51"></a>		    double &amp;maximum,
+<a name="__line52"></a>		    const bool maxfixed, 
+<a name="__line53"></a>		    double &amp;step,
+<a name="__line54"></a>		    const bool stepfixed,
+<a name="__line55"></a>		    double tic_min,       <span class=comment>// specify a restricted range for the tics</span>
+<a name="__line56"></a>		    double tic_max,
+<a name="__line57"></a>		    blop::tic &amp;scale,
+<a name="__line58"></a>		    double unit, 
+<a name="__line59"></a>		    const std::vector&lt; std::pair&lt;double,double&gt; &gt; &amp;cuts, 
+<a name="__line60"></a>		    const bool logscale, 
+<a name="__line61"></a>		    const int normalform_tics,  <span class=comment>// 0 --&gt; no normal (with powers of ten) form. 1 --&gt; normal form. 2 --&gt; if range is beyond 0.1..10, use normalform, otherwise no normal form</span>
+<a name="__line62"></a>		    const bool normalform_scale, 
+<a name="__line63"></a>		    std::vector&lt;blop::tic&gt; &amp;tics, 
+<a name="__line64"></a>		    const char *tic_format="%g",
+<a name="__line65"></a>                    const blop::function &amp;tic_format_func=unset,
+<a name="__line66"></a>		    const char *scale_format="%g",
+<a name="__line67"></a>		    const int nmintics=5,
+<a name="__line68"></a>                    bool symmetric_range=false);
+<a name="__line69"></a>    
+<a name="__line70"></a>}
+<a name="__line71"></a>#endif
 </span>
 
 </pre>

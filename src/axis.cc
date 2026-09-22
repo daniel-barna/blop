@@ -44,7 +44,7 @@ namespace blop
         default_minor_ticlength_() = l;
     }
 
-    axis &axis::transform(axis *orig,
+    axis &axis::transform(smartptr<axis> orig,
 			  const function &f, const function &finverse, bool own_tic_calc)
     {
 	transformed_axis_ = orig;
@@ -464,7 +464,7 @@ namespace blop
 	}
     }
 
-    label *axis::titlebox()
+    label::ptr axis::titlebox()
     {
 	return &title_;
     }
@@ -853,6 +853,8 @@ namespace blop
 	{
 	    if(std::get<0>(cuts_[i]) < p && p < std::get<1>(cuts_[i])) return unset;
 	}
+
+        if(logscale_ && p<=0) return unset;
 
 	double effective_source_range = max_ - min_;
 	double effective_source_value = p - min_;
@@ -1371,7 +1373,7 @@ namespace blop
 
     tic_setter::tic_setter(int a) : axis_(a) {}
 
-    axis *tic_setter::get_axis()
+    axis::ptr tic_setter::get_axis()
     {
 	switch(axis_)
 	{

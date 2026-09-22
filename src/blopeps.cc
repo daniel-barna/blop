@@ -14,6 +14,13 @@ namespace blop
 {
     using namespace std;
 
+    double limit(double val, double low, double high)
+    {
+        if(val<low) return low;
+        if(val>high) return high;
+        return val;
+    }
+
     bool blopeps::clip(const terminal::coord &lower_left,
 		       const terminal::coord &upper_right)
     {
@@ -497,6 +504,9 @@ namespace blop
 	file_tmp_<<"/@Z0 0 d"<<endl;
 	file_tmp_<<"/@EM where {pop}{/@EM 5 d} i"<<endl;
 	file_tmp_<<"/@EX where {pop}{/@EX 5 d} i"<<endl;
+
+        // Set opacity (ghostscript-specific, non-standard EPS)
+        file_tmp_<<"/o {dup .setfillconstantalpha .setstrokeconstantalpha} d"<<endl;
 
 	file_tmp_<<"/n {neg} d"<<endl;
 	file_tmp_<<"/m {mul} d"<<endl;
@@ -1287,7 +1297,9 @@ namespace blop
     {
 	if(current_color_ == c) return;
 	current_color_ = c;
-	file_tmp_<<c.red()<<" "<<c.green()<<" "<<c.blue()<<" c"<<endl;
+	file_tmp_<<limit(c.red(),0,1)<<" "<<limit(c.green(),0,1)<<" "<<limit(c.blue(),0,1)<<" c"<<endl;
+        file_tmp_<<limit(c.alpha(),0,1)<<" o"<<endl;
+        
     }
 
     void blopeps::set_linewidth(const id &i)

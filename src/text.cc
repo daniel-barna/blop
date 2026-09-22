@@ -68,11 +68,12 @@ namespace blop
         return *this;
     }
 
-    text &text::draw(container *parent, const var &ttt)
+    text &text::draw(smartptr<container> parent, const var &ttt)
     {
         if(parent == 0) err("text::draw ==> parent == 0");
-        text *t = new text(ttt);
-        t->autodel(true);
+        smartptr<text> t = text::create(ttt);
+//        text *t = new text(ttt);
+//        t->autodel(true);
         parent->add(t);
         return *t;
     }

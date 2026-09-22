@@ -9,6 +9,7 @@ namespace blop
 
 class mpad : public container, public mcontainer
 {
+    FACTORY(mpad);
  private:
     length gap_;
     static length &default_gap_();
@@ -19,7 +20,7 @@ class mpad : public container, public mcontainer
 
     static int default_direction_;
 
-    pad **pads_;
+    std::vector<smartptr<pad>> pads_;
 
     void set_widths();
     void set_heights();
@@ -116,7 +117,7 @@ class mpad : public container, public mcontainer
     void prepare_for_draw();
     void print(terminal *);
 
-    pad *operator() (int i,int j);
+    pad::ptr operator() (int i,int j);
 };
 
 }

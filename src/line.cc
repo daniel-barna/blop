@@ -159,10 +159,11 @@ namespace blop
 	return *this;
     }
 
-    line &line::draw(container *parent)
+    line &line::draw(smartptr<container> parent)
     {
-	line *l = new line;
-	l->autodel(true);
+        auto l = line::create();
+//	line *l = new line;
+//	l->autodel(true);
 	parent->add(l);
 	return *l;
     }
@@ -196,7 +197,7 @@ namespace blop
 	    y_[i].register_me();
 	}
 
-	if(!fill_) linewidth_.register_me();
+	if(draw_line_) linewidth_.register_me();
 
 	if(arrow_fore_)
 	{

@@ -51,12 +51,23 @@ namespace blop
     length fgraph::default_pointsize_(new length::base_id_t(terminal::PS));
     void fgraph::default_pointsize(const length &l) { default_pointsize_ = l; }
 
-    point_drawer *fgraph::default_point_drawer_ = new autopoint();
+//    point_drawer *fgraph::default_point_drawer_ = new autopoint();
+
+    smartptr<point_drawer> &fgraph::default_pointtype()
+    {
+        static smartptr<point_drawer> d = autopoint::create();
+        return d;
+    }
     void fgraph::default_pointtype(const point_drawer &p)
     {
-	delete default_point_drawer_;
-	if(dynamic_cast<const autopoint *>(&p)) default_point_drawer_ = new autopoint();
-	else default_point_drawer_ = p.clone();
+//	delete default_point_drawer_;
+//	if(dynamic_cast<const autopoint *>(&p)) default_point_drawer_ = new autopoint();
+//	else default_point_drawer_ = p.clone();
+        default_pointtype() = p.clone();
+    }
+    void fgraph::default_pointtype(smartptr<point_drawer> p)
+    {
+        default_pointtype() = p->clone();
     }
 
     color fgraph::default_pointcolor_(0,0,0);
@@ -71,11 +82,21 @@ namespace blop
     color fgraph::default_legendcolor_(0,0,0);
     void fgraph::default_legendcolor(const color &c) { default_legendcolor_ = c; }
 
-    graph_drawer *fgraph::default_graph_drawer_ = new lines;
+//    smartptr<graph_drawer> fgraph::default_graph_drawer_ = lines::create();
+    smartptr<graph_drawer> &fgraph::default_drawstyle()
+    {
+        static smartptr<graph_drawer> d = lines::create();
+        return d;
+    }
     void fgraph::default_drawstyle(const graph_drawer &g)
     {
-	delete default_graph_drawer_;
-	default_graph_drawer_ = g.clone();
+//	delete default_graph_drawer_;
+//	default_graph_drawer_ = g.clone();
+        default_drawstyle() = g.clone();
+    }
+    void fgraph::default_drawstyle(smartptr<graph_drawer> g)
+    {
+        default_drawstyle() = g->clone();
     }
 
     const fgraph &fgraph::operator=(const fgraph &o)
@@ -127,7 +148,8 @@ namespace blop
 
     fgraph &fgraph::dup()
     {
-	fgraph *result = new fgraph(*this);
+//	fgraph *result = new fgraph(*this);
+        auto result = fgraph::create(*this);
 	if(parent_) parent_->add(result);
 	return *result;
     }
@@ -151,7 +173,8 @@ namespace blop
 	linewidth(default_linewidth_);
 
 	pointsize(default_pointsize_);
-	pointtype(*default_point_drawer_);
+//	pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
 	pointcolor(default_pointcolor_);
 
 	fillcolor(default_fillcolor_);
@@ -159,7 +182,8 @@ namespace blop
 
 	legendcolor(default_legendcolor_);
 
-	drawstyle(*default_graph_drawer_);
+//	drawstyle(*default_graph_drawer_);
+	drawstyle(default_drawstyle());
 
 	filter_ = unset;
     }
@@ -212,7 +236,7 @@ namespace blop
 	return result;
     }
 
-    void fgraph::prepare_for_draw(axis *x,axis *y, frame *f, int count)
+    void fgraph::prepare_for_draw(smartptr<axis> x, smartptr<axis> y, smartptr<frame> f, int count)
     {
 	if(global::debug>0) cout<<"[blop] [fgraph] prepare_for_draw starts... pass="<<count<<endl;
 

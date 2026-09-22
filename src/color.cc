@@ -154,6 +154,16 @@ namespace blop
 		     c1.blue() /f);
     }
 
+    color operator% (const color &c, double f)
+    {
+        color result(c);
+        double a = c.alpha()*f;
+        if(a<0) a=0;
+        if(a>1) a=1;
+        result.alpha(a);
+        return result;
+    }
+
     ostream &operator<<(ostream &out, const color &c)
     {
 	out<<c.red()<<","<<c.green()<<","<<c.blue();

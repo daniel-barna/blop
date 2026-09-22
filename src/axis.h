@@ -15,12 +15,13 @@ namespace blop
 
     class axis  : public grob
 	{
+            FACTORY(axis);
 	private:
             // A format string. If non-zero, the axis is displayed as a date/time axis, and tic labels
             // are formatted via this format. 
             std::string time_format_;
 
-	    axis *transformed_axis_;
+	    smartptr<axis> transformed_axis_;
 	    function transform_, transform_inverse_;
 	    bool own_tic_calculation_;
 
@@ -315,7 +316,7 @@ namespace blop
 	    // functions of 'label' on the returned pointer to set
 	    // any properties of the title
 
-	    label       *titlebox();
+            label::ptr       titlebox();
 
 
 	    // -------------------  get/set axis title ---------------
@@ -354,7 +355,7 @@ namespace blop
 
 	    // ---------  Show transformed values of another axis -----
 
-	    axis         &transform(axis *orig,
+	    axis         &transform(smartptr<axis> orig,
 				    const function &f=_1, const function &finverse=_1,
 				    bool own_tic_calculation = false);
 
@@ -403,7 +404,7 @@ namespace blop
 	{
 	private:
 	    int axis_;
-	    axis *get_axis();
+            axis::ptr get_axis();
 	public:
 	    tic_setter(int i);
 	    tic_setter &operator()();

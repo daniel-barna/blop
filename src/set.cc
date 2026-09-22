@@ -10,6 +10,11 @@ namespace blop
     tic_setter set::y1tics(axis::y1);
     tic_setter set::y2tics(axis::y2);
 
+    line &vband(double d1, double d2)
+    {
+        return line::fdraw(x1len(d1),0.0)(x1len(d1),1.0)(x1len(d2),1.0)(x1len(d2),0.0)(x1len(d1),0.0).fill(true);
+    }
+
     auto aline(double d,int ax, var label, const length &x, const length &y, sym::position halign, sym::position valign, double angle)
     {
         struct _ { blop::line &the_line; blop::label &the_label; };

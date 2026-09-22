@@ -144,7 +144,7 @@
 <a name="__line126"></a>            }
 <a name="__line127"></a>	}
 <a name="__line128"></a>
-<a name="__line129"></a>        var format::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line129"></a>        var format::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line130"></a>        {
 <a name="__line131"></a>            var result = "\\mbox{format}(" &amp; func_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; format_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line132"></a>            return result;
@@ -252,7 +252,7 @@
 <a name="__line234"></a>            result[(*ind)++].dbl() = 0;
 <a name="__line235"></a>	}
 <a name="__line236"></a>
-<a name="__line237"></a>        var between_lines::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line237"></a>        var between_lines::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line238"></a>        {
 <a name="__line239"></a>            var result = "\\mbox{BETWEENLINES}(" &amp; start_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; end_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line240"></a>            return result;
@@ -354,7 +354,7 @@
 <a name="__line336"></a>        int periodic::npars() const { return func_-&gt;npars(); }
 <a name="__line337"></a>        bool periodic::uses_arg(int i) const { return func_-&gt;uses_arg(i); }
 <a name="__line338"></a>        bool periodic::uses_par(int i) const { return func_-&gt;uses_par(i); }
-<a name="__line339"></a>        var periodic::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line339"></a>        var periodic::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line340"></a>        {
 <a name="__line341"></a>            var result = "\\mbox{PERIODIC}(" &amp; func_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line342"></a>            return result;
@@ -430,7 +430,7 @@
 <a name="__line412"></a>	bool ifelse::uses_arg(int i) const { return condition_-&gt;uses_arg(i) || iftrue_-&gt;uses_arg(i) || iffalse_-&gt;uses_arg(i); }
 <a name="__line413"></a>	bool ifelse::uses_par(int i) const { return condition_-&gt;uses_par(i) || iftrue_-&gt;uses_par(i) || iffalse_-&gt;uses_par(i); }
 <a name="__line414"></a>
-<a name="__line415"></a>	var ifelse::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line415"></a>	var ifelse::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line416"></a>	{
 <a name="__line417"></a>	    return var("(") &amp; condition_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "?" &amp; iftrue_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ":" &amp; iffalse_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line418"></a>	}
@@ -522,7 +522,7 @@
 <a name="__line504"></a>	bool join_args::uses_arg(int i) const { return from_-&gt;uses_arg(i) || to_-&gt;uses_arg(i) || separator_-&gt;uses_arg(i); }
 <a name="__line505"></a>	bool join_args::uses_par(int i) const { return from_-&gt;uses_par(i) || to_-&gt;uses_par(i) || separator_-&gt;uses_par(i); }
 <a name="__line506"></a>
-<a name="__line507"></a>	var join_args::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line507"></a>	var join_args::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line508"></a>	{
 <a name="__line509"></a>	    return var("join_args(") &amp; separator_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; from_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; to_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line510"></a>	}
@@ -595,7 +595,7 @@
 <a name="__line577"></a>            eval(args, def_args, params, result, ind);
 <a name="__line578"></a>        }
 <a name="__line579"></a>
-<a name="__line580"></a>        var replace::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line580"></a>        var replace::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line581"></a>        {
 <a name="__line582"></a>            return var("replace(") &amp; from_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; to_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; base_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line583"></a>        }
@@ -636,7 +636,7 @@
 <a name="__line618"></a>            eval(args, def_args, params, result, ind);
 <a name="__line619"></a>        }
 <a name="__line620"></a>
-<a name="__line621"></a>        var substr::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line621"></a>        var substr::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line622"></a>        {
 <a name="__line623"></a>            return var("substr(") &amp; string_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; from_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; "," &amp; to_-&gt;sprint(pars,parvalue,variable_names,param_names) &amp; ")";
 <a name="__line624"></a>        }
@@ -890,7 +890,7 @@
 <a name="__line872"></a>	    if(first_call)
 <a name="__line873"></a>	    {
 <a name="__line874"></a>		time_t TIME;
-<a name="__line875"></a>		time(&amp;TIME);
+<a name="__line875"></a>                std::time(&amp;TIME);
 <a name="__line876"></a>		srand48((unsigned int)(TIME));
 <a name="__line877"></a>		first_call = false;
 <a name="__line878"></a>	    }
@@ -966,7 +966,7 @@
 <a name="__line948"></a>
 <a name="__line949"></a>	<span class=comment>// ---------- function parameter --------------------------------------------------</span>
 <a name="__line950"></a>
-<a name="__line951"></a>	var funcparameter::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line951"></a>	var funcparameter::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line952"></a>	{
 <a name="__line953"></a>            auto pos = param_names.find(parameter_index_+1);
 <a name="__line954"></a>            if(pos != param_names.end()) return (*pos).second;
@@ -1114,7 +1114,7 @@
 <a name="__line1096"></a>	    result[(*ind)++].dbl(tmp_[index_].dbl());
 <a name="__line1097"></a>	}
 <a name="__line1098"></a>
-<a name="__line1099"></a>	var component::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line1099"></a>	var component::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
 <a name="__line1100"></a>	{
 <a name="__line1101"></a>            function_core::multiple *m = dynamic_cast&lt;function_core::multiple*&gt;(base_);
 <a name="__line1102"></a>            if(m)
@@ -1174,7 +1174,7 @@
 <a name="__line1156"></a>	    return 0;
 <a name="__line1157"></a>	}
 <a name="__line1158"></a>
-<a name="__line1159"></a>	var cfunc::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names)  const
+<a name="__line1159"></a>	var cfunc::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names)  const
 <a name="__line1160"></a>	{
 <a name="__line1161"></a>	    if(wrapper_ == 0) return "UNINITIALIZED_CFUNC";
 <a name="__line1162"></a>	    var result = wrapper_-&gt;name();
@@ -1412,272 +1412,272 @@
 <a name="__line1394"></a>
 <a name="__line1395"></a>	function::core *Sub::create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
 <a name="__line1396"></a>	{
-<a name="__line1397"></a>	    constant *c;
-<a name="__line1398"></a>	    if((c=dynamic_cast&lt;constant*&gt;(leftderiv)) != 0 &amp;&amp; c-&gt;value_ == 0.0)
-<a name="__line1399"></a>	    {
-<a name="__line1400"></a>		delete leftderiv;
-<a name="__line1401"></a>		return new Neg(rightderiv);
-<a name="__line1402"></a>	    }
-<a name="__line1403"></a>	    if((c=dynamic_cast&lt;constant*&gt;(rightderiv)) != 0 &amp;&amp; c-&gt;value_ == 0.0)
-<a name="__line1404"></a>	    {
-<a name="__line1405"></a>		delete rightderiv;
-<a name="__line1406"></a>		return leftderiv;
-<a name="__line1407"></a>	    }
-<a name="__line1408"></a>	    Sub *result = new Sub;
-<a name="__line1409"></a>	    result-&gt;left_ = leftderiv;
-<a name="__line1410"></a>	    result-&gt;right_ = rightderiv;
-<a name="__line1411"></a>	    return result;
-<a name="__line1412"></a>	}
-<a name="__line1413"></a>
+<a name="__line1397"></a>
+<a name="__line1398"></a>	    constant *c;
+<a name="__line1399"></a>	    if((c=dynamic_cast&lt;constant*&gt;(leftderiv)) != 0 &amp;&amp; c-&gt;value_ == 0.0)
+<a name="__line1400"></a>	    {
+<a name="__line1401"></a>		delete leftderiv;
+<a name="__line1402"></a>		return new Neg(rightderiv);
+<a name="__line1403"></a>	    }
+<a name="__line1404"></a>	    if((c=dynamic_cast&lt;constant*&gt;(rightderiv)) != 0 &amp;&amp; c-&gt;value_ == 0.0)
+<a name="__line1405"></a>	    {
+<a name="__line1406"></a>		delete rightderiv;
+<a name="__line1407"></a>		return leftderiv;
+<a name="__line1408"></a>	    }
+<a name="__line1409"></a>	    Sub *result = new Sub;
+<a name="__line1410"></a>	    result-&gt;left_ = leftderiv;
+<a name="__line1411"></a>	    result-&gt;right_ = rightderiv;
+<a name="__line1412"></a>	    return result;
+<a name="__line1413"></a>	}
 <a name="__line1414"></a>
-<a name="__line1415"></a>	function::core *Div::create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
-<a name="__line1416"></a>	{
-<a name="__line1417"></a>	    if(dynamic_cast&lt;const constant *&gt;(right_))
-<a name="__line1418"></a>	    {
-<a name="__line1419"></a>		Div *result = new Div;
-<a name="__line1420"></a>		result-&gt;left_ = leftderiv;
-<a name="__line1421"></a>		result-&gt;right_ = right_-&gt;clone();
-<a name="__line1422"></a>		delete rightderiv;
-<a name="__line1423"></a>		return result;
-<a name="__line1424"></a>	    }
-<a name="__line1425"></a>
-<a name="__line1426"></a>	    function::core *a = left_;
-<a name="__line1427"></a>	    function::core *b = right_;
-<a name="__line1428"></a>
-<a name="__line1429"></a>	    function::core *aprimeb = 0;
-<a name="__line1430"></a>	    {
-<a name="__line1431"></a>		function::core *aprime = leftderiv;
-<a name="__line1432"></a>		if(constant *aprime_c = dynamic_cast&lt;constant *&gt;(aprime))
-<a name="__line1433"></a>		{
-<a name="__line1434"></a>		    if(aprime_c-&gt;value_ == 0)
-<a name="__line1435"></a>		    {
-<a name="__line1436"></a>			aprimeb = new constant(0.0);
-<a name="__line1437"></a>			delete aprime;
-<a name="__line1438"></a>		    }
-<a name="__line1439"></a>		    else if(aprime_c-&gt;value_ == 1)
-<a name="__line1440"></a>		    {
-<a name="__line1441"></a>			aprimeb = b-&gt;clone();
-<a name="__line1442"></a>			delete aprime;
-<a name="__line1443"></a>		    }
-<a name="__line1444"></a>		}
-<a name="__line1445"></a>		if(aprimeb == 0)
-<a name="__line1446"></a>		{
-<a name="__line1447"></a>		    Mul *m = new Mul;
-<a name="__line1448"></a>		    m-&gt;left_  = aprime;
-<a name="__line1449"></a>		    m-&gt;right_ = b-&gt;clone();
-<a name="__line1450"></a>		    aprimeb = m;
-<a name="__line1451"></a>		}
-<a name="__line1452"></a>	    }
-<a name="__line1453"></a>	    function::core *abprime = 0;
-<a name="__line1454"></a>	    {
-<a name="__line1455"></a>		function::core *bprime = rightderiv;
-<a name="__line1456"></a>		if(constant *bprime_c = dynamic_cast&lt;constant *&gt;(bprime))
-<a name="__line1457"></a>		{
-<a name="__line1458"></a>		    if(bprime_c-&gt;value_ == 0)
-<a name="__line1459"></a>		    {
-<a name="__line1460"></a>			abprime = new constant(0.0);
-<a name="__line1461"></a>			delete bprime;
-<a name="__line1462"></a>		    }
-<a name="__line1463"></a>		    else if(bprime_c-&gt;value_ == 1)
-<a name="__line1464"></a>		    {
-<a name="__line1465"></a>			abprime = a-&gt;clone();
-<a name="__line1466"></a>			delete bprime;
-<a name="__line1467"></a>		    }
-<a name="__line1468"></a>		}
-<a name="__line1469"></a>		if(abprime == 0)
-<a name="__line1470"></a>		{
-<a name="__line1471"></a>		    Mul *m = new Mul;
-<a name="__line1472"></a>		    m-&gt;left_ = a-&gt;clone();
-<a name="__line1473"></a>		    m-&gt;right_ = bprime;
-<a name="__line1474"></a>		    abprime = m;
-<a name="__line1475"></a>		}
-<a name="__line1476"></a>	    }
-<a name="__line1477"></a>	    
-<a name="__line1478"></a>	    function::core *nominator = 0;
-<a name="__line1479"></a>	    {
-<a name="__line1480"></a>		constant *aprimeb_c = dynamic_cast&lt;constant *&gt;(aprimeb);
-<a name="__line1481"></a>		constant *abprime_c = dynamic_cast&lt;constant *&gt;(abprime);
-<a name="__line1482"></a>		if(nominator==0 &amp;&amp; aprimeb_c &amp;&amp; abprime_c) nominator = new constant(aprimeb_c-&gt;value_.dbl() - abprime_c-&gt;value_.dbl());
-<a name="__line1483"></a>		if(nominator==0 &amp;&amp; aprimeb_c &amp;&amp; aprimeb_c-&gt;value_ == 0)
-<a name="__line1484"></a>		{
-<a name="__line1485"></a>		    Neg *n = new Neg;
-<a name="__line1486"></a>		    n-&gt;operand_ = abprime;
-<a name="__line1487"></a>		    nominator = n;
-<a name="__line1488"></a>		}
-<a name="__line1489"></a>		if(nominator==0 &amp;&amp; abprime_c &amp;&amp; abprime_c-&gt;value_ == 0) nominator = aprimeb;
-<a name="__line1490"></a>		if(nominator==0)
-<a name="__line1491"></a>		{
-<a name="__line1492"></a>		    Sub *s = new Sub;
-<a name="__line1493"></a>		    s-&gt;left_ = aprimeb;
-<a name="__line1494"></a>		    s-&gt;right_ = abprime;
-<a name="__line1495"></a>		    nominator = s;
-<a name="__line1496"></a>		}
-<a name="__line1497"></a>	    }
-<a name="__line1498"></a>
-<a name="__line1499"></a>	    Div *result = new Div;
-<a name="__line1500"></a>	    result-&gt;left_ = nominator;
-<a name="__line1501"></a>	    result-&gt;right_ = new Ipow(b,2);
-<a name="__line1502"></a>	    return result;
-<a name="__line1503"></a>	}
-<a name="__line1504"></a>
-<a name="__line1505"></a>	function::core *Sin::create_my_derivative() const
-<a name="__line1506"></a>	{
-<a name="__line1507"></a>	    return new Cos(operand_);
-<a name="__line1508"></a>	}
-<a name="__line1509"></a>	function::core *Cos::create_my_derivative() const
-<a name="__line1510"></a>	{
-<a name="__line1511"></a>	    Mul *mul = new Mul;
-<a name="__line1512"></a>	    mul-&gt;left_ = new constant(-1.0);
-<a name="__line1513"></a>	    mul-&gt;right_ = new Sin(operand_);
-<a name="__line1514"></a>	    return mul;
-<a name="__line1515"></a>	}
-<a name="__line1516"></a>
-<a name="__line1517"></a>	var Ipow::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
-<a name="__line1518"></a>			       const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line1519"></a>	{
-<a name="__line1520"></a>	    var result;
-<a name="__line1521"></a>	    {
-<a name="__line1522"></a>		const arg *a = dynamic_cast&lt;const arg *&gt;(operand_);
-<a name="__line1523"></a>		const constant *c = dynamic_cast&lt;const constant *&gt;(operand_);
-<a name="__line1524"></a>		bool leftparen = true;
-<a name="__line1525"></a>		if(a || c) leftparen = false;
-<a name="__line1526"></a>		
-<a name="__line1527"></a>		if(leftparen) result &amp;= "\\left(";
-<a name="__line1528"></a>		result &amp;= operand_-&gt;sprint_latex(pars, parvalue, x, y, z);
-<a name="__line1529"></a>		if(leftparen) result &amp;= "\\right)";
-<a name="__line1530"></a>	    }
-<a name="__line1531"></a>	    result &amp;= "^{";
-<a name="__line1532"></a>	    result &amp;= exponent_;
-<a name="__line1533"></a>	    result &amp;= "} ";
-<a name="__line1534"></a>	    return result;
-<a name="__line1535"></a>	}
-<a name="__line1536"></a>
-<a name="__line1537"></a>	function::core* Ipow::create_my_derivative() const
-<a name="__line1538"></a>	{
-<a name="__line1539"></a>	    if(exponent_ == 0) return new constant(0.0);
-<a name="__line1540"></a>	    Mul *mul = new Mul;
-<a name="__line1541"></a>	    mul-&gt;left_ = new constant(exponent_);
-<a name="__line1542"></a>	    if(exponent_ == 2) mul-&gt;right_ = operand_-&gt;clone();
-<a name="__line1543"></a>	    else mul-&gt;right_ = new Ipow(operand_,exponent_-1);
-<a name="__line1544"></a>	    return mul;
-<a name="__line1545"></a>	}
-<a name="__line1546"></a>
-<a name="__line1547"></a>	var Pow::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
-<a name="__line1548"></a>			      const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line1549"></a>	{
-<a name="__line1550"></a>	    var result;
-<a name="__line1551"></a>	    
-<a name="__line1552"></a>	    {
-<a name="__line1553"></a>		const arg *a = dynamic_cast&lt;const arg *&gt;(left_);
-<a name="__line1554"></a>		const constant *c = dynamic_cast&lt;const constant *&gt;(left_);
-<a name="__line1555"></a>		bool leftparen = true;
-<a name="__line1556"></a>		if(a || c) leftparen = false;
-<a name="__line1557"></a>		
-<a name="__line1558"></a>		if(leftparen) result &amp;= "\\left(";
-<a name="__line1559"></a>		result &amp;= left_-&gt;sprint_latex(pars, parvalue, x, y, z);
-<a name="__line1560"></a>		if(leftparen) result &amp;= "\\right)";
-<a name="__line1561"></a>	    }
-<a name="__line1562"></a>	    result &amp;= "^{";
-<a name="__line1563"></a>	    result &amp;= right_-&gt;sprint_latex(pars, parvalue, x, y, z);
-<a name="__line1564"></a>	    result &amp;= "} ";
+<a name="__line1415"></a>
+<a name="__line1416"></a>	function::core *Div::create_derivative_spec(function::core *leftderiv, function::core *rightderiv) const
+<a name="__line1417"></a>	{
+<a name="__line1418"></a>            if(dynamic_cast&lt;const constant *&gt;(left_) &amp;&amp; dynamic_cast&lt;const constant *&gt;(right_))
+<a name="__line1419"></a>            {
+<a name="__line1420"></a>                delete leftderiv;
+<a name="__line1421"></a>                delete rightderiv;
+<a name="__line1422"></a>                return new constant(0.0);
+<a name="__line1423"></a>            }
+<a name="__line1424"></a>
+<a name="__line1425"></a>	    if(dynamic_cast&lt;const constant *&gt;(right_))
+<a name="__line1426"></a>	    {
+<a name="__line1427"></a>		Div *result = new Div;
+<a name="__line1428"></a>		result-&gt;left_ = leftderiv;
+<a name="__line1429"></a>		result-&gt;right_ = right_-&gt;clone();
+<a name="__line1430"></a>		delete rightderiv;
+<a name="__line1431"></a>		return result;
+<a name="__line1432"></a>	    }
+<a name="__line1433"></a>
+<a name="__line1434"></a>	    function::core *a = left_;
+<a name="__line1435"></a>	    function::core *b = right_;
+<a name="__line1436"></a>
+<a name="__line1437"></a>	    function::core *aprimeb = 0;
+<a name="__line1438"></a>	    {
+<a name="__line1439"></a>		function::core *aprime = leftderiv;
+<a name="__line1440"></a>		if(constant *aprime_c = dynamic_cast&lt;constant *&gt;(aprime))
+<a name="__line1441"></a>		{
+<a name="__line1442"></a>		    if(aprime_c-&gt;value_ == 0)
+<a name="__line1443"></a>		    {
+<a name="__line1444"></a>			aprimeb = new constant(0.0);
+<a name="__line1445"></a>			delete aprime;
+<a name="__line1446"></a>		    }
+<a name="__line1447"></a>		    else if(aprime_c-&gt;value_ == 1)
+<a name="__line1448"></a>		    {
+<a name="__line1449"></a>			aprimeb = b-&gt;clone();
+<a name="__line1450"></a>			delete aprime;
+<a name="__line1451"></a>		    }
+<a name="__line1452"></a>		}
+<a name="__line1453"></a>		if(aprimeb == 0)
+<a name="__line1454"></a>		{
+<a name="__line1455"></a>		    Mul *m = new Mul;
+<a name="__line1456"></a>		    m-&gt;left_  = aprime;
+<a name="__line1457"></a>		    m-&gt;right_ = b-&gt;clone();
+<a name="__line1458"></a>		    aprimeb = m;
+<a name="__line1459"></a>		}
+<a name="__line1460"></a>	    }
+<a name="__line1461"></a>	    function::core *abprime = 0;
+<a name="__line1462"></a>	    {
+<a name="__line1463"></a>		function::core *bprime = rightderiv;
+<a name="__line1464"></a>		if(constant *bprime_c = dynamic_cast&lt;constant *&gt;(bprime))
+<a name="__line1465"></a>		{
+<a name="__line1466"></a>		    if(bprime_c-&gt;value_ == 0)
+<a name="__line1467"></a>		    {
+<a name="__line1468"></a>			abprime = new constant(0.0);
+<a name="__line1469"></a>			delete bprime;
+<a name="__line1470"></a>		    }
+<a name="__line1471"></a>		    else if(bprime_c-&gt;value_ == 1)
+<a name="__line1472"></a>		    {
+<a name="__line1473"></a>			abprime = a-&gt;clone();
+<a name="__line1474"></a>			delete bprime;
+<a name="__line1475"></a>		    }
+<a name="__line1476"></a>		}
+<a name="__line1477"></a>		if(abprime == 0)
+<a name="__line1478"></a>		{
+<a name="__line1479"></a>		    Mul *m = new Mul;
+<a name="__line1480"></a>		    m-&gt;left_ = a-&gt;clone();
+<a name="__line1481"></a>		    m-&gt;right_ = bprime;
+<a name="__line1482"></a>		    abprime = m;
+<a name="__line1483"></a>		}
+<a name="__line1484"></a>	    }
+<a name="__line1485"></a>	    
+<a name="__line1486"></a>	    function::core *nominator = 0;
+<a name="__line1487"></a>	    {
+<a name="__line1488"></a>		constant *aprimeb_c = dynamic_cast&lt;constant *&gt;(aprimeb);
+<a name="__line1489"></a>		constant *abprime_c = dynamic_cast&lt;constant *&gt;(abprime);
+<a name="__line1490"></a>		if(nominator==0 &amp;&amp; aprimeb_c &amp;&amp; abprime_c)
+<a name="__line1491"></a>                {
+<a name="__line1492"></a>                    nominator = new constant(aprimeb_c-&gt;value_.dbl() - abprime_c-&gt;value_.dbl());
+<a name="__line1493"></a>                }
+<a name="__line1494"></a>		if(nominator==0 &amp;&amp; aprimeb_c &amp;&amp; aprimeb_c-&gt;value_ == 0)
+<a name="__line1495"></a>		{
+<a name="__line1496"></a>		    Neg *n = new Neg;
+<a name="__line1497"></a>		    n-&gt;operand(abprime); 
+<a name="__line1498"></a>		    nominator = n;
+<a name="__line1499"></a>		}
+<a name="__line1500"></a>		if(nominator==0 &amp;&amp; abprime_c &amp;&amp; abprime_c-&gt;value_ == 0)
+<a name="__line1501"></a>                {
+<a name="__line1502"></a>                    nominator = aprimeb;
+<a name="__line1503"></a>                }
+<a name="__line1504"></a>		if(nominator==0)
+<a name="__line1505"></a>		{
+<a name="__line1506"></a>		    Sub *s = new Sub;
+<a name="__line1507"></a>		    s-&gt;left_ = aprimeb;
+<a name="__line1508"></a>		    s-&gt;right_ = abprime;
+<a name="__line1509"></a>		    nominator = s;
+<a name="__line1510"></a>		}
+<a name="__line1511"></a>	    }
+<a name="__line1512"></a>
+<a name="__line1513"></a>	    Div *result = new Div;
+<a name="__line1514"></a>	    result-&gt;left_ = nominator;
+<a name="__line1515"></a>	    result-&gt;right_ = new Ipow(b,2);
+<a name="__line1516"></a>	    return result;
+<a name="__line1517"></a>	}
+<a name="__line1518"></a>
+<a name="__line1519"></a>	function::core *Sin::create_my_derivative() const
+<a name="__line1520"></a>	{
+<a name="__line1521"></a>	    return new Cos(operand_);
+<a name="__line1522"></a>	}
+<a name="__line1523"></a>	function::core *Cos::create_my_derivative() const
+<a name="__line1524"></a>	{
+<a name="__line1525"></a>	    Mul *mul = new Mul;
+<a name="__line1526"></a>	    mul-&gt;left_ = new constant(-1.0);
+<a name="__line1527"></a>	    mul-&gt;right_ = new Sin(operand_);
+<a name="__line1528"></a>	    return mul;
+<a name="__line1529"></a>	}
+<a name="__line1530"></a>
+<a name="__line1531"></a>	var Ipow::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
+<a name="__line1532"></a>			       const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line1533"></a>	{
+<a name="__line1534"></a>	    var result;
+<a name="__line1535"></a>	    {
+<a name="__line1536"></a>		const arg *a = dynamic_cast&lt;const arg *&gt;(operand_);
+<a name="__line1537"></a>		const constant *c = dynamic_cast&lt;const constant *&gt;(operand_);
+<a name="__line1538"></a>		bool leftparen = true;
+<a name="__line1539"></a>		if(a || c) leftparen = false;
+<a name="__line1540"></a>		
+<a name="__line1541"></a>		if(leftparen) result &amp;= "\\left(";
+<a name="__line1542"></a>		result &amp;= operand_-&gt;sprint_latex(pars, parvalue, x, y, z);
+<a name="__line1543"></a>		if(leftparen) result &amp;= "\\right)";
+<a name="__line1544"></a>	    }
+<a name="__line1545"></a>	    result &amp;= "^{";
+<a name="__line1546"></a>	    result &amp;= exponent_;
+<a name="__line1547"></a>	    result &amp;= "} ";
+<a name="__line1548"></a>	    return result;
+<a name="__line1549"></a>	}
+<a name="__line1550"></a>
+<a name="__line1551"></a>	function::core* Ipow::create_my_derivative() const
+<a name="__line1552"></a>	{
+<a name="__line1553"></a>	    if(exponent_ == 0) return new constant(0.0);
+<a name="__line1554"></a>	    Mul *mul = new Mul;
+<a name="__line1555"></a>	    mul-&gt;left_ = new constant(exponent_);
+<a name="__line1556"></a>	    if(exponent_ == 2) mul-&gt;right_ = operand_-&gt;clone();
+<a name="__line1557"></a>	    else mul-&gt;right_ = new Ipow(operand_,exponent_-1);
+<a name="__line1558"></a>	    return mul;
+<a name="__line1559"></a>	}
+<a name="__line1560"></a>
+<a name="__line1561"></a>	var Pow::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
+<a name="__line1562"></a>			      const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line1563"></a>	{
+<a name="__line1564"></a>	    var result;
 <a name="__line1565"></a>	    
-<a name="__line1566"></a>	    return result;
-<a name="__line1567"></a>	}
-<a name="__line1568"></a>
-<a name="__line1569"></a>
-<a name="__line1570"></a>	function::core* Pow::create_derivative_spec(function::core *aprime, function::core *bprime) const
-<a name="__line1571"></a>	{
-<a name="__line1572"></a>	    <span class=comment>// (a^b)' = a^b * [ b' * ln(a) + b * a'/a ]</span>
-<a name="__line1573"></a>	    Mul *mul = new Mul;
-<a name="__line1574"></a>	    Pow *atob = new Pow(left_,right_);
-<a name="__line1575"></a>	    mul-&gt;left_ = atob;
-<a name="__line1576"></a>	    Add *add  = new Add;
-<a name="__line1577"></a>	    mul-&gt;right_ = add;
-<a name="__line1578"></a>	    Mul *mul1 = new Mul;
-<a name="__line1579"></a>	    add-&gt;left_ = mul1;
-<a name="__line1580"></a>	    Mul *mul2 = new Mul;
-<a name="__line1581"></a>	    add-&gt;right_ = mul2;
+<a name="__line1566"></a>	    {
+<a name="__line1567"></a>		const arg *a = dynamic_cast&lt;const arg *&gt;(left_);
+<a name="__line1568"></a>		const constant *c = dynamic_cast&lt;const constant *&gt;(left_);
+<a name="__line1569"></a>		bool leftparen = true;
+<a name="__line1570"></a>		if(a || c) leftparen = false;
+<a name="__line1571"></a>		
+<a name="__line1572"></a>		if(leftparen) result &amp;= "\\left(";
+<a name="__line1573"></a>		result &amp;= left_-&gt;sprint_latex(pars, parvalue, x, y, z);
+<a name="__line1574"></a>		if(leftparen) result &amp;= "\\right)";
+<a name="__line1575"></a>	    }
+<a name="__line1576"></a>	    result &amp;= "^{";
+<a name="__line1577"></a>	    result &amp;= right_-&gt;sprint_latex(pars, parvalue, x, y, z);
+<a name="__line1578"></a>	    result &amp;= "} ";
+<a name="__line1579"></a>	    
+<a name="__line1580"></a>	    return result;
+<a name="__line1581"></a>	}
 <a name="__line1582"></a>
-<a name="__line1583"></a>	    mul1 -&gt; left_ = bprime;
-<a name="__line1584"></a>	    mul1 -&gt; right_ = new Log(left_);
-<a name="__line1585"></a>
-<a name="__line1586"></a>	    mul2 -&gt; left_ = right_-&gt;clone();
-<a name="__line1587"></a>	    Div *div = new Div;
-<a name="__line1588"></a>	    mul2 -&gt; right_ = div;
-<a name="__line1589"></a>	    div -&gt; left_ = aprime;
-<a name="__line1590"></a>	    div -&gt; right_ = left_-&gt;clone();
-<a name="__line1591"></a>
-<a name="__line1592"></a>	    return mul;
-<a name="__line1593"></a>	}
-<a name="__line1594"></a>
-<a name="__line1595"></a>	function::core *Tan::create_my_derivative() const
-<a name="__line1596"></a>	{
-<a name="__line1597"></a>	    <span class=comment>// 1/cos^2</span>
-<a name="__line1598"></a>	    Div *div = new Div;
-<a name="__line1599"></a>	    div-&gt;left(new constant(1.0));
-<a name="__line1600"></a>	    Ipow *ipow = new Ipow(2);
-<a name="__line1601"></a>	    div-&gt;right(ipow);
-<a name="__line1602"></a>	    Cos *the_cos = new Cos(operand_);
-<a name="__line1603"></a>	    ipow-&gt;operand(the_cos);
-<a name="__line1604"></a>	    return div;
-<a name="__line1605"></a>	}
-<a name="__line1606"></a>
-<a name="__line1607"></a>	function::core *Atan::create_my_derivative() const
-<a name="__line1608"></a>	{
-<a name="__line1609"></a>	    <span class=comment>// 1/(1+x^2)</span>
-<a name="__line1610"></a>	    Div *div = new Div;
-<a name="__line1611"></a>	    div-&gt;left(new constant(1.0));
-<a name="__line1612"></a>	    Add *add = new Add;
-<a name="__line1613"></a>	    div-&gt;right(add);
-<a name="__line1614"></a>	    add-&gt;left(new constant(1.0));
-<a name="__line1615"></a>	    add-&gt;right(new Ipow(operand_,2));
-<a name="__line1616"></a>	    return div;
-<a name="__line1617"></a>	}
-<a name="__line1618"></a>
-<a name="__line1619"></a>	function::core *Cot::create_my_derivative() const
-<a name="__line1620"></a>	{
-<a name="__line1621"></a>	    <span class=comment>// -1/sin^2</span>
-<a name="__line1622"></a>	    Div *div = new Div;
-<a name="__line1623"></a>	    div-&gt;left(new constant(-1.0));
-<a name="__line1624"></a>	    Ipow *ipow = new Ipow(2);
-<a name="__line1625"></a>	    div-&gt;right(ipow);
-<a name="__line1626"></a>	    Sin *the_sin = new Sin(operand_);
-<a name="__line1627"></a>	    ipow-&gt;operand(the_sin);
-<a name="__line1628"></a>	    return div;
-<a name="__line1629"></a>	}
-<a name="__line1630"></a>
-<a name="__line1631"></a>
-<a name="__line1632"></a>	function::core *Acot::create_my_derivative() const
-<a name="__line1633"></a>	{
-<a name="__line1634"></a>	    <span class=comment>// -1/(1+x^2)</span>
-<a name="__line1635"></a>	    Div *div = new Div;
-<a name="__line1636"></a>	    div-&gt;left_ = new constant(-1.0);
-<a name="__line1637"></a>	    Add *add = new Add;
-<a name="__line1638"></a>	    div-&gt;right_ = add;
-<a name="__line1639"></a>	    add-&gt;left_ = new constant(1.0);
-<a name="__line1640"></a>	    add-&gt;right_ = new Ipow(operand_,2);
-<a name="__line1641"></a>	    return div;
-<a name="__line1642"></a>	}
-<a name="__line1643"></a>
-<a name="__line1644"></a>	function::core *Asin::create_my_derivative() const
-<a name="__line1645"></a>	{
-<a name="__line1646"></a>	    <span class=comment>// 1/sqrt(1-x^2)</span>
-<a name="__line1647"></a>	    Div *div = new Div;
-<a name="__line1648"></a>	    div-&gt;left_ = new constant(1.0);
-<a name="__line1649"></a>	    Sqrt *sq = new Sqrt;
-<a name="__line1650"></a>	    div-&gt;right_ = sq;
-<a name="__line1651"></a>	    Sub *sub = new Sub;
-<a name="__line1652"></a>	    sq-&gt;operand_ = sub;
-<a name="__line1653"></a>	    sub-&gt;left_ = new constant(1.0);
-<a name="__line1654"></a>	    sub-&gt;right_ = new Ipow(operand_,2);
+<a name="__line1583"></a>
+<a name="__line1584"></a>	function::core* Pow::create_derivative_spec(function::core *aprime, function::core *bprime) const
+<a name="__line1585"></a>	{
+<a name="__line1586"></a>	    <span class=comment>// (a^b)' = a^b * [ b' * ln(a) + b * a'/a ]</span>
+<a name="__line1587"></a>	    Mul *mul = new Mul;
+<a name="__line1588"></a>	    Pow *atob = new Pow(left_,right_);
+<a name="__line1589"></a>	    mul-&gt;left_ = atob;
+<a name="__line1590"></a>	    Add *add  = new Add;
+<a name="__line1591"></a>	    mul-&gt;right_ = add;
+<a name="__line1592"></a>	    Mul *mul1 = new Mul;
+<a name="__line1593"></a>	    add-&gt;left_ = mul1;
+<a name="__line1594"></a>	    Mul *mul2 = new Mul;
+<a name="__line1595"></a>	    add-&gt;right_ = mul2;
+<a name="__line1596"></a>
+<a name="__line1597"></a>	    mul1 -&gt; left_ = bprime;
+<a name="__line1598"></a>	    mul1 -&gt; right_ = new Log(left_);
+<a name="__line1599"></a>
+<a name="__line1600"></a>	    mul2 -&gt; left_ = right_-&gt;clone();
+<a name="__line1601"></a>	    Div *div = new Div;
+<a name="__line1602"></a>	    mul2 -&gt; right_ = div;
+<a name="__line1603"></a>	    div -&gt; left_ = aprime;
+<a name="__line1604"></a>	    div -&gt; right_ = left_-&gt;clone();
+<a name="__line1605"></a>
+<a name="__line1606"></a>	    return mul;
+<a name="__line1607"></a>	}
+<a name="__line1608"></a>
+<a name="__line1609"></a>	function::core *Tan::create_my_derivative() const
+<a name="__line1610"></a>	{
+<a name="__line1611"></a>	    <span class=comment>// 1/cos^2</span>
+<a name="__line1612"></a>	    Div *div = new Div;
+<a name="__line1613"></a>	    div-&gt;left(new constant(1.0));
+<a name="__line1614"></a>	    Ipow *ipow = new Ipow(2);
+<a name="__line1615"></a>	    div-&gt;right(ipow);
+<a name="__line1616"></a>	    Cos *the_cos = new Cos(operand_);
+<a name="__line1617"></a>	    ipow-&gt;operand(the_cos);
+<a name="__line1618"></a>	    return div;
+<a name="__line1619"></a>	}
+<a name="__line1620"></a>
+<a name="__line1621"></a>	function::core *Atan::create_my_derivative() const
+<a name="__line1622"></a>	{
+<a name="__line1623"></a>	    <span class=comment>// 1/(1+x^2)</span>
+<a name="__line1624"></a>	    Div *div = new Div;
+<a name="__line1625"></a>	    div-&gt;left(new constant(1.0));
+<a name="__line1626"></a>	    Add *add = new Add;
+<a name="__line1627"></a>	    div-&gt;right(add);
+<a name="__line1628"></a>	    add-&gt;left(new constant(1.0));
+<a name="__line1629"></a>	    add-&gt;right(new Ipow(operand_,2));
+<a name="__line1630"></a>	    return div;
+<a name="__line1631"></a>	}
+<a name="__line1632"></a>
+<a name="__line1633"></a>	function::core *Cot::create_my_derivative() const
+<a name="__line1634"></a>	{
+<a name="__line1635"></a>	    <span class=comment>// -1/sin^2</span>
+<a name="__line1636"></a>	    Div *div = new Div;
+<a name="__line1637"></a>	    div-&gt;left(new constant(-1.0));
+<a name="__line1638"></a>	    Ipow *ipow = new Ipow(2);
+<a name="__line1639"></a>	    div-&gt;right(ipow);
+<a name="__line1640"></a>	    Sin *the_sin = new Sin(operand_);
+<a name="__line1641"></a>	    ipow-&gt;operand(the_sin);
+<a name="__line1642"></a>	    return div;
+<a name="__line1643"></a>	}
+<a name="__line1644"></a>
+<a name="__line1645"></a>
+<a name="__line1646"></a>	function::core *Acot::create_my_derivative() const
+<a name="__line1647"></a>	{
+<a name="__line1648"></a>	    <span class=comment>// -1/(1+x^2)</span>
+<a name="__line1649"></a>	    Div *div = new Div;
+<a name="__line1650"></a>	    div-&gt;left_ = new constant(-1.0);
+<a name="__line1651"></a>	    Add *add = new Add;
+<a name="__line1652"></a>	    div-&gt;right_ = add;
+<a name="__line1653"></a>	    add-&gt;left_ = new constant(1.0);
+<a name="__line1654"></a>	    add-&gt;right_ = new Ipow(operand_,2);
 <a name="__line1655"></a>	    return div;
 <a name="__line1656"></a>	}
 <a name="__line1657"></a>
-<a name="__line1658"></a>	function::core *Acos::create_my_derivative() const
+<a name="__line1658"></a>	function::core *Asin::create_my_derivative() const
 <a name="__line1659"></a>	{
-<a name="__line1660"></a>	    <span class=comment>// -1/sqrt(1-x^2);</span>
+<a name="__line1660"></a>	    <span class=comment>// 1/sqrt(1-x^2)</span>
 <a name="__line1661"></a>	    Div *div = new Div;
-<a name="__line1662"></a>	    div-&gt;left_ = new constant(-1.0);
+<a name="__line1662"></a>	    div-&gt;left_ = new constant(1.0);
 <a name="__line1663"></a>	    Sqrt *sq = new Sqrt;
 <a name="__line1664"></a>	    div-&gt;right_ = sq;
 <a name="__line1665"></a>	    Sub *sub = new Sub;
@@ -1686,1100 +1686,1129 @@
 <a name="__line1668"></a>	    sub-&gt;right_ = new Ipow(operand_,2);
 <a name="__line1669"></a>	    return div;
 <a name="__line1670"></a>	}
-<a name="__line1671"></a>    
-<a name="__line1672"></a>
-<a name="__line1673"></a>
-<a name="__line1674"></a>	<span class=comment>// ---------- argument_subst  -----------------------------------------------------</span>
-<a name="__line1675"></a>
-<a name="__line1676"></a>	bool argument_subst::uses_arg(int n) const
-<a name="__line1677"></a>	{
-<a name="__line1678"></a>	    return args_-&gt;uses_arg(n);
-<a name="__line1679"></a>	}
-<a name="__line1680"></a>	bool argument_subst::uses_par(int n) const
-<a name="__line1681"></a>	{
-<a name="__line1682"></a>	    return args_-&gt;uses_par(n);
-<a name="__line1683"></a>	}
-<a name="__line1684"></a>
-<a name="__line1685"></a>	void argument_subst::init_tmp_()
-<a name="__line1686"></a>	{
-<a name="__line1687"></a>	    tmp_.resize(args_-&gt;n_out());
-<a name="__line1688"></a>	}
+<a name="__line1671"></a>
+<a name="__line1672"></a>	function::core *Acos::create_my_derivative() const
+<a name="__line1673"></a>	{
+<a name="__line1674"></a>	    <span class=comment>// -1/sqrt(1-x^2);</span>
+<a name="__line1675"></a>	    Div *div = new Div;
+<a name="__line1676"></a>	    div-&gt;left_ = new constant(-1.0);
+<a name="__line1677"></a>	    Sqrt *sq = new Sqrt;
+<a name="__line1678"></a>	    div-&gt;right_ = sq;
+<a name="__line1679"></a>	    Sub *sub = new Sub;
+<a name="__line1680"></a>	    sq-&gt;operand_ = sub;
+<a name="__line1681"></a>	    sub-&gt;left_ = new constant(1.0);
+<a name="__line1682"></a>	    sub-&gt;right_ = new Ipow(operand_,2);
+<a name="__line1683"></a>	    return div;
+<a name="__line1684"></a>	}
+<a name="__line1685"></a>    
+<a name="__line1686"></a>
+<a name="__line1687"></a>
+<a name="__line1688"></a>	<span class=comment>// ---------- argument_subst  -----------------------------------------------------</span>
 <a name="__line1689"></a>
-<a name="__line1690"></a>	bool argument_subst::equals(const function::core *o) const
+<a name="__line1690"></a>	bool argument_subst::uses_arg(int n) const
 <a name="__line1691"></a>	{
-<a name="__line1692"></a>	    const argument_subst *c = dynamic_cast&lt;const argument_subst *&gt;(o);
-<a name="__line1693"></a>	    if(c == 0) return false;
-<a name="__line1694"></a>	    if(! (base_-&gt;equals(c-&gt;base_)) ) return false;
-<a name="__line1695"></a>	    if(! (args_-&gt;equals(c-&gt;args_)) ) return false;
-<a name="__line1696"></a>	    return true;
+<a name="__line1692"></a>	    return args_-&gt;uses_arg(n);
+<a name="__line1693"></a>	}
+<a name="__line1694"></a>	bool argument_subst::uses_par(int n) const
+<a name="__line1695"></a>	{
+<a name="__line1696"></a>	    return args_-&gt;uses_par(n);
 <a name="__line1697"></a>	}
 <a name="__line1698"></a>
-<a name="__line1699"></a>	var argument_subst::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
+<a name="__line1699"></a>	void argument_subst::init_tmp_()
 <a name="__line1700"></a>	{
-<a name="__line1701"></a>	    if(!base_ || !args_) return "";
-<a name="__line1702"></a>	    var result = base_-&gt;sprint(pars, parvalue,variable_names,param_names);
-<a name="__line1703"></a>	    result &amp;= "(";
-<a name="__line1704"></a>            result &amp;= args_-&gt;sprint(pars, parvalue,variable_names,param_names);
-<a name="__line1705"></a>	    result &amp;= ")";
-<a name="__line1706"></a>	    return result;
-<a name="__line1707"></a>	}
-<a name="__line1708"></a>
-<a name="__line1709"></a>	var argument_subst::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
-<a name="__line1710"></a>					 const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line1711"></a>	{
-<a name="__line1712"></a>	    if(!base_ || !args_) return "";
-<a name="__line1713"></a>	    var result = base_-&gt;sprint_latex(pars, parvalue, x, y, z);
-<a name="__line1714"></a>	    result &amp;= "(";
-<a name="__line1715"></a>	    result &amp;= args_-&gt;sprint_latex(pars, parvalue, x, y, z);
-<a name="__line1716"></a>	    result &amp;= ")";
-<a name="__line1717"></a>	    return result;
-<a name="__line1718"></a>	}
-<a name="__line1719"></a>
-<a name="__line1720"></a>
-<a name="__line1721"></a>	function::core* argument_subst::create_derivative(int ider) const
-<a name="__line1722"></a>	{
-<a name="__line1723"></a>            if(args_-&gt;is_constant())
-<a name="__line1724"></a>            {
-<a name="__line1725"></a>                if(base_-&gt;n_out()&gt;1)
-<a name="__line1726"></a>                {
-<a name="__line1727"></a>                    multiple *m = new multiple;
-<a name="__line1728"></a>                    m-&gt;base_.resize(base_-&gt;n_out());
-<a name="__line1729"></a>                    for(int i=0; i&lt;base_-&gt;n_out(); ++i) m-&gt;base_[i] = new constant(0.0);
-<a name="__line1730"></a>                    return m;
-<a name="__line1731"></a>                }
-<a name="__line1732"></a>                else return new constant(0.0);
-<a name="__line1733"></a>            }
+<a name="__line1701"></a>	    tmp_.resize(args_-&gt;n_out());
+<a name="__line1702"></a>	}
+<a name="__line1703"></a>
+<a name="__line1704"></a>	bool argument_subst::equals(const function::core *o) const
+<a name="__line1705"></a>	{
+<a name="__line1706"></a>	    const argument_subst *c = dynamic_cast&lt;const argument_subst *&gt;(o);
+<a name="__line1707"></a>	    if(c == 0) return false;
+<a name="__line1708"></a>	    if(! (base_-&gt;equals(c-&gt;base_)) ) return false;
+<a name="__line1709"></a>	    if(! (args_-&gt;equals(c-&gt;args_)) ) return false;
+<a name="__line1710"></a>	    return true;
+<a name="__line1711"></a>	}
+<a name="__line1712"></a>
+<a name="__line1713"></a>	var argument_subst::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
+<a name="__line1714"></a>	{
+<a name="__line1715"></a>	    if(!base_ || !args_) return "";
+<a name="__line1716"></a>	    var result = base_-&gt;sprint(pars, parvalue,variable_names,param_names);
+<a name="__line1717"></a>	    result &amp;= "(";
+<a name="__line1718"></a>            result &amp;= args_-&gt;sprint(pars, parvalue,variable_names,param_names);
+<a name="__line1719"></a>	    result &amp;= ")";
+<a name="__line1720"></a>	    return result;
+<a name="__line1721"></a>	}
+<a name="__line1722"></a>
+<a name="__line1723"></a>	var argument_subst::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
+<a name="__line1724"></a>					 const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line1725"></a>	{
+<a name="__line1726"></a>	    if(!base_ || !args_) return "";
+<a name="__line1727"></a>	    var result = base_-&gt;sprint_latex(pars, parvalue, x, y, z);
+<a name="__line1728"></a>	    result &amp;= "(";
+<a name="__line1729"></a>	    result &amp;= args_-&gt;sprint_latex(pars, parvalue, x, y, z);
+<a name="__line1730"></a>	    result &amp;= ")";
+<a name="__line1731"></a>	    return result;
+<a name="__line1732"></a>	}
+<a name="__line1733"></a>
 <a name="__line1734"></a>
-<a name="__line1735"></a>            if(base_-&gt;n_out() &gt; 1)
-<a name="__line1736"></a>            {
-<a name="__line1737"></a>                cerr&lt;&lt;"FIXME: can not create derivative for an argument-substituted multi-valued function"&lt;&lt;endl;
-<a name="__line1738"></a>                return 0;
-<a name="__line1739"></a>            }
-<a name="__line1740"></a>
-<a name="__line1741"></a>	    function::core *result = 0;
-<a name="__line1742"></a>
-<a name="__line1743"></a>            <span class=comment>// Derivation by a parameter</span>
-<a name="__line1744"></a>            if(ider&lt;0)
-<a name="__line1745"></a>            {
-<a name="__line1746"></a>                argument_subst *asub = new argument_subst;
-<a name="__line1747"></a>                asub-&gt;base_ = base_-&gt;create_derivative(ider);
-<a name="__line1748"></a>                asub-&gt;args_ = args_-&gt;clone();
-<a name="__line1749"></a>                result = asub;
-<a name="__line1750"></a>            }
-<a name="__line1751"></a>
-<a name="__line1752"></a>            function::core *arg_deriv = args_-&gt;create_derivative(ider);
-<a name="__line1753"></a>            
-<a name="__line1754"></a>            if(arg_deriv-&gt;n_out() != args_-&gt;n_out())
-<a name="__line1755"></a>            {
-<a name="__line1756"></a>                warning::print("Derivative doesn't have the same number of output variables as original function",
-<a name="__line1757"></a>                               "argument_subst::create_derivative(int)");
-<a name="__line1758"></a>                return 0;
-<a name="__line1759"></a>            }
-<a name="__line1760"></a>
-<a name="__line1761"></a>	    for(int i=0; i&lt;base_-&gt;nargs(); ++i)
-<a name="__line1762"></a>	    {
-<a name="__line1763"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
-<a name="__line1764"></a>                <span class=comment>// Failed to create a partial derivative</span>
-<a name="__line1765"></a>		if(partial_deriv == 0)
-<a name="__line1766"></a>		{
-<a name="__line1767"></a>		    if(result) delete result;
-<a name="__line1768"></a>		    return 0;
-<a name="__line1769"></a>		}
-<a name="__line1770"></a>
-<a name="__line1771"></a>                <span class=comment>// If the base function's ith partial derivative is 0, skip this term</span>
-<a name="__line1772"></a>                {
-<a name="__line1773"></a>                    constant *c = dynamic_cast&lt;constant*&gt;(partial_deriv);
-<a name="__line1774"></a>                    if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
-<a name="__line1775"></a>                }
-<a name="__line1776"></a>
-<a name="__line1777"></a>                {
-<a name="__line1778"></a>                    constant *c = dynamic_cast&lt;constant*&gt;(arg_deriv); 
-<a name="__line1779"></a>                    if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
-<a name="__line1780"></a>                }
-<a name="__line1781"></a>
-<a name="__line1782"></a>                Mul *term = new Mul;
-<a name="__line1783"></a>                argument_subst *asub = new argument_subst;
-<a name="__line1784"></a>                term-&gt;left_ = asub;
-<a name="__line1785"></a>                asub-&gt;base_ = partial_deriv;
-<a name="__line1786"></a>                asub-&gt;args_ = args_-&gt;clone();
-<a name="__line1787"></a>                term-&gt;right_ = 0;
-<a name="__line1788"></a>                if(arg_deriv-&gt;n_out() == 1)
-<a name="__line1789"></a>                {
-<a name="__line1790"></a>                    term-&gt;right_ = arg_deriv-&gt;clone();
-<a name="__line1791"></a>                }
-<a name="__line1792"></a>                else if(multiple *m = dynamic_cast&lt;multiple*&gt;(arg_deriv))
-<a name="__line1793"></a>                {
-<a name="__line1794"></a>                    bool ok = true;
-<a name="__line1795"></a>                    <span class=comment>// Check if this is a multiple function of single functions (i.e. each</span>
-<a name="__line1796"></a>                    <span class=comment>// component has only 1 further component</span>
-<a name="__line1797"></a>                    for(unsigned int a=0; a&lt;m-&gt;base_.size(); ++a)
-<a name="__line1798"></a>                    {
-<a name="__line1799"></a>                        if(m-&gt;base_[a]-&gt;n_out() != 1)
-<a name="__line1800"></a>                        {
-<a name="__line1801"></a>                            ok=false;
-<a name="__line1802"></a>                            break;
-<a name="__line1803"></a>                        }
-<a name="__line1804"></a>                    }
-<a name="__line1805"></a>                    <span class=comment>// If yes, then multiply by that component</span>
-<a name="__line1806"></a>                    if(ok)
-<a name="__line1807"></a>                    {
-<a name="__line1808"></a>                        {
-<a name="__line1809"></a>                            constant *c = dynamic_cast&lt;constant*&gt;(m-&gt;base_[i]);
-<a name="__line1810"></a>                            if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
-<a name="__line1811"></a>                        }
-<a name="__line1812"></a>                        term-&gt;right_ = m-&gt;base_[i]-&gt;clone();
-<a name="__line1813"></a>                    }
-<a name="__line1814"></a>                }
-<a name="__line1815"></a>                if(term-&gt;right_ == 0)
-<a name="__line1816"></a>                {
-<a name="__line1817"></a>                    term-&gt;right_ = new component(*arg_deriv,i);
-<a name="__line1818"></a>                }
-<a name="__line1819"></a>
-<a name="__line1820"></a>		if(result == 0) result = term;
-<a name="__line1821"></a>		else
-<a name="__line1822"></a>		{
-<a name="__line1823"></a>		    <span class=comment>// if the current term is not constant 0, add it to the result</span>
-<a name="__line1824"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
-<a name="__line1825"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
-<a name="__line1826"></a>		    {
-<a name="__line1827"></a>			Add *a = new Add;
-<a name="__line1828"></a>			a-&gt;left_ = result;
-<a name="__line1829"></a>			a-&gt;right_ = term;
-<a name="__line1830"></a>			result = a;
-<a name="__line1831"></a>		    }
-<a name="__line1832"></a>		}
-<a name="__line1833"></a>	    }
-<a name="__line1834"></a>
-<a name="__line1835"></a>
-<a name="__line1836"></a><span class=comment>/*
-<a name="__line1837"></a>	    for(int i=0; i&lt;args_-&gt;n_out(); ++i)
-<a name="__line1838"></a>	    {
-<a name="__line1839"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
-<a name="__line1840"></a>		if(partial_deriv == 0)
-<a name="__line1841"></a>		{
-<a name="__line1842"></a>		    if(result) delete result;
-<a name="__line1843"></a>		    return 0;
-<a name="__line1844"></a>		}
-<a name="__line1845"></a>
-<a name="__line1846"></a>                Mul *term = new Mul;
-<a name="__line1847"></a>                argument_subst *asub = new argument_subst;
-<a name="__line1848"></a>                term-&gt;left_ = asub;
-<a name="__line1849"></a>                asub-&gt;base_ = partial_deriv;
-<a name="__line1850"></a>                asub-&gt;args_ = args_-&gt;clone();
-<a name="__line1851"></a>                term-&gt;right_ = 0;
-<a name="__line1852"></a>                if(arg_deriv-&gt;n_out() == 1)
-<a name="__line1853"></a>                {
-<a name="__line1854"></a>                    term-&gt;right_ = arg_deriv-&gt;clone();
-<a name="__line1855"></a>                }
-<a name="__line1856"></a>                else if(multiple *m = dynamic_cast&lt;multiple*&gt;(arg_deriv))
-<a name="__line1857"></a>                {
-<a name="__line1858"></a>                    bool ok = true;
-<a name="__line1859"></a>                    for(unsigned int a=0; a&lt;m-&gt;base_.size(); ++a) if(m-&gt;base_[a]-&gt;n_out() != 1) { ok=false; break; }
-<a name="__line1860"></a>                    if(ok) term-&gt;right_ = m-&gt;base_[i]-&gt;clone();
-<a name="__line1861"></a>                }
-<a name="__line1862"></a>                if(term-&gt;right_ == 0)
-<a name="__line1863"></a>                {
-<a name="__line1864"></a>                    term-&gt;right_ = new component(*arg_deriv,i);
-<a name="__line1865"></a>                }
-<a name="__line1866"></a>
-<a name="__line1867"></a>		if(result == 0) result = term;
-<a name="__line1868"></a>		else
-<a name="__line1869"></a>		{
-<a name="__line1870"></a>		    // if the current term is not constant 0, add it to the result
-<a name="__line1871"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
-<a name="__line1872"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
-<a name="__line1873"></a>		    {
-<a name="__line1874"></a>			Add *a = new Add;
-<a name="__line1875"></a>			a-&gt;left_ = result;
-<a name="__line1876"></a>			a-&gt;right_ = term;
-<a name="__line1877"></a>			result = a;
-<a name="__line1878"></a>		    }
-<a name="__line1879"></a>		}
-<a name="__line1880"></a>	    }
-<a name="__line1881"></a>*/</span>
-<a name="__line1882"></a>
-<a name="__line1883"></a>	    return result;
-<a name="__line1884"></a><span class=comment>/* fixme
-<a name="__line1885"></a>	    function::core *result = 0;
-<a name="__line1886"></a>	    for(unsigned int i=0; i&lt;args_.size(); ++i)
-<a name="__line1887"></a>	    {
-<a name="__line1888"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
-<a name="__line1889"></a>		if(partial_deriv == 0)
-<a name="__line1890"></a>		{
-<a name="__line1891"></a>		    if(result) delete result;
-<a name="__line1892"></a>		    return 0;
+<a name="__line1735"></a>	function::core* argument_subst::create_derivative(int ider) const
+<a name="__line1736"></a>	{
+<a name="__line1737"></a>            if(args_-&gt;is_constant())
+<a name="__line1738"></a>            {
+<a name="__line1739"></a>                if(base_-&gt;n_out()&gt;1)
+<a name="__line1740"></a>                {
+<a name="__line1741"></a>                    multiple *m = new multiple;
+<a name="__line1742"></a>                    m-&gt;base_.resize(base_-&gt;n_out());
+<a name="__line1743"></a>                    for(int i=0; i&lt;base_-&gt;n_out(); ++i) m-&gt;base_[i] = new constant(0.0);
+<a name="__line1744"></a>                    return m;
+<a name="__line1745"></a>                }
+<a name="__line1746"></a>                else return new constant(0.0);
+<a name="__line1747"></a>            }
+<a name="__line1748"></a>
+<a name="__line1749"></a>            if(base_-&gt;n_out() &gt; 1)
+<a name="__line1750"></a>            {
+<a name="__line1751"></a>                cerr&lt;&lt;"FIXME: can not create derivative for an argument-substituted multi-valued function"&lt;&lt;endl;
+<a name="__line1752"></a>                return 0;
+<a name="__line1753"></a>            }
+<a name="__line1754"></a>
+<a name="__line1755"></a>	    function::core *result = 0;
+<a name="__line1756"></a>
+<a name="__line1757"></a>            <span class=comment>// Derivation by a parameter</span>
+<a name="__line1758"></a>            if(ider&lt;0)
+<a name="__line1759"></a>            {
+<a name="__line1760"></a>                argument_subst *asub = new argument_subst;
+<a name="__line1761"></a>                asub-&gt;base_ = base_-&gt;create_derivative(ider);
+<a name="__line1762"></a>                asub-&gt;args_ = args_-&gt;clone();
+<a name="__line1763"></a>                result = asub;
+<a name="__line1764"></a>            }
+<a name="__line1765"></a>
+<a name="__line1766"></a>            function::core *arg_deriv = args_-&gt;create_derivative(ider);
+<a name="__line1767"></a>            
+<a name="__line1768"></a>            if(arg_deriv-&gt;n_out() != args_-&gt;n_out())
+<a name="__line1769"></a>            {
+<a name="__line1770"></a>                warning::print("Derivative doesn't have the same number of output variables as original function",
+<a name="__line1771"></a>                               "argument_subst::create_derivative(int)");
+<a name="__line1772"></a>                return 0;
+<a name="__line1773"></a>            }
+<a name="__line1774"></a>
+<a name="__line1775"></a>	    for(int i=0; i&lt;base_-&gt;nargs(); ++i)
+<a name="__line1776"></a>	    {
+<a name="__line1777"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
+<a name="__line1778"></a>                <span class=comment>// Failed to create a partial derivative</span>
+<a name="__line1779"></a>		if(partial_deriv == 0)
+<a name="__line1780"></a>		{
+<a name="__line1781"></a>		    if(result) delete result;
+<a name="__line1782"></a>		    return 0;
+<a name="__line1783"></a>		}
+<a name="__line1784"></a>
+<a name="__line1785"></a>                <span class=comment>// If the base function's ith partial derivative is 0, skip this term</span>
+<a name="__line1786"></a>                {
+<a name="__line1787"></a>                    constant *c = dynamic_cast&lt;constant*&gt;(partial_deriv);
+<a name="__line1788"></a>                    if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
+<a name="__line1789"></a>                }
+<a name="__line1790"></a>
+<a name="__line1791"></a>                {
+<a name="__line1792"></a>                    constant *c = dynamic_cast&lt;constant*&gt;(arg_deriv); 
+<a name="__line1793"></a>                    if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
+<a name="__line1794"></a>                }
+<a name="__line1795"></a>
+<a name="__line1796"></a>                Mul *term = new Mul;
+<a name="__line1797"></a>                argument_subst *asub = new argument_subst;
+<a name="__line1798"></a>                term-&gt;left_ = asub;
+<a name="__line1799"></a>                asub-&gt;base_ = partial_deriv;
+<a name="__line1800"></a>                asub-&gt;args_ = args_-&gt;clone();
+<a name="__line1801"></a>                term-&gt;right_ = 0;
+<a name="__line1802"></a>                if(arg_deriv-&gt;n_out() == 1)
+<a name="__line1803"></a>                {
+<a name="__line1804"></a>                    term-&gt;right_ = arg_deriv-&gt;clone();
+<a name="__line1805"></a>                }
+<a name="__line1806"></a>                else if(multiple *m = dynamic_cast&lt;multiple*&gt;(arg_deriv))
+<a name="__line1807"></a>                {
+<a name="__line1808"></a>                    bool ok = true;
+<a name="__line1809"></a>                    <span class=comment>// Check if this is a multiple function of single functions (i.e. each</span>
+<a name="__line1810"></a>                    <span class=comment>// component has only 1 further component</span>
+<a name="__line1811"></a>                    for(unsigned int a=0; a&lt;m-&gt;base_.size(); ++a)
+<a name="__line1812"></a>                    {
+<a name="__line1813"></a>                        if(m-&gt;base_[a]-&gt;n_out() != 1)
+<a name="__line1814"></a>                        {
+<a name="__line1815"></a>                            ok=false;
+<a name="__line1816"></a>                            break;
+<a name="__line1817"></a>                        }
+<a name="__line1818"></a>                    }
+<a name="__line1819"></a>                    <span class=comment>// If yes, then multiply by that component</span>
+<a name="__line1820"></a>                    if(ok)
+<a name="__line1821"></a>                    {
+<a name="__line1822"></a>                        {
+<a name="__line1823"></a>                            constant *c = dynamic_cast&lt;constant*&gt;(m-&gt;base_[i]);
+<a name="__line1824"></a>                            if(c &amp;&amp; c-&gt;value_ == 0.0) continue;
+<a name="__line1825"></a>                        }
+<a name="__line1826"></a>                        term-&gt;right_ = m-&gt;base_[i]-&gt;clone();
+<a name="__line1827"></a>                    }
+<a name="__line1828"></a>                }
+<a name="__line1829"></a>                if(term-&gt;right_ == 0)
+<a name="__line1830"></a>                {
+<a name="__line1831"></a>                    term-&gt;right_ = new component(*arg_deriv,i);
+<a name="__line1832"></a>                }
+<a name="__line1833"></a>
+<a name="__line1834"></a>		if(result == 0) result = term;
+<a name="__line1835"></a>		else
+<a name="__line1836"></a>		{
+<a name="__line1837"></a>		    <span class=comment>// if the current term is not constant 0, add it to the result</span>
+<a name="__line1838"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
+<a name="__line1839"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
+<a name="__line1840"></a>		    {
+<a name="__line1841"></a>			Add *a = new Add;
+<a name="__line1842"></a>			a-&gt;left_ = result;
+<a name="__line1843"></a>			a-&gt;right_ = term;
+<a name="__line1844"></a>			result = a;
+<a name="__line1845"></a>		    }
+<a name="__line1846"></a>		}
+<a name="__line1847"></a>	    }
+<a name="__line1848"></a>
+<a name="__line1849"></a>
+<a name="__line1850"></a><span class=comment>/*
+<a name="__line1851"></a>	    for(int i=0; i&lt;args_-&gt;n_out(); ++i)
+<a name="__line1852"></a>	    {
+<a name="__line1853"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
+<a name="__line1854"></a>		if(partial_deriv == 0)
+<a name="__line1855"></a>		{
+<a name="__line1856"></a>		    if(result) delete result;
+<a name="__line1857"></a>		    return 0;
+<a name="__line1858"></a>		}
+<a name="__line1859"></a>
+<a name="__line1860"></a>                Mul *term = new Mul;
+<a name="__line1861"></a>                argument_subst *asub = new argument_subst;
+<a name="__line1862"></a>                term-&gt;left_ = asub;
+<a name="__line1863"></a>                asub-&gt;base_ = partial_deriv;
+<a name="__line1864"></a>                asub-&gt;args_ = args_-&gt;clone();
+<a name="__line1865"></a>                term-&gt;right_ = 0;
+<a name="__line1866"></a>                if(arg_deriv-&gt;n_out() == 1)
+<a name="__line1867"></a>                {
+<a name="__line1868"></a>                    term-&gt;right_ = arg_deriv-&gt;clone();
+<a name="__line1869"></a>                }
+<a name="__line1870"></a>                else if(multiple *m = dynamic_cast&lt;multiple*&gt;(arg_deriv))
+<a name="__line1871"></a>                {
+<a name="__line1872"></a>                    bool ok = true;
+<a name="__line1873"></a>                    for(unsigned int a=0; a&lt;m-&gt;base_.size(); ++a) if(m-&gt;base_[a]-&gt;n_out() != 1) { ok=false; break; }
+<a name="__line1874"></a>                    if(ok) term-&gt;right_ = m-&gt;base_[i]-&gt;clone();
+<a name="__line1875"></a>                }
+<a name="__line1876"></a>                if(term-&gt;right_ == 0)
+<a name="__line1877"></a>                {
+<a name="__line1878"></a>                    term-&gt;right_ = new component(*arg_deriv,i);
+<a name="__line1879"></a>                }
+<a name="__line1880"></a>
+<a name="__line1881"></a>		if(result == 0) result = term;
+<a name="__line1882"></a>		else
+<a name="__line1883"></a>		{
+<a name="__line1884"></a>		    // if the current term is not constant 0, add it to the result
+<a name="__line1885"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
+<a name="__line1886"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
+<a name="__line1887"></a>		    {
+<a name="__line1888"></a>			Add *a = new Add;
+<a name="__line1889"></a>			a-&gt;left_ = result;
+<a name="__line1890"></a>			a-&gt;right_ = term;
+<a name="__line1891"></a>			result = a;
+<a name="__line1892"></a>		    }
 <a name="__line1893"></a>		}
-<a name="__line1894"></a>		function::core *arg_deriv = args_[i]-&gt;create_derivative(ider);
-<a name="__line1895"></a>		if(arg_deriv == 0)
-<a name="__line1896"></a>		{
-<a name="__line1897"></a>		    if(result) delete result;
-<a name="__line1898"></a>		    return 0;
-<a name="__line1899"></a>		}
-<a name="__line1900"></a>
-<a name="__line1901"></a>		function::core *term = 0;
-<a name="__line1902"></a>		{
-<a name="__line1903"></a>		    constant *c_f = dynamic_cast&lt;constant *&gt;(partial_deriv);
-<a name="__line1904"></a>		    constant *c_a = dynamic_cast&lt;constant *&gt;(arg_deriv);
-<a name="__line1905"></a>		
-<a name="__line1906"></a>		    if(c_f &amp;&amp; c_a) {  term = new constant(c_f-&gt;value_.dbl() * c_a-&gt;value_.dbl()); delete c_a; delete c_f; }
-<a name="__line1907"></a>		    if(term == 0 &amp;&amp; c_f &amp;&amp; c_f-&gt;value_ == 1.0) { delete partial_deriv; term = arg_deriv; }
-<a name="__line1908"></a>		    if(term == 0 &amp;&amp; c_f &amp;&amp; c_f-&gt;value_ == 0.0) { delete c_f; delete c_a; term = new constant(0.0); }
-<a name="__line1909"></a>		    if(term == 0 &amp;&amp; c_a &amp;&amp; c_a-&gt;value_ == 1.0)
-<a name="__line1910"></a>		    {
-<a name="__line1911"></a>			delete arg_deriv;
-<a name="__line1912"></a>			argument_subst *asub = new argument_subst;
-<a name="__line1913"></a>			asub-&gt;base_ = partial_deriv;
-<a name="__line1914"></a>			asub-&gt;args_.resize(args_.size());
-<a name="__line1915"></a>			for(unsigned int a=0; a&lt;args_.size(); ++a) asub-&gt;args_[a] = args_[a]-&gt;clone();
-<a name="__line1916"></a>			term =asub;
-<a name="__line1917"></a>		    }
-<a name="__line1918"></a>		    if(term == 0 &amp;&amp; c_a &amp;&amp; c_a-&gt;value_ == 0.0) { delete c_f; delete c_a; term = new constant(0.0); }
-<a name="__line1919"></a>		    if(term == 0)
-<a name="__line1920"></a>		    {
-<a name="__line1921"></a>			argument_subst *asub = new argument_subst;
-<a name="__line1922"></a>			asub-&gt;base_ = partial_deriv;
-<a name="__line1923"></a>			asub-&gt;args_.resize(args_.size());
-<a name="__line1924"></a>			for(unsigned int a=0; a&lt;args_.size(); ++a) asub-&gt;args_[a] = args_[a]-&gt;clone();
-<a name="__line1925"></a>			Mul *m = new Mul;
-<a name="__line1926"></a>			m-&gt;left_ = asub;
-<a name="__line1927"></a>			m-&gt;right_ = arg_deriv;
-<a name="__line1928"></a>			term = m;
-<a name="__line1929"></a>		    }
-<a name="__line1930"></a>		}
-<a name="__line1931"></a>
-<a name="__line1932"></a>		if(result == 0) result = term;
-<a name="__line1933"></a>		else
-<a name="__line1934"></a>		{
-<a name="__line1935"></a>		    // if the current term is not constant 0, add it to the result
-<a name="__line1936"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
-<a name="__line1937"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
-<a name="__line1938"></a>		    {
-<a name="__line1939"></a>			Add *a = new Add;
-<a name="__line1940"></a>			a-&gt;left_ = result;
-<a name="__line1941"></a>			a-&gt;right_ = term;
-<a name="__line1942"></a>			result = a;
+<a name="__line1894"></a>	    }
+<a name="__line1895"></a>*/</span>
+<a name="__line1896"></a>
+<a name="__line1897"></a>	    return result;
+<a name="__line1898"></a><span class=comment>/* fixme
+<a name="__line1899"></a>	    function::core *result = 0;
+<a name="__line1900"></a>	    for(unsigned int i=0; i&lt;args_.size(); ++i)
+<a name="__line1901"></a>	    {
+<a name="__line1902"></a>		function::core *partial_deriv = base_-&gt;create_derivative(i+1);
+<a name="__line1903"></a>		if(partial_deriv == 0)
+<a name="__line1904"></a>		{
+<a name="__line1905"></a>		    if(result) delete result;
+<a name="__line1906"></a>		    return 0;
+<a name="__line1907"></a>		}
+<a name="__line1908"></a>		function::core *arg_deriv = args_[i]-&gt;create_derivative(ider);
+<a name="__line1909"></a>		if(arg_deriv == 0)
+<a name="__line1910"></a>		{
+<a name="__line1911"></a>		    if(result) delete result;
+<a name="__line1912"></a>		    return 0;
+<a name="__line1913"></a>		}
+<a name="__line1914"></a>
+<a name="__line1915"></a>		function::core *term = 0;
+<a name="__line1916"></a>		{
+<a name="__line1917"></a>		    constant *c_f = dynamic_cast&lt;constant *&gt;(partial_deriv);
+<a name="__line1918"></a>		    constant *c_a = dynamic_cast&lt;constant *&gt;(arg_deriv);
+<a name="__line1919"></a>		
+<a name="__line1920"></a>		    if(c_f &amp;&amp; c_a) {  term = new constant(c_f-&gt;value_.dbl() * c_a-&gt;value_.dbl()); delete c_a; delete c_f; }
+<a name="__line1921"></a>		    if(term == 0 &amp;&amp; c_f &amp;&amp; c_f-&gt;value_ == 1.0) { delete partial_deriv; term = arg_deriv; }
+<a name="__line1922"></a>		    if(term == 0 &amp;&amp; c_f &amp;&amp; c_f-&gt;value_ == 0.0) { delete c_f; delete c_a; term = new constant(0.0); }
+<a name="__line1923"></a>		    if(term == 0 &amp;&amp; c_a &amp;&amp; c_a-&gt;value_ == 1.0)
+<a name="__line1924"></a>		    {
+<a name="__line1925"></a>			delete arg_deriv;
+<a name="__line1926"></a>			argument_subst *asub = new argument_subst;
+<a name="__line1927"></a>			asub-&gt;base_ = partial_deriv;
+<a name="__line1928"></a>			asub-&gt;args_.resize(args_.size());
+<a name="__line1929"></a>			for(unsigned int a=0; a&lt;args_.size(); ++a) asub-&gt;args_[a] = args_[a]-&gt;clone();
+<a name="__line1930"></a>			term =asub;
+<a name="__line1931"></a>		    }
+<a name="__line1932"></a>		    if(term == 0 &amp;&amp; c_a &amp;&amp; c_a-&gt;value_ == 0.0) { delete c_f; delete c_a; term = new constant(0.0); }
+<a name="__line1933"></a>		    if(term == 0)
+<a name="__line1934"></a>		    {
+<a name="__line1935"></a>			argument_subst *asub = new argument_subst;
+<a name="__line1936"></a>			asub-&gt;base_ = partial_deriv;
+<a name="__line1937"></a>			asub-&gt;args_.resize(args_.size());
+<a name="__line1938"></a>			for(unsigned int a=0; a&lt;args_.size(); ++a) asub-&gt;args_[a] = args_[a]-&gt;clone();
+<a name="__line1939"></a>			Mul *m = new Mul;
+<a name="__line1940"></a>			m-&gt;left_ = asub;
+<a name="__line1941"></a>			m-&gt;right_ = arg_deriv;
+<a name="__line1942"></a>			term = m;
 <a name="__line1943"></a>		    }
 <a name="__line1944"></a>		}
-<a name="__line1945"></a>	    }
-<a name="__line1946"></a>	    return result;
-<a name="__line1947"></a>*/</span>
-<a name="__line1948"></a>	}
-<a name="__line1949"></a>
-<a name="__line1950"></a>	argument_subst::argument_subst(function::core *f, function::core *arg)
-<a name="__line1951"></a>	{
-<a name="__line1952"></a>	    base_ = f-&gt;clone();
-<a name="__line1953"></a>	    args_ = arg-&gt;clone();
-<a name="__line1954"></a>            args_-&gt;n_out_hint(base_-&gt;nargs());
-<a name="__line1955"></a>	    init_tmp_();
-<a name="__line1956"></a>	}
-<a name="__line1957"></a>
-<a name="__line1958"></a>	argument_subst::argument_subst(const argument_subst &amp;o)
-<a name="__line1959"></a>	{
-<a name="__line1960"></a>	    base_ = o.base_-&gt;clone();
-<a name="__line1961"></a>	    args_ = o.args_-&gt;clone();
-<a name="__line1962"></a>            args_-&gt;n_out_hint(base_-&gt;nargs());
-<a name="__line1963"></a>	    init_tmp_();
-<a name="__line1964"></a>	}
-<a name="__line1965"></a>
-<a name="__line1966"></a>	argument_subst::~argument_subst()
-<a name="__line1967"></a>	{
-<a name="__line1968"></a>	    delete base_;
-<a name="__line1969"></a>	    delete args_;
+<a name="__line1945"></a>
+<a name="__line1946"></a>		if(result == 0) result = term;
+<a name="__line1947"></a>		else
+<a name="__line1948"></a>		{
+<a name="__line1949"></a>		    // if the current term is not constant 0, add it to the result
+<a name="__line1950"></a>		    constant *c = dynamic_cast&lt;constant *&gt;(term);
+<a name="__line1951"></a>		    if(!(c &amp;&amp; c-&gt;value_ == 0.0 ))
+<a name="__line1952"></a>		    {
+<a name="__line1953"></a>			Add *a = new Add;
+<a name="__line1954"></a>			a-&gt;left_ = result;
+<a name="__line1955"></a>			a-&gt;right_ = term;
+<a name="__line1956"></a>			result = a;
+<a name="__line1957"></a>		    }
+<a name="__line1958"></a>		}
+<a name="__line1959"></a>	    }
+<a name="__line1960"></a>	    return result;
+<a name="__line1961"></a>*/</span>
+<a name="__line1962"></a>	}
+<a name="__line1963"></a>
+<a name="__line1964"></a>	argument_subst::argument_subst(function::core *f, function::core *arg)
+<a name="__line1965"></a>	{
+<a name="__line1966"></a>	    base_ = f-&gt;clone();
+<a name="__line1967"></a>	    args_ = arg-&gt;clone();
+<a name="__line1968"></a>            args_-&gt;n_out_hint(base_-&gt;nargs());
+<a name="__line1969"></a>	    init_tmp_();
 <a name="__line1970"></a>	}
 <a name="__line1971"></a>
-<a name="__line1972"></a>	void argument_subst::eval(const std::vector&lt;blop::var&gt; &amp;arg,
-<a name="__line1973"></a>				  const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line1974"></a>				  const vector&lt;var&gt; &amp;params,
-<a name="__line1975"></a>				  std::vector&lt;blop::var&gt; &amp;result,int *ind) const
-<a name="__line1976"></a>	{
-<a name="__line1977"></a>	    if(!base_)
-<a name="__line1978"></a>	    {
-<a name="__line1979"></a>		warning::print("Uninitialized base","argument_subst::eval(...)");
-<a name="__line1980"></a>		result[(*ind)++] = "";
-<a name="__line1981"></a>		return;
-<a name="__line1982"></a>	    }
-<a name="__line1983"></a>
-<a name="__line1984"></a>	    int runind = 0;
-<a name="__line1985"></a>	    args_-&gt;eval(arg,def_args,params,tmp_,&amp;runind);
-<a name="__line1986"></a>	    base_-&gt;eval(tmp_,def_args,params,result,ind);
-<a name="__line1987"></a>	}
-<a name="__line1988"></a>
-<a name="__line1989"></a>	void argument_subst::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line1990"></a>				      const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line1991"></a>				      const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line1992"></a>				      std::vector&lt;blop::var&gt; &amp;result,int *ind) const
-<a name="__line1993"></a>	{
-<a name="__line1994"></a>	    if(!base_)
-<a name="__line1995"></a>	    {
-<a name="__line1996"></a>		warning::print("Uninitialized base","argument_subst::eval(...)");
-<a name="__line1997"></a>		result[(*ind)++].dbl(0.0);
-<a name="__line1998"></a>		return;
-<a name="__line1999"></a>	    }
-<a name="__line2000"></a>
-<a name="__line2001"></a>	    int runind = 0;
-<a name="__line2002"></a>	    args_-&gt;eval_dbl(args,def_args,pars,tmp_,&amp;runind);
-<a name="__line2003"></a>	    base_-&gt;eval_dbl(tmp_, def_args, pars, result, ind);
-<a name="__line2004"></a>	}
-<a name="__line2005"></a>
-<a name="__line2006"></a>	int argument_subst::nargs() const
+<a name="__line1972"></a>	argument_subst::argument_subst(const argument_subst &amp;o)
+<a name="__line1973"></a>	{
+<a name="__line1974"></a>	    base_ = o.base_-&gt;clone();
+<a name="__line1975"></a>	    args_ = o.args_-&gt;clone();
+<a name="__line1976"></a>            args_-&gt;n_out_hint(base_-&gt;nargs());
+<a name="__line1977"></a>	    init_tmp_();
+<a name="__line1978"></a>	}
+<a name="__line1979"></a>
+<a name="__line1980"></a>	argument_subst::~argument_subst()
+<a name="__line1981"></a>	{
+<a name="__line1982"></a>	    delete base_;
+<a name="__line1983"></a>	    delete args_;
+<a name="__line1984"></a>	}
+<a name="__line1985"></a>
+<a name="__line1986"></a>	void argument_subst::eval(const std::vector&lt;blop::var&gt; &amp;arg,
+<a name="__line1987"></a>				  const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line1988"></a>				  const vector&lt;var&gt; &amp;params,
+<a name="__line1989"></a>				  std::vector&lt;blop::var&gt; &amp;result,int *ind) const
+<a name="__line1990"></a>	{
+<a name="__line1991"></a>	    if(!base_)
+<a name="__line1992"></a>	    {
+<a name="__line1993"></a>		warning::print("Uninitialized base","argument_subst::eval(...)");
+<a name="__line1994"></a>		result[(*ind)++] = "";
+<a name="__line1995"></a>		return;
+<a name="__line1996"></a>	    }
+<a name="__line1997"></a>
+<a name="__line1998"></a>	    int runind = 0;
+<a name="__line1999"></a>	    args_-&gt;eval(arg,def_args,params,tmp_,&amp;runind);
+<a name="__line2000"></a>	    base_-&gt;eval(tmp_,def_args,params,result,ind);
+<a name="__line2001"></a>	}
+<a name="__line2002"></a>
+<a name="__line2003"></a>	void argument_subst::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2004"></a>				      const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2005"></a>				      const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2006"></a>				      std::vector&lt;blop::var&gt; &amp;result,int *ind) const
 <a name="__line2007"></a>	{
-<a name="__line2008"></a>	    if(nargs_&gt;=0) return nargs_;
-<a name="__line2009"></a>	    return args_-&gt;nargs();
-<a name="__line2010"></a>	}
-<a name="__line2011"></a>	int argument_subst::npars() const
-<a name="__line2012"></a>	{
-<a name="__line2013"></a>	    if(npars_&gt;=0) return npars_;
-<a name="__line2014"></a>	    return std::max(base_-&gt;npars(),args_-&gt;npars());
-<a name="__line2015"></a>	}
-<a name="__line2016"></a>
-<a name="__line2017"></a>	int argument_subst::n_out() const
-<a name="__line2018"></a>	{
-<a name="__line2019"></a>	    return base_-&gt;n_out();
-<a name="__line2020"></a>	}
-<a name="__line2021"></a>
-<a name="__line2022"></a>
-<a name="__line2023"></a>	function::core *Sinh::create_my_derivative() const { return new Cosh(operand_); }
-<a name="__line2024"></a>	function::core *Cosh::create_my_derivative() const { return new Sinh(operand_); }
-<a name="__line2025"></a>	function::core *Asinh::create_my_derivative() const
-<a name="__line2026"></a>	{ cerr&lt;&lt;"Asinh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
-<a name="__line2027"></a>	function::core *Acosh::create_my_derivative() const
-<a name="__line2028"></a>	{ cerr&lt;&lt;"Acosh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
-<a name="__line2029"></a>	function::core *Tanh::create_my_derivative() const
-<a name="__line2030"></a>	{ cerr&lt;&lt;"Tanh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
-<a name="__line2031"></a>	function::core *Atanh::create_my_derivative() const
-<a name="__line2032"></a>	{ cerr&lt;&lt;"Tanh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
-<a name="__line2033"></a>	function::core *Erf::create_my_derivative() const
-<a name="__line2034"></a>	{ cerr&lt;&lt;"Erf derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
+<a name="__line2008"></a>	    if(!base_)
+<a name="__line2009"></a>	    {
+<a name="__line2010"></a>		warning::print("Uninitialized base","argument_subst::eval(...)");
+<a name="__line2011"></a>		result[(*ind)++].dbl(0.0);
+<a name="__line2012"></a>		return;
+<a name="__line2013"></a>	    }
+<a name="__line2014"></a>
+<a name="__line2015"></a>	    int runind = 0;
+<a name="__line2016"></a>	    args_-&gt;eval_dbl(args,def_args,pars,tmp_,&amp;runind);
+<a name="__line2017"></a>	    base_-&gt;eval_dbl(tmp_, def_args, pars, result, ind);
+<a name="__line2018"></a>	}
+<a name="__line2019"></a>
+<a name="__line2020"></a>	int argument_subst::nargs() const
+<a name="__line2021"></a>	{
+<a name="__line2022"></a>	    if(nargs_&gt;=0) return nargs_;
+<a name="__line2023"></a>	    return args_-&gt;nargs();
+<a name="__line2024"></a>	}
+<a name="__line2025"></a>	int argument_subst::npars() const
+<a name="__line2026"></a>	{
+<a name="__line2027"></a>	    if(npars_&gt;=0) return npars_;
+<a name="__line2028"></a>	    return std::max(base_-&gt;npars(),args_-&gt;npars());
+<a name="__line2029"></a>	}
+<a name="__line2030"></a>
+<a name="__line2031"></a>	int argument_subst::n_out() const
+<a name="__line2032"></a>	{
+<a name="__line2033"></a>	    return base_-&gt;n_out();
+<a name="__line2034"></a>	}
 <a name="__line2035"></a>
-<a name="__line2036"></a>	double cot(double a) { return 1.0/::tan(a); }
-<a name="__line2037"></a>	double acot(double a) { return ::atan(1/a); }
-<a name="__line2038"></a>
-<a name="__line2039"></a>        <span class=comment>// ---------- function_core::col --------------------------------------------------</span>
-<a name="__line2040"></a>
-<a name="__line2041"></a>        int col::nargs() const
-<a name="__line2042"></a>        {
-<a name="__line2043"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
-<a name="__line2044"></a>            {
-<a name="__line2045"></a>                if(function::column_names_[i] == name_) return i+1;
-<a name="__line2046"></a>            }
-<a name="__line2047"></a>            return 0;
-<a name="__line2048"></a>        }
+<a name="__line2036"></a>
+<a name="__line2037"></a>	function::core *Sinh::create_my_derivative() const { return new Cosh(operand_); }
+<a name="__line2038"></a>	function::core *Cosh::create_my_derivative() const { return new Sinh(operand_); }
+<a name="__line2039"></a>	function::core *Asinh::create_my_derivative() const
+<a name="__line2040"></a>	{ cerr&lt;&lt;"Asinh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
+<a name="__line2041"></a>	function::core *Acosh::create_my_derivative() const
+<a name="__line2042"></a>	{ cerr&lt;&lt;"Acosh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
+<a name="__line2043"></a>	function::core *Tanh::create_my_derivative() const
+<a name="__line2044"></a>	{ cerr&lt;&lt;"Tanh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
+<a name="__line2045"></a>	function::core *Atanh::create_my_derivative() const
+<a name="__line2046"></a>	{ cerr&lt;&lt;"Tanh derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
+<a name="__line2047"></a>	function::core *Erf::create_my_derivative() const
+<a name="__line2048"></a>	{ cerr&lt;&lt;"Erf derivative not yet implemented"&lt;&lt;endl; return new constant(0.0); }
 <a name="__line2049"></a>
-<a name="__line2050"></a>        bool col::uses_arg(int argno) const
-<a name="__line2051"></a>        {
-<a name="__line2052"></a>            if(0&lt;argno &amp;&amp; argno&lt;=(int)function::column_names_.size() &amp;&amp;
-<a name="__line2053"></a>               function::column_names_[argno-1] == name_) return true;
-<a name="__line2054"></a>            return false;
-<a name="__line2055"></a>        }
-<a name="__line2056"></a>        
-<a name="__line2057"></a>        void col::eval(const std::vector&lt;blop::var&gt; &amp;arg,
-<a name="__line2058"></a>                  const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2059"></a>                  const std::vector&lt;blop::var&gt; &amp;,
-<a name="__line2060"></a>                  std::vector&lt;blop::var&gt; &amp;result,
-<a name="__line2061"></a>                  int *ind) const
-<a name="__line2062"></a>        {
-<a name="__line2063"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
-<a name="__line2064"></a>            {
-<a name="__line2065"></a>                if(function::column_names_[i] == name_)
-<a name="__line2066"></a>                {
-<a name="__line2067"></a>                    if(i&gt;=arg.size())
-<a name="__line2068"></a>                    {
-<a name="__line2069"></a>                        result[(*ind)].dbl(0);
-<a name="__line2070"></a>                        result[(*ind)++].str("");
-<a name="__line2071"></a>                        return;
-<a name="__line2072"></a>                    }
-<a name="__line2073"></a>                    result[(*ind)++] = arg[i];
-<a name="__line2074"></a>                    return;
-<a name="__line2075"></a>                }
-<a name="__line2076"></a>            }
-<a name="__line2077"></a>            result[(*ind)].dbl(0);
-<a name="__line2078"></a>            result[(*ind)++].str("");
-<a name="__line2079"></a>        }
-<a name="__line2080"></a>
-<a name="__line2081"></a>        void col::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2082"></a>                           const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2083"></a>                           const std::vector&lt;blop::var&gt; &amp;,
-<a name="__line2084"></a>                           std::vector&lt;blop::var&gt; &amp;result,
-<a name="__line2085"></a>                           int *ind) const
-<a name="__line2086"></a>        {
-<a name="__line2087"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
-<a name="__line2088"></a>            {
-<a name="__line2089"></a>                if(function::column_names_[i] == name_)
-<a name="__line2090"></a>                {
-<a name="__line2091"></a>                    if(i&gt;=args.size())
-<a name="__line2092"></a>                    {
-<a name="__line2093"></a>                        result[(*ind)].dbl(0);
-<a name="__line2094"></a>                        result[(*ind)++].str("");
-<a name="__line2095"></a>                        return;
-<a name="__line2096"></a>                    }
-<a name="__line2097"></a>                    result[(*ind)++] = args[i];
-<a name="__line2098"></a>                    return;
-<a name="__line2099"></a>                }
-<a name="__line2100"></a>            }
-<a name="__line2101"></a>            result[(*ind)].dbl(0);
-<a name="__line2102"></a>            result[(*ind)++].str("");
-<a name="__line2103"></a>        }
-<a name="__line2104"></a>
-<a name="__line2105"></a>        
-<a name="__line2106"></a>        function::core* col::create_derivative(int i) const
-<a name="__line2107"></a>        {
-<a name="__line2108"></a>            if(0&lt;i &amp;&amp; i&lt;=(int)function::column_names_.size() &amp;&amp;
-<a name="__line2109"></a>               function::column_names_[i-1] == name_) return new constant(0.0);
-<a name="__line2110"></a>            return new constant(0.0);
-<a name="__line2111"></a>        }
-<a name="__line2112"></a>        bool col::equals(const function::core *o) const
-<a name="__line2113"></a>        {
-<a name="__line2114"></a>            const col *c = dynamic_cast&lt;const col *&gt;(o);
-<a name="__line2115"></a>            if(c &amp;&amp; c-&gt;name_ == name_) return true;
-<a name="__line2116"></a>            return false;
+<a name="__line2050"></a>	double cot(double a) { return 1.0/::tan(a); }
+<a name="__line2051"></a>	double acot(double a) { return ::atan(1/a); }
+<a name="__line2052"></a>
+<a name="__line2053"></a>        <span class=comment>// ---------- function_core::col --------------------------------------------------</span>
+<a name="__line2054"></a>
+<a name="__line2055"></a>        int col::nargs() const
+<a name="__line2056"></a>        {
+<a name="__line2057"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
+<a name="__line2058"></a>            {
+<a name="__line2059"></a>                if(function::column_names_[i] == name_) return i+1;
+<a name="__line2060"></a>            }
+<a name="__line2061"></a>            return 0;
+<a name="__line2062"></a>        }
+<a name="__line2063"></a>
+<a name="__line2064"></a>        bool col::uses_arg(int argno) const
+<a name="__line2065"></a>        {
+<a name="__line2066"></a>            if(0&lt;argno &amp;&amp; argno&lt;=(int)function::column_names_.size() &amp;&amp;
+<a name="__line2067"></a>               function::column_names_[argno-1] == name_) return true;
+<a name="__line2068"></a>            return false;
+<a name="__line2069"></a>        }
+<a name="__line2070"></a>        
+<a name="__line2071"></a>        void col::eval(const std::vector&lt;blop::var&gt; &amp;arg,
+<a name="__line2072"></a>                  const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2073"></a>                  const std::vector&lt;blop::var&gt; &amp;,
+<a name="__line2074"></a>                  std::vector&lt;blop::var&gt; &amp;result,
+<a name="__line2075"></a>                  int *ind) const
+<a name="__line2076"></a>        {
+<a name="__line2077"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
+<a name="__line2078"></a>            {
+<a name="__line2079"></a>                if(function::column_names_[i] == name_)
+<a name="__line2080"></a>                {
+<a name="__line2081"></a>                    if(i&gt;=arg.size())
+<a name="__line2082"></a>                    {
+<a name="__line2083"></a>                        result[(*ind)].dbl(0);
+<a name="__line2084"></a>                        result[(*ind)++].str("");
+<a name="__line2085"></a>                        return;
+<a name="__line2086"></a>                    }
+<a name="__line2087"></a>                    result[(*ind)++] = arg[i];
+<a name="__line2088"></a>                    return;
+<a name="__line2089"></a>                }
+<a name="__line2090"></a>            }
+<a name="__line2091"></a>            result[(*ind)].dbl(0);
+<a name="__line2092"></a>            result[(*ind)++].str("");
+<a name="__line2093"></a>        }
+<a name="__line2094"></a>
+<a name="__line2095"></a>        void col::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2096"></a>                           const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2097"></a>                           const std::vector&lt;blop::var&gt; &amp;,
+<a name="__line2098"></a>                           std::vector&lt;blop::var&gt; &amp;result,
+<a name="__line2099"></a>                           int *ind) const
+<a name="__line2100"></a>        {
+<a name="__line2101"></a>            for(unsigned int i=0; i&lt;function::column_names_.size(); ++i)
+<a name="__line2102"></a>            {
+<a name="__line2103"></a>                if(function::column_names_[i] == name_)
+<a name="__line2104"></a>                {
+<a name="__line2105"></a>                    if(i&gt;=args.size())
+<a name="__line2106"></a>                    {
+<a name="__line2107"></a>                        result[(*ind)].dbl(0);
+<a name="__line2108"></a>                        result[(*ind)++].str("");
+<a name="__line2109"></a>                        return;
+<a name="__line2110"></a>                    }
+<a name="__line2111"></a>                    result[(*ind)++] = args[i];
+<a name="__line2112"></a>                    return;
+<a name="__line2113"></a>                }
+<a name="__line2114"></a>            }
+<a name="__line2115"></a>            result[(*ind)].dbl(0);
+<a name="__line2116"></a>            result[(*ind)++].str("");
 <a name="__line2117"></a>        }
-<a name="__line2118"></a>        
-<a name="__line2119"></a>
-<a name="__line2120"></a>        <span class=comment>// ---------- date2epoch ----------------------------------------------------------</span>
-<a name="__line2121"></a>
-<a name="__line2122"></a>	void date2epoch::eval(const vector&lt;var&gt; &amp;args,
-<a name="__line2123"></a>                              const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2124"></a>                              const vector&lt;var&gt; &amp;pars,
-<a name="__line2125"></a>                              vector&lt;var&gt; &amp;result, int *ind) const
-<a name="__line2126"></a>        {
-<a name="__line2127"></a>            std::chrono::system_clock::time_point t = date2timepoint(args[0],format_);
-<a name="__line2128"></a>            result[(*ind)++] = chrono::duration_cast&lt;chrono::seconds&gt;(t.time_since_epoch()).count();
-<a name="__line2129"></a>        }
-<a name="__line2130"></a>	void date2epoch::eval_dbl(const vector&lt;var&gt; &amp;args,
-<a name="__line2131"></a>                  const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2132"></a>                  const vector&lt;var&gt; &amp;pars,
-<a name="__line2133"></a>                  vector&lt;var&gt; &amp;result, int *ind) const
-<a name="__line2134"></a>                {
-<a name="__line2135"></a>                    std::chrono::system_clock::time_point t = date2timepoint(args[0],format_);
-<a name="__line2136"></a>                    result[(*ind)++].dbl() = chrono::duration_cast&lt;chrono::seconds&gt;(t.time_since_epoch()).count();
-<a name="__line2137"></a>                }
-<a name="__line2138"></a>
-<a name="__line2139"></a>        <span class=comment>// ---------- function_core::binary_operator --------------------------------------</span>
-<a name="__line2140"></a>
-<a name="__line2141"></a>	var binary_operator::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
-<a name="__line2142"></a>	{
-<a name="__line2143"></a>	    bool left_paren = true;
-<a name="__line2144"></a>	    if(dynamic_cast&lt;const constant*&gt;(left_) ||
-<a name="__line2145"></a>	       dynamic_cast&lt;const arg*&gt;(left_) ||
-<a name="__line2146"></a>	       dynamic_cast&lt;const funcparameter *&gt;(left_) ) left_paren = false;
-<a name="__line2147"></a>
-<a name="__line2148"></a>	    bool right_paren = true;
-<a name="__line2149"></a>	    if(dynamic_cast&lt;const constant*&gt;(right_) ||
-<a name="__line2150"></a>	       dynamic_cast&lt;const arg*&gt;(right_) ||
-<a name="__line2151"></a>	       dynamic_cast&lt;const funcparameter *&gt;(right_)) right_paren = false;
-<a name="__line2152"></a>
-<a name="__line2153"></a>	    if( name_ == "*" || name_ == "/" ) 
-<a name="__line2154"></a>	    {
-<a name="__line2155"></a>		if(dynamic_cast&lt;const Mul *&gt;(left_) ||
-<a name="__line2156"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
-<a name="__line2157"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
-<a name="__line2158"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
-<a name="__line2159"></a>		if(dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2160"></a>		   dynamic_cast&lt;const Ipow*&gt;(right_)) right_paren = false;
-<a name="__line2161"></a>		if(name_ == "*")
-<a name="__line2162"></a>		{
-<a name="__line2163"></a>		    if(dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2164"></a>		       dynamic_cast&lt;const Mul *&gt;(right_)) right_paren = false;
-<a name="__line2165"></a>		}
+<a name="__line2118"></a>
+<a name="__line2119"></a>        
+<a name="__line2120"></a>        function::core* col::create_derivative(int i) const
+<a name="__line2121"></a>        {
+<a name="__line2122"></a>            if(0&lt;i &amp;&amp; i&lt;=(int)function::column_names_.size() &amp;&amp;
+<a name="__line2123"></a>               function::column_names_[i-1] == name_) return new constant(0.0);
+<a name="__line2124"></a>            return new constant(0.0);
+<a name="__line2125"></a>        }
+<a name="__line2126"></a>        bool col::equals(const function::core *o) const
+<a name="__line2127"></a>        {
+<a name="__line2128"></a>            const col *c = dynamic_cast&lt;const col *&gt;(o);
+<a name="__line2129"></a>            if(c &amp;&amp; c-&gt;name_ == name_) return true;
+<a name="__line2130"></a>            return false;
+<a name="__line2131"></a>        }
+<a name="__line2132"></a>        
+<a name="__line2133"></a>
+<a name="__line2134"></a>        <span class=comment>// ---------- date2epoch ----------------------------------------------------------</span>
+<a name="__line2135"></a>
+<a name="__line2136"></a>	void date2epoch::eval(const vector&lt;var&gt; &amp;args,
+<a name="__line2137"></a>                              const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2138"></a>                              const vector&lt;var&gt; &amp;pars,
+<a name="__line2139"></a>                              vector&lt;var&gt; &amp;result, int *ind) const
+<a name="__line2140"></a>        {
+<a name="__line2141"></a>            result[(*ind)++] = blop::time::date2epoch(args[0],format_);
+<a name="__line2142"></a>        }
+<a name="__line2143"></a>	void date2epoch::eval_dbl(const vector&lt;var&gt; &amp;args,
+<a name="__line2144"></a>                  const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2145"></a>                  const vector&lt;var&gt; &amp;pars,
+<a name="__line2146"></a>                  vector&lt;var&gt; &amp;result, int *ind) const
+<a name="__line2147"></a>        {
+<a name="__line2148"></a>            result[(*ind)++].dbl() = blop::time::date2epoch(args[0],format_);
+<a name="__line2149"></a>        }
+<a name="__line2150"></a>
+<a name="__line2151"></a>
+<a name="__line2152"></a>	void epoch2date::eval(const vector&lt;var&gt; &amp;args,
+<a name="__line2153"></a>                              const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2154"></a>                              const vector&lt;var&gt; &amp;pars,
+<a name="__line2155"></a>                              vector&lt;var&gt; &amp;result, int *ind) const
+<a name="__line2156"></a>        {
+<a name="__line2157"></a>            result[(*ind)++] = blop::time::epoch2date(args[0].dbl(),format_);
+<a name="__line2158"></a>        }
+<a name="__line2159"></a>	void epoch2date::eval_dbl(const vector&lt;var&gt; &amp;args,
+<a name="__line2160"></a>                  const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2161"></a>                  const vector&lt;var&gt; &amp;pars,
+<a name="__line2162"></a>                  vector&lt;var&gt; &amp;result, int *ind) const
+<a name="__line2163"></a>        {
+<a name="__line2164"></a>            result[(*ind)++] = blop::time::epoch2date(args[0].dbl(),format_);
+<a name="__line2165"></a>        }
 <a name="__line2166"></a>
-<a name="__line2167"></a>	    }
-<a name="__line2168"></a>	    if( name_ == "+" || name_ == "-" )
-<a name="__line2169"></a>	    {
-<a name="__line2170"></a>		if(dynamic_cast&lt;const Add *&gt;(left_) ||
-<a name="__line2171"></a>		   dynamic_cast&lt;const Sub *&gt;(left_) ||
-<a name="__line2172"></a>		   dynamic_cast&lt;const Mul *&gt;(left_) ||
-<a name="__line2173"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
-<a name="__line2174"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
-<a name="__line2175"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
-<a name="__line2176"></a>		if(name_ == "+" &amp;&amp; (
-<a name="__line2177"></a>		       dynamic_cast&lt;const Add *&gt;(right_) ||
-<a name="__line2178"></a>		       dynamic_cast&lt;const Sub *&gt;(right_) ||
-<a name="__line2179"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
-<a name="__line2180"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2181"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2182"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
-<a name="__line2183"></a>		if(name_ == "-" &amp;&amp; (
-<a name="__line2184"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
-<a name="__line2185"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2186"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2187"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
-<a name="__line2188"></a>	    }
-<a name="__line2189"></a>
-<a name="__line2190"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(left_)) left_paren = false;
-<a name="__line2191"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(right_)) right_paren = false;
-<a name="__line2192"></a>	    if(dynamic_cast&lt;const binary_function *&gt;(left_)) left_paren = false;
-<a name="__line2193"></a>	    <span class=comment>//if(dynamic_cast&lt;const binary_function *&gt;(right_)) right_paren = false;</span>
-<a name="__line2194"></a>
-<a name="__line2195"></a>	    var result;
-<a name="__line2196"></a>	    if(left_paren) result &amp;= "(";
-<a name="__line2197"></a>	    result &amp;= left_-&gt;sprint(pars, parvalue,variable_names,param_names);
-<a name="__line2198"></a>	    if(left_paren) result &amp;= ")";
-<a name="__line2199"></a>	    result &amp;= name_;
-<a name="__line2200"></a>	    if(right_paren) result &amp;= "(";
-<a name="__line2201"></a>	    result &amp;= right_-&gt;sprint(pars, parvalue,variable_names,param_names);
-<a name="__line2202"></a>	    if(right_paren) result &amp;= ")";
-<a name="__line2203"></a>	    return result;
-<a name="__line2204"></a>	}
-<a name="__line2205"></a>	var binary_operator::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
-<a name="__line2206"></a>					  const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line2207"></a>	{
-<a name="__line2208"></a>	    bool left_paren = true;
-<a name="__line2209"></a>	    if(dynamic_cast&lt;const constant*&gt;(left_) ||
-<a name="__line2210"></a>	       dynamic_cast&lt;const arg*&gt;(left_) ||
-<a name="__line2211"></a>	       dynamic_cast&lt;const funcparameter *&gt;(left_) ) left_paren = false;
-<a name="__line2212"></a>
-<a name="__line2213"></a>	    bool right_paren = true;
-<a name="__line2214"></a>	    if(dynamic_cast&lt;const constant*&gt;(right_) ||
-<a name="__line2215"></a>	       dynamic_cast&lt;const arg*&gt;(right_) ||
-<a name="__line2216"></a>	       dynamic_cast&lt;const funcparameter *&gt;(right_)) right_paren = false;
-<a name="__line2217"></a>
-<a name="__line2218"></a>	    if( name_ == "*" || name_ == "/" ) 
-<a name="__line2219"></a>	    {
-<a name="__line2220"></a>		if(dynamic_cast&lt;const Mul *&gt;(left_) ||
-<a name="__line2221"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
-<a name="__line2222"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
-<a name="__line2223"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
-<a name="__line2224"></a>		if(dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2225"></a>		   dynamic_cast&lt;const Ipow*&gt;(right_)) right_paren = false;
-<a name="__line2226"></a>		if(name_ == "*")
-<a name="__line2227"></a>		{
-<a name="__line2228"></a>		    if(dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2229"></a>		       dynamic_cast&lt;const Mul *&gt;(right_)) right_paren = false;
-<a name="__line2230"></a>		}
-<a name="__line2231"></a>	    }
-<a name="__line2232"></a>	    if( name_ == "+" || name_ == "-" )
-<a name="__line2233"></a>	    {
-<a name="__line2234"></a>		if(dynamic_cast&lt;const Add *&gt;(left_) ||
-<a name="__line2235"></a>		   dynamic_cast&lt;const Sub *&gt;(left_) ||
-<a name="__line2236"></a>		   dynamic_cast&lt;const Mul *&gt;(left_) ||
-<a name="__line2237"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
-<a name="__line2238"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
-<a name="__line2239"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
-<a name="__line2240"></a>		if(name_ == "+" &amp;&amp; (
-<a name="__line2241"></a>		       dynamic_cast&lt;const Add *&gt;(right_) ||
-<a name="__line2242"></a>		       dynamic_cast&lt;const Sub *&gt;(right_) ||
-<a name="__line2243"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
-<a name="__line2244"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2245"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2246"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
-<a name="__line2247"></a>		if(name_ == "-" &amp;&amp; (
-<a name="__line2248"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
-<a name="__line2249"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
-<a name="__line2250"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
-<a name="__line2251"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
-<a name="__line2252"></a>	    }
-<a name="__line2253"></a>
-<a name="__line2254"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(left_)) left_paren = false;
-<a name="__line2255"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(right_)) right_paren = false;
-<a name="__line2256"></a>	    if(dynamic_cast&lt;const binary_function *&gt;(left_)) left_paren = false;
-<a name="__line2257"></a>	    <span class=comment>//if(dynamic_cast&lt;const binary_function *&gt;(right_)) right_paren = false;</span>
-<a name="__line2258"></a>
-<a name="__line2259"></a>	    var result;
-<a name="__line2260"></a>	    if(left_paren) result &amp;= "\\left(";
-<a name="__line2261"></a>	    result &amp;= left_-&gt;sprint_latex(pars, parvalue,x,y,z);
-<a name="__line2262"></a>	    if(left_paren) result &amp;= "\\right)";
-<a name="__line2263"></a>	    if(name_.str() == "*") result &amp;= " \\cdot ";
-<a name="__line2264"></a>	    else result &amp;= name_;
-<a name="__line2265"></a>	    if(right_paren) result &amp;= "\\left(";
-<a name="__line2266"></a>	    result &amp;= right_-&gt;sprint_latex(pars, parvalue,x,y,z);
-<a name="__line2267"></a>	    if(right_paren) result &amp;= "\\right)";
-<a name="__line2268"></a>	    return result;
-<a name="__line2269"></a>	}
-<a name="__line2270"></a>
-<a name="__line2271"></a>
-<a name="__line2272"></a>	<span class=comment>// ---------- contained_in --------------------------------------------------------</span>
-<a name="__line2273"></a>
-<a name="__line2274"></a>	contained_in::contained_in(function::core *a) : tmp_(a-&gt;n_out())
-<a name="__line2275"></a>	{
-<a name="__line2276"></a>	    in_this_ = a-&gt;clone();
-<a name="__line2277"></a>            <span class=comment>//if(in_this_-&gt;n_out() &gt; tmp_.size()) tmp_.resize(in_this_-&gt;n_out());</span>
-<a name="__line2278"></a>	}
-<a name="__line2279"></a>
-<a name="__line2280"></a>	contained_in::contained_in(const contained_in &amp;o) : tmp_(o.in_this_-&gt;n_out())
-<a name="__line2281"></a>	{
-<a name="__line2282"></a>	    in_this_ = o.in_this_-&gt;clone();
-<a name="__line2283"></a>            <span class=comment>//if(in_this_-&gt;n_out() &gt; tmp_.size()) tmp_.resize(in_this_-&gt;n_out());</span>
-<a name="__line2284"></a>	}
-<a name="__line2285"></a>
-<a name="__line2286"></a>	contained_in::~contained_in()
-<a name="__line2287"></a>	{
-<a name="__line2288"></a>	    delete in_this_;
-<a name="__line2289"></a>	}
-<a name="__line2290"></a>
-<a name="__line2291"></a>	<span class=comment>// evaluate</span>
-<a name="__line2292"></a>	void contained_in::eval(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2293"></a>				const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2294"></a>				const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2295"></a>				std::vector&lt;blop::var&gt; &amp;result,
-<a name="__line2296"></a>				int *ind) const
-<a name="__line2297"></a>	{
-<a name="__line2298"></a>	    vector&lt;var&gt; orig_args = args;
+<a name="__line2167"></a>        
+<a name="__line2168"></a>        <span class=comment>// ---------- function_core::binary_operator --------------------------------------</span>
+<a name="__line2169"></a>
+<a name="__line2170"></a>	var binary_operator::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
+<a name="__line2171"></a>	{
+<a name="__line2172"></a>	    bool left_paren = true;
+<a name="__line2173"></a>	    if(dynamic_cast&lt;const constant*&gt;(left_) ||
+<a name="__line2174"></a>	       dynamic_cast&lt;const arg*&gt;(left_) ||
+<a name="__line2175"></a>	       dynamic_cast&lt;const funcparameter *&gt;(left_) ) left_paren = false;
+<a name="__line2176"></a>
+<a name="__line2177"></a>	    bool right_paren = true;
+<a name="__line2178"></a>	    if(dynamic_cast&lt;const constant*&gt;(right_) ||
+<a name="__line2179"></a>	       dynamic_cast&lt;const arg*&gt;(right_) ||
+<a name="__line2180"></a>	       dynamic_cast&lt;const funcparameter *&gt;(right_)) right_paren = false;
+<a name="__line2181"></a>
+<a name="__line2182"></a>	    if( name_ == "*" || name_ == "/" ) 
+<a name="__line2183"></a>	    {
+<a name="__line2184"></a>		if(dynamic_cast&lt;const Mul *&gt;(left_) ||
+<a name="__line2185"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
+<a name="__line2186"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
+<a name="__line2187"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
+<a name="__line2188"></a>		if(dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2189"></a>		   dynamic_cast&lt;const Ipow*&gt;(right_)) right_paren = false;
+<a name="__line2190"></a>		if(name_ == "*")
+<a name="__line2191"></a>		{
+<a name="__line2192"></a>		    if(dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2193"></a>		       dynamic_cast&lt;const Mul *&gt;(right_)) right_paren = false;
+<a name="__line2194"></a>		}
+<a name="__line2195"></a>
+<a name="__line2196"></a>	    }
+<a name="__line2197"></a>	    if( name_ == "+" || name_ == "-" )
+<a name="__line2198"></a>	    {
+<a name="__line2199"></a>		if(dynamic_cast&lt;const Add *&gt;(left_) ||
+<a name="__line2200"></a>		   dynamic_cast&lt;const Sub *&gt;(left_) ||
+<a name="__line2201"></a>		   dynamic_cast&lt;const Mul *&gt;(left_) ||
+<a name="__line2202"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
+<a name="__line2203"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
+<a name="__line2204"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
+<a name="__line2205"></a>		if(name_ == "+" &amp;&amp; (
+<a name="__line2206"></a>		       dynamic_cast&lt;const Add *&gt;(right_) ||
+<a name="__line2207"></a>		       dynamic_cast&lt;const Sub *&gt;(right_) ||
+<a name="__line2208"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
+<a name="__line2209"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2210"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2211"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
+<a name="__line2212"></a>		if(name_ == "-" &amp;&amp; (
+<a name="__line2213"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
+<a name="__line2214"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2215"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2216"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
+<a name="__line2217"></a>	    }
+<a name="__line2218"></a>
+<a name="__line2219"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(left_)) left_paren = false;
+<a name="__line2220"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(right_)) right_paren = false;
+<a name="__line2221"></a>	    if(dynamic_cast&lt;const binary_function *&gt;(left_)) left_paren = false;
+<a name="__line2222"></a>	    <span class=comment>//if(dynamic_cast&lt;const binary_function *&gt;(right_)) right_paren = false;</span>
+<a name="__line2223"></a>
+<a name="__line2224"></a>	    var result;
+<a name="__line2225"></a>	    if(left_paren) result &amp;= "(";
+<a name="__line2226"></a>	    result &amp;= left_-&gt;sprint(pars, parvalue,variable_names,param_names);
+<a name="__line2227"></a>	    if(left_paren) result &amp;= ")";
+<a name="__line2228"></a>	    result &amp;= name_;
+<a name="__line2229"></a>	    if(right_paren) result &amp;= "(";
+<a name="__line2230"></a>	    result &amp;= right_-&gt;sprint(pars, parvalue,variable_names,param_names);
+<a name="__line2231"></a>	    if(right_paren) result &amp;= ")";
+<a name="__line2232"></a>	    return result;
+<a name="__line2233"></a>	}
+<a name="__line2234"></a>	var binary_operator::sprint_latex(const std::vector&lt;blop::var&gt; &amp;pars, bool parvalue,
+<a name="__line2235"></a>					  const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line2236"></a>	{
+<a name="__line2237"></a>	    bool left_paren = true;
+<a name="__line2238"></a>	    if(dynamic_cast&lt;const constant*&gt;(left_) ||
+<a name="__line2239"></a>	       dynamic_cast&lt;const arg*&gt;(left_) ||
+<a name="__line2240"></a>	       dynamic_cast&lt;const funcparameter *&gt;(left_) ) left_paren = false;
+<a name="__line2241"></a>
+<a name="__line2242"></a>	    bool right_paren = true;
+<a name="__line2243"></a>	    if(dynamic_cast&lt;const constant*&gt;(right_) ||
+<a name="__line2244"></a>	       dynamic_cast&lt;const arg*&gt;(right_) ||
+<a name="__line2245"></a>	       dynamic_cast&lt;const funcparameter *&gt;(right_)) right_paren = false;
+<a name="__line2246"></a>
+<a name="__line2247"></a>	    if( name_ == "*" || name_ == "/" ) 
+<a name="__line2248"></a>	    {
+<a name="__line2249"></a>		if(dynamic_cast&lt;const Mul *&gt;(left_) ||
+<a name="__line2250"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
+<a name="__line2251"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
+<a name="__line2252"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
+<a name="__line2253"></a>		if(dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2254"></a>		   dynamic_cast&lt;const Ipow*&gt;(right_)) right_paren = false;
+<a name="__line2255"></a>		if(name_ == "*")
+<a name="__line2256"></a>		{
+<a name="__line2257"></a>		    if(dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2258"></a>		       dynamic_cast&lt;const Mul *&gt;(right_)) right_paren = false;
+<a name="__line2259"></a>		}
+<a name="__line2260"></a>	    }
+<a name="__line2261"></a>	    if( name_ == "+" || name_ == "-" )
+<a name="__line2262"></a>	    {
+<a name="__line2263"></a>		if(dynamic_cast&lt;const Add *&gt;(left_) ||
+<a name="__line2264"></a>		   dynamic_cast&lt;const Sub *&gt;(left_) ||
+<a name="__line2265"></a>		   dynamic_cast&lt;const Mul *&gt;(left_) ||
+<a name="__line2266"></a>		   dynamic_cast&lt;const Div *&gt;(left_) ||
+<a name="__line2267"></a>		   dynamic_cast&lt;const Pow *&gt;(left_) ||
+<a name="__line2268"></a>		   dynamic_cast&lt;const Ipow*&gt;(left_)) left_paren = false;
+<a name="__line2269"></a>		if(name_ == "+" &amp;&amp; (
+<a name="__line2270"></a>		       dynamic_cast&lt;const Add *&gt;(right_) ||
+<a name="__line2271"></a>		       dynamic_cast&lt;const Sub *&gt;(right_) ||
+<a name="__line2272"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
+<a name="__line2273"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2274"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2275"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
+<a name="__line2276"></a>		if(name_ == "-" &amp;&amp; (
+<a name="__line2277"></a>		       dynamic_cast&lt;const Mul *&gt;(right_) ||
+<a name="__line2278"></a>		       dynamic_cast&lt;const Div *&gt;(right_) ||
+<a name="__line2279"></a>		       dynamic_cast&lt;const Pow *&gt;(right_) ||
+<a name="__line2280"></a>		       dynamic_cast&lt;const Ipow*&gt;(right_))) right_paren = false;
+<a name="__line2281"></a>	    }
+<a name="__line2282"></a>
+<a name="__line2283"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(left_)) left_paren = false;
+<a name="__line2284"></a>	    if(dynamic_cast&lt;const unary_c_function *&gt;(right_)) right_paren = false;
+<a name="__line2285"></a>	    if(dynamic_cast&lt;const binary_function *&gt;(left_)) left_paren = false;
+<a name="__line2286"></a>	    <span class=comment>//if(dynamic_cast&lt;const binary_function *&gt;(right_)) right_paren = false;</span>
+<a name="__line2287"></a>
+<a name="__line2288"></a>	    var result;
+<a name="__line2289"></a>	    if(left_paren) result &amp;= "\\left(";
+<a name="__line2290"></a>	    result &amp;= left_-&gt;sprint_latex(pars, parvalue,x,y,z);
+<a name="__line2291"></a>	    if(left_paren) result &amp;= "\\right)";
+<a name="__line2292"></a>	    if(name_.str() == "*") result &amp;= " \\cdot ";
+<a name="__line2293"></a>	    else result &amp;= name_;
+<a name="__line2294"></a>	    if(right_paren) result &amp;= "\\left(";
+<a name="__line2295"></a>	    result &amp;= right_-&gt;sprint_latex(pars, parvalue,x,y,z);
+<a name="__line2296"></a>	    if(right_paren) result &amp;= "\\right)";
+<a name="__line2297"></a>	    return result;
+<a name="__line2298"></a>	}
 <a name="__line2299"></a>
-<a name="__line2300"></a>	    int runind = 0;
-<a name="__line2301"></a>	    in_this_-&gt;eval(orig_args, def_args, pars, tmp_, &amp;runind);
+<a name="__line2300"></a>
+<a name="__line2301"></a>	<span class=comment>// ---------- contained_in --------------------------------------------------------</span>
 <a name="__line2302"></a>
-<a name="__line2303"></a>	    for(int c=0; c&lt;runind; ++c)
-<a name="__line2304"></a>	    {
-<a name="__line2305"></a>		if(orig_args[0].str() == tmp_[c].str())
-<a name="__line2306"></a>		{
-<a name="__line2307"></a>		    result[(*ind)++] = "1";
-<a name="__line2308"></a>		    return;
-<a name="__line2309"></a>		}
-<a name="__line2310"></a>	    }
-<a name="__line2311"></a>	    result[(*ind)++] = "0";
-<a name="__line2312"></a>	}
-<a name="__line2313"></a>
-<a name="__line2314"></a>	void contained_in::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2315"></a>				    const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2316"></a>				    const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2317"></a>				    std::vector&lt;blop::var&gt; &amp;result,
-<a name="__line2318"></a>				    int *ind) const
-<a name="__line2319"></a>	{
-<a name="__line2320"></a>	    eval(args,def_args,pars,result,ind);
-<a name="__line2321"></a>	}
-<a name="__line2322"></a>
-<a name="__line2323"></a>	int contained_in::nargs() const
-<a name="__line2324"></a>	{
-<a name="__line2325"></a>	    if(nargs_&gt;=0) return nargs_;
-<a name="__line2326"></a>	    return in_this_-&gt;nargs();
-<a name="__line2327"></a>	}
-<a name="__line2328"></a>	int contained_in::npars() const
-<a name="__line2329"></a>	{
-<a name="__line2330"></a>	    if(npars_&gt;=0) return npars_;
-<a name="__line2331"></a>	    return in_this_-&gt;npars();
-<a name="__line2332"></a>	}
-<a name="__line2333"></a>
-<a name="__line2334"></a>	var contained_in::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool print_parvalue, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
-<a name="__line2335"></a>	{
-<a name="__line2336"></a>	    var result = "contained_in{";
-<a name="__line2337"></a>	    result &amp;= in_this_-&gt;sprint(pars,print_parvalue,variable_names,param_names);
-<a name="__line2338"></a>	    result &amp;= "}";
-<a name="__line2339"></a>	    return result;
-<a name="__line2340"></a>	}
-<a name="__line2341"></a>
+<a name="__line2303"></a>	contained_in::contained_in(function::core *a) : tmp_(a-&gt;n_out())
+<a name="__line2304"></a>	{
+<a name="__line2305"></a>	    in_this_ = a-&gt;clone();
+<a name="__line2306"></a>            <span class=comment>//if(in_this_-&gt;n_out() &gt; tmp_.size()) tmp_.resize(in_this_-&gt;n_out());</span>
+<a name="__line2307"></a>	}
+<a name="__line2308"></a>
+<a name="__line2309"></a>	contained_in::contained_in(const contained_in &amp;o) : tmp_(o.in_this_-&gt;n_out())
+<a name="__line2310"></a>	{
+<a name="__line2311"></a>	    in_this_ = o.in_this_-&gt;clone();
+<a name="__line2312"></a>            <span class=comment>//if(in_this_-&gt;n_out() &gt; tmp_.size()) tmp_.resize(in_this_-&gt;n_out());</span>
+<a name="__line2313"></a>	}
+<a name="__line2314"></a>
+<a name="__line2315"></a>	contained_in::~contained_in()
+<a name="__line2316"></a>	{
+<a name="__line2317"></a>	    delete in_this_;
+<a name="__line2318"></a>	}
+<a name="__line2319"></a>
+<a name="__line2320"></a>	<span class=comment>// evaluate</span>
+<a name="__line2321"></a>	void contained_in::eval(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2322"></a>				const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2323"></a>				const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2324"></a>				std::vector&lt;blop::var&gt; &amp;result,
+<a name="__line2325"></a>				int *ind) const
+<a name="__line2326"></a>	{
+<a name="__line2327"></a>	    vector&lt;var&gt; orig_args = args;
+<a name="__line2328"></a>
+<a name="__line2329"></a>	    int runind = 0;
+<a name="__line2330"></a>	    in_this_-&gt;eval(orig_args, def_args, pars, tmp_, &amp;runind);
+<a name="__line2331"></a>
+<a name="__line2332"></a>	    for(int c=0; c&lt;runind; ++c)
+<a name="__line2333"></a>	    {
+<a name="__line2334"></a>		if(orig_args[0].str() == tmp_[c].str())
+<a name="__line2335"></a>		{
+<a name="__line2336"></a>		    result[(*ind)++] = "1";
+<a name="__line2337"></a>		    return;
+<a name="__line2338"></a>		}
+<a name="__line2339"></a>	    }
+<a name="__line2340"></a>	    result[(*ind)++] = "0";
+<a name="__line2341"></a>	}
 <a name="__line2342"></a>
-<a name="__line2343"></a>        <span class=comment>// ---------- find_root -----------------------------------------------------------</span>
-<a name="__line2344"></a>        find_root::find_root(const function::core *func,
-<a name="__line2345"></a>                             const function::core *x1,
-<a name="__line2346"></a>                             const function::core *x2,
-<a name="__line2347"></a>                             const function::core *epsilon)
-<a name="__line2348"></a>
-<a name="__line2349"></a>	{
-<a name="__line2350"></a>	    func_ = func-&gt;clone();
-<a name="__line2351"></a>	    x1_ = x1-&gt;clone();
-<a name="__line2352"></a>	    x2_ = x2-&gt;clone();
-<a name="__line2353"></a>	    epsilon_ = epsilon-&gt;clone();
-<a name="__line2354"></a>	}
-<a name="__line2355"></a>	find_root::find_root(const find_root &amp;rhs)
-<a name="__line2356"></a>	{
-<a name="__line2357"></a>	    func_ = rhs.func_-&gt;clone();
-<a name="__line2358"></a>	    x1_   = rhs.x1_-&gt;clone();
-<a name="__line2359"></a>	    x2_   = rhs.x2_  -&gt;clone();
-<a name="__line2360"></a>	    epsilon_ = rhs.epsilon_-&gt;clone();
+<a name="__line2343"></a>	void contained_in::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2344"></a>				    const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2345"></a>				    const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2346"></a>				    std::vector&lt;blop::var&gt; &amp;result,
+<a name="__line2347"></a>				    int *ind) const
+<a name="__line2348"></a>	{
+<a name="__line2349"></a>	    eval(args,def_args,pars,result,ind);
+<a name="__line2350"></a>	}
+<a name="__line2351"></a>
+<a name="__line2352"></a>	int contained_in::nargs() const
+<a name="__line2353"></a>	{
+<a name="__line2354"></a>	    if(nargs_&gt;=0) return nargs_;
+<a name="__line2355"></a>	    return in_this_-&gt;nargs();
+<a name="__line2356"></a>	}
+<a name="__line2357"></a>	int contained_in::npars() const
+<a name="__line2358"></a>	{
+<a name="__line2359"></a>	    if(npars_&gt;=0) return npars_;
+<a name="__line2360"></a>	    return in_this_-&gt;npars();
 <a name="__line2361"></a>	}
-<a name="__line2362"></a>	int find_root::nargs() const
-<a name="__line2363"></a>	{
-<a name="__line2364"></a>	    if(nargs_&gt;=0) return nargs_;
-<a name="__line2365"></a>	    return std::max(std::max(x1_-&gt;nargs(),x2_-&gt;nargs()),std::max(func_-&gt;nargs(),epsilon_-&gt;nargs()));
-<a name="__line2366"></a>	}
-<a name="__line2367"></a>	int find_root::npars() const
-<a name="__line2368"></a>	{
-<a name="__line2369"></a>	    if(npars_&gt;=0) return npars_;
-<a name="__line2370"></a>	    return std::max(std::max(x1_-&gt;npars(),x2_-&gt;npars()),std::max(func_-&gt;npars(),epsilon_-&gt;npars()));
-<a name="__line2371"></a>	}
-<a name="__line2372"></a>	bool find_root::uses_arg(int argno) const
-<a name="__line2373"></a>	{
-<a name="__line2374"></a>	    if(func_-&gt;uses_arg(argno)) return true;
-<a name="__line2375"></a>	    if(x1_-&gt;uses_arg(argno)) return true;
-<a name="__line2376"></a>	    if(x2_-&gt;uses_arg(argno)) return true;
-<a name="__line2377"></a>	    if(epsilon_-&gt;uses_arg(argno)) return true;
-<a name="__line2378"></a>	    return false;
-<a name="__line2379"></a>	}
-<a name="__line2380"></a>	bool find_root::uses_par(int parno) const
-<a name="__line2381"></a>	{
-<a name="__line2382"></a>	    if(func_-&gt;uses_par(parno)) return true;
-<a name="__line2383"></a>	    if(x1_-&gt;uses_par(parno)) return true;
-<a name="__line2384"></a>	    if(x2_-&gt;uses_par(parno)) return true;
-<a name="__line2385"></a>	    if(epsilon_-&gt;uses_par(parno)) return true;
-<a name="__line2386"></a>	    return false;
-<a name="__line2387"></a>	}
-<a name="__line2388"></a>	int find_root::n_out() const
-<a name="__line2389"></a>	{
-<a name="__line2390"></a>	    return 1;
-<a name="__line2391"></a>	}
-<a name="__line2392"></a>	var find_root::sprint(const std::vector&lt;blop::var&gt; &amp;p, bool v, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
-<a name="__line2393"></a>        {
-<a name="__line2394"></a>            return "find_root::sprint is not yet implemented";
-<a name="__line2395"></a>        }
-<a name="__line2396"></a>	var find_root::sprint_latex(const std::vector&lt;blop::var&gt; &amp;p, bool v,
-<a name="__line2397"></a>					    const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line2398"></a>	{
-<a name="__line2399"></a>            return "find_root::sprint_latex is not yet implemented";
-<a name="__line2400"></a>        }
-<a name="__line2401"></a>        
-<a name="__line2402"></a>	void find_root::eval(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2403"></a>                             const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2404"></a>                             const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2405"></a>                             std::vector&lt;blop::var&gt; &amp;res,
-<a name="__line2406"></a>                             int *ind) const
-<a name="__line2407"></a>	{
-<a name="__line2408"></a>	    int nout_x1   = x1_-&gt;n_out();
-<a name="__line2409"></a>	    int nout_x2   = x2_-&gt;n_out();
-<a name="__line2410"></a>	    int nout_epsilon = epsilon_-&gt;n_out();
-<a name="__line2411"></a>
-<a name="__line2412"></a>	    std::vector&lt;blop::var&gt;
-<a name="__line2413"></a>		x1(nout_x1),
-<a name="__line2414"></a>		x2(nout_x2),
-<a name="__line2415"></a>		epsilon(nout_epsilon);
-<a name="__line2416"></a>
-<a name="__line2417"></a>	    {
-<a name="__line2418"></a>		int ind_tmp = 0;
-<a name="__line2419"></a>		x1_-&gt;eval(args, def_args, pars, x1, &amp;ind_tmp);
-<a name="__line2420"></a>	    }
-<a name="__line2421"></a>	    {
-<a name="__line2422"></a>		int ind_tmp = 0;
-<a name="__line2423"></a>		x2_-&gt;eval(args, def_args, pars, x2, &amp;ind_tmp);
-<a name="__line2424"></a>	    }
-<a name="__line2425"></a>	    {
-<a name="__line2426"></a>		int ind_tmp = 0;
-<a name="__line2427"></a>		epsilon_-&gt;eval(args, def_args, pars, epsilon, &amp;ind_tmp);
-<a name="__line2428"></a>	    }
-<a name="__line2429"></a>
-<a name="__line2430"></a>            function fff(func_);
-<a name="__line2431"></a>            fff.params(args);
-<a name="__line2432"></a>            fff.print_param_value(true);
-<a name="__line2433"></a>
-<a name="__line2434"></a>            const double tmp = blop::find_root(fff,x1[0],x2[0],epsilon[0]);
-<a name="__line2435"></a>            res[(*ind)++] = tmp;
-<a name="__line2436"></a>	}
-<a name="__line2437"></a>
-<a name="__line2438"></a>	void find_root::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2439"></a>                                 const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2440"></a>                                 const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2441"></a>                                 std::vector&lt;blop::var&gt; &amp;res,
-<a name="__line2442"></a>                                 int *ind) const
-<a name="__line2443"></a>	{
-<a name="__line2444"></a>	    int nout_x1   = x1_-&gt;n_out();
-<a name="__line2445"></a>	    int nout_x2   = x2_-&gt;n_out();
-<a name="__line2446"></a>	    int nout_epsilon = epsilon_-&gt;n_out();
-<a name="__line2447"></a>
-<a name="__line2448"></a>	    std::vector&lt;blop::var&gt;
-<a name="__line2449"></a>		x1(nout_x1),
-<a name="__line2450"></a>		x2(nout_x2),
-<a name="__line2451"></a>		epsilon(nout_epsilon);
-<a name="__line2452"></a>
-<a name="__line2453"></a>	    {
-<a name="__line2454"></a>		int ind_tmp = 0;
-<a name="__line2455"></a>		x1_-&gt;eval_dbl(args, def_args, pars, x1, &amp;ind_tmp);
-<a name="__line2456"></a>	    }
-<a name="__line2457"></a>	    {
-<a name="__line2458"></a>		int ind_tmp = 0;
-<a name="__line2459"></a>		x2_-&gt;eval_dbl(args, def_args, pars, x2, &amp;ind_tmp);
-<a name="__line2460"></a>	    }
-<a name="__line2461"></a>	    {
-<a name="__line2462"></a>		int ind_tmp = 0;
-<a name="__line2463"></a>		epsilon_-&gt;eval_dbl(args, def_args, pars, epsilon, &amp;ind_tmp);
-<a name="__line2464"></a>	    }
-<a name="__line2465"></a>
-<a name="__line2466"></a>            function fff(func_);
-<a name="__line2467"></a>            fff.params(args);
-<a name="__line2468"></a>
-<a name="__line2469"></a>            std::vector&lt;blop::var&gt; result(1);
-<a name="__line2470"></a>            res[(*ind)++].dbl() = blop::find_root(fff,x1[0],x2[0],epsilon[0]);
-<a name="__line2471"></a>	}
-<a name="__line2472"></a>
-<a name="__line2473"></a>        
-<a name="__line2474"></a>
-<a name="__line2475"></a>	<span class=comment>// ---------- value_in_interval ---------------------------------------------------</span>
-<a name="__line2476"></a>	value_in_interval::value_in_interval(const function::core *func,
-<a name="__line2477"></a>					     const function::core *from,
-<a name="__line2478"></a>					     const function::core *to,
-<a name="__line2479"></a>					     const function::core *step,
-<a name="__line2480"></a>					     const std::string &amp;name)
-<a name="__line2481"></a>	{
-<a name="__line2482"></a>	    func_ = func-&gt;clone();
-<a name="__line2483"></a>	    from_ = from-&gt;clone();
-<a name="__line2484"></a>	    to_   = to-&gt;clone();
-<a name="__line2485"></a>	    step_ = step-&gt;clone();
-<a name="__line2486"></a>	    name_ = name;
-<a name="__line2487"></a>	}
-<a name="__line2488"></a>	value_in_interval::value_in_interval(const value_in_interval &amp;rhs)
-<a name="__line2489"></a>	{
-<a name="__line2490"></a>	    func_ = rhs.func_-&gt;clone();
-<a name="__line2491"></a>	    from_ = rhs.from_-&gt;clone();
-<a name="__line2492"></a>	    to_   = rhs.to_  -&gt;clone();
-<a name="__line2493"></a>	    step_ = rhs.step_-&gt;clone();
-<a name="__line2494"></a>	    name_ = rhs.name_;
-<a name="__line2495"></a>	}
-<a name="__line2496"></a>	int value_in_interval::nargs() const
-<a name="__line2497"></a>	{
-<a name="__line2498"></a>	    if(nargs_&gt;=0)
-<a name="__line2499"></a>	    {
-<a name="__line2500"></a>		cerr&lt;&lt;"nargs set by user?"&lt;&lt;endl;
-<a name="__line2501"></a>		return nargs_;
-<a name="__line2502"></a>	    }
-<a name="__line2503"></a>	    return std::max(std::max(from_-&gt;nargs(),to_-&gt;nargs()),std::max(func_-&gt;nargs(),step_-&gt;nargs()));
-<a name="__line2504"></a>	}
-<a name="__line2505"></a>	int value_in_interval::npars() const
-<a name="__line2506"></a>	{
-<a name="__line2507"></a>	    if(npars_&gt;=0) return npars_;
-<a name="__line2508"></a>	    return std::max(std::max(from_-&gt;npars(),to_-&gt;npars()),step_-&gt;npars());
-<a name="__line2509"></a>	}
-<a name="__line2510"></a>	bool value_in_interval::uses_arg(int argno) const
-<a name="__line2511"></a>	{
-<a name="__line2512"></a>	    if(from_-&gt;uses_arg(argno)) return true;
-<a name="__line2513"></a>	    if(to_-&gt;uses_arg(argno)) return true;
-<a name="__line2514"></a>	    if(step_-&gt;uses_arg(argno)) return true;
-<a name="__line2515"></a>	    return false;
+<a name="__line2362"></a>
+<a name="__line2363"></a>	var contained_in::sprint(const std::vector&lt;blop::var&gt; &amp;pars, bool print_parvalue, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
+<a name="__line2364"></a>	{
+<a name="__line2365"></a>	    var result = "contained_in{";
+<a name="__line2366"></a>	    result &amp;= in_this_-&gt;sprint(pars,print_parvalue,variable_names,param_names);
+<a name="__line2367"></a>	    result &amp;= "}";
+<a name="__line2368"></a>	    return result;
+<a name="__line2369"></a>	}
+<a name="__line2370"></a>
+<a name="__line2371"></a>
+<a name="__line2372"></a>        <span class=comment>// ---------- find_root -----------------------------------------------------------</span>
+<a name="__line2373"></a>        find_root::find_root(const function::core *func,
+<a name="__line2374"></a>                             const function::core *x1,
+<a name="__line2375"></a>                             const function::core *x2,
+<a name="__line2376"></a>                             const function::core *epsilon)
+<a name="__line2377"></a>
+<a name="__line2378"></a>	{
+<a name="__line2379"></a>	    func_ = func-&gt;clone();
+<a name="__line2380"></a>	    x1_ = x1-&gt;clone();
+<a name="__line2381"></a>	    x2_ = x2-&gt;clone();
+<a name="__line2382"></a>	    epsilon_ = epsilon-&gt;clone();
+<a name="__line2383"></a>	}
+<a name="__line2384"></a>	find_root::find_root(const find_root &amp;rhs)
+<a name="__line2385"></a>	{
+<a name="__line2386"></a>	    func_ = rhs.func_-&gt;clone();
+<a name="__line2387"></a>	    x1_   = rhs.x1_-&gt;clone();
+<a name="__line2388"></a>	    x2_   = rhs.x2_  -&gt;clone();
+<a name="__line2389"></a>	    epsilon_ = rhs.epsilon_-&gt;clone();
+<a name="__line2390"></a>	}
+<a name="__line2391"></a>	int find_root::nargs() const
+<a name="__line2392"></a>	{
+<a name="__line2393"></a>	    if(nargs_&gt;=0) return nargs_;
+<a name="__line2394"></a>	    return std::max(std::max(x1_-&gt;nargs(),x2_-&gt;nargs()),std::max(func_-&gt;nargs(),epsilon_-&gt;nargs()));
+<a name="__line2395"></a>	}
+<a name="__line2396"></a>	int find_root::npars() const
+<a name="__line2397"></a>	{
+<a name="__line2398"></a>	    if(npars_&gt;=0) return npars_;
+<a name="__line2399"></a>	    return std::max(std::max(x1_-&gt;npars(),x2_-&gt;npars()),std::max(func_-&gt;npars(),epsilon_-&gt;npars()));
+<a name="__line2400"></a>	}
+<a name="__line2401"></a>	bool find_root::uses_arg(int argno) const
+<a name="__line2402"></a>	{
+<a name="__line2403"></a>	    if(func_-&gt;uses_arg(argno)) return true;
+<a name="__line2404"></a>	    if(x1_-&gt;uses_arg(argno)) return true;
+<a name="__line2405"></a>	    if(x2_-&gt;uses_arg(argno)) return true;
+<a name="__line2406"></a>	    if(epsilon_-&gt;uses_arg(argno)) return true;
+<a name="__line2407"></a>	    return false;
+<a name="__line2408"></a>	}
+<a name="__line2409"></a>	bool find_root::uses_par(int parno) const
+<a name="__line2410"></a>	{
+<a name="__line2411"></a>	    if(func_-&gt;uses_par(parno)) return true;
+<a name="__line2412"></a>	    if(x1_-&gt;uses_par(parno)) return true;
+<a name="__line2413"></a>	    if(x2_-&gt;uses_par(parno)) return true;
+<a name="__line2414"></a>	    if(epsilon_-&gt;uses_par(parno)) return true;
+<a name="__line2415"></a>	    return false;
+<a name="__line2416"></a>	}
+<a name="__line2417"></a>	int find_root::n_out() const
+<a name="__line2418"></a>	{
+<a name="__line2419"></a>	    return 1;
+<a name="__line2420"></a>	}
+<a name="__line2421"></a>	var find_root::sprint(const std::vector&lt;blop::var&gt; &amp;p, bool v, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
+<a name="__line2422"></a>        {
+<a name="__line2423"></a>            return "find_root::sprint is not yet implemented";
+<a name="__line2424"></a>        }
+<a name="__line2425"></a>	var find_root::sprint_latex(const std::vector&lt;blop::var&gt; &amp;p, bool v,
+<a name="__line2426"></a>					    const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line2427"></a>	{
+<a name="__line2428"></a>            return "find_root::sprint_latex is not yet implemented";
+<a name="__line2429"></a>        }
+<a name="__line2430"></a>        
+<a name="__line2431"></a>	void find_root::eval(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2432"></a>                             const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2433"></a>                             const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2434"></a>                             std::vector&lt;blop::var&gt; &amp;res,
+<a name="__line2435"></a>                             int *ind) const
+<a name="__line2436"></a>	{
+<a name="__line2437"></a>	    int nout_x1   = x1_-&gt;n_out();
+<a name="__line2438"></a>	    int nout_x2   = x2_-&gt;n_out();
+<a name="__line2439"></a>	    int nout_epsilon = epsilon_-&gt;n_out();
+<a name="__line2440"></a>
+<a name="__line2441"></a>	    std::vector&lt;blop::var&gt;
+<a name="__line2442"></a>		x1(nout_x1),
+<a name="__line2443"></a>		x2(nout_x2),
+<a name="__line2444"></a>		epsilon(nout_epsilon);
+<a name="__line2445"></a>
+<a name="__line2446"></a>	    {
+<a name="__line2447"></a>		int ind_tmp = 0;
+<a name="__line2448"></a>		x1_-&gt;eval(args, def_args, pars, x1, &amp;ind_tmp);
+<a name="__line2449"></a>	    }
+<a name="__line2450"></a>	    {
+<a name="__line2451"></a>		int ind_tmp = 0;
+<a name="__line2452"></a>		x2_-&gt;eval(args, def_args, pars, x2, &amp;ind_tmp);
+<a name="__line2453"></a>	    }
+<a name="__line2454"></a>	    {
+<a name="__line2455"></a>		int ind_tmp = 0;
+<a name="__line2456"></a>		epsilon_-&gt;eval(args, def_args, pars, epsilon, &amp;ind_tmp);
+<a name="__line2457"></a>	    }
+<a name="__line2458"></a>
+<a name="__line2459"></a>            function fff(func_);
+<a name="__line2460"></a>            fff.params(args);
+<a name="__line2461"></a>            fff.print_param_value(true);
+<a name="__line2462"></a>
+<a name="__line2463"></a>            const double tmp = blop::find_root(fff,x1[0],x2[0],epsilon[0]);
+<a name="__line2464"></a>            res[(*ind)++] = tmp;
+<a name="__line2465"></a>	}
+<a name="__line2466"></a>
+<a name="__line2467"></a>	void find_root::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2468"></a>                                 const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2469"></a>                                 const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2470"></a>                                 std::vector&lt;blop::var&gt; &amp;res,
+<a name="__line2471"></a>                                 int *ind) const
+<a name="__line2472"></a>	{
+<a name="__line2473"></a>	    int nout_x1   = x1_-&gt;n_out();
+<a name="__line2474"></a>	    int nout_x2   = x2_-&gt;n_out();
+<a name="__line2475"></a>	    int nout_epsilon = epsilon_-&gt;n_out();
+<a name="__line2476"></a>
+<a name="__line2477"></a>	    std::vector&lt;blop::var&gt;
+<a name="__line2478"></a>		x1(nout_x1),
+<a name="__line2479"></a>		x2(nout_x2),
+<a name="__line2480"></a>		epsilon(nout_epsilon);
+<a name="__line2481"></a>
+<a name="__line2482"></a>	    {
+<a name="__line2483"></a>		int ind_tmp = 0;
+<a name="__line2484"></a>		x1_-&gt;eval_dbl(args, def_args, pars, x1, &amp;ind_tmp);
+<a name="__line2485"></a>	    }
+<a name="__line2486"></a>	    {
+<a name="__line2487"></a>		int ind_tmp = 0;
+<a name="__line2488"></a>		x2_-&gt;eval_dbl(args, def_args, pars, x2, &amp;ind_tmp);
+<a name="__line2489"></a>	    }
+<a name="__line2490"></a>	    {
+<a name="__line2491"></a>		int ind_tmp = 0;
+<a name="__line2492"></a>		epsilon_-&gt;eval_dbl(args, def_args, pars, epsilon, &amp;ind_tmp);
+<a name="__line2493"></a>	    }
+<a name="__line2494"></a>
+<a name="__line2495"></a>            function fff(func_);
+<a name="__line2496"></a>            fff.params(args);
+<a name="__line2497"></a>
+<a name="__line2498"></a>            std::vector&lt;blop::var&gt; result(1);
+<a name="__line2499"></a>            res[(*ind)++].dbl() = blop::find_root(fff,x1[0],x2[0],epsilon[0]);
+<a name="__line2500"></a>	}
+<a name="__line2501"></a>
+<a name="__line2502"></a>        
+<a name="__line2503"></a>
+<a name="__line2504"></a>	<span class=comment>// ---------- value_in_interval ---------------------------------------------------</span>
+<a name="__line2505"></a>	value_in_interval::value_in_interval(const function::core *func,
+<a name="__line2506"></a>					     const function::core *from,
+<a name="__line2507"></a>					     const function::core *to,
+<a name="__line2508"></a>					     const function::core *step,
+<a name="__line2509"></a>					     const std::string &amp;name)
+<a name="__line2510"></a>	{
+<a name="__line2511"></a>	    func_ = func-&gt;clone();
+<a name="__line2512"></a>	    from_ = from-&gt;clone();
+<a name="__line2513"></a>	    to_   = to-&gt;clone();
+<a name="__line2514"></a>	    step_ = step-&gt;clone();
+<a name="__line2515"></a>	    name_ = name;
 <a name="__line2516"></a>	}
-<a name="__line2517"></a>	bool value_in_interval::uses_par(int parno) const
+<a name="__line2517"></a>	value_in_interval::value_in_interval(const value_in_interval &amp;rhs)
 <a name="__line2518"></a>	{
-<a name="__line2519"></a>	    if(from_-&gt;uses_par(parno)) return true;
-<a name="__line2520"></a>	    if(to_-&gt;uses_par(parno)) return true;
-<a name="__line2521"></a>	    if(step_-&gt;uses_par(parno)) return true;
-<a name="__line2522"></a>	    return false;
-<a name="__line2523"></a>	}
-<a name="__line2524"></a>	int value_in_interval::n_out() const
-<a name="__line2525"></a>	{
-<a name="__line2526"></a>	    return func_-&gt;n_out();
-<a name="__line2527"></a>	}
-<a name="__line2528"></a>	var value_in_interval::sprint(const std::vector&lt;blop::var&gt; &amp;p, bool v, std::map&lt;int,blop::var&gt; variable_names, std::map&lt;int,blop::var&gt; param_names) const
-<a name="__line2529"></a>	{
-<a name="__line2530"></a>	    var result = var(name_) &amp; "(";
-<a name="__line2531"></a>	    result &amp;= (func_-&gt;n_out()&gt;1?"[":"") &amp; func_-&gt;sprint(p,v,variable_names,param_names) &amp; (func_-&gt;n_out()&gt;1?"]":"");
-<a name="__line2532"></a>	    result &amp;= ",";
-<a name="__line2533"></a>	    result &amp;= (from_-&gt;n_out()&gt;1?"[":"") &amp; from_-&gt;sprint(p,v,variable_names,param_names) &amp; (from_-&gt;n_out()&gt;1?"]":"");
-<a name="__line2534"></a>	    result &amp;= ",";
-<a name="__line2535"></a>	    result &amp;= (to_-&gt;n_out()&gt;1?"[":"") &amp; to_-&gt;sprint(p,v,variable_names,param_names) &amp; (to_-&gt;n_out()&gt;1?"]":"");
-<a name="__line2536"></a>	    result &amp;= ",";
-<a name="__line2537"></a>	    result &amp;= (step_-&gt;n_out()&gt;1?"[":"") &amp; step_-&gt;sprint(p,v,variable_names,param_names) &amp; (step_-&gt;n_out()&gt;1?"]":"");
-<a name="__line2538"></a>	    result &amp;= ")";
-<a name="__line2539"></a>	    return result;
-<a name="__line2540"></a>	}
-<a name="__line2541"></a>	var value_in_interval::sprint_latex(const std::vector&lt;blop::var&gt; &amp;p, bool v,
-<a name="__line2542"></a>					    const var &amp;x, const var &amp;y, const var &amp;z) const
-<a name="__line2543"></a>	{
-<a name="__line2544"></a>	    var result = var("\\mathrm{") &amp; var(name_) &amp; "}\\left(";
-<a name="__line2545"></a>
-<a name="__line2546"></a>	    if(func_-&gt;n_out()&gt;1) result &amp;= "\\left[";
-<a name="__line2547"></a>	    result &amp;= func_-&gt;sprint_latex(p,v,x,y,z);
-<a name="__line2548"></a>	    if(func_-&gt;n_out()&gt;1) result &amp;= "\\right]";
-<a name="__line2549"></a>
-<a name="__line2550"></a>	    result &amp;= ",";
-<a name="__line2551"></a>
-<a name="__line2552"></a>	    if(from_-&gt;n_out()&gt;1) result &amp;= "\\left[";
-<a name="__line2553"></a>	    result &amp;= from_-&gt;sprint_latex(p,v,x,y,z);
-<a name="__line2554"></a>	    if(from_-&gt;n_out()&gt;1) result &amp;= "\\right]";
-<a name="__line2555"></a>
-<a name="__line2556"></a>	    result &amp;= ",";
-<a name="__line2557"></a>
-<a name="__line2558"></a>	    if(to_-&gt;n_out()&gt;1) result &amp;= "\\left[";
-<a name="__line2559"></a>	    result &amp;= to_-&gt;sprint_latex(p,v,x,y,z);
-<a name="__line2560"></a>	    if(to_-&gt;n_out()&gt;1) result &amp;= "\\right]";
-<a name="__line2561"></a>
-<a name="__line2562"></a>	    result &amp;= ",";
-<a name="__line2563"></a>
-<a name="__line2564"></a>	    if(step_-&gt;n_out()&gt;1) result &amp;= "\\left[";
-<a name="__line2565"></a>	    result &amp;= step_-&gt;sprint_latex(p,v,x,y,z);
-<a name="__line2566"></a>	    if(step_-&gt;n_out()&gt;1) result &amp;= "\\right]";
-<a name="__line2567"></a>
-<a name="__line2568"></a>	    result &amp;= "\\right)";
-<a name="__line2569"></a>
-<a name="__line2570"></a>	    return result;
-<a name="__line2571"></a>	}
-<a name="__line2572"></a>	void value_in_interval::eval(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2573"></a>				     const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2574"></a>				     const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2575"></a>				     std::vector&lt;blop::var&gt; &amp;res,
-<a name="__line2576"></a>				     int *ind) const
-<a name="__line2577"></a>	{
-<a name="__line2578"></a>	    <span class=comment>//int nout_func = func_-&gt;n_out();</span>
-<a name="__line2579"></a>	    int nout_from = from_-&gt;n_out();
-<a name="__line2580"></a>	    int nout_to   = to_  -&gt;n_out();
-<a name="__line2581"></a>	    int nout_step = step_-&gt;n_out();
-<a name="__line2582"></a>
-<a name="__line2583"></a>	    std::vector&lt;blop::var&gt;
-<a name="__line2584"></a>		from(nout_from),
-<a name="__line2585"></a>		to  (nout_to  ),
-<a name="__line2586"></a>		step(nout_step);
-<a name="__line2587"></a>
-<a name="__line2588"></a>	    {
-<a name="__line2589"></a>		int ind_tmp = 0;
-<a name="__line2590"></a>		from_-&gt;eval(args, def_args, pars, from, &amp;ind_tmp);
-<a name="__line2591"></a>	    }
-<a name="__line2592"></a>	    {
-<a name="__line2593"></a>		int ind_tmp = 0;
-<a name="__line2594"></a>		to_  -&gt;eval(args, def_args, pars, to  , &amp;ind_tmp);
-<a name="__line2595"></a>	    }
-<a name="__line2596"></a>	    {
-<a name="__line2597"></a>		int ind_tmp = 0;
-<a name="__line2598"></a>		step_-&gt;eval(args, def_args, pars, step, &amp;ind_tmp);
-<a name="__line2599"></a>	    }
-<a name="__line2600"></a>		
-<a name="__line2601"></a>	    from.resize(std::min(nout_from,nout_to));
-<a name="__line2602"></a>	    to  .resize(std::min(nout_from,nout_to));
-<a name="__line2603"></a>	    step.resize(std::min(nout_from,nout_to),0.0);
-<a name="__line2604"></a>
-<a name="__line2605"></a>            for(unsigned int i=0; i&lt;from.size(); ++i)
-<a name="__line2606"></a>            {
-<a name="__line2607"></a>                if(to[i].dbl() &lt; from[i].dbl())
-<a name="__line2608"></a>                {
-<a name="__line2609"></a>                    for(int i=0; i&lt;n_out(); ++i)
-<a name="__line2610"></a>                    {
-<a name="__line2611"></a>                        res[(*ind)++] = 0;
-<a name="__line2612"></a>                    }
-<a name="__line2613"></a>                    return;
-<a name="__line2614"></a>                }
-<a name="__line2615"></a>            }
+<a name="__line2519"></a>	    func_ = rhs.func_-&gt;clone();
+<a name="__line2520"></a>	    from_ = rhs.from_-&gt;clone();
+<a name="__line2521"></a>	    to_   = rhs.to_  -&gt;clone();
+<a name="__line2522"></a>	    step_ = rhs.step_-&gt;clone();
+<a name="__line2523"></a>	    name_ = rhs.name_;
+<a name="__line2524"></a>	}
+<a name="__line2525"></a>	int value_in_interval::nargs() const
+<a name="__line2526"></a>	{
+<a name="__line2527"></a>	    if(nargs_&gt;=0)
+<a name="__line2528"></a>	    {
+<a name="__line2529"></a>		cerr&lt;&lt;"nargs set by user?"&lt;&lt;endl;
+<a name="__line2530"></a>		return nargs_;
+<a name="__line2531"></a>	    }
+<a name="__line2532"></a>	    return std::max(std::max(from_-&gt;nargs(),to_-&gt;nargs()),std::max(func_-&gt;nargs(),step_-&gt;nargs()));
+<a name="__line2533"></a>	}
+<a name="__line2534"></a>	int value_in_interval::npars() const
+<a name="__line2535"></a>	{
+<a name="__line2536"></a>	    if(npars_&gt;=0) return npars_;
+<a name="__line2537"></a>	    return std::max(std::max(from_-&gt;npars(),to_-&gt;npars()),step_-&gt;npars());
+<a name="__line2538"></a>	}
+<a name="__line2539"></a>	bool value_in_interval::uses_arg(int argno) const
+<a name="__line2540"></a>	{
+<a name="__line2541"></a>	    if(from_-&gt;uses_arg(argno)) return true;
+<a name="__line2542"></a>	    if(to_-&gt;uses_arg(argno)) return true;
+<a name="__line2543"></a>	    if(step_-&gt;uses_arg(argno)) return true;
+<a name="__line2544"></a>	    return false;
+<a name="__line2545"></a>	}
+<a name="__line2546"></a>	bool value_in_interval::uses_par(int parno) const
+<a name="__line2547"></a>	{
+<a name="__line2548"></a>	    if(from_-&gt;uses_par(parno)) return true;
+<a name="__line2549"></a>	    if(to_-&gt;uses_par(parno)) return true;
+<a name="__line2550"></a>	    if(step_-&gt;uses_par(parno)) return true;
+<a name="__line2551"></a>	    return false;
+<a name="__line2552"></a>	}
+<a name="__line2553"></a>	int value_in_interval::n_out() const
+<a name="__line2554"></a>	{
+<a name="__line2555"></a>	    return func_-&gt;n_out();
+<a name="__line2556"></a>	}
+<a name="__line2557"></a>	var value_in_interval::sprint(const std::vector&lt;blop::var&gt; &amp;p, bool v, std::map&lt;unsigned int,blop::var&gt; variable_names, std::map&lt;unsigned int,blop::var&gt; param_names) const
+<a name="__line2558"></a>	{
+<a name="__line2559"></a>	    var result = var(name_) &amp; "(";
+<a name="__line2560"></a>	    result &amp;= (func_-&gt;n_out()&gt;1?"[":"") &amp; func_-&gt;sprint(p,v,variable_names,param_names) &amp; (func_-&gt;n_out()&gt;1?"]":"");
+<a name="__line2561"></a>	    result &amp;= ",";
+<a name="__line2562"></a>	    result &amp;= (from_-&gt;n_out()&gt;1?"[":"") &amp; from_-&gt;sprint(p,v,variable_names,param_names) &amp; (from_-&gt;n_out()&gt;1?"]":"");
+<a name="__line2563"></a>	    result &amp;= ",";
+<a name="__line2564"></a>	    result &amp;= (to_-&gt;n_out()&gt;1?"[":"") &amp; to_-&gt;sprint(p,v,variable_names,param_names) &amp; (to_-&gt;n_out()&gt;1?"]":"");
+<a name="__line2565"></a>	    result &amp;= ",";
+<a name="__line2566"></a>	    result &amp;= (step_-&gt;n_out()&gt;1?"[":"") &amp; step_-&gt;sprint(p,v,variable_names,param_names) &amp; (step_-&gt;n_out()&gt;1?"]":"");
+<a name="__line2567"></a>	    result &amp;= ")";
+<a name="__line2568"></a>	    return result;
+<a name="__line2569"></a>	}
+<a name="__line2570"></a>	var value_in_interval::sprint_latex(const std::vector&lt;blop::var&gt; &amp;p, bool v,
+<a name="__line2571"></a>					    const var &amp;x, const var &amp;y, const var &amp;z) const
+<a name="__line2572"></a>	{
+<a name="__line2573"></a>	    var result = var("\\mathrm{") &amp; var(name_) &amp; "}\\left(";
+<a name="__line2574"></a>
+<a name="__line2575"></a>	    if(func_-&gt;n_out()&gt;1) result &amp;= "\\left[";
+<a name="__line2576"></a>	    result &amp;= func_-&gt;sprint_latex(p,v,x,y,z);
+<a name="__line2577"></a>	    if(func_-&gt;n_out()&gt;1) result &amp;= "\\right]";
+<a name="__line2578"></a>
+<a name="__line2579"></a>	    result &amp;= ",";
+<a name="__line2580"></a>
+<a name="__line2581"></a>	    if(from_-&gt;n_out()&gt;1) result &amp;= "\\left[";
+<a name="__line2582"></a>	    result &amp;= from_-&gt;sprint_latex(p,v,x,y,z);
+<a name="__line2583"></a>	    if(from_-&gt;n_out()&gt;1) result &amp;= "\\right]";
+<a name="__line2584"></a>
+<a name="__line2585"></a>	    result &amp;= ",";
+<a name="__line2586"></a>
+<a name="__line2587"></a>	    if(to_-&gt;n_out()&gt;1) result &amp;= "\\left[";
+<a name="__line2588"></a>	    result &amp;= to_-&gt;sprint_latex(p,v,x,y,z);
+<a name="__line2589"></a>	    if(to_-&gt;n_out()&gt;1) result &amp;= "\\right]";
+<a name="__line2590"></a>
+<a name="__line2591"></a>	    result &amp;= ",";
+<a name="__line2592"></a>
+<a name="__line2593"></a>	    if(step_-&gt;n_out()&gt;1) result &amp;= "\\left[";
+<a name="__line2594"></a>	    result &amp;= step_-&gt;sprint_latex(p,v,x,y,z);
+<a name="__line2595"></a>	    if(step_-&gt;n_out()&gt;1) result &amp;= "\\right]";
+<a name="__line2596"></a>
+<a name="__line2597"></a>	    result &amp;= "\\right)";
+<a name="__line2598"></a>
+<a name="__line2599"></a>	    return result;
+<a name="__line2600"></a>	}
+<a name="__line2601"></a>	void value_in_interval::eval(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2602"></a>				     const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2603"></a>				     const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2604"></a>				     std::vector&lt;blop::var&gt; &amp;res,
+<a name="__line2605"></a>				     int *ind) const
+<a name="__line2606"></a>	{
+<a name="__line2607"></a>	    <span class=comment>//int nout_func = func_-&gt;n_out();</span>
+<a name="__line2608"></a>	    int nout_from = from_-&gt;n_out();
+<a name="__line2609"></a>	    int nout_to   = to_  -&gt;n_out();
+<a name="__line2610"></a>	    int nout_step = step_-&gt;n_out();
+<a name="__line2611"></a>
+<a name="__line2612"></a>	    std::vector&lt;blop::var&gt;
+<a name="__line2613"></a>		from(nout_from),
+<a name="__line2614"></a>		to  (nout_to  ),
+<a name="__line2615"></a>		step(nout_step);
 <a name="__line2616"></a>
-<a name="__line2617"></a>	    for(unsigned int i=0; i&lt;step.size(); ++i)
-<a name="__line2618"></a>	    {
-<a name="__line2619"></a>		if(step[i].dbl() == 0.0) step[i] = std::abs(to[i].dbl()-from[i].dbl())/100.0;
+<a name="__line2617"></a>	    {
+<a name="__line2618"></a>		int ind_tmp = 0;
+<a name="__line2619"></a>		from_-&gt;eval(args, def_args, pars, from, &amp;ind_tmp);
 <a name="__line2620"></a>	    }
-<a name="__line2621"></a>		
-<a name="__line2622"></a>	    if(evaluate_at_interval_centers())
-<a name="__line2623"></a>	    {
-<a name="__line2624"></a>		for(unsigned int i=0; i&lt;from.size(); ++i)
-<a name="__line2625"></a>		{
-<a name="__line2626"></a>		    if(step[i].dbl()&gt;0) from[i] += step[i].dbl()*0.5;
-<a name="__line2627"></a>		}
+<a name="__line2621"></a>	    {
+<a name="__line2622"></a>		int ind_tmp = 0;
+<a name="__line2623"></a>		to_  -&gt;eval(args, def_args, pars, to  , &amp;ind_tmp);
+<a name="__line2624"></a>	    }
+<a name="__line2625"></a>	    {
+<a name="__line2626"></a>		int ind_tmp = 0;
+<a name="__line2627"></a>		step_-&gt;eval(args, def_args, pars, step, &amp;ind_tmp);
 <a name="__line2628"></a>	    }
 <a name="__line2629"></a>		
-<a name="__line2630"></a>	    std::vector&lt;blop::var&gt; final_result  (n_out());
-<a name="__line2631"></a>	    std::vector&lt;blop::var&gt; current_result(n_out());
-<a name="__line2632"></a>
-<a name="__line2633"></a>	    std::vector&lt;blop::var&gt; func_args = from;
-<a name="__line2634"></a>	    int count = 0;
-<a name="__line2635"></a>	    for(bool could_increment=true; could_increment; ++count)
-<a name="__line2636"></a>	    {
-<a name="__line2637"></a>		int ind_tmp = 0;
-<a name="__line2638"></a>		func_-&gt;eval(func_args, def_args, pars, current_result, &amp;ind_tmp);
-<a name="__line2639"></a>
-<a name="__line2640"></a>		accumulate_result(count,func_args, def_args, pars, step, current_result, final_result);
-<a name="__line2641"></a>
-<a name="__line2642"></a>		could_increment = false;
-<a name="__line2643"></a>		for(unsigned int i=0; i&lt;func_args.size(); ++i)
-<a name="__line2644"></a>		{
-<a name="__line2645"></a>		    <span class=comment>// If this argument is not to be incremented, skip it.</span>
-<a name="__line2646"></a>		    if(from[i].dbl() == to[i].dbl()) continue;
-<a name="__line2647"></a>
-<a name="__line2648"></a>		    <span class=comment>// otherwise increment the given argument by the</span>
-<a name="__line2649"></a>		    <span class=comment>// corresponding step</span>
-<a name="__line2650"></a>		    func_args[i] += step[i];
-<a name="__line2651"></a>
-<a name="__line2652"></a>		    <span class=comment>// If 'to' (upper limit of the loop of this argument)</span>
-<a name="__line2653"></a>		    <span class=comment>// has not been reached, everything is good, stop here</span>
-<a name="__line2654"></a>		    if(func_args[i].dbl() &lt; to[i].dbl()+step[i].dbl()*0.1)
-<a name="__line2655"></a>		    {
-<a name="__line2656"></a>			could_increment = true;
-<a name="__line2657"></a>			break;
-<a name="__line2658"></a>		    }
-<a name="__line2659"></a>
-<a name="__line2660"></a>		    <span class=comment>// Otherwise set it back to the starting value, and let</span>
-<a name="__line2661"></a>		    <span class=comment>// the loop continue, i.e. increase the next higher (free)</span>
-<a name="__line2662"></a>		    <span class=comment>// argument</span>
-<a name="__line2663"></a>		    func_args[i] = from[i];
-<a name="__line2664"></a>		}
-<a name="__line2665"></a>	    }
-<a name="__line2666"></a>
-<a name="__line2667"></a>	    for(unsigned int i=0; i&lt;final_result.size(); ++i)
-<a name="__line2668"></a>	    {
-<a name="__line2669"></a>		res[(*ind)++] = final_result[i];
-<a name="__line2670"></a>	    }
-<a name="__line2671"></a>	}
-<a name="__line2672"></a>
-<a name="__line2673"></a>	void value_in_interval::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
-<a name="__line2674"></a>					 const std::vector&lt;blop::var&gt; &amp;def_args,
-<a name="__line2675"></a>					 const std::vector&lt;blop::var&gt; &amp;pars,
-<a name="__line2676"></a>					 std::vector&lt;blop::var&gt; &amp;res,
-<a name="__line2677"></a>					 int *ind) const
-<a name="__line2678"></a>	{
-<a name="__line2679"></a>	    <span class=comment>//int nout_func = func_-&gt;n_out();</span>
-<a name="__line2680"></a>	    int nout_from = from_-&gt;n_out();
-<a name="__line2681"></a>	    int nout_to   = to_  -&gt;n_out();
-<a name="__line2682"></a>	    int nout_step = step_-&gt;n_out();
-<a name="__line2683"></a>
-<a name="__line2684"></a>	    std::vector&lt;blop::var&gt;
-<a name="__line2685"></a>		from(nout_from),
-<a name="__line2686"></a>		to  (nout_to  ),
-<a name="__line2687"></a>		step(nout_step);
+<a name="__line2630"></a>	    from.resize(std::min(nout_from,nout_to));
+<a name="__line2631"></a>	    to  .resize(std::min(nout_from,nout_to));
+<a name="__line2632"></a>	    step.resize(std::min(nout_from,nout_to),0.0);
+<a name="__line2633"></a>
+<a name="__line2634"></a>            for(unsigned int i=0; i&lt;from.size(); ++i)
+<a name="__line2635"></a>            {
+<a name="__line2636"></a>                if(to[i].dbl() &lt; from[i].dbl())
+<a name="__line2637"></a>                {
+<a name="__line2638"></a>                    for(int i=0; i&lt;n_out(); ++i)
+<a name="__line2639"></a>                    {
+<a name="__line2640"></a>                        res[(*ind)++] = 0;
+<a name="__line2641"></a>                    }
+<a name="__line2642"></a>                    return;
+<a name="__line2643"></a>                }
+<a name="__line2644"></a>            }
+<a name="__line2645"></a>
+<a name="__line2646"></a>	    for(unsigned int i=0; i&lt;step.size(); ++i)
+<a name="__line2647"></a>	    {
+<a name="__line2648"></a>		if(step[i].dbl() == 0.0) step[i] = std::abs(to[i].dbl()-from[i].dbl())/100.0;
+<a name="__line2649"></a>	    }
+<a name="__line2650"></a>		
+<a name="__line2651"></a>	    if(evaluate_at_interval_centers())
+<a name="__line2652"></a>	    {
+<a name="__line2653"></a>		for(unsigned int i=0; i&lt;from.size(); ++i)
+<a name="__line2654"></a>		{
+<a name="__line2655"></a>		    if(step[i].dbl()&gt;0) from[i] += step[i].dbl()*0.5;
+<a name="__line2656"></a>		}
+<a name="__line2657"></a>	    }
+<a name="__line2658"></a>		
+<a name="__line2659"></a>	    std::vector&lt;blop::var&gt; final_result  (n_out());
+<a name="__line2660"></a>	    std::vector&lt;blop::var&gt; current_result(n_out());
+<a name="__line2661"></a>
+<a name="__line2662"></a>	    std::vector&lt;blop::var&gt; func_args = from;
+<a name="__line2663"></a>	    int count = 0;
+<a name="__line2664"></a>	    for(bool could_increment=true; could_increment; ++count)
+<a name="__line2665"></a>	    {
+<a name="__line2666"></a>		int ind_tmp = 0;
+<a name="__line2667"></a>		func_-&gt;eval(func_args, def_args, pars, current_result, &amp;ind_tmp);
+<a name="__line2668"></a>
+<a name="__line2669"></a>		accumulate_result(count,func_args, def_args, pars, step, current_result, final_result);
+<a name="__line2670"></a>
+<a name="__line2671"></a>		could_increment = false;
+<a name="__line2672"></a>		for(unsigned int i=0; i&lt;func_args.size(); ++i)
+<a name="__line2673"></a>		{
+<a name="__line2674"></a>		    <span class=comment>// If this argument is not to be incremented, skip it.</span>
+<a name="__line2675"></a>		    if(from[i].dbl() == to[i].dbl()) continue;
+<a name="__line2676"></a>
+<a name="__line2677"></a>		    <span class=comment>// otherwise increment the given argument by the</span>
+<a name="__line2678"></a>		    <span class=comment>// corresponding step</span>
+<a name="__line2679"></a>		    func_args[i] += step[i];
+<a name="__line2680"></a>
+<a name="__line2681"></a>		    <span class=comment>// If 'to' (upper limit of the loop of this argument)</span>
+<a name="__line2682"></a>		    <span class=comment>// has not been reached, everything is good, stop here</span>
+<a name="__line2683"></a>		    if(func_args[i].dbl() &lt; to[i].dbl()+step[i].dbl()*0.1)
+<a name="__line2684"></a>		    {
+<a name="__line2685"></a>			could_increment = true;
+<a name="__line2686"></a>			break;
+<a name="__line2687"></a>		    }
 <a name="__line2688"></a>
-<a name="__line2689"></a>	    {
-<a name="__line2690"></a>		int ind_tmp = 0;
-<a name="__line2691"></a>		from_-&gt;eval_dbl(args, def_args, pars, from, &amp;ind_tmp);
-<a name="__line2692"></a>	    }
-<a name="__line2693"></a>	    {
-<a name="__line2694"></a>		int ind_tmp = 0;
-<a name="__line2695"></a>		to_  -&gt;eval_dbl(args, def_args, pars, to  , &amp;ind_tmp);
-<a name="__line2696"></a>	    }
+<a name="__line2689"></a>		    <span class=comment>// Otherwise set it back to the starting value, and let</span>
+<a name="__line2690"></a>		    <span class=comment>// the loop continue, i.e. increase the next higher (free)</span>
+<a name="__line2691"></a>		    <span class=comment>// argument</span>
+<a name="__line2692"></a>		    func_args[i] = from[i];
+<a name="__line2693"></a>		}
+<a name="__line2694"></a>	    }
+<a name="__line2695"></a>
+<a name="__line2696"></a>	    for(unsigned int i=0; i&lt;final_result.size(); ++i)
 <a name="__line2697"></a>	    {
-<a name="__line2698"></a>		int ind_tmp = 0;
-<a name="__line2699"></a>		step_-&gt;eval_dbl(args, def_args, pars, step, &amp;ind_tmp);
-<a name="__line2700"></a>	    }
-<a name="__line2701"></a>		
-<a name="__line2702"></a>	    from.resize(std::min(nout_from,nout_to));
-<a name="__line2703"></a>	    to  .resize(std::min(nout_from,nout_to));
-<a name="__line2704"></a>	    step.resize(std::min(nout_from,nout_to),0.0);
-<a name="__line2705"></a>
-<a name="__line2706"></a>	    for(unsigned int i=0; i&lt;step.size(); ++i)
-<a name="__line2707"></a>	    {
-<a name="__line2708"></a>		if(step[i].dbl() == 0.0) step[i].dbl((to[i].dbl()-from[i].dbl())/100.0);
-<a name="__line2709"></a>	    }
-<a name="__line2710"></a>		
-<a name="__line2711"></a>	    if(evaluate_at_interval_centers())
-<a name="__line2712"></a>	    {
-<a name="__line2713"></a>		for(unsigned int i=0; i&lt;from.size(); ++i)
-<a name="__line2714"></a>		{
-<a name="__line2715"></a>		    if(step[i].dbl()&gt;0) from[i].dbl(from[i].dbl()+step[i].dbl()*0.5);
-<a name="__line2716"></a>		}
-<a name="__line2717"></a>	    }
-<a name="__line2718"></a>		
-<a name="__line2719"></a>	    std::vector&lt;blop::var&gt; final_result  (n_out());
-<a name="__line2720"></a>	    std::vector&lt;blop::var&gt; current_result(n_out());
-<a name="__line2721"></a>
-<a name="__line2722"></a>	    std::vector&lt;blop::var&gt; func_args = from;
-<a name="__line2723"></a>	    int count = 0;
-<a name="__line2724"></a>	    for(bool could_increment=true; could_increment; ++count)
-<a name="__line2725"></a>	    {
-<a name="__line2726"></a>		int ind_tmp = 0;
-<a name="__line2727"></a>		func_-&gt;eval_dbl(func_args, def_args, pars, current_result, &amp;ind_tmp);
-<a name="__line2728"></a>
-<a name="__line2729"></a>		accumulate_result_dbl(count,func_args, def_args, pars, step, current_result, final_result);
-<a name="__line2730"></a>
-<a name="__line2731"></a>		could_increment = false;
-<a name="__line2732"></a>		for(unsigned int i=0; i&lt;func_args.size(); ++i)
-<a name="__line2733"></a>		{
-<a name="__line2734"></a>		    <span class=comment>// If this argument is not to be incremented, skip it.</span>
-<a name="__line2735"></a>		    if(from[i].dbl() == to[i].dbl()) continue;
-<a name="__line2736"></a>
-<a name="__line2737"></a>		    <span class=comment>// otherwise increment the given argument by the</span>
-<a name="__line2738"></a>		    <span class=comment>// corresponding step</span>
-<a name="__line2739"></a>		    func_args[i].dbl(func_args[i].dbl()+step[i].dbl());
-<a name="__line2740"></a>
-<a name="__line2741"></a>		    <span class=comment>// If 'to' (upper limit of the loop of this argument)</span>
-<a name="__line2742"></a>		    <span class=comment>// has not been reached, everything is good, stp here</span>
-<a name="__line2743"></a>		    if(func_args[i].dbl() &lt; to[i].dbl()+step[i].dbl()*0.1)
-<a name="__line2744"></a>		    {
-<a name="__line2745"></a>			could_increment = true;
-<a name="__line2746"></a>			break;
-<a name="__line2747"></a>		    }
-<a name="__line2748"></a>
-<a name="__line2749"></a>		    <span class=comment>// Otherwise set it back to the starting value, and let</span>
-<a name="__line2750"></a>		    <span class=comment>// the loop continue, i.e. increase the next higher (free)</span>
-<a name="__line2751"></a>		    <span class=comment>// argument</span>
-<a name="__line2752"></a>		    func_args[i].dbl(from[i].dbl());
-<a name="__line2753"></a>		}
-<a name="__line2754"></a>	    }
-<a name="__line2755"></a>
-<a name="__line2756"></a>	    for(unsigned int i=0; i&lt;final_result.size(); ++i)
-<a name="__line2757"></a>	    {
-<a name="__line2758"></a>		res[(*ind)++].dbl(final_result[i].dbl());
-<a name="__line2759"></a>	    }
-<a name="__line2760"></a>	}
-<a name="__line2761"></a>		
-<a name="__line2762"></a>	
-<a name="__line2763"></a>    }
-<a name="__line2764"></a>}
+<a name="__line2698"></a>		res[(*ind)++] = final_result[i];
+<a name="__line2699"></a>	    }
+<a name="__line2700"></a>	}
+<a name="__line2701"></a>
+<a name="__line2702"></a>	void value_in_interval::eval_dbl(const std::vector&lt;blop::var&gt; &amp;args,
+<a name="__line2703"></a>					 const std::vector&lt;blop::var&gt; &amp;def_args,
+<a name="__line2704"></a>					 const std::vector&lt;blop::var&gt; &amp;pars,
+<a name="__line2705"></a>					 std::vector&lt;blop::var&gt; &amp;res,
+<a name="__line2706"></a>					 int *ind) const
+<a name="__line2707"></a>	{
+<a name="__line2708"></a>	    <span class=comment>//int nout_func = func_-&gt;n_out();</span>
+<a name="__line2709"></a>	    int nout_from = from_-&gt;n_out();
+<a name="__line2710"></a>	    int nout_to   = to_  -&gt;n_out();
+<a name="__line2711"></a>	    int nout_step = step_-&gt;n_out();
+<a name="__line2712"></a>
+<a name="__line2713"></a>	    std::vector&lt;blop::var&gt;
+<a name="__line2714"></a>		from(nout_from),
+<a name="__line2715"></a>		to  (nout_to  ),
+<a name="__line2716"></a>		step(nout_step);
+<a name="__line2717"></a>
+<a name="__line2718"></a>	    {
+<a name="__line2719"></a>		int ind_tmp = 0;
+<a name="__line2720"></a>		from_-&gt;eval_dbl(args, def_args, pars, from, &amp;ind_tmp);
+<a name="__line2721"></a>	    }
+<a name="__line2722"></a>	    {
+<a name="__line2723"></a>		int ind_tmp = 0;
+<a name="__line2724"></a>		to_  -&gt;eval_dbl(args, def_args, pars, to  , &amp;ind_tmp);
+<a name="__line2725"></a>	    }
+<a name="__line2726"></a>	    {
+<a name="__line2727"></a>		int ind_tmp = 0;
+<a name="__line2728"></a>		step_-&gt;eval_dbl(args, def_args, pars, step, &amp;ind_tmp);
+<a name="__line2729"></a>	    }
+<a name="__line2730"></a>		
+<a name="__line2731"></a>	    from.resize(std::min(nout_from,nout_to));
+<a name="__line2732"></a>	    to  .resize(std::min(nout_from,nout_to));
+<a name="__line2733"></a>	    step.resize(std::min(nout_from,nout_to),0.0);
+<a name="__line2734"></a>
+<a name="__line2735"></a>	    for(unsigned int i=0; i&lt;step.size(); ++i)
+<a name="__line2736"></a>	    {
+<a name="__line2737"></a>		if(step[i].dbl() == 0.0) step[i].dbl((to[i].dbl()-from[i].dbl())/100.0);
+<a name="__line2738"></a>	    }
+<a name="__line2739"></a>		
+<a name="__line2740"></a>	    if(evaluate_at_interval_centers())
+<a name="__line2741"></a>	    {
+<a name="__line2742"></a>		for(unsigned int i=0; i&lt;from.size(); ++i)
+<a name="__line2743"></a>		{
+<a name="__line2744"></a>		    if(step[i].dbl()&gt;0) from[i].dbl(from[i].dbl()+step[i].dbl()*0.5);
+<a name="__line2745"></a>		}
+<a name="__line2746"></a>	    }
+<a name="__line2747"></a>		
+<a name="__line2748"></a>	    std::vector&lt;blop::var&gt; final_result  (n_out());
+<a name="__line2749"></a>	    std::vector&lt;blop::var&gt; current_result(n_out());
+<a name="__line2750"></a>
+<a name="__line2751"></a>	    std::vector&lt;blop::var&gt; func_args = from;
+<a name="__line2752"></a>	    int count = 0;
+<a name="__line2753"></a>	    for(bool could_increment=true; could_increment; ++count)
+<a name="__line2754"></a>	    {
+<a name="__line2755"></a>		int ind_tmp = 0;
+<a name="__line2756"></a>		func_-&gt;eval_dbl(func_args, def_args, pars, current_result, &amp;ind_tmp);
+<a name="__line2757"></a>
+<a name="__line2758"></a>		accumulate_result_dbl(count,func_args, def_args, pars, step, current_result, final_result);
+<a name="__line2759"></a>
+<a name="__line2760"></a>		could_increment = false;
+<a name="__line2761"></a>		for(unsigned int i=0; i&lt;func_args.size(); ++i)
+<a name="__line2762"></a>		{
+<a name="__line2763"></a>		    <span class=comment>// If this argument is not to be incremented, skip it.</span>
+<a name="__line2764"></a>		    if(from[i].dbl() == to[i].dbl()) continue;
+<a name="__line2765"></a>
+<a name="__line2766"></a>		    <span class=comment>// otherwise increment the given argument by the</span>
+<a name="__line2767"></a>		    <span class=comment>// corresponding step</span>
+<a name="__line2768"></a>		    func_args[i].dbl(func_args[i].dbl()+step[i].dbl());
+<a name="__line2769"></a>
+<a name="__line2770"></a>		    <span class=comment>// If 'to' (upper limit of the loop of this argument)</span>
+<a name="__line2771"></a>		    <span class=comment>// has not been reached, everything is good, stp here</span>
+<a name="__line2772"></a>		    if(func_args[i].dbl() &lt; to[i].dbl()+step[i].dbl()*0.1)
+<a name="__line2773"></a>		    {
+<a name="__line2774"></a>			could_increment = true;
+<a name="__line2775"></a>			break;
+<a name="__line2776"></a>		    }
+<a name="__line2777"></a>
+<a name="__line2778"></a>		    <span class=comment>// Otherwise set it back to the starting value, and let</span>
+<a name="__line2779"></a>		    <span class=comment>// the loop continue, i.e. increase the next higher (free)</span>
+<a name="__line2780"></a>		    <span class=comment>// argument</span>
+<a name="__line2781"></a>		    func_args[i].dbl(from[i].dbl());
+<a name="__line2782"></a>		}
+<a name="__line2783"></a>	    }
+<a name="__line2784"></a>
+<a name="__line2785"></a>	    for(unsigned int i=0; i&lt;final_result.size(); ++i)
+<a name="__line2786"></a>	    {
+<a name="__line2787"></a>		res[(*ind)++].dbl(final_result[i].dbl());
+<a name="__line2788"></a>	    }
+<a name="__line2789"></a>	}
+<a name="__line2790"></a>		
+<a name="__line2791"></a>	
+<a name="__line2792"></a>    }
+<a name="__line2793"></a>}
 
 </pre>
 <hr> 

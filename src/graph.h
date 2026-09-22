@@ -2,6 +2,7 @@
 #define __BLOP_GRAPH_H__
 
 #include "plottable.h"
+#include "factory.h"
 #include <vector>
 
 namespace blop
@@ -29,7 +30,7 @@ namespace blop
 	    const datapoint &operator[](int i) const { return data_[i]; }
 	    datapoint &operator[]      (int i)       { return data_[i]; }
 
-	    virtual void prepare_for_draw(axis *,axis *, frame *, int count);
+	    virtual void prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame>, int count);
 
 	    // -------------------------------------------------------------------
 	    // find the max/min values of an expression over the whole graph, and return the value of 
@@ -65,6 +66,7 @@ namespace blop
 		    return *this;
 		}
 
+            FACTORY(graph);
 	};
 
 }

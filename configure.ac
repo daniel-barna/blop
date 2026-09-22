@@ -123,11 +123,13 @@ AC_LANG([C++])
 #[ CXXFLAGS_FINAL="$CXXFLAGS" ]
 
 [CXXSTD=""] 
-AX_CHECK_COMPILE_FLAG([-std=c++20], [CXXSTD="-std=c++20"],
-  AX_CHECK_COMPILE_FLAG([-std=c++18], [CXXSTD="-std=c++18"],
-    AX_CHECK_COMPILE_FLAG([-std=c++17], [CXXSTD="-std=c++17"],
-      AX_CHECK_COMPILE_FLAG([-std=c++14], [CXXSTD="-std=c++14"],
-        AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXSTD="-std=c++11"])
+AX_CHECK_COMPILE_FLAG([-std=c++23], [CXXSTD="-std=c++23"],
+  AX_CHECK_COMPILE_FLAG([-std=c++20], [CXXSTD="-std=c++20"],
+    AX_CHECK_COMPILE_FLAG([-std=c++18], [CXXSTD="-std=c++18"],
+      AX_CHECK_COMPILE_FLAG([-std=c++17], [CXXSTD="-std=c++17"],
+        AX_CHECK_COMPILE_FLAG([-std=c++14], [CXXSTD="-std=c++14"],
+          AX_CHECK_COMPILE_FLAG([-std=c++11], [CXXSTD="-std=c++11"])
+        )
       )
     )
   )

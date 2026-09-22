@@ -71,7 +71,9 @@ namespace blop
 	return *this;
     }
 
-    grob::grob(): parent_(0), autodel_(false), print_me_(2), layer_("default")
+    grob::grob(): parent_(0), 
+//                  autodel_(false), 
+                  print_me_(2), layer_("default")
     {
 	modified_ = true;
 	parent_cwidth_ = ZERO;
@@ -88,7 +90,7 @@ namespace blop
 	cout<<name()<<endl;
     }
 
-    bool grob::parent(container *p)
+    bool grob::parent(smartptr<container> p)
     {
 	if(p == 0)
 	{
@@ -105,7 +107,7 @@ namespace blop
 
     grob::~grob()
     {
-	container::remove_from_all(this);
+        if(!is_shared()) container::remove_from_all(this);
     }
 
     grobs &grobs::linecolor(const color &c)

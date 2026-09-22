@@ -8,12 +8,14 @@
 
 namespace blop
 {
+/*
     const point_drawer &point_drawer::get(unsigned int n)
     {
         return point_by_index(n);
     }
+*/
 
-    bool equals(point_drawer *p1, point_drawer *p2)
+    bool equals(smartptr<point_drawer> p1, smartptr<point_drawer> p2)
     {
 	if(p1 == 0 && p2 != 0) return false;
 	if(p2 == 0 && p1 != 0) return false;
@@ -30,9 +32,9 @@ namespace blop
         fill(filled);
     }
 
-    point_drawer *circle::clone() const
+    smartptr<point_drawer> circle::clone() const
     {
-	return new circle(*this);
+	return circle::create(*this);
     }
 
     void circle::prepare_for_draw(const length &size)
@@ -68,9 +70,9 @@ namespace blop
         fill(filled);
     }
 
-    point_drawer *square::clone() const
+    smartptr<point_drawer> square::clone() const
     {
-	return new square(*this);
+	return square::create(*this);
     }
 
     void square::prepare_for_draw(const length &size)
@@ -114,9 +116,9 @@ namespace blop
         fill(filled);
     }
 
-    point_drawer *diamond::clone() const
+    smartptr<point_drawer> diamond::clone() const
     {
-	return new diamond(*this);
+	return diamond::create(*this);
     }
 
     void diamond::prepare_for_draw(const length &size)
@@ -161,9 +163,9 @@ namespace blop
         fill(filled);
     }
 
-    point_drawer *triangle::clone() const
+    smartptr<point_drawer> triangle::clone() const
     {
-	return new triangle(*this);
+	return triangle::create(*this);
     }
 
     void triangle::prepare_for_draw(const length &size)
@@ -214,9 +216,9 @@ namespace blop
 
     // ---------------- plus  -----------------------
 
-    point_drawer *plus::clone() const
+    smartptr<point_drawer> plus::clone() const
     {
-	return new plus;
+	return plus::create();
     }
 
     void plus::prepare_for_draw(const length &size)
@@ -250,9 +252,9 @@ namespace blop
 
     // ---------------- cross  -----------------------
 
-    point_drawer *cross::clone() const
+    smartptr<point_drawer> cross::clone() const
     {
-	return new cross;
+	return cross::create();
     }
 
     void cross::prepare_for_draw(const length &size)
@@ -289,9 +291,9 @@ namespace blop
 
     star4::star4(bool filled)  { fill(filled); }
     
-    point_drawer *star4::clone() const
+    smartptr<point_drawer> star4::clone() const
     {
-	return new star4(fill_);
+	return star4::create(fill_);
     }
 
     void star4::prepare_for_draw(const length &size)
@@ -345,9 +347,9 @@ namespace blop
 	else drawer_ = 0;
     }
 
-    point_drawer *autopoint::clone() const
+    smartptr<point_drawer> autopoint::clone() const
     {
-	return new autopoint(*this);
+	return autopoint::create(*this);
     }
 
     void autopoint::draw(terminal *t)
@@ -365,26 +367,40 @@ namespace blop
 	if(drawer_) drawer_->prepare_for_draw(l);
 	else warning::print("Type is not set for autopoint","autopoint::prepare_for_draw(const length &)");
     }
-    bool autopoint::equals(point_drawer *other)
+    bool autopoint::equals(smartptr<point_drawer> other)
     {
 	if(!drawer_) return false;
 	return drawer_->equals(other);
     }
 
 
-    const point_drawer &point_by_index(unsigned int ind)
+    smartptr<point_drawer> point_drawer::get(unsigned int ind)
     {
+        const int N = 14;
+        switch(ind%N)
+        {
+        case 0: return fsquare::create();
+        case 1: return square::create();
+        case 2: return fdiamond::create();
+        case 3: return diamond::create();
+        case 4: return ftriangledown::create();
+        case 5: return triangledown::create();
+        case 6: return ftriangle::create();
+        case 7: return triangle::create();
+        case 8: return fcircle::create();
+        case 9: return circle::create();
+        case 10: return fstar4::create();
+        case 11: return star4::create();
+        case 12: return plus::create();
+        case 13: return cross::create();
+        }
+        // need a return statement at the end
+        return fsquare::create();
+
+/*
         static vector<point_drawer*> the_types;
         if(the_types.empty())
         {
-            the_types.push_back(new fsquare);
-            the_types.push_back(new square);
-            the_types.push_back(new fdiamond);
-            the_types.push_back(new diamond);
-            the_types.push_back(new ftriangledown);
-            the_types.push_back(new triangledown);
-            the_types.push_back(new ftriangle);
-            the_types.push_back(new triangle);
             the_types.push_back(new fcircle);
             the_types.push_back(new circle);
             the_types.push_back(new fstar4);
@@ -393,5 +409,6 @@ namespace blop
             the_types.push_back(new cross);
         }
         return *the_types[ind%the_types.size()];
+*/
     }
 }

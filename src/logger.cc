@@ -159,7 +159,6 @@ namespace blop {
     
     logger::~logger()
     {
-
 //        if(name_ != "")
         {
             auto stop = clock::now();
@@ -223,13 +222,29 @@ namespace blop {
             }
             --level_;
         }
+
+        for(int i=stack_().size()-1; i>=0; --i)
+        {
+            if(stack_()[i] == this) stack_().erase(stack_().begin()+i);
+        }
+        std::cerr<<"\e[0m";  // Reset the format
+        /*
         if(!stack_().empty() && stack_().back() == this)
         {
             stack_().pop_back();
             std::cerr<<"\e[0m";  // Reset the format
         }
-        // Reapply the format of the previous log level
-        if(!stack_().empty()) stack_().back()->apply_format();
+        */
+
+        // Reapply the format of the previous log levels
+        for(int i=0; i<stack_().size(); ++i) stack_()[i]->apply_format();
+/*
+        if(!stack_().empty())
+        {
+            cerr<<"Applying format..."<<endl;
+            stack_().back()->apply_format();
+        }
+*/
 
     }
 

@@ -9,7 +9,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdio>
-
+#include <memory>
 
 namespace blop
 {
@@ -17,6 +17,7 @@ namespace blop
 
     class pad : public container
 	{
+            FACTORY(pad);
 
 	    // A 'pad' is a rectangular area with its own coordinate system,
 	    // for drawing objects

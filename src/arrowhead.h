@@ -9,8 +9,9 @@ namespace blop
 {
     class arrowhead : public grob
     {
+        FACTORY(arrowhead);
     public:
-	virtual arrowhead *clone() const = 0;
+	virtual smartptr<arrowhead> clone() const = 0;
 
 	class simple;
 	class filled;
@@ -24,6 +25,7 @@ namespace blop
 
     class arrowhead::simple : public arrowhead
     {
+        FACTORY(arrowhead::simple);
     private:
 	length length_,l_,t1_,t2_;
 	double angle_;
@@ -38,11 +40,12 @@ namespace blop
 	const length &size() const;
 	simple &angle(double a);
 	double angle() const;
-	virtual arrowhead *clone() const;
+	virtual smartptr<arrowhead> clone() const;
     };
     
     class arrowhead::filled : public arrowhead
     {
+        FACTORY(arrowhead::filled);
     private:
 	bool l1_eq_l2_;
 	length length_,l_,t1_,t2_,length2_, l2_;
@@ -61,7 +64,7 @@ namespace blop
 	const length &size2() const;
 	filled &angle(double a);
 	double angle() const;
-	virtual arrowhead *clone() const;
+	virtual smartptr<arrowhead> clone() const;
     };
     
 

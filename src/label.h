@@ -3,6 +3,7 @@
 
 #include "box.h"
 #include "sym.h"
+#include "factory.h"
 
 namespace blop
 {
@@ -27,7 +28,7 @@ namespace blop
 	    sym::position    xalign_,yalign_;
 	    anchorsys        anchorsystem_;
 
-	    static label *last_;
+            static std::weak_ptr<label> last_;
 	    static sym::position default_direction_;
 
 	public:
@@ -43,7 +44,7 @@ namespace blop
             static void default_gap(const length &l); 
 
 	    // return a pointer to the last label drawn with any of the xdraw functions (x=f,p,c)
-	    static label *last() { return last_; }
+            static smartptr<label> last();
 	    static void           default_direction(sym::position d) { default_direction() = d; }
             static sym::position &default_direction();
 
@@ -65,12 +66,13 @@ namespace blop
 	    static label &fdraw(const var &, sym::position dir = label::default_direction());
 	    static label &pdraw(const var &, sym::position dir = label::default_direction());
 	    static label &cdraw(const var &, sym::position dir = label::default_direction());
-	    static label &draw (container *parent,
+	    static label &draw (smartptr<container> parent,
 				const var &, length x, const length y);
-            static label &draw (container *parent,
+            static label &draw (smartptr<container> parent,
                                 const var &, sym::position dir = label::default_direction());
 
-            static label &fdraw(const var &, const plottable &p, double x, const length &dy = 0.0);
+            static label &fdraw(const var &, smartptr<plottable> p, double x, const length &dy = 0.0);
+            static label &fdraw(const var &, plottable &p, double x, const length &dy = 0.0);
             //static label &fdraw(const var &, const plottable *p, double x, const length &dy = 0.0);
 
 	    const var    &text()   const;
@@ -132,6 +134,8 @@ namespace blop
 	    bool operator>  (const label &) const {return false;}
 
 	    label &layer(const var &l) { grob::layer(l); return *this; }
+
+        FACTORY(label);
     };
 }
 #endif

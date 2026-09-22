@@ -12,6 +12,7 @@ namespace blop
 {
     class fgraph : public graph
 	{
+            FACTORY(fgraph);
 	private:
 	    function function_;
 	    function filter_;
@@ -24,7 +25,9 @@ namespace blop
 	    static sym::linestyle    default_linestyle_;
 
 	    static length default_pointsize_;
-	    static point_drawer *default_point_drawer_;
+
+//	    static point_drawer *default_point_drawer_;
+
 	    static color  default_pointcolor_;
 
 	    static color default_fillcolor_;
@@ -32,7 +35,7 @@ namespace blop
 
 	    static color default_legendcolor_;
 
-	    static graph_drawer *default_graph_drawer_;
+//	    static smartptr<graph_drawer> default_graph_drawer_;
 
 	    bool   p1log_, p2log_;
 	    static bool default_p1log_, default_p2log_;
@@ -81,12 +84,20 @@ namespace blop
 	    static void default_linecolor(const color &);
 	    static void default_linestyle(sym::linestyle);
 	    static void default_pointsize(const length &);
-	    static void default_pointtype(const point_drawer &);
+
+            static smartptr<point_drawer> &default_pointtype();
+	    static void default_pointtype(const point_drawer &d);
+            static void default_pointtype(smartptr<point_drawer> d);
+
 	    static void default_pointcolor(const color &);
 	    static void default_fillcolor(const color &);
 	    static void default_fill(bool);
 	    static void default_legendcolor(const color &);
-	    static void default_drawstyle(const graph_drawer &);
+
+            static smartptr<graph_drawer> &default_drawstyle();
+	    static void default_drawstyle(const graph_drawer &d);
+            static void default_drawstyle(smartptr<graph_drawer> d);
+
 //html <a name="nsamples">
 	    static void default_nsamples(int);
 	    static void default_nsamples1(int);
@@ -168,7 +179,7 @@ namespace blop
 
 	    // -------  These are not relevant for the user  ----------------
 
-	    void prepare_for_draw(axis *,axis *, frame *, int count);
+	    void prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame>, int count);
 	    bool operator== (const fgraph &) {return true;}
 	    void set_default_legend();
 

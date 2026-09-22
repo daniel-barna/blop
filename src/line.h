@@ -5,6 +5,7 @@
 #include "grob.h"
 #include "color.h"
 #include "sym.h"
+#include "factory.h"
 
 namespace blop
 {
@@ -94,7 +95,7 @@ namespace blop
 	static line &fdraw(const length &x, const length &y);
 	static line &pdraw(const length &x, const length &y);
 	static line &cdraw(const length &x, const length &y);
-	static line &draw (container *parent);
+	static line &draw (smartptr<container> parent);
 
 
 
@@ -188,6 +189,7 @@ namespace blop
 	void prepare_for_draw();
 	void print(terminal *);
 
+        FACTORY(line);
     };
 
 }

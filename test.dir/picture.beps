@@ -1,0 +1,353 @@
+%!PS-Adobe-2.0 EPSF-2.0
+%%Title: ....
+%%Creator: blop (Author: D. Barna, http://blopplot.sourceforge.net)
+%%BoundingBox: 0 0 300 200
+%%EndComments
+%latexsection
+%\blop@textsize{X}{@}{0}{@q}{0}\ignorespaces
+%\blop@textsize{X}{@}{0}{@s}{0}\ignorespaces
+%\setbox\blop@tmp@box\vbox{\hbox{0}\hbox{0.25}\hbox{0.5}\hbox{0.75}\hbox{1}}\blopdimen{\wd\blop@tmp@box}{@z}\ignorespaces
+%\setbox\blop@tmp@box\hbox{00.250.50.751}\blopdimen{\ht\blop@tmp@box}{@hb}\ignorespaces
+%\blop@text{0}{bloptextmacrob}{c}{a}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.25}{bloptextmacroc}{c}{a}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.5}{bloptextmacrod}{c}{a}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.75}{bloptextmacroe}{c}{a}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{1}{bloptextmacrof}{c}{a}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0}{bloptextmacrog}{r}{c}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.25}{bloptextmacroh}{r}{c}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.5}{bloptextmacroi}{r}{c}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{0.75}{bloptextmacroj}{r}{c}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%\blop@text{1}{bloptextmacrok}{r}{c}{R}{ 0 X  1 X  atan}{0,0,0}\ignorespaces
+%endlatexsection
+/d {def} def
+/i {ifelse} d
+/@PW where {pop}{/@PW 300 d} i
+/@PH where {pop}{/@PH 200 d} i
+/@PS where {pop}{/@PS 5 d} i
+/@LW where {pop}{/@LW 0.5 d} i
+/@CM 28.452756 d
+/@MM 2.8452756 d
+/@PT 1 d
+/@Z0 0 d
+/@EM where {pop}{/@EM 5 d} i
+/@EX where {pop}{/@EX 5 d} i
+/o {dup .setfillconstantalpha .setstrokeconstantalpha} d
+/n {neg} d
+/m {mul} d
+/a {add} d
+/s {sub} d
+/w {setlinewidth} d
+/c {setrgbcolor} d
+/t {dup where {pop}{10 d} i} d
+/cl {4 2 roll 2 copy 6 2 roll exch 4 1 roll s 3 1 roll exch s exch rectclip} d
+/Tr { /BLOP@CTM BLOP@CTM 4 2 roll [ 1 0 0 1 0 0 ] translate [ 1 0 0 1 0 0 ] concatmatrix d } d
+/G {gsave} d
+/E {grestore} d
+/N {newpath} d
+/M {moveto} d
+/L {lineto} d
+/R {rlineto} d
+/Q {/Y2@ exch d /X2@ exch d /Y1@ exch d /X1@ exch d X1@ Y1@ M X1@ Y2@ L X2@ Y2@ L X2@ Y1@ L C} d
+/S {BlopLayerLevel BlopLayerOn eq {stroke}{newpath} i} d
+/F {BlopLayerLevel BlopLayerOn eq {fill}{newpath} i} d
+/T {BlopLayerLevel BlopLayerOn eq {show}{pop} i} d
+/C {closepath} d
+/x{exch d}d
+/max{2 copy gt {pop}{exch pop}ifelse}d
+/min{2 copy gt {exch pop}{pop}ifelse}d
+/Daa {G 0 setlinewidth 1 setlinecap [] 0 setdash M 0 0 rlineto S E} d
+/X {BLOP@W m} d
+/Y {BLOP@H m} d
+0.9962 0.9962 scale
+@LW w
+/Helvetica findfont 10 scalefont setfont
+/BLOP@X 0 d
+/BLOP@Y 0 d
+/BLOP@CTM { [ 1 0 0 1 0 0 ] } d
+/K { BLOP@CTM transform BLOP@Y a exch BLOP@X a exch } d
+/BLOP@W @PW d
+/BLOP@H @PH d
+/BlopCalculateBBox where {pop 0 0 moveto @PW 0 lineto @PW @PH lineto 0 @PH lineto closepath stroke} if 
+/BlopLayer@default where {pop}{/BlopLayer@default  1 d} ifelse
+/BlopLayer@frame  where {pop}{/BlopLayer@frame  1 d} ifelse
+/BlopLayer@legend where {pop}{/BlopLayer@legend 1 d} ifelse
+/BlopLayer@grid where {pop}{/BlopLayer@grid 1 d} ifelse
+/BlopLayerLevel 1 d
+/BlopLayerOn 1 d
+1 setlinejoin
+%endsetup
+/@l 0.5 @EX m d
+/@m @PW @LW s d
+/@n @Z0 @LW a d
+/@o @m @n s d
+/@p @EX -0.5 m @o a d
+/@q where {pop}{/@q 10 d} i
+/@r 0.5 @q m d
+/@s where {pop}{/@s 10 d} i
+/@t @PH @LW s d
+/@u @Z0 @LW a d
+/@v @t @u s d
+/@w @s -0.5 m @v a d
+/@x 2 @MM m d
+/@y @p @Z0 s d
+/@z where {pop}{/@z 40 d} i
+/@ab @EX @z a d
+/@bb @l @ab a d
+/@cb @y @bb s d
+/@db @x -1.3 m @cb a d
+/@eb @db @Z0 s d
+/@fb 2 @MM m d
+/@gb @w @Z0 s d
+/@hb where {pop}{/@hb 12 d} i
+/@ib @EX @hb a d
+/@jb @r @ib a d
+/@kb @gb @jb s d
+/@lb @fb -1.3 m @kb a d
+/@mb @lb @Z0 s d
+/@nb 4 @MM m d
+/@ob 0.1 @cb m d
+/@pb 0.1 @kb m d
+/@qb 0.5 @cb m d
+/@rb 0.1 @kb m d
+/@sb 0.5 @cb m d
+/@tb 0.5 @kb m d
+/@ub 0.1 @cb m d
+/@vb 0.5 @kb m d
+/@wb 2 @MM m d
+/@xb 0.2 @cb m d
+/@yb 0.2 @kb m d
+/@zb 0.6 @cb m d
+/@ac 0.2 @kb m d
+/@bc 0.6 @cb m d
+/@cc 0.6 @kb m d
+/@dc 0.2 @cb m d
+/@ec 0.6 @kb m d
+/@fc @Z0 @EX s d
+/@gc @Z0 @ib s d
+/@hc 2 @MM m d
+/@ic @Z0 @EX s d
+/@jc @Z0 @ab s d
+/@kc 2 @MM m d
+/BLOP@CTM { [ 1 0 0 1 0 0 ] } def
+/BlopLayer@frame where {pop BlopLayer@frame 1 eq}{false} i
+BlopLayerLevel BlopLayerOn eq
+and
+/BlopLayerLevel BlopLayerLevel 1 a d
+{/BlopLayerOn BlopLayerLevel d} if
+/@nc  @y @bb s d
+/@oc  @gb @jb s d
+/@lc BLOP@X @bb a d
+/@mc BLOP@Y @jb a d
+/BLOP@X @lc d
+/BLOP@Y @mc d
+/BLOP@W @nc d
+/BLOP@H @oc d
+/BlopLayer@grid where {pop BlopLayer@grid 1 eq}{false} i
+BlopLayerLevel BlopLayerOn eq
+and
+/BlopLayerLevel BlopLayerLevel 1 a d
+{/BlopLayerOn BlopLayerLevel d} if
+/BlopLayerLevel BlopLayerLevel -1 a d
+BlopLayerOn BlopLayerLevel gt {/BlopLayerOn BlopLayerLevel d} if
+N
+ 0 X  0 Y K M
+ 1 X  0 Y K L
+ 1 X  1 Y K L
+ 0 X  1 Y K L
+C S
+/@pc 0 d
+/@pc 1 @Z0 m 0 @cb m a d
+@pc @gc K M blopdict /bloptextmacrob known {bloptextmacrob}{(0)T}i
+/@pc 0.75 @Z0 m 0.25 @cb m a d
+@pc @gc K M blopdict /bloptextmacroc known {bloptextmacroc}{(0.25)T}i
+/@pc 0.5 @Z0 m 0.5 @cb m a d
+@pc @gc K M blopdict /bloptextmacrod known {bloptextmacrod}{(0.5)T}i
+/@pc 0.25 @Z0 m 0.75 @cb m a d
+@pc @gc K M blopdict /bloptextmacroe known {bloptextmacroe}{(0.75)T}i
+/@pc 0 @Z0 m 1 @cb m a d
+@pc @gc K M blopdict /bloptextmacrof known {bloptextmacrof}{(1)T}i
+/@qc 0 d
+/@qc 1 @Z0 m 0 @cb m a d
+N
+@qc @Z0 K  M
+@Z0 @fb R
+S
+/@qc 0.75 @Z0 m 0.25 @cb m a d
+N
+@qc @Z0 K  M
+@Z0 @fb R
+S
+/@qc 0.5 @Z0 m 0.5 @cb m a d
+N
+@qc @Z0 K  M
+@Z0 @fb R
+S
+/@qc 0.25 @Z0 m 0.75 @cb m a d
+N
+@qc @Z0 K  M
+@Z0 @fb R
+S
+/@qc 0 @Z0 m 1 @cb m a d
+N
+@qc @Z0 K  M
+@Z0 @fb R
+S
+/@rc 0 d
+/@sc @fb n d
+/@rc 1 @Z0 m 0 @cb m a d
+N
+@rc @kb K  M
+@Z0 @sc R
+S
+/@rc 0.75 @Z0 m 0.25 @cb m a d
+N
+@rc @kb K  M
+@Z0 @sc R
+S
+/@rc 0.5 @Z0 m 0.5 @cb m a d
+N
+@rc @kb K  M
+@Z0 @sc R
+S
+/@rc 0.25 @Z0 m 0.75 @cb m a d
+N
+@rc @kb K  M
+@Z0 @sc R
+S
+/@rc 0 @Z0 m 1 @cb m a d
+N
+@rc @kb K  M
+@Z0 @sc R
+S
+/@tc 0 d
+/@tc 1 @Z0 m 0 @kb m a d
+@ic @tc K M blopdict /bloptextmacrog known {bloptextmacrog}{(0)T}i
+/@tc 0.75 @Z0 m 0.25 @kb m a d
+@ic @tc K M blopdict /bloptextmacroh known {bloptextmacroh}{(0.25)T}i
+/@tc 0.5 @Z0 m 0.5 @kb m a d
+@ic @tc K M blopdict /bloptextmacroi known {bloptextmacroi}{(0.5)T}i
+/@tc 0.25 @Z0 m 0.75 @kb m a d
+@ic @tc K M blopdict /bloptextmacroj known {bloptextmacroj}{(0.75)T}i
+/@tc 0 @Z0 m 1 @kb m a d
+@ic @tc K M blopdict /bloptextmacrok known {bloptextmacrok}{(1)T}i
+/@uc 0 d
+/@uc 1 @Z0 m 0 @kb m a d
+N
+@Z0 @uc K  M
+@x @Z0 R
+S
+/@uc 0.75 @Z0 m 0.25 @kb m a d
+N
+@Z0 @uc K  M
+@x @Z0 R
+S
+/@uc 0.5 @Z0 m 0.5 @kb m a d
+N
+@Z0 @uc K  M
+@x @Z0 R
+S
+/@uc 0.25 @Z0 m 0.75 @kb m a d
+N
+@Z0 @uc K  M
+@x @Z0 R
+S
+/@uc 0 @Z0 m 1 @kb m a d
+N
+@Z0 @uc K  M
+@x @Z0 R
+S
+/@vc 0 d
+/@wc @x n d
+/@vc 1 @Z0 m 0 @kb m a d
+N
+@cb @vc K  M
+@wc @Z0 R
+S
+/@vc 0.75 @Z0 m 0.25 @kb m a d
+N
+@cb @vc K  M
+@wc @Z0 R
+S
+/@vc 0.5 @Z0 m 0.5 @kb m a d
+N
+@cb @vc K  M
+@wc @Z0 R
+S
+/@vc 0.25 @Z0 m 0.75 @kb m a d
+N
+@cb @vc K  M
+@wc @Z0 R
+S
+/@vc 0 @Z0 m 1 @kb m a d
+N
+@cb @vc K  M
+@wc @Z0 R
+S
+/@xc 0 d
+/@yc 0 d
+/@zc @hc n d
+/@ad 0 d
+/@bd 0 d
+/@cd 0 d
+/@dd @kc n d
+/@ed 0 d
+/BlopLayer@default where {pop BlopLayer@default 1 eq}{false} i
+BlopLayerLevel BlopLayerOn eq
+and
+/BlopLayerLevel BlopLayerLevel 1 a d
+{/BlopLayerOn BlopLayerLevel d} if
+ 0 X  0 Y K  1 X  1 Y K cl
+1 0 0 c
+1 o
+N
+@ob @pb K M
+@qb @rb K L
+@sb @tb K L
+@ub @vb K L
+F
+@wb w[] 0 setdash
+0 0.7 0 c
+0.5 o
+N
+@ob @pb K M
+@qb @rb K L
+@sb @tb K L
+@ub @vb K L
+S
+initclip
+/BlopLayerLevel BlopLayerLevel -1 a d
+BlopLayerOn BlopLayerLevel gt {/BlopLayerOn BlopLayerLevel d} if
+/BlopLayer@default where {pop BlopLayer@default 1 eq}{false} i
+BlopLayerLevel BlopLayerOn eq
+and
+/BlopLayerLevel BlopLayerLevel 1 a d
+{/BlopLayerOn BlopLayerLevel d} if
+ 0 X  0 Y K  1 X  1 Y K cl
+0 0 1 c
+0.5 o
+N
+@xb @yb K M
+@zb @ac K L
+@bc @cc K L
+@dc @ec K L
+F
+@LW w[] 0 setdash
+0 0 0 c
+1 o
+N
+@xb @yb K M
+@zb @ac K L
+@bc @cc K L
+@dc @ec K L
+S
+initclip
+/BlopLayerLevel BlopLayerLevel -1 a d
+BlopLayerOn BlopLayerLevel gt {/BlopLayerOn BlopLayerLevel d} if
+/BLOP@X 0 d
+/BLOP@Y 0 d
+/BLOP@W @PW d
+/BLOP@H @PH d
+/BlopLayerLevel BlopLayerLevel -1 a d
+BlopLayerOn BlopLayerLevel gt {/BlopLayerOn BlopLayerLevel d} if
+showpage
+%--EndOfFile--

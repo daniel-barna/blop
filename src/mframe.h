@@ -12,15 +12,22 @@ class epad;
 
 class mframe : public container, public mcontainer
 {
+    FACTORY(mframe);
  private:
     typedef container base;
 
     static int default_direction_;
 
-    frame **frames_;
+//    frame **frames_;
+    std::vector<smartptr<frame>> frames_;
+
     bool   *show_subframe_;
-    axis  **x1axes_, **y1axes_, **x2axes_, **y2axes_;
-    epad   **lmarginboxes_, **rmarginboxes_, **bmarginboxes_, **tmarginboxes_;
+
+//    axis  **x1axes_, **y1axes_, **x2axes_, **y2axes_;
+    std::vector<smartptr<axis>> x1axes_, y1axes_, x2axes_, y2axes_;
+
+//    epad   **lmarginboxes_, **rmarginboxes_, **bmarginboxes_, **tmarginboxes_;
+    std::vector<smartptr<epad>> lmarginboxes_, rmarginboxes_, bmarginboxes_, tmarginboxes_;
 
     length xgap_, ygap_;
     length *widths_,*heights_;
@@ -29,9 +36,9 @@ class mframe : public container, public mcontainer
     void set_widths();
     void set_heights();
 
-    void cd_to_sub_(int i) { frames_[i]->cd(); }
+    void cd_to_sub_(int i) { frames_[i%frames_.size()]->cd(); }
     
-    label *title_;
+    smartptr<label> title_;
 
     // in a 2x2 frame, for example, the highest y-tic of the lower row,
     // and the highest x-tic of the left column can collide with the first tic
@@ -102,13 +109,12 @@ class mframe : public container, public mcontainer
     // --------  Return the row/column number of a subframe -------
     // return 0 if this frame is not a subframe of me
 
-    int row(const frame *f) const;
-    int col(const frame *f) const;
+    int row(smartptr<frame> f);
+    int col(smartptr<frame> f);
 
     // --------  Return the given subframe ------------------------
 
-    frame       *operator()(int i, int j);
-    const frame *operator()(int i, int j) const;
+    smartptr<frame> operator()(int i, int j);
 
     // -------- show/hide a given subframe  -----------------------
 

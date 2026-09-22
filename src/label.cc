@@ -24,25 +24,33 @@ namespace blop
     label::anchorsys label::default_anchorsystem_ = label::rotated;
     color label::default_textcolor_(0,0,0);
     double label::default_angle_ = 0;
-    label *label::last_ = 0;
+    std::weak_ptr<label> label::last_;
     sym::position &label::default_direction()
     {
         static sym::position dir = sym::down;
         return dir;
     }
 
-    label &label::draw(container *parent,
+    smartptr<label> label::last()
+    {
+        if(last_.expired()) return 0;
+        return last_.lock();
+    }
+
+    label &label::draw(smartptr<container> parent,
 		       const var &text, length x, length y)
     {
 	if(parent == 0) err("label::draw ==> parent == 0");
 
-	last_ = new label(text);
-	last_->x(x).y(y);
-	last_->autodel(true);
-	parent->add(last_);
-	return *last_;
+        auto l = label::create(text); 
+        last_ = l.get_shared();
+//	last_ = new label(text);
+	l->x(x).y(y);
+//	last_->autodel(true);
+	parent->add(l);
+	return *l;
     }
-    label &label::draw(container *parent, const var &text, sym::position dir)
+    label &label::draw(smartptr<container> parent, const var &text, sym::position dir)
     {
         label *last = parent->get_last<label>();
 	if(!last)
@@ -74,13 +82,16 @@ namespace blop
                            last->bottom()-default_gap_()).xalign(last->xalign_).yalign(sym::top);
     }
 
-
-    label &label::fdraw(const var &text, const plottable &p, double xvalue, const length &dy)
+    label &label::fdraw(const var &text, plottable &p, double xvalue, const length &dy)
+    {
+        return fdraw(text, &p, xvalue, dy);
+    }
+    label &label::fdraw(const var &text, smartptr<plottable> p, double xvalue, const length &dy)
     {
         function x = _1;
-        if(p.drawstyle()) x = p.drawstyle()->get_x(&p);
+        if(p->drawstyle()) x = p->drawstyle()->get_x(p);
         function y = _2;
-        if(p.drawstyle()) y = p.drawstyle()->get_y(&p);
+        if(p->drawstyle()) y = p->drawstyle()->get_y(p);
 
         double yvalue = unset;
 
@@ -88,12 +99,12 @@ namespace blop
         double xx_closest = unset;
 
         double xx_last=0, yy_last=0;
-        for(unsigned int i=0; i<p.size(); ++i)
+        for(unsigned int i=0; i<p->size(); ++i)
         {
             std::vector<blop::var> result;
-            x.meval_dbl(*(p.get(i)),result);
+            x.meval_dbl(*(p->get(i)),result);
             const double xx = result[0].dbl();
-            y.meval_dbl(*(p.get(i)),result);
+            y.meval_dbl(*(p->get(i)),result);
             const double yy = result[0].dbl();
 
             if(i==0 || std::abs(xx-xvalue) < (std::abs(xx_closest-xvalue)))
@@ -115,14 +126,14 @@ namespace blop
         if(yvalue == unset)
         {
             return label::fdraw(text,
-                                (p.xaxis() == axis::x1 ? x1len(xx_closest) : x2len(xx_closest)),
-                                (p.yaxis() == axis::y1 ? y1len(yy_closest) : y2len(yy_closest))+dy);
+                                (p->xaxis() == axis::x1 ? x1len(xx_closest) : x2len(xx_closest)),
+                                (p->yaxis() == axis::y1 ? y1len(yy_closest) : y2len(yy_closest))+dy);
 
         }
 
         return label::fdraw(text,
-                            (p.xaxis() == axis::x1 ? x1len(xvalue) : x2len(xvalue)),
-                            (p.yaxis() == axis::y1 ? y1len(yvalue) : y2len(yvalue))+dy);
+                            (p->xaxis() == axis::x1 ? x1len(xvalue) : x2len(xvalue)),
+                            (p->yaxis() == axis::y1 ? y1len(yvalue) : y2len(yvalue))+dy);
     }
 
     label &label::fdraw(const var &text, length x, length y)

@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: plottables.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="plottables.h.html">plottables.h</a>"
+<a name="__line1"></a>
+<a name="__line2"></a>namespace blop
+<a name="__line3"></a>{
+<a name="__line4"></a>    plottables::plottables(const std::initializer_list&lt;smartptr&lt;plottable&gt;&gt; &amp;l)
+<a name="__line5"></a>    {
+<a name="__line6"></a>        for(auto &amp;e : l) add(e);
+<a name="__line7"></a>    }
+<a name="__line8"></a>
+<a name="__line9"></a>
+<a name="__line10"></a>    plottables &amp;plottables::add(smartptr&lt;plottable&gt; p, const std::map&lt;std::string,blop::var&gt; &amp;np)
+<a name="__line11"></a>    {
+<a name="__line12"></a>	plottables_.push_back(p);
+<a name="__line13"></a>        named_params_.push_back(np);
+<a name="__line14"></a>	return *this;
+<a name="__line15"></a>    }
+<a name="__line16"></a>    plottables &amp;plottables::clear()
+<a name="__line17"></a>    {
+<a name="__line18"></a>	plottables_.clear();
+<a name="__line19"></a>        named_params_.clear();
+<a name="__line20"></a>	return *this;
+<a name="__line21"></a>    }
+<a name="__line22"></a>    unsigned int plottables::size() const
+<a name="__line23"></a>    {
+<a name="__line24"></a>	return plottables_.size();
+<a name="__line25"></a>    }
+<a name="__line26"></a>    smartptr&lt;plottable&gt; plottables::operator[](unsigned int i)
+<a name="__line27"></a>    {
+<a name="__line28"></a>	return plottables_[i];
+<a name="__line29"></a>    }
+<a name="__line30"></a>
+<a name="__line31"></a>    plottables &amp;plottables::fillcolor(const color &amp;c)
+<a name="__line32"></a>    {
+<a name="__line33"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;fillcolor(c);
+<a name="__line34"></a>	return *this;
+<a name="__line35"></a>    }
+<a name="__line36"></a>    plottables &amp;plottables::fillcolor(const std::vector&lt;blop::color&gt; &amp;c)
+<a name="__line37"></a>    {
+<a name="__line38"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line39"></a>        const unsigned int nc = c.size();
+<a name="__line40"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;fillcolor(c[i%nc]);
+<a name="__line41"></a>	return *this;
+<a name="__line42"></a>    }
+<a name="__line43"></a>    plottables &amp;plottables::linecolor(const color &amp;c)
+<a name="__line44"></a>    {
+<a name="__line45"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;linecolor(c);
+<a name="__line46"></a>	return *this;
+<a name="__line47"></a>    }
+<a name="__line48"></a>    plottables &amp;plottables::linecolor(const std::vector&lt;blop::color&gt; &amp;c)
+<a name="__line49"></a>    {
+<a name="__line50"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line51"></a>        const unsigned int nc = c.size();
+<a name="__line52"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;linecolor(c[i%nc]);
+<a name="__line53"></a>	return *this;
+<a name="__line54"></a>    }
+<a name="__line55"></a>    plottables &amp;plottables::pointcolor(const color &amp;c)
+<a name="__line56"></a>    {
+<a name="__line57"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;pointcolor(c);
+<a name="__line58"></a>	return *this;
+<a name="__line59"></a>    }
+<a name="__line60"></a>    plottables &amp;plottables::pointcolor(const std::vector&lt;blop::color&gt; &amp;c)
+<a name="__line61"></a>    {
+<a name="__line62"></a>        const  unsigned int np = plottables_.size(); 
+<a name="__line63"></a>        const  unsigned int nc = c.size();
+<a name="__line64"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;pointcolor(c[i%nc]);
+<a name="__line65"></a>	return *this;
+<a name="__line66"></a>    }
+<a name="__line67"></a>    plottables &amp;plottables::allcolor(const color &amp;c)
+<a name="__line68"></a>    {
+<a name="__line69"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;allcolor(c);
+<a name="__line70"></a>	return *this;
+<a name="__line71"></a>    }
+<a name="__line72"></a>    plottables &amp;plottables::allcolor(const std::vector&lt;blop::color&gt; &amp;c)
+<a name="__line73"></a>    {
+<a name="__line74"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line75"></a>        const unsigned int nc = c.size();
+<a name="__line76"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;allcolor(c[i%nc]);
+<a name="__line77"></a>	return *this;
+<a name="__line78"></a>    }
+<a name="__line79"></a>    
+<a name="__line80"></a>    plottables &amp;plottables::drawstyle(const graph_drawer &amp;d)
+<a name="__line81"></a>    {
+<a name="__line82"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;drawstyle(d);
+<a name="__line83"></a>	return *this;
+<a name="__line84"></a>    }
+<a name="__line85"></a>    plottables &amp;plottables::drawstyle(const std::vector&lt;blop::graph_drawers&gt; &amp;d)
+<a name="__line86"></a>    {
+<a name="__line87"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line88"></a>        const unsigned int nd = d.size();
+<a name="__line89"></a>	for(unsigned int i=0; i&lt;np; ++i) std::visit([&amp;](auto&amp;&amp; arg){plottables_[i]-&gt;drawstyle(arg);},d[i%nd]);
+<a name="__line90"></a>	return *this;
+<a name="__line91"></a>    }
+<a name="__line92"></a>    plottables &amp;plottables::pointtype(const point_drawer &amp;d)
+<a name="__line93"></a>    {
+<a name="__line94"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;pointtype(d);
+<a name="__line95"></a>	return *this;
+<a name="__line96"></a>    }
+<a name="__line97"></a>    plottables &amp;plottables::pointtype(const std::vector&lt;blop::point_drawers&gt; &amp;d)
+<a name="__line98"></a>    {
+<a name="__line99"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line100"></a>        const unsigned int nd = d.size();
+<a name="__line101"></a>	for(unsigned int i=0; i&lt;np; ++i) std::visit([&amp;](auto&amp;&amp; arg){plottables_[i]-&gt;pointtype(arg);},d[i%nd]);
+<a name="__line102"></a>	return *this;
+<a name="__line103"></a>    }
+<a name="__line104"></a>    plottables &amp;plottables::pointsize(const length &amp;s)
+<a name="__line105"></a>    {
+<a name="__line106"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;pointsize(s);
+<a name="__line107"></a>	return *this;
+<a name="__line108"></a>    }
+<a name="__line109"></a>    plottables &amp;plottables::pointsize(const std::vector&lt;blop::length&gt; &amp;d)
+<a name="__line110"></a>    {
+<a name="__line111"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line112"></a>        const unsigned int nd = d.size();
+<a name="__line113"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;pointsize(d[i%nd]);
+<a name="__line114"></a>	return *this;
+<a name="__line115"></a>    }
+<a name="__line116"></a>    plottables &amp;plottables::linestyle(sym::linestyle s)
+<a name="__line117"></a>    {
+<a name="__line118"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;linestyle(s);
+<a name="__line119"></a>	return *this;
+<a name="__line120"></a>    }
+<a name="__line121"></a>    plottables &amp;plottables::linestyle(const std::vector&lt;blop::sym::linestyle&gt; &amp;d)
+<a name="__line122"></a>    {
+<a name="__line123"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line124"></a>        const unsigned int nd = d.size();
+<a name="__line125"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;linestyle(d[i%nd]);
+<a name="__line126"></a>	return *this;
+<a name="__line127"></a>    }
+<a name="__line128"></a>
+<a name="__line129"></a>    plottables &amp;plottables::linewidth(const length &amp;w)
+<a name="__line130"></a>    {
+<a name="__line131"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;linewidth(w);
+<a name="__line132"></a>	return *this;
+<a name="__line133"></a>    }
+<a name="__line134"></a>    plottables &amp;plottables::linewidth(const std::vector&lt;blop::length&gt; &amp;d)
+<a name="__line135"></a>    {
+<a name="__line136"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line137"></a>        const unsigned int nd = d.size();
+<a name="__line138"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;linewidth(d[i%nd]);
+<a name="__line139"></a>	return *this;
+<a name="__line140"></a>    }
+<a name="__line141"></a>    
+<a name="__line142"></a>    plottables &amp;plottables::legend(const var &amp;leg)
+<a name="__line143"></a>    {
+<a name="__line144"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i)
+<a name="__line145"></a>        {
+<a name="__line146"></a>            plottables_[i]-&gt;legend(replace("%l",plottables_[i]-&gt;legend(),leg));
+<a name="__line147"></a>        }
+<a name="__line148"></a>	return *this;
+<a name="__line149"></a>    }
+<a name="__line150"></a>    plottables &amp;plottables::legend(const std::vector&lt;blop::var&gt; &amp;d)
+<a name="__line151"></a>    {
+<a name="__line152"></a>        const unsigned int np = plottables_.size(); 
+<a name="__line153"></a>        const unsigned int nd = d.size();
+<a name="__line154"></a>	for(unsigned int i=0; i&lt;np; ++i) plottables_[i]-&gt;legend(d[i%nd]);
+<a name="__line155"></a>	return *this;
+<a name="__line156"></a>    }
+<a name="__line157"></a>    plottables &amp;plottables::legend(blop::function f)
+<a name="__line158"></a>    {
+<a name="__line159"></a>        for(unsigned int i=0; i&lt;plottables_.size(); ++i)
+<a name="__line160"></a>        {
+<a name="__line161"></a>            function::named_params(named_params_[i]);
+<a name="__line162"></a>            plottables_[i]-&gt;legend(f(i));
+<a name="__line163"></a>        }
+<a name="__line164"></a>        function::clear_named_params();
+<a name="__line165"></a>        return *this;
+<a name="__line166"></a>    }
+<a name="__line167"></a>    plottables &amp;plottables::legend(std::function&lt;blop::var(int)&gt; f)
+<a name="__line168"></a>    {
+<a name="__line169"></a>        for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;legend(f(i));
+<a name="__line170"></a>        return *this;
+<a name="__line171"></a>    }
+<a name="__line172"></a>
+<a name="__line173"></a>    <span class=comment>/*
+<a name="__line174"></a>    plottables &amp;plottables::autodel(bool b)
+<a name="__line175"></a>    {
+<a name="__line176"></a>	for(unsigned int i=0; i&lt;plottables_.size(); ++i) plottables_[i]-&gt;autodel(b);
+<a name="__line177"></a>	return *this;
+<a name="__line178"></a>    }
+<a name="__line179"></a>    */</span>
+<a name="__line180"></a>
+<a name="__line181"></a>    
+<a name="__line182"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

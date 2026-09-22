@@ -166,7 +166,7 @@ namespace blop
 	frame::current_ = 0;
 	for(unsigned int i=0; i<content_.size(); ++i)
 	{
-	    if(frame *f = dynamic_cast<frame *>(content_[i])) frame::current_ = f;
+	    if(frame *f = dynamic_cast<frame *>(content_[i].get())) frame::current_ = f;
 	}
     }
 
@@ -294,8 +294,9 @@ namespace blop
 		    length x2, length y2,
 		    container &parent)
     {
-	pad *p = new pad(x1,y1,x2,y2);
-	p->autodel(true);
+        auto p = pad::create(x1,y1,x2,y2);
+//	pad *p = new pad(x1,y1,x2,y2);
+//	p->autodel(true);
 	parent.add(p);
 	p->cd();
 	return *p;

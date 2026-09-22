@@ -31,7 +31,7 @@ namespace blop
 	    vector<length> widths,heights;
 	    for(unsigned int i=0; i<content_.size(); ++i)
 	    {
-		box *b = dynamic_cast<box*>(content_[i]);
+		box *b = dynamic_cast<box*>(content_[i].get());
 		// Take into account only contents with visibility>0, that is
 		// visible(2), or invisible but present(1)
 		if(b && b->visibility()>0)
@@ -50,14 +50,14 @@ namespace blop
 	}
     }
 
-    void epad::add(grob *g)
+    void epad::add(smartptr<grob> g)
     {
 	if(g == 0) return;
 	container::add(g);
 	recalculate_size_();
     }
 
-    bool epad::remove(grob *g)
+    bool epad::remove(smartptr<grob> g)
     {
 	bool removed = container::remove(g);
 	if(removed) recalculate_size_();

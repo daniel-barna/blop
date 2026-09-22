@@ -2,6 +2,9 @@
 #define __BLOP_CONTAINER_H__
 
 #include "box.h"
+#include "smartptr.h"
+
+#include <memory>
 
 namespace blop
 {
@@ -17,13 +20,18 @@ namespace blop
 
     class container : public box
     {
+        FACTORY(container);
     public:
 	// -------------------------------------------------------------------
 	// a static vector, keeping the pointers of all existing containers
-	static std::vector<blop::container *> &all();
+        // Note that raw C++ pointers need to be stored,
+        // otherwise, if the smart frame::ptr is stored, shared objects
+        // would always have a referring shared_ptr and would never get destroyed
+	static std::vector<blop::container *> &all_containers();
 
     protected:
-	std::vector<blop::grob*> content_;
+	//std::vector<blop::grob*> content_;
+        std::vector<smartptr<grob>> content_;
 
     private:
 	length cleft_  ,cright_,cwidth_ ,cxcenter_,
@@ -120,13 +128,13 @@ namespace blop
 	virtual ~container();
 
 	// ----------- Remove the given grob from all existing containers --------
-	static void remove_from_all (grob *);
+	static void remove_from_all (grob::ptr);
 
 
 	// --------------- Remove the given grob from a container ----------------
 	// return true if the object was contained in this container
 	// false otherwise
-	virtual bool remove(grob *);
+	virtual bool remove(grob::ptr);
 
 
 	// ----------  Clear this container (remove all contents) ----------------
@@ -134,14 +142,16 @@ namespace blop
 
 
 	// ---------------- Add a grob into this container -----------------------
-	virtual void add(grob *g);
+//	virtual void add(grob *g);
+	virtual void add(grob::ptr g);
 
 	// --------------- Find an item by name ----------------------------------
-	virtual grob* find(const var &name);
+//	virtual grob* find(const var &name);
+        virtual grob::ptr find(const var &name);
 
         // -------------- Find if an item is within this container  --------------
-        bool find(const grob *p);
-
+//        bool find(const grob *p);
+        bool find(grob::ptr p);
 
 	bool modified() const;
 	void modified(bool f);
@@ -159,7 +169,7 @@ namespace blop
         {
             for(int i=content_.size()-1; i>=0; --i)
             {
-                if(T *t = dynamic_cast<T*>(content_[i])) return t;
+                if(T *t = dynamic_cast<T*>(content_[i].get())) return t;
             }
             return 0;
         }

@@ -1,12 +1,13 @@
 #ifndef __BLOP_PLOTTABLE_H__
 #define __BLOP_PLOTTABLE_H__
 
-#include "graph_drawer.h"
+//#include "graph_drawer.h"
 #include "point_drawer.h"
 #include "constants.h"
 #include "function.h"
-#include <vector>
+#include "factory.h"
 
+#include <vector>
 #ifndef __MAKECINT__
 #include <functional>
 #endif
@@ -15,15 +16,18 @@ namespace blop
 {
     typedef std::vector<blop::var> datapoint;
     class frame;
+    class graph_drawer;
 
-    class plottable
+    class plottable : public factory_base<plottable>
     {
+        FACTORY(plottable);
+        
         protected:
             int level_;
 
 	    bool permanent_;
 
-	    bool autodel_;
+//	    bool autodel_;
 
 	    int ordered_;
 
@@ -33,7 +37,7 @@ namespace blop
 	    
 	    // point properties
 	    length        pointsize_;
-	    point_drawer *point_drawer_;
+        smartptr<point_drawer> point_drawer_;
 	    color         pointcolor_;
 	
 	    // line properties
@@ -48,7 +52,7 @@ namespace blop
 	    // legend properties
 	    color         legendcolor_;
 
-	    mutable graph_drawer *graph_drawer_;
+            mutable smartptr<graph_drawer> graph_drawer_;
 
 	    int xaxis_,yaxis_;
 
@@ -63,6 +67,7 @@ namespace blop
             std::function<void()> plot_setup_function_;
 
     public:
+
 	    plottable();
 	    plottable(const plottable &);
 	    virtual ~plottable();
@@ -76,8 +81,8 @@ namespace blop
 	    void parent(frame *f) { parent_ = f; }
 
             //html <a name="autodel"> </a>
-	    plottable &autodel(bool b) { autodel_ = b; return *this; }
-	    bool autodel() const { return autodel_; }
+//	    plottable &autodel(bool b) { autodel_ = b; return *this; }
+//	    bool autodel() const { return autodel_; }
 	    plottable &permanent(bool b) { permanent_ = b; return *this; }
 	    bool permanent() const { return permanent_; }
 	    plottable &level(int l) { level_ = l; modified_ = true; return *this; }
@@ -153,9 +158,11 @@ namespace blop
 	    plottable &lt      (sym::linestyle s) { return linestyle(s); }  // shorthand for linetype
 
 	    // -------------   point properties  -------------------
+            plottable &pointtype(smartptr<point_drawer> d);
+            plottable &pt       (smartptr<point_drawer> d) { return pointtype(d); }
 	    plottable   &pointtype(const point_drawer &d); 
 	    plottable   &pt       (const point_drawer &d) {return pointtype(d);}
-	    point_drawer *pointtype() const           {return point_drawer_;}
+            smartptr<point_drawer> pointtype() const           {return point_drawer_;}
 	    
 	    plottable   &pointsize(const length &d) {pointsize_ = d; modified_=true; return *this;}
 	    plottable   &ps       (const length &d) {return pointsize(d);}
@@ -180,9 +187,11 @@ namespace blop
 	    plottable   &allcolor(double r, double g, double b) { return allcolor(color(r,g,b)); }
 	    plottable   &ac(double r, double g, double b) { return allcolor(color(r,g,b)); }
 
+            plottable   &drawstyle(smartptr<graph_drawer> d);
+            plottable   &dw(smartptr<graph_drawer> d) { return drawstyle(d); }
 	    plottable   &drawstyle(const graph_drawer &d);
 	    plottable   &ds       (const graph_drawer &d) {return drawstyle(d);}
-	    graph_drawer *drawstyle() const { return graph_drawer_;}
+            smartptr<graph_drawer> drawstyle() const { return graph_drawer_;}
 
 	    plottable   &xaxis(int i) {xaxis_ = i; return *this;}
 	    int           xaxis() const {return xaxis_;}
@@ -245,7 +254,7 @@ namespace blop
 	    virtual var min(const function &fmin, function fret=unset) const = 0;
 	    virtual int columns() const = 0;
 
-	    virtual void prepare_for_draw(axis *,axis *, frame *, int count) = 0;
+	    virtual void prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame>, int count) = 0;
 
 	    virtual bool modified() const { return modified_; }
 	    virtual void modified(bool f) { modified_ = f; }
@@ -258,90 +267,7 @@ namespace blop
             plottable &plot_setup_function(const std::function<void()> &f) { plot_setup_function_ = f; return *this; }
 
     };
-
-    class plottables
-    {
-    private:
-	std::vector<blop::plottable*> plottables_;
-        std::vector<std::map<std::string,blop::var>> named_params_;
-    public:
-#ifndef __MAKECINT__
-        plottables(const std::initializer_list<plottable*> &p);
-#endif
-        plottables() {}
-	plottables &add(plottable *p, const std::map<std::string,blop::var> &np = std::map<std::string,blop::var>());
-	plottables &clear();
-	unsigned int size() const;
-	plottable* operator[](unsigned int);
-        std::vector<blop::plottable*>::iterator begin() { return plottables_.begin(); }
-        std::vector<blop::plottable*>::iterator end() { return plottables_.end(); }
-
-	plottables &fillcolor(const color &c);
-	plottables &fc(const color &c) { fillcolor(c); return *this; }
-        plottables &fillcolor(const std::vector<blop::color> &c); 
-        plottables &fc(const std::vector<blop::color> &c) { return fillcolor(c); }
-	    
-	plottables &linecolor(const color &c);
-	plottables &lc(const color &c) { linecolor(c); return *this; }
-        plottables &linecolor(const std::vector<blop::color> &c);
-        plottables &lc(const std::vector<blop::color> &c) { return linecolor(c); }
-
-	plottables &pointcolor(const color &c);
-	plottables &pc(const color &c) { pointcolor(c); return *this; }
-        plottables &pointcolor(const std::vector<blop::color> &c);
-        plottables &pc(const std::vector<blop::color> &c) { return pointcolor(c); }
-
-	plottables &allcolor(const color &c);
-	plottables &ac(const color &c) { allcolor(c); return *this; }
-        plottables &allcolor(const std::vector<blop::color> &c);
-        plottables ac(const std::vector<blop::color> &c) { return allcolor(c); }
-
-	plottables &drawstyle(const graph_drawer &d);
-	plottables &ds(const graph_drawer &d) { drawstyle(d); return *this; }
-#ifndef __MAKECINT__
-        plottables &drawstyle(const std::vector<blop::graph_drawers> &d);
-        plottables &ds(const std::vector<blop::graph_drawers> &d) { return drawstyle(d); }
-#endif
-
-	plottables &pointtype(const point_drawer &d);
-	plottables &pt(const point_drawer &d) { pointtype(d); return *this; }
-#ifndef __MAKECINT__
-        plottables &pointtype(const std::vector<blop::point_drawers> &d);
-        plottables &pt(const std::vector<blop::point_drawers> &d) { return pointtype(d); }
-#endif        
-
-	plottables &pointsize(const length &d);
-	plottables &ps(const length &d) { pointsize(d); return *this; }
-        plottables &pointsize(const std::vector<blop::length> &d);
-        plottables &ps(const std::vector<blop::length> &d) { return pointsize(d); }
-
-	plottables &linestyle(sym::linestyle s);
-	plottables &ls(sym::linestyle s) { linestyle(s); return *this; }
-        plottables &linestyle(const std::vector<blop::sym::linestyle> &s);
-        plottables &ls(const std::vector<blop::sym::linestyle> &s) { return linestyle(s); }
-
-	plottables &linewidth(const length &w);
-	plottables &lw(const length &w) { linewidth(w); return *this; }
-        plottables &linewidth(const std::vector<blop::length> &w);
-        plottables &lw(const std::vector<blop::length> &w) { return linewidth(w); }
-
-        // Set the legend of all plottables within the collection. The string %l is replaced by
-        // the original legend of the individual plottables
-        plottables &legend(const var &leg);
-        plottables &legend(const char *leg) { return legend(var(leg)); }
-        plottables &legend(const string &leg) { return legend(var(leg)); }
-        plottables &autodel(bool b);
-        plottables &legend(const std::vector<blop::var> &l);
-        plottables &legend(blop::function f);
-#ifndef __MAKECINT__
-        plottables &legend(std::function<blop::var(int)> f);
-#endif        
-    };
-    
-
-
 }
-
 
 
 #endif

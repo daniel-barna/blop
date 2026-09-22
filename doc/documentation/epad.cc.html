@@ -48,7 +48,7 @@
 <a name="__line30"></a>	    vector&lt;length&gt; widths,heights;
 <a name="__line31"></a>	    for(unsigned int i=0; i&lt;content_.size(); ++i)
 <a name="__line32"></a>	    {
-<a name="__line33"></a>		box *b = dynamic_cast&lt;box*&gt;(content_[i]);
+<a name="__line33"></a>		box *b = dynamic_cast&lt;box*&gt;(content_[i].get());
 <a name="__line34"></a>		<span class=comment>// Take into account only contents with visibility&gt;0, that is</span>
 <a name="__line35"></a>		<span class=comment>// visible(2), or invisible but present(1)</span>
 <a name="__line36"></a>		if(b &amp;&amp; b-&gt;visibility()&gt;0)
@@ -67,14 +67,14 @@
 <a name="__line49"></a>	}
 <a name="__line50"></a>    }
 <a name="__line51"></a>
-<a name="__line52"></a>    void epad::add(grob *g)
+<a name="__line52"></a>    void epad::add(smartptr&lt;grob&gt; g)
 <a name="__line53"></a>    {
 <a name="__line54"></a>	if(g == 0) return;
 <a name="__line55"></a>	container::add(g);
 <a name="__line56"></a>	recalculate_size_();
 <a name="__line57"></a>    }
 <a name="__line58"></a>
-<a name="__line59"></a>    bool epad::remove(grob *g)
+<a name="__line59"></a>    bool epad::remove(smartptr&lt;grob&gt; g)
 <a name="__line60"></a>    {
 <a name="__line61"></a>	bool removed = container::remove(g);
 <a name="__line62"></a>	if(removed) recalculate_size_();

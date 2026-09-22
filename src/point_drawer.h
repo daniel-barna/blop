@@ -3,6 +3,7 @@
 
 #include "terminal.h"
 #include "length.h"
+#include "factory.h"
 #ifndef __MAKECINT__
 #include <variant>
 #endif
@@ -21,176 +22,216 @@ namespace blop
     // Each of these classes implement a specific shape for a point
     // (to be used for datapoint visualization)
 
-    class point_drawer
+    class point_drawer : public factory_base<point_drawer>
 	{
+            FACTORY(point_drawer);
         protected:
             bool fill_;
 	public:
 	    virtual void draw(terminal *) = 0;
 	    virtual void draw(terminal *,const length &size) = 0;
-	    virtual point_drawer *clone() const = 0;
+	    virtual smartptr<point_drawer> clone() const = 0;
 	    virtual void prepare_for_draw(const length &)=0;
 
             point_drawer() { fill_ = false; }
 	    virtual ~point_drawer() {}
-	    virtual bool equals(point_drawer *other) = 0;
+	    virtual bool equals(smartptr<point_drawer> other) = 0;
 
             virtual point_drawer &fill(bool f) { fill_ = f; return *this; }
 
-            static const point_drawer &get(unsigned int n);
+            static smartptr<point_drawer> get(unsigned int n);
 
 	};
 
     typedef point_drawer point_type;
     
-    bool equals(point_drawer *p1, point_drawer *p2);
+    bool equals(smartptr<point_drawer> p1, smartptr<point_drawer> p2);
 
     class square : public point_drawer
 	{
+            FACTORY(square);
 	private:
 	    length l1,l2;
 	public:
             square(bool filled=false);
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other)
+	    bool equals(smartptr<point_drawer> other)
 		{
-		    if(square *p = dynamic_cast<square *>(other))
-		    {
-			return p -> fill_ == fill_;
-		    }
+		    if(auto p = other.dyncast<square>()) return p -> fill_ == fill_;
 		    return false;
 		}
 	};
-    class fsquare : public square { public: fsquare() : square(true) {} };
+    class fsquare : public square
+    {
+        FACTORY(fsquare);
+    public:
+        fsquare() : square(true) {}
+    };
 
     class diamond : public point_drawer
 	{
+            FACTORY(diamond);
 	private:
 	    length l1,l2;
 	public:
             diamond(bool filled=false);
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other)
+	    bool equals(smartptr<point_drawer> other)
 		{
-		    if(diamond *p = dynamic_cast<diamond *>(other))
+		    if(auto p = other.dyncast<diamond>())
 		    {
 			return p->fill_ == fill_;
 		    }
 		    return false;
 		}
 	};
-    class fdiamond : public diamond { public: fdiamond() : diamond(true) {} };
+    class fdiamond : public diamond
+    {
+        FACTORY(fdiamond);
+    public:
+        fdiamond() : diamond(true) {}
+    };
 
     class triangle : public point_drawer
 	{
+            FACTORY(triangle);
 	private:
 	    length x1,x2,y1,y2;
 	    bool up_;
 	public:
 	    triangle(bool filled=false,bool dir_up=true);
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other)
+	    bool equals(smartptr<point_drawer> other)
 		{
-		    if(triangle *p = dynamic_cast<triangle*>(other))
+		    if(auto p = other.dyncast<triangle>())
 		    {
 			return fill_ == p->fill_ && up_ == p->up_;
 		    }
 		    return false;
 		}
 	};
-    class ftriangle : public triangle { public: ftriangle() : triangle(true,true) {}};
-    class triangledown : public triangle { public: triangledown() : triangle(false,false) {}};
-    class ftriangledown : public triangle { public: ftriangledown() : triangle(true,false) {}};
+    class ftriangle : public triangle
+    {
+        FACTORY(ftriangle);
+    public:
+        ftriangle() : triangle(true,true) {}
+    };
+    class triangledown : public triangle
+    {
+        FACTORY(triangledown);
+    public:
+        triangledown() : triangle(false,false) {}
+    };
+    class ftriangledown : public triangle
+    {
+        FACTORY(ftriangledown);
+    public:
+        ftriangledown() : triangle(true,false) {}
+    };
 
     class circle : public point_drawer
 	{
+            FACTORY(circle);
 	private:
 	    length r_;
 	public:
 	    circle(bool filled = false);
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other) { return false; }
+	    bool equals(smartptr<point_drawer> other) { return false; }
 	};
-    class fcircle : public circle { public: fcircle() : circle(true) {}};
+    class fcircle : public circle
+    {
+        FACTORY(fcircle);
+    public:
+        fcircle() : circle(true) {}
+    };
 
     class plus : public point_drawer
 	{
+            FACTORY(plus);
 	private:
 	    length l1_,l2_;
 	public:
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other) { return false; }
+	    bool equals(smartptr<point_drawer> other) { return false; }
 	};
 
     class cross : public point_drawer
 	{
+            FACTORY(cross);
 	private:
 	    length l1_,l2_;
 	public:
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other) { return false; }
+	    bool equals(smartptr<point_drawer> other) { return false; }
 	};
 
     class star4 : public point_drawer
 	{
+            FACTORY(star4);
 	private:
 	    length l1_,l2_,l3_,l4_;
 	public:
 	    star4(bool fill=false);
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other)
+	    bool equals(smartptr<point_drawer> other)
 		{
-		    if(star4 *p = dynamic_cast<star4*>(other))
+		    if(auto p = other.dyncast<star4>())
 		    {
 			return fill_ == p->fill_;
 		    }
 		    return false;
 		}
 	};
-    class fstar4 : public star4 { public: fstar4() : star4(true) {}};
+    class fstar4 : public star4
+    {
+        FACTORY(fstar4);
+    public:
+        fstar4() : star4(true) {}
+    };
 
     class autopoint : public point_drawer
 	{
+            FACTORY(autopoint);
 	private:
-	    point_drawer *drawer_;
+	    smartptr<point_drawer> drawer_;
 
 	public:
             autopoint() : drawer_(0) {}
 	    autopoint(const autopoint &);
-	    ~autopoint() {if(drawer_) delete drawer_; }
+	    ~autopoint() {}
 
-	    point_drawer *clone() const;
+	    smartptr<point_drawer> clone() const;
 	    void draw(terminal *);
 	    void draw(terminal *,const length &);
 	    void prepare_for_draw(const length &);
-	    bool equals(point_drawer *other);
-            point_drawer *drawer() const { return drawer_; }
-	    void drawer(point_drawer *d) { if(drawer_) delete drawer_; drawer_ = d; }
-
+	    bool equals(smartptr<point_drawer> other);
+            smartptr<point_drawer> drawer() const { return drawer_; }
+	    void drawer(smartptr<point_drawer> d) { drawer_ = d; }
 	};
 
-    const point_drawer &point_by_index(unsigned int ind);
+//    smartptr<point_drawer> point_by_index(unsigned int ind);
 
 #ifndef __MAKECINT__    
     typedef std::variant<blop::square,blop::fsquare,blop::diamond,blop::fdiamond,blop::triangle,blop::ftriangle,blop::triangledown,blop::ftriangledown,blop::circle,blop::fcircle,blop::plus,blop::cross,blop::star4,blop::fstar4,blop::autopoint> point_drawers;

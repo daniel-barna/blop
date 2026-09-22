@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: plottables.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_PLOTTABLES_H__
+<a name="__line1"></a>#define __BLOP_PLOTTABLES_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include "<a href="graph_drawer.h.html">graph_drawer.h</a>"
+<a name="__line4"></a>#include "<a href="plottable.h.html">plottable.h</a>"
+<a name="__line5"></a>
+<a name="__line6"></a>namespace blop
+<a name="__line7"></a>{
+<a name="__line8"></a>    class plottables
+<a name="__line9"></a>    {
+<a name="__line10"></a><span class=private>    private:
+<a name="__line11"></a>	std::vector&lt;smartptr&lt;plottable&gt;&gt; plottables_;
+<a name="__line12"></a>        std::vector&lt;std::map&lt;std::string,blop::var&gt;&gt; named_params_;
+<a name="__line13"></a></span><span class=public>    public:
+<a name="__line14"></a>#ifndef __MAKECINT__
+<a name="__line15"></a>        plottables(const std::initializer_list&lt;smartptr&lt;plottable&gt;&gt; &amp;p);
+<a name="__line16"></a>#endif
+<a name="__line17"></a>        plottables() {}
+<a name="__line18"></a>	plottables &amp;add(smartptr&lt;plottable&gt; p, const std::map&lt;std::string,blop::var&gt; &amp;np = std::map&lt;std::string,blop::var&gt;());
+<a name="__line19"></a>	plottables &amp;clear();
+<a name="__line20"></a>	unsigned int size() const;
+<a name="__line21"></a>	smartptr&lt;plottable&gt; operator[](unsigned int);
+<a name="__line22"></a>        std::vector&lt;smartptr&lt;plottable&gt;&gt;::iterator begin() { return plottables_.begin(); }
+<a name="__line23"></a>        std::vector&lt;smartptr&lt;plottable&gt;&gt;::iterator end() { return plottables_.end(); }
+<a name="__line24"></a>
+<a name="__line25"></a>	plottables &amp;fillcolor(const color &amp;c);
+<a name="__line26"></a>	plottables &amp;fc(const color &amp;c) { fillcolor(c); return *this; }
+<a name="__line27"></a>        plottables &amp;fillcolor(const std::vector&lt;blop::color&gt; &amp;c); 
+<a name="__line28"></a>        plottables &amp;fc(const std::vector&lt;blop::color&gt; &amp;c) { return fillcolor(c); }
+<a name="__line29"></a>	    
+<a name="__line30"></a>	plottables &amp;linecolor(const color &amp;c);
+<a name="__line31"></a>	plottables &amp;lc(const color &amp;c) { linecolor(c); return *this; }
+<a name="__line32"></a>        plottables &amp;linecolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line33"></a>        plottables &amp;lc(const std::vector&lt;blop::color&gt; &amp;c) { return linecolor(c); }
+<a name="__line34"></a>
+<a name="__line35"></a>	plottables &amp;pointcolor(const color &amp;c);
+<a name="__line36"></a>	plottables &amp;pc(const color &amp;c) { pointcolor(c); return *this; }
+<a name="__line37"></a>        plottables &amp;pointcolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line38"></a>        plottables &amp;pc(const std::vector&lt;blop::color&gt; &amp;c) { return pointcolor(c); }
+<a name="__line39"></a>
+<a name="__line40"></a>	plottables &amp;allcolor(const color &amp;c);
+<a name="__line41"></a>	plottables &amp;ac(const color &amp;c) { allcolor(c); return *this; }
+<a name="__line42"></a>        plottables &amp;allcolor(const std::vector&lt;blop::color&gt; &amp;c);
+<a name="__line43"></a>        plottables ac(const std::vector&lt;blop::color&gt; &amp;c) { return allcolor(c); }
+<a name="__line44"></a>
+<a name="__line45"></a>	plottables &amp;drawstyle(const graph_drawer &amp;d);
+<a name="__line46"></a>	plottables &amp;ds(const graph_drawer &amp;d) { drawstyle(d); return *this; }
+<a name="__line47"></a>#ifndef __MAKECINT__
+<a name="__line48"></a>        plottables &amp;drawstyle(const std::vector&lt;blop::graph_drawers&gt; &amp;d);
+<a name="__line49"></a>        plottables &amp;ds(const std::vector&lt;blop::graph_drawers&gt; &amp;d) { return drawstyle(d); }
+<a name="__line50"></a>#endif
+<a name="__line51"></a>
+<a name="__line52"></a>	plottables &amp;pointtype(const point_drawer &amp;d);
+<a name="__line53"></a>	plottables &amp;pt(const point_drawer &amp;d) { pointtype(d); return *this; }
+<a name="__line54"></a>#ifndef __MAKECINT__
+<a name="__line55"></a>        plottables &amp;pointtype(const std::vector&lt;blop::point_drawers&gt; &amp;d);
+<a name="__line56"></a>        plottables &amp;pt(const std::vector&lt;blop::point_drawers&gt; &amp;d) { return pointtype(d); }
+<a name="__line57"></a>#endif        
+<a name="__line58"></a>
+<a name="__line59"></a>	plottables &amp;pointsize(const length &amp;d);
+<a name="__line60"></a>	plottables &amp;ps(const length &amp;d) { pointsize(d); return *this; }
+<a name="__line61"></a>        plottables &amp;pointsize(const std::vector&lt;blop::length&gt; &amp;d);
+<a name="__line62"></a>        plottables &amp;ps(const std::vector&lt;blop::length&gt; &amp;d) { return pointsize(d); }
+<a name="__line63"></a>
+<a name="__line64"></a>	plottables &amp;linestyle(sym::linestyle s);
+<a name="__line65"></a>	plottables &amp;ls(sym::linestyle s) { linestyle(s); return *this; }
+<a name="__line66"></a>        plottables &amp;linestyle(const std::vector&lt;blop::sym::linestyle&gt; &amp;s);
+<a name="__line67"></a>        plottables &amp;ls(const std::vector&lt;blop::sym::linestyle&gt; &amp;s) { return linestyle(s); }
+<a name="__line68"></a>
+<a name="__line69"></a>	plottables &amp;linewidth(const length &amp;w);
+<a name="__line70"></a>	plottables &amp;lw(const length &amp;w) { linewidth(w); return *this; }
+<a name="__line71"></a>        plottables &amp;linewidth(const std::vector&lt;blop::length&gt; &amp;w);
+<a name="__line72"></a>        plottables &amp;lw(const std::vector&lt;blop::length&gt; &amp;w) { return linewidth(w); }
+<a name="__line73"></a>
+<a name="__line74"></a>        <span class=comment>// Set the legend of all plottables within the collection. The string %l is replaced by</span>
+<a name="__line75"></a>        <span class=comment>// the original legend of the individual plottables</span>
+<a name="__line76"></a>        plottables &amp;legend(const var &amp;leg);
+<a name="__line77"></a>        plottables &amp;legend(const char *leg) { return legend(var(leg)); }
+<a name="__line78"></a>        plottables &amp;legend(const string &amp;leg) { return legend(var(leg)); }
+<a name="__line79"></a><span class=comment>//        plottables &amp;autodel(bool b);</span>
+<a name="__line80"></a>        plottables &amp;legend(const std::vector&lt;blop::var&gt; &amp;l);
+<a name="__line81"></a>        plottables &amp;legend(blop::function f);
+<a name="__line82"></a>#ifndef __MAKECINT__
+<a name="__line83"></a>        plottables &amp;legend(std::function&lt;blop::var(int)&gt; f);
+<a name="__line84"></a>#endif        
+<a name="__line85"></a>    };
+<a name="__line86"></a>    
+<a name="__line87"></a>}
+<a name="__line88"></a>
+<a name="__line89"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

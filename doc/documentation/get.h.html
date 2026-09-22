@@ -42,7 +42,7 @@
 <a name="__line24"></a>	<span class=comment>//  // now, after seeing the result, realize that I want to have it in red:</span>
 <a name="__line25"></a>	<span class=comment>// get::last()-&gt;ac(red);</span>
 <a name="__line26"></a>	
-<a name="__line27"></a>	static plottable *last() { return frame::current().last(); }
+<a name="__line27"></a>	static smartptr&lt;plottable&gt; last() { return frame::current().last(); }
 <a name="__line28"></a>
 <a name="__line29"></a>	<span class=comment>// ---------- get the last plotted function ---------------------------------------</span>
 <a name="__line30"></a>	<span class=comment>// this function may return 0, if no functions have been plotted yet</span>
@@ -51,12 +51,12 @@
 <a name="__line33"></a>	<span class=comment>//   cosine instead:</span>
 <a name="__line34"></a>	<span class=comment>// get::lastf()-&gt;set(_1,cos(_1));</span>
 <a name="__line35"></a>
-<a name="__line36"></a>	static fgraph *lastf() { return frame::current().lastf(); }
+<a name="__line36"></a>	static smartptr&lt;fgraph&gt; lastf() { return frame::current().lastf(); }
 <a name="__line37"></a>
 <a name="__line38"></a>	<span class=comment>// ---------- get the last plotted dataset (graph) --------------------------------</span>
 <a name="__line39"></a>	<span class=comment>// this funciton may return 0 if no graphs have been plotted yet</span>
 <a name="__line40"></a>
-<a name="__line41"></a>	static dgraph *lastd   () { return frame::current().lastd(); }
+<a name="__line41"></a>	static smartptr&lt;dgraph&gt; lastd   () { return frame::current().lastd(); }
 <a name="__line42"></a>
 <a name="__line43"></a>
 <a name="__line44"></a>    };

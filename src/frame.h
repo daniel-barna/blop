@@ -24,14 +24,15 @@ namespace blop
 
     class frame : public container
 	{
+            FACTORY(frame);
 	private:
 #ifndef __MAKECINT__
 	    class grob_plottable
 	    {
 	    public:
-		grob      *grob_;
-		plottable *plottable_;
-	        grob_plottable(grob *gg, plottable *pp) : grob_(gg), plottable_(pp) {}
+                grob::ptr      grob_;
+                plottable::ptr plottable_;
+	        grob_plottable(grob::ptr gg, plottable::ptr pp) : grob_(gg), plottable_(pp) {}
 	    };
 	    vector<grob_plottable> ordering_;
 #endif
@@ -85,15 +86,21 @@ namespace blop
 	    friend class pad;
 
 	    bool owns_x1axis_,owns_x2axis_,owns_y1axis_,owns_y2axis_;
-	    axis *x1axis_, *x2axis_, *y1axis_, *y2axis_;
+//	    axis *x1axis_, *x2axis_, *y1axis_, *y2axis_;
+            axis::ptr x1axis_, x2axis_, y1axis_, y2axis_;
 
-	    std::vector<blop::plottable*> graphs_;
+//	    std::vector<blop::plottable*> graphs_;
+	    std::vector<smartptr<plottable>> graphs_;
 
 	    length parent_width_, parent_height_;
 
+            // Pointer to the 'current' frame, into which all plotting operations
+            // produce graphs.
+            // Note that it needs to be a raw C++ pointer, otherwise it would keep
+            // the shared object always alive
 	    static frame *current_;
 
-	    legendbox *legendbox_;
+            legendbox::ptr legendbox_;
 	    bool       owns_legendbox_;
 
 	    bool mirror_x1_, mirror_x2_, mirror_y1_, mirror_y2_;
@@ -109,12 +116,12 @@ namespace blop
 	    void operator= (const frame &);
 
 	    enum {Left=0, Right=1, Bottom=2, Top=3};
-	    epad *marginboxes_[4];
+	    smartptr<epad> marginboxes_[4];
 	    bool owns_marginboxes_[4];
 
-	    label *title_;
+	    smartptr<label> title_;
 
-	    void print_graph_(plottable *, terminal *);
+	    void print_graph_(smartptr<plottable>, terminal *);
 
 	    bool nodistort_;
 
@@ -130,7 +137,7 @@ namespace blop
 
 	    // ------------  Get a pointer to the legendbox used by this frame  ------------
 
-	    legendbox *legend() {return legendbox_;}
+            smartptr<legendbox> legend() {return legendbox_;}
 
 
 	    // -----  Specify legend position (such as sym::left, sym::bottom, etc) ----
@@ -148,7 +155,7 @@ namespace blop
 	    // be unexpected results, but most likely it will work.
 	    // Try it!
 
-            frame &legend(legendbox *l);
+            frame &legend(legendbox::ptr l);
 	    frame &legend(legendbox &l);
 
 	    
@@ -171,20 +178,18 @@ namespace blop
 
             // -----------  check the current frame, without creating a new one ------------
             
-	    static frame *check_current() { return current_; }
+	    static smartptr<frame> check_current() { return current_; }
 
-	    bool parent(container *);
-            const container *parent() const { return grob::parent(); }
-            container       *parent()       { return grob::parent(); }
+	    bool parent(smartptr<container>);
+            smartptr<container> parent()       { return grob::parent(); }
 
-	    frame &add(plottable *);
-	    frame &remove(plottable *);
-
+	    frame &add(plottable::ptr);
+	    frame &remove(plottable::ptr);
 	    
 	    // -----  Add any grob (GRaphical OBject) into this frame  ---------------------
 
-	    void add(grob *g);
-	    bool remove(grob *g);
+	    void add(grob::ptr g);
+	    bool remove(grob::ptr g);
 
 	    // ------------------  Clear  -------------------------------------------------
 	    // Clear all content.  Objects with the 'autodel' flag set to 
@@ -211,20 +216,20 @@ namespace blop
 	    const length &marginobjectsep() const { return marginobjectsep_; }
 	    static void default_marginobjectsep(const length &l) {default_marginobjectsep_ = l;}
 
-	    frame &lmarginbox(epad *);
-	    frame &rmarginbox(epad *);
-	    frame &bmarginbox(epad *);
-	    frame &tmarginbox(epad *);
+	    frame &lmarginbox(smartptr<epad>);
+	    frame &rmarginbox(smartptr<epad>);
+	    frame &bmarginbox(smartptr<epad>);
+	    frame &tmarginbox(smartptr<epad>);
 
-	    epad *lmarginbox() const;
-	    epad *rmarginbox() const;
-	    epad *bmarginbox() const;
-	    epad *tmarginbox() const;
+	    smartptr<epad> lmarginbox() const;
+	    smartptr<epad> rmarginbox() const;
+	    smartptr<epad> bmarginbox() const;
+	    smartptr<epad> tmarginbox() const;
 	    
-	    frame &lmarginobject(box *);
-	    frame &rmarginobject(box *);
-	    frame &bmarginobject(box *);
-	    frame &tmarginobject(box *);
+	    frame &lmarginobject(smartptr<box>);
+	    frame &rmarginobject(smartptr<box>);
+	    frame &bmarginobject(smartptr<box>);
+	    frame &tmarginobject(smartptr<box>);
 
 	    // ------   Switch off/on mirroring of axis tics ------------------------------
 
@@ -372,25 +377,25 @@ namespace blop
 	    // -----------  Get the number of graphs, and the 'n'th graph (0-based) --------
 
 	    int    ngraphs() const { return graphs_.size(); }
-	    plottable *get_graph(int n);
-	    dgraph *lastd();
-	    fgraph *lastf();
-	    plottable *last();
+	    smartptr<plottable> get_graph(int n);
+            smartptr<dgraph> lastd();
+            smartptr<fgraph> lastf();
+	    smartptr<plottable> last();
 
 	    // ------------ Get pointer to the axes -----------------------------------------
 
-	    axis *x1axis() {return x1axis_;}
-	    axis *x2axis() {return x2axis_;}
-	    axis *y1axis() {return y1axis_;}
-	    axis *y2axis() {return y2axis_;}
+            axis::ptr x1axis() {return x1axis_;}
+            axis::ptr x2axis() {return x2axis_;}
+            axis::ptr y1axis() {return y1axis_;}
+            axis::ptr y2axis() {return y2axis_;}
 
 
 	    // ----------- Specify an external axis to be used ------------------------------
 
-	    frame &x1axis(axis *a) { x1axis_ = a; owns_x1axis_ = false; return *this;}
-	    frame &x2axis(axis *a) { x2axis_ = a; owns_x2axis_ = false; return *this;}
-	    frame &y1axis(axis *a) { y1axis_ = a; owns_y1axis_ = false; return *this;}
-	    frame &y2axis(axis *a) { y2axis_ = a; owns_y2axis_ = false; return *this;}
+	    frame &x1axis(smartptr<axis> a) { x1axis_ = a; owns_x1axis_ = false; return *this;}
+	    frame &x2axis(smartptr<axis> a) { x2axis_ = a; owns_x2axis_ = false; return *this;}
+	    frame &y1axis(smartptr<axis> a) { y1axis_ = a; owns_y1axis_ = false; return *this;}
+	    frame &y2axis(smartptr<axis> a) { y2axis_ = a; owns_y2axis_ = false; return *this;}
 
 
 	    // ---------------- Draw in foreground? -------------------------------
@@ -439,11 +444,13 @@ namespace blop
 	    void prepare_for_draw();
 
 	    // a static vector, which keeps the pointers of
-	    // all existing frames
-	    static std::vector<blop::frame*> &all();
+	    // all existing frames. Note that raw C++ pointers need to be stored,
+            // otherwise, if the smart frame::ptr is stored, shared objects
+            // would always have a referring shared_ptr and would never get destroyed
+	    static std::vector<blop::frame*> &all_frames();
 
 	    // remove a given plottable from all existing frames
-	    static void remove_from_all(plottable *);
+	    static void remove_from_all(plottable::ptr);
 
 	    frame &layer(const var & l) { grob::layer(l); return *this; }
 

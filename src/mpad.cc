@@ -44,8 +44,8 @@ namespace blop
 
     mpad::~mpad()
     {
-	for(int i=0; i<nx_*ny_; ++i) delete pads_[i];
-	delete [] pads_;
+	//for(int i=0; i<nx_*ny_; ++i) delete pads_[i];
+	//delete [] pads_;
 	delete [] widths_;
 	delete [] heights_;
 	delete [] rwidths_;
@@ -68,7 +68,7 @@ namespace blop
 	y_avail_ = !cheight();
 	gap_     = default_gap_();
 
-	pads_ = new pad*[nx_ * ny_];
+        pads_.resize(nx_*ny_);
 
 	left(ZERO);
 	right(!parent_cwidth_);
@@ -84,7 +84,7 @@ namespace blop
 	{
 	    for(int j=1; j<=ny_; ++j)
 	    {
-		pads_[ind(i,j)] = new pad(0.0,1.0,0.0,1.0);
+                pads_[ind(i,j)] = pad::create(0.0,1.0,0.0,1.0);
 	    }
 	}
 	set_widths();
@@ -111,7 +111,7 @@ namespace blop
 	y_avail_ = !cheight();
 	gap_     = default_gap_();
 
-	pads_ = new pad*[nx_ * ny_];
+        pads_.resize(nx_*ny_);
 
 	left(ZERO);
 	right(!parent_cwidth_);
@@ -127,7 +127,7 @@ namespace blop
 	{
 	    for(int j=1; j<=ny_; ++j)
 	    {
-		pads_[ind(i,j)] = new pad(0.0,1.0,0.0,1.0);
+                pads_[ind(i,j)] = pad::create(0.0,1.0,0.0,1.0);
 	    }
 	}
 	set_widths();
@@ -298,15 +298,14 @@ namespace blop
 	return *this;
     }
 
-    pad *mpad::operator() (int i,int j)
+    pad::ptr mpad::operator() (int i,int j)
     {
 	return pads_[ind(i,j)];
     }
 	    
     mpad &mpad::mknew(int i, int j)
     {
-	mpad *p = new mpad(i,j);
-	p->autodel(true);
+        smartptr<mpad> p = mpad::create(i,j);
 	pad::current().add(p);
 
 	int ix, iy;
@@ -324,8 +323,7 @@ namespace blop
     {
 	int i=0,j=0;
 	mcontainer::get_gridsize_(n,i,j);
-	mpad *p = new mpad(i,j);
-	p->autodel(true);
+        smartptr<mpad> p = mpad::create(i,j);
 	pad::current().add(p);
 
 	int ix, iy;

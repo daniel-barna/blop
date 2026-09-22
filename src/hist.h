@@ -10,7 +10,7 @@
 #include "mpps.h"
 #include "ignore.h"
 #include "function.h"
-
+#include "factory.h"
 
 namespace blop
 {
@@ -194,6 +194,7 @@ namespace blop
 // Class for histograms. Axis indices are 1-based on the user side!
     class hist : public plottable
     {
+        FACTORY(hist);
     protected:
         // the number of entries to buffer before we automatically set the ranges and fill the entries. No buffering if 0
         mutable int                 buffer_size_;  
@@ -201,10 +202,12 @@ namespace blop
         mutable std::vector<double> buffer_;        
 
         // Graph drawers:
-        static graph_drawer* &default_graph_drawer_1_();
-        static graph_drawer* &default_graph_drawer_2_();
+//        static graph_drawer* &default_graph_drawer_1_();
+//        static graph_drawer* &default_graph_drawer_2_();
+
         void set_graph_drawer_() const;
-        static point_drawer* default_point_drawer_;
+
+//        static point_drawer* default_point_drawer_;
 
         // Dimension of histogram domain:
         mutable int dim_;
@@ -247,11 +250,18 @@ namespace blop
                      const var &hlegend) const;
 
     public:
+
         void flush_buffer() const;
 
+
+        static smartptr<graph_drawer> &default_drawstyle_1();
+        static smartptr<graph_drawer> &default_drawstyle_2();
         static void default_drawstyle_1(const graph_drawer &d);
         static void default_drawstyle_2(const graph_drawer &d);
+
+        static smartptr<point_drawer> &default_pointtype();
         static void default_pointtype(const point_drawer &);
+        static void default_pointtype(smartptr<point_drawer> );
 
         // Default constructor.
         hist();
@@ -503,7 +513,7 @@ namespace blop
             var dataFileName_;
             ostream *output_;
             bool isFlushed_;
-            std::vector<blop::hist*> oHistos_;
+            std::vector<smartptr<hist>> oHistos_;
         public:
             write_many();
             write_many(ostream &output);
@@ -538,7 +548,7 @@ namespace blop
             var dataFileName_;
             istream *input_;
             bool isFlushed_;
-            std::vector< std::pair<blop::hist*, int> > iHistos_;
+            std::vector< std::pair<smartptr<hist>, int> > iHistos_;
         public:
             read_many();
             read_many(istream &input);
@@ -590,7 +600,7 @@ namespace blop
         var max(const function &fmax, function fret) const;
 
         int columns() const;
-        void prepare_for_draw(axis *,axis *, frame *, int count);
+        void prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame>, int count);
 
         // Explicit conversion to dgraph.
         dgraph to_dgraph() const;
@@ -642,13 +652,13 @@ namespace blop
             class oStuff_t
             {
             protected:
-                hist *h;
+                smartptr<hist> h;
                 function f;
                 var l;
             public:
             oStuff_t() : h(NULL), f(unset), l("__NULL") {  }
             oStuff_t(const oStuff_t &other) : h(other.h), f(other.f), l(other.l) {  }
-            oStuff_t(hist *hi, const function &func, const var &leg) : h(hi), f(func), l(leg) {  }
+            oStuff_t(smartptr<hist> hi, const function &func, const var &leg) : h(hi), f(func), l(leg) {  }
                 bool operator==(const oStuff_t&) const { return false; }
                 bool operator<(const oStuff_t &) const { return false; }
                 bool operator>(const oStuff_t &) const { return false; }

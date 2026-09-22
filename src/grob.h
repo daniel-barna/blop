@@ -3,7 +3,9 @@
 
 #include "length.h"
 #include "terminal.h"
+#include "factory.h"
 #include <vector>
+#include <memory>
 
 namespace blop
 {
@@ -16,19 +18,21 @@ namespace blop
     */
 
 
-    class grob
+    class grob : public factory_base<grob>
     {
+        FACTORY(grob);
+
 	friend class container;
     private:
-	container *parent_;
+	smartptr<container> parent_;   // should change to smartptr?
 	std::string name_;
-        bool autodel_;
+//        bool autodel_;
 
         bool above_grid_ = false;
 
     protected:
 
-	virtual bool parent(container *p);
+	virtual bool parent(smartptr<container> p);
 
 	    // When a grob is added into a container, the container
 	    // calls this function to notify the grob about being
@@ -69,9 +73,7 @@ namespace blop
 
 	// -----------  Returns the parent of this grob  --------------------------
 
-	virtual container       *parent()       { return parent_; }
-        virtual const container *parent() const { return parent_; }
-
+	virtual smartptr<container> parent()       { return parent_; }
 
 	static void default_x_unit(length l);
 	static void default_y_unit(length l);
@@ -118,8 +120,8 @@ namespace blop
 	// those grobs in them, which have autodel=true 
 	// autodel is false by default
 	
-        grob &autodel(bool b) { autodel_ = b; return *this; }
-	bool autodel() const  { return autodel_; }
+//        grob &autodel(bool b) { autodel_ = b; return *this; }
+//	bool autodel() const  { return autodel_; }
 
 	// --------------------  change layer --------------------------------
 
@@ -137,8 +139,6 @@ namespace blop
 	// that a container holds a reference to an unexisting grob.
 
 	virtual ~grob();
-
-
 
 	virtual void print(terminal *) = 0;
 
@@ -165,9 +165,9 @@ namespace blop
     class grobs
     {
     private:
-        vector<grob*> grobs_;
+        vector<smartptr<grob>> grobs_;
     public:
-        void add(grob *g) { grobs_.push_back(g); }
+        void add(smartptr<grob> g) { grobs_.push_back(g); }
 
         grobs &linecolor(const color &c);
         grobs &lc(const color &c) { return linecolor(c); }

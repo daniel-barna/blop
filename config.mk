@@ -2,7 +2,7 @@ BLOP_ENABLE_CINT = no
 BLOP_VERSION = 1.1.60
 CINT_VERSION = 
 BLOP_ARCH    = linux
-BLOP_CONFIG_OPTIONS =  '--disable-cint' '--prefix=/usr/local'
+BLOP_CONFIG_OPTIONS = 
 
 USE_CINTSYSDIR = @USE_CINTSYSDIR@
 CINT_INCLUDE_PREFIX = @CINT_INCLUDE_PREFIX@
@@ -19,14 +19,14 @@ DATADIR = ${datarootdir}/blop-plot
 DOCDIR = ${DATADIR}/doc
 PERL = /usr/bin/perl
 ECHO = /bin/echo
-CXXFLAGS =  -std=c++20 `gsl-config --cflags` `gts-config --cflags`  
+CXXFLAGS =  -std=c++23 `gsl-config --cflags` `gts-config --cflags`  
 ifeq ($(CXX),g++)
   CXXFLAGS += -Wall -Wno-long-long -O3
 endif
 #CPPFLAGS = -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/sysprof-6 -pthread -I/usr/include
 CXX = g++
 MAKEDEPEND = ${CXX} -M ${CXXFLAGS} 
-CXXSTD = -std=c++20
+CXXSTD = -std=c++23
 
 X_CFLAGS = 
 X_LIBS = 

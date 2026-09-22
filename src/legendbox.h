@@ -13,6 +13,7 @@ namespace blop
 
     class legendbox : public box
 	{
+            FACTORY(legendbox);
 	private:
 	    length calculated_width_, calculated_height_;
 
@@ -59,7 +60,7 @@ namespace blop
                 // and the samples are shown in the same line, next to each other.
 		int     multi_number;
                 
-		plottable  *gr;
+                plottable::ptr  gr;
 
 		length  sample_x,sample_y;
 
@@ -89,9 +90,9 @@ namespace blop
 
 	    // ---------  Add or remove a graph from the legendbox  -------------------
 
-	    void add(blop::plottable *);
-	    virtual bool remove(blop::plottable *);
-	    static void remove_from_all(blop::plottable *);
+	    void add(blop::plottable::ptr);
+	    virtual bool remove(blop::plottable::ptr);
+	    static void remove_from_all(blop::plottable::ptr);
 
             // add just a label, without a graph
             label &add(const var &);

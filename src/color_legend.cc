@@ -15,8 +15,9 @@ namespace blop
 
     color_legend &color_legend::mknew()
     {
-	color_legend *l = new color_legend;
-	l->autodel(true);
+        auto l = color_legend::create();
+//	color_legend *l = new color_legend;
+//	l->autodel(true);
 	//frame::current().rmarginobject(l);
 	pad::current().add(l);
 	l->right(1.0);

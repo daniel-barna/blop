@@ -9,19 +9,23 @@ include ../config.mk
 #   TEST :=
 # endif
 
-TEST = test.ps
+TEST = test.pdf
 
 all : $(TEST)
 
-$(TEST) : test.dvi
+$(TEST) : test.ps
+	ps2pdf -dALLOWPSTRANSPARENCY $<
+
+test.ps : test.dvi
 	dvips -o $@ -t a4 $^
 
 
 test.dvi : test.tex picture.beps ../latex/blopeps.sty
 	latex test.tex
 
-picture.beps : test.C data ../src/blop.exe
-	INPUTMODE=C++ ../src/blop.exe ../src/init.C test.C
+picture.beps : test.C data 
+	$(CXX) $(CXXFLAGS) -I/usr/include/glib-2.0  -I/usr/lib/x86_64-linux-gnu/glib-2.0/include/ -I../src main.C -L../src -lblop  `gts-config --libs` `gsl-config --libs` -o test.exe && ./test.exe
+
 
 distclean : clean
 

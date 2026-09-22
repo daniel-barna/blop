@@ -80,8 +80,9 @@ namespace blop
         function f(f1,f2,f3,f4,f5);
 
         if(f.components()==1) f = function(_1,f1,f2,f3,f4,f5);
-	fgraph *g = new fgraph(f);
-	g->autodel(true);
+        smartptr<fgraph> g = fgraph::create(f);
+//	fgraph *g = new fgraph(f);
+//	g->autodel(true);
 	g->set_default_legend();
 	frame::current().add(g);
 	return *g;
@@ -115,7 +116,8 @@ namespace blop
 	function f(f1,f2,f3,f4);
 	int cols = f.components();
 
-	dgraph *gg = new dgraph(g.size(), cols);
+        smartptr<dgraph> gg = dgraph::create(g.size(), cols);
+//	dgraph *gg = new dgraph(g.size(), cols);
 	for(unsigned int i=0; i<g.size(); ++i)
 	{
             function::clear_named_params();
@@ -123,7 +125,7 @@ namespace blop
 	    f.meval(g[i],(*gg)[i]);
 	}
         function::clear_named_params();
-	gg->autodel(true);
+//	gg->autodel(true);
 	gg->copy_style(g);
 	frame::current().add(gg);
 	return *gg;
@@ -172,8 +174,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 1)
 	{
@@ -221,8 +224,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 2)
 	{
@@ -272,8 +276,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 3)
 	{
@@ -324,8 +329,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 4)
 	{
@@ -424,8 +430,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 1)
 	{
@@ -472,8 +479,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 2)
 	{
@@ -523,8 +531,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 3)
 	{
@@ -575,8 +584,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	frame::current().add(g);
 	if(condition.nargs() > 4)
 	{
@@ -676,8 +686,9 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	dgraph *gg = new dgraph;
-	gg->autodel(true);
+        smartptr<dgraph> gg = dgraph::create();
+//	dgraph *gg = new dgraph;
+//	gg->autodel(true);
 	gg->copy_style(g);
 	frame::current().add(gg);
 
@@ -728,9 +739,10 @@ namespace blop
 		     const function &f3,
 		     const function &f4)
     {
-	fgraph *g = new fgraph(function(f1,f2,f3,f4));
+        smartptr<fgraph> g = fgraph::create(function(f1,f2,f3,f4));
+//	fgraph *g = new fgraph(function(f1,f2,f3,f4));
 	g->filter(condition);
-	g->autodel(true);
+//	g->autodel(true);
 	g->set_default_legend();
 	frame::current().add(g);
 	return *g;
@@ -765,7 +777,7 @@ namespace blop
 
     hist &mhisplot(const var &filename, const function &f1, const function &f2, const histopt &hopt)
     {
-        hist *result = 0;
+        smartptr<hist> result;
         function filter;
         if(f1.initialized()) filter.append(f1);
         if(f2.initialized()) filter.append(f2);
@@ -870,7 +882,13 @@ namespace blop
                 //cerr<<"  "<<nbins<<" bins: "<<min1<<" .. "<<max1<<endl;
                 //cerr<<"  "<<nbins<<" bins: "<<min2<<" .. "<<max2<<endl;
 
-                result = new hist(hopt.min(1)==unset?min1:hopt.min(1),
+                // result = new hist(hopt.min(1)==unset?min1:hopt.min(1),
+                //                   hopt.max(1)==unset?max1:hopt.max(1),
+                //                   hopt.bins(1)==0?nbins:hopt.bins(1),
+                //                   hopt.min(2)==unset?min2:hopt.min(2),
+                //                   hopt.max(2)==unset?max2:hopt.max(2),
+                //                   hopt.bins(2)==0?nbins:hopt.bins(2));
+                result = hist::create(hopt.min(1)==unset?min1:hopt.min(1),
                                   hopt.max(1)==unset?max1:hopt.max(1),
                                   hopt.bins(1)==0?nbins:hopt.bins(1),
                                   hopt.min(2)==unset?min2:hopt.min(2),
@@ -881,9 +899,12 @@ namespace blop
             {
                 //cerr<<"Creating 1D histogram: "<<endl;
                 //cerr<<"  "<<nbins<<" bins: "<<min1<<" .. "<<max1<<endl;
-                result = new hist(hopt.min(1)==unset?min1:hopt.min(1),
-                                  hopt.max(1)==unset?max1:hopt.max(1),
-                                  hopt.bins(1)==0?nbins:hopt.bins(1));
+                // result = new hist(hopt.min(1)==unset?min1:hopt.min(1),
+                //                   hopt.max(1)==unset?max1:hopt.max(1),
+                //                   hopt.bins(1)==0?nbins:hopt.bins(1));
+                result = hist::create(hopt.min(1)==unset?min1:hopt.min(1),
+                                      hopt.max(1)==unset?max1:hopt.max(1),
+                                      hopt.bins(1)==0?nbins:hopt.bins(1));
             }
             
             for(unsigned int i=0; i<buffer1.size(); ++i)
@@ -894,9 +915,12 @@ namespace blop
         }
         else
         {
-            if(filter.components()>=2) result = new hist(hopt.min(1),hopt.max(1),hopt.bins(1),
-                                                         hopt.min(2),hopt.max(2),hopt.bins(2));
-            else                       result = new hist(hopt.min(1),hopt.max(1),hopt.bins(1));
+            // if(filter.components()>=2) result = new hist(hopt.min(1),hopt.max(1),hopt.bins(1),
+            //                                              hopt.min(2),hopt.max(2),hopt.bins(2));
+            // else                       result = new hist(hopt.min(1),hopt.max(1),hopt.bins(1));
+            if(filter.components()>=2) result = hist::create(hopt.min(1),hopt.max(1),hopt.bins(1),
+                                                             hopt.min(2),hopt.max(2),hopt.bins(2));
+            else                       result = hist::create(hopt.min(1),hopt.max(1),hopt.bins(1));
         }
 
         // read the rest of the file
@@ -926,7 +950,7 @@ namespace blop
 
         delete file;
 
-        result->autodel(true);
+//        result->autodel(true);
         frame::current().add(result);
         return *result;
     }
@@ -951,8 +975,9 @@ namespace blop
 		  const function &f5,
 		  const function &f6)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	function filter;
 	filter.append(f1);
 	filter.append(f2);
@@ -985,7 +1010,8 @@ namespace blop
 		  const function &f4)
     {
 	function transform(f1,f2,f3,f4);
-	dgraph *g = new dgraph(n,transform.components());
+        smartptr<dgraph> g = dgraph::create(n,transform.components());
+//	dgraph *g = new dgraph(n,transform.components());
 	vector<var> in(1),out(transform.components());
 	for(int i=0; i<n; ++i)
 	{
@@ -996,7 +1022,7 @@ namespace blop
 	    for(unsigned int j=0; j<out.size(); ++j) (*g)[i][j] = out[j];
 	}
         function::clear_named_params();
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1020,11 +1046,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+        smartptr<dgraph> g;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+            g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(2),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1039,9 +1067,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y);
+            g = dgraph::create(n,x,y);
+//	    g = new dgraph(n,x,y);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1067,11 +1096,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+        smartptr<dgraph> g;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(3),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1087,9 +1118,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y,z);
+	    g = dgraph::create(n,x,y,z);
+//	    g = new dgraph(n,x,y,z);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1117,11 +1149,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+        smartptr<dgraph> g;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(4),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1138,9 +1172,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y,z,w);
+	    g = dgraph::create(n,x,y,z,w);
+//	    g = new dgraph(n,x,y,z,w);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1165,7 +1200,8 @@ namespace blop
 		  const function &f4)
     {
 	function transform(f1,f2,f3,f4);
-	dgraph *g = new dgraph(n,transform.components());
+	smartptr<dgraph> g = dgraph::create(n,transform.components());
+//	dgraph *g = new dgraph(n,transform.components());
 	vector<var> in(1),out(transform.components());
 	for(int i=0; i<n; ++i)
 	{
@@ -1176,7 +1212,7 @@ namespace blop
 	    for(unsigned int j=0; j<out.size(); ++j) (*g)[i][j] = out[j];
 	}
         function::clear_named_params();
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1200,11 +1236,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(2),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1219,9 +1257,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y);
+            g = dgraph::create(n,x,y);
+//	    g = new dgraph(n,x,y);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1247,11 +1286,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g = 0;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(3),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1267,9 +1308,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y,z);
+	    g = dgraph::create(n,x,y,z);
+//	    g = new dgraph(n,x,y,z);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1297,11 +1339,13 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(4),out(transform.components());
 	    for(int i=0; i<n; ++i)
 	    {
@@ -1318,9 +1362,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(n,x,y,z,w);
+	    g = dgraph::create(n,x,y,z,w);
+//	    g = new dgraph(n,x,y,z,w);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1337,8 +1382,9 @@ namespace blop
     }
     dgraph &mplot(double x, double y)
     {
-	dgraph *g = new dgraph(1,&x,&y);
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create(1,&x,&y);
+//	dgraph *g = new dgraph(1,&x,&y);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1350,9 +1396,10 @@ namespace blop
     }
     dgraph &mplot(double x, var y)
     {
-	dgraph *g = new dgraph;
+	smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
         g->add(x,y);
-	g->autodel(true);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1364,9 +1411,10 @@ namespace blop
     }
     dgraph &mplot(var x, double y)
     {
-	dgraph *g = new dgraph;
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
         g->add(x,y);
-	g->autodel(true);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1379,8 +1427,9 @@ namespace blop
     }
     dgraph &mplot(double x, double y, double z)
     {
-	dgraph *g = new dgraph(1,&x,&y,&z);
-	g->autodel(true);
+	smartptr<dgraph> g = dgraph::create(1,&x,&y,&z);
+//	dgraph *g = new dgraph(1,&x,&y,&z);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1393,9 +1442,10 @@ namespace blop
     }
     dgraph &mplot(double x, double y, var z)
     {
-	dgraph *g = new dgraph;
+	smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
         g->add(x,y,z);
-	g->autodel(true);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1409,10 +1459,13 @@ namespace blop
     }
     dgraph &mplot(const var &x, const var &y, const var &z)
     {
-	dgraph *g = 0;
-	if(z.dbl() != unset) g = new dgraph(1,&x,&y,&z);
-	else                 g = new dgraph(1,&x,&y);
-	g->autodel(true);
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
+	if(z.dbl() != unset) g = dgraph::create(1,&x,&y,&z);
+	else                 g = dgraph::create(1,&x,&y);
+//	if(z.dbl() != unset) g = new dgraph(1,&x,&y,&z);
+//	else                 g = new dgraph(1,&x,&y);
+//	g->autodel(true);
 	g->drawstyle(points());
 	frame::current().add(g);
 	return *g;
@@ -1436,7 +1489,8 @@ namespace blop
     {
 	unsigned int n=x.size();
 	function transform(f1,f2,f3,f4);
-	dgraph *g = new dgraph(n,transform.components());
+	smartptr<dgraph> g = dgraph::create(n,transform.components());
+//	dgraph *g = new dgraph(n,transform.components());
 	vector<var> in(1),out(transform.components());
 	for(unsigned int i=0; i<n; ++i)
 	{
@@ -1447,7 +1501,7 @@ namespace blop
 	    for(unsigned int j=0; j<out.size(); ++j) (*g)[i][j] = out[j];
 	}
         function::clear_named_params();
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1469,12 +1523,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(x.size(),y.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(2),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1489,9 +1545,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y);
+	    g = dgraph::create(x,y);
+//	    g = new dgraph(x,y);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1515,12 +1572,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(std::min(x.size(),y.size()),z.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(3),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1536,9 +1595,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y,z);
+	    g = dgraph::create(x,y,z);
+//	    g = new dgraph(x,y,z);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1564,12 +1624,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(std::min(std::min(x.size(),y.size()),z.size()),w.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(4),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1586,9 +1648,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y,z,w);
+	    g = dgraph::create(x,y,z,w);
+//	    g = new dgraph(x,y,z,w);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1614,7 +1677,8 @@ namespace blop
     {
 	unsigned int n=x.size();
 	function transform(f1,f2,f3,f4);
-	dgraph *g = new dgraph(n,transform.components());
+	smartptr<dgraph> g = dgraph::create(n,transform.components());
+//	dgraph *g = new dgraph(n,transform.components());
 	vector<var> in(1),out(transform.components());
 	for(unsigned int i=0; i<n; ++i)
 	{
@@ -1625,7 +1689,7 @@ namespace blop
 	    for(unsigned int j=0; j<out.size(); ++j) (*g)[i][j] = out[j];
 	}
         function::clear_named_params();
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1647,12 +1711,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(x.size(),y.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(2),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1667,9 +1733,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y);
+	    g = dgraph::create(x,y);
+//	    g = new dgraph(x,y);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1693,12 +1760,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(std::min(x.size(),y.size()),z.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(3),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1714,9 +1783,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y,z);
+	    g = dgraph::create(x,y,z);
+//	    g = new dgraph(x,y,z);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1742,12 +1812,14 @@ namespace blop
 		  const function &f3,
 		  const function &f4)
     {
-	dgraph *g = 0;
+	smartptr<dgraph> g;
+//	dgraph *g = 0;
 	unsigned int n=std::min(std::min(std::min(x.size(),y.size()),z.size()),w.size());
 	if(f1.initialized())
 	{
 	    function transform(f1,f2,f3,f4);
-	    g = new dgraph(n,transform.components());
+	    g = dgraph::create(n,transform.components());
+//	    g = new dgraph(n,transform.components());
 	    vector<var> in(4),out(transform.components());
 	    for(unsigned int i=0; i<n; ++i)
 	    {
@@ -1764,9 +1836,10 @@ namespace blop
 	}
 	else
 	{
-	    g = new dgraph(x,y,z,w);
+	    g = dgraph::create(x,y,z,w);
+//	    g = new dgraph(x,y,z,w);
 	}
-	g->autodel(true);
+//	g->autodel(true);
 	frame::current().add(g);
 	return *g;
     }
@@ -1836,7 +1909,7 @@ namespace blop
 	dgraph::read_groups_if(filename, grouping_value, condition, filter, &graphs);
 	for(unsigned int i=0; i<graphs.size(); ++i)
 	{
-	    graphs[i]->autodel(true);
+//	    graphs[i]->autodel(true);
 	    frame::current().add(graphs[i]);
 	}
 	return graphs;
@@ -1899,8 +1972,9 @@ namespace blop
 		     const function &f4,
                      const function &f5)
     {
-	dgraph *g = new dgraph;
-	g->autodel(true);
+        smartptr<dgraph> g = dgraph::create();
+//	dgraph *g = new dgraph;
+//	g->autodel(true);
 	//function filter(f1,f2,f3,f4);
 	//g->read_if(filename,condition,filter);
         g->read_if(filename,condition,f1,f2,f3,f4,f5);

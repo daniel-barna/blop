@@ -301,7 +301,7 @@ namespace blop
 
     // -----------------  base_axis_t  ---------------------
 
-    length::base_axis_t::base_axis_t(axis *a,double v1,double v2)
+    length::base_axis_t::base_axis_t(smartptr<axis> a,double v1,double v2)
     {
 	axis_ = a;
 	value1_ = v1;

@@ -9,9 +9,10 @@ namespace blop
 {
     class point : public grob
     {
+        FACTORY(point);
     private:
-	static point_drawer *default_type_;
-	point_drawer *type_;
+	static smartptr<point_drawer> default_type_;
+	smartptr<point_drawer> type_;
 
 	static color default_color_;
 	color color_;
@@ -25,7 +26,8 @@ namespace blop
 	point();
 	~point();
 
-	void                 default_pointtype(const point_drawer &);
+        smartptr<point_drawer> &default_pointtype();
+	void                    default_pointtype(const point_drawer &);
 	point               &pointtype(const point_drawer &);
 	point               &pt       (const point_drawer &);
 	const point_drawer  &pointtype() const;
@@ -40,7 +42,7 @@ namespace blop
 	point &ps(const length &);
 	const length &pointsize() const;
 
-	static point &draw(container *parent, length x, length y);
+	static point &draw(smartptr<container> parent, length x, length y);
 	static point &fdraw(length x, length y);
 	static point &pdraw(length x, length y);
 	static point &cdraw(length x, length y);

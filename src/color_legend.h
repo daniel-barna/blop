@@ -20,6 +20,7 @@ namespace blop
 
     class color_legend : public box
     {
+        FACTORY(color_legend);
     private:
 	void init_();
 	std::vector<blop::tic> colortics_;

@@ -34,7 +34,7 @@ namespace blop
     legendbox &legendbox::mknew(container &parent)
     {
 	legendbox *l = new legendbox;
-	l->autodel(true);
+//	l->autodel(true);
 	parent.add(l);
 	return *l;
     }
@@ -99,7 +99,7 @@ namespace blop
 
 	    if(entries_[i]->multi_number >= 1 && entries_[i]->gr)
 	    {
-		graph_drawer *d = entries_[i]->gr->drawstyle();
+		auto d = entries_[i]->gr->drawstyle();
 		d->draw_sample(entries_[i]->sample_x,
 			       entries_[i]->sample_y,
 			       sample_length_,
@@ -166,7 +166,7 @@ namespace blop
         return e->legend;
     }
 
-    void legendbox::add(blop::plottable *g)
+    void legendbox::add(blop::plottable::ptr g)
     {
 	entry *e = new entry;
         e->line = false;
@@ -175,7 +175,7 @@ namespace blop
 	entries_.push_back(e);
     }
 
-    bool legendbox::remove(blop::plottable *g)
+    bool legendbox::remove(blop::plottable::ptr g)
     {
 	for(unsigned int i=0; i<entries_.size(); ++i)
 	{
@@ -214,8 +214,8 @@ namespace blop
         // never skip simple text entries (i.e. no graph)
         if(e->gr == 0) return false;
 
-        plottable *g = e->gr;
-	graph_drawer *d = g->drawstyle();
+        auto g = e->gr;
+	auto d = g->drawstyle();
 	if(d == 0 || !d->draws_sample()) return true;
 	if(g->legend().str() == "") return true;
 	return false;
@@ -252,8 +252,8 @@ namespace blop
 		    {
 			if(prev < 0) prev = j;
 
-			plottable *g1 = entries[i]->gr;
-			plottable *g2 = entries[j]->gr;
+			auto g1 = entries[i]->gr;
+			auto g2 = entries[j]->gr;
 			    
 			string p1, p2, l1, l2;
 			{
@@ -564,7 +564,7 @@ namespace blop
 	return *f;
     }
 
-    void legendbox::remove_from_all(plottable *p)
+    void legendbox::remove_from_all(plottable::ptr p)
     {
 	for(unsigned int i=0; i<all().size(); ++i)
 	{

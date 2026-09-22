@@ -85,167 +85,168 @@
 <a name="__line67"></a>        return *this;
 <a name="__line68"></a>    }
 <a name="__line69"></a>
-<a name="__line70"></a>    text &amp;text::draw(container *parent, const var &amp;ttt)
+<a name="__line70"></a>    text &amp;text::draw(smartptr&lt;container&gt; parent, const var &amp;ttt)
 <a name="__line71"></a>    {
 <a name="__line72"></a>        if(parent == 0) err("text::draw ==&gt; parent == 0");
-<a name="__line73"></a>        text *t = new text(ttt);
-<a name="__line74"></a>        t-&gt;autodel(true);
-<a name="__line75"></a>        parent-&gt;add(t);
-<a name="__line76"></a>        return *t;
-<a name="__line77"></a>    }
-<a name="__line78"></a>
-<a name="__line79"></a>    text &amp;text::fdraw(const var &amp;ttt)
-<a name="__line80"></a>    {
-<a name="__line81"></a>        return text::draw(&amp;frame::current(),ttt);
-<a name="__line82"></a>    }
-<a name="__line83"></a>    text &amp;text::pdraw(const var &amp;ttt)
-<a name="__line84"></a>    {
-<a name="__line85"></a>        return text::draw(&amp;pad::current(),ttt);
-<a name="__line86"></a>    }
-<a name="__line87"></a>    text &amp;text::cdraw(const var &amp;ttt)
-<a name="__line88"></a>    {
-<a name="__line89"></a>        return text::draw(&amp;canvas::current(),ttt);
-<a name="__line90"></a>    }
-<a name="__line91"></a>
-<a name="__line92"></a>    text::text(const var &amp;ttt) : verbatim_(false), color_(0,0,0), gap_(0.3*EX)
-<a name="__line93"></a>    {
-<a name="__line94"></a>        vector&lt;string&gt; lines;
-<a name="__line95"></a>        split(ttt,"\n",lines);
-<a name="__line96"></a>        for(unsigned int i=0; i&lt;lines.size(); ++i) add_line(lines[i]);
-<a name="__line97"></a>    }
-<a name="__line98"></a>
-<a name="__line99"></a>    void text::recalculate_size_()
-<a name="__line100"></a>    {
-<a name="__line101"></a>        fix_width(false);
-<a name="__line102"></a>        fix_height(false);
-<a name="__line103"></a>
-<a name="__line104"></a>        length height = 0.0;
-<a name="__line105"></a>
-<a name="__line106"></a>        vector&lt;string&gt; transformed_lines(lines_.size());
-<a name="__line107"></a>        for(unsigned int i=0; i&lt;lines_.size(); ++i) transformed_lines[i] = transform_text_(lines_[i]);
-<a name="__line108"></a>
-<a name="__line109"></a>        for(unsigned int i=0; i&lt;transformed_lines.size(); ++i) height += blop::height(transformed_lines[i],0);
-<a name="__line110"></a>        if(transformed_lines.size()&gt;1) height += gap_*(transformed_lines.size()-1);
-<a name="__line111"></a>        box::height(height);
-<a name="__line112"></a>
-<a name="__line113"></a>        box::width(maxwidth(transformed_lines));
-<a name="__line114"></a>
-<a name="__line115"></a>        fix_width(true);
-<a name="__line116"></a>        fix_height(true);
-<a name="__line117"></a>    }
-<a name="__line118"></a>
-<a name="__line119"></a>    text &amp;text::add_line(const var &amp;line)
-<a name="__line120"></a>    {
-<a name="__line121"></a>        lines_.push_back(line.str());
-<a name="__line122"></a>        recalculate_size_();
-<a name="__line123"></a>        return *this;
-<a name="__line124"></a>    }
-<a name="__line125"></a>
-<a name="__line126"></a>    text &amp;text::gap(const length &amp;l)
-<a name="__line127"></a>    {
-<a name="__line128"></a>        gap_ = l;
-<a name="__line129"></a>        recalculate_size_();
-<a name="__line130"></a>        return *this;
-<a name="__line131"></a>    }
-<a name="__line132"></a>
-<a name="__line133"></a>    text &amp;text::width(const length &amp;)
-<a name="__line134"></a>    {
-<a name="__line135"></a>        warning::print("The width of a text can not be set","text::width(const length &amp;)");
-<a name="__line136"></a>        return *this;
-<a name="__line137"></a>    }
-<a name="__line138"></a>    text &amp;text::height(const length &amp;)
-<a name="__line139"></a>    {
-<a name="__line140"></a>        warning::print("The height of a text can not be set","text::height(const length &amp;)");
-<a name="__line141"></a>        return *this;
-<a name="__line142"></a>    }
-<a name="__line143"></a>
-<a name="__line144"></a>    text &amp;text::left(const length &amp;l)
-<a name="__line145"></a>    {
-<a name="__line146"></a>        box::left(l);
-<a name="__line147"></a>        return *this;
-<a name="__line148"></a>    }
-<a name="__line149"></a>    text &amp;text::right(const length &amp;l)
-<a name="__line150"></a>    {
-<a name="__line151"></a>        box::right(l);
-<a name="__line152"></a>        return *this;
-<a name="__line153"></a>    }
-<a name="__line154"></a>    text &amp;text::xcenter(const length &amp;l)
-<a name="__line155"></a>    {
-<a name="__line156"></a>        box::xcenter(l);
-<a name="__line157"></a>        return *this;
-<a name="__line158"></a>    }
-<a name="__line159"></a>    text &amp;text::bottom(const length &amp;l)
-<a name="__line160"></a>    {
-<a name="__line161"></a>        box::bottom(l);
-<a name="__line162"></a>        return *this;
-<a name="__line163"></a>    }
-<a name="__line164"></a>    text &amp;text::top(const length &amp;l)
-<a name="__line165"></a>    {
-<a name="__line166"></a>        box::top(l);
-<a name="__line167"></a>        return *this;
-<a name="__line168"></a>    }
-<a name="__line169"></a>    text &amp;text::ycenter(const length &amp;l)
-<a name="__line170"></a>    {
-<a name="__line171"></a>        box::ycenter(l);
-<a name="__line172"></a>        return *this;
-<a name="__line173"></a>    }
-<a name="__line174"></a>
-<a name="__line175"></a>    void text::print(terminal *t)
-<a name="__line176"></a>    {
-<a name="__line177"></a>        if(print_me_&lt;2) return;
-<a name="__line178"></a>        t-&gt;set_color(color_);
-<a name="__line179"></a>        for(unsigned int i=0; i&lt;lines_.size(); ++i)
-<a name="__line180"></a>        {
-<a name="__line181"></a>            string tt = transform_text_(lines_[i]);
-<a name="__line182"></a>
-<a name="__line183"></a>            if(align_ == sym::right)
-<a name="__line184"></a>            {
-<a name="__line185"></a>                t-&gt;draw_text(terminal::coord(right().termspecific_id(),ypositions_[i].termspecific_id()),
-<a name="__line186"></a>                             tt,
-<a name="__line187"></a>                             sym::right,
-<a name="__line188"></a>                             sym::top,
-<a name="__line189"></a>                             0,
-<a name="__line190"></a>                             false);
-<a name="__line191"></a>
-<a name="__line192"></a>            }
-<a name="__line193"></a>            else if(align_ == sym::center)
-<a name="__line194"></a>            {
-<a name="__line195"></a>                t-&gt;draw_text(terminal::coord(xcenter().termspecific_id(),ypositions_[i].termspecific_id()),
-<a name="__line196"></a>                             tt,
-<a name="__line197"></a>                             sym::center,
-<a name="__line198"></a>                             sym::top,
-<a name="__line199"></a>                             0,
-<a name="__line200"></a>                             false);
-<a name="__line201"></a>
-<a name="__line202"></a>            }
-<a name="__line203"></a>            else
-<a name="__line204"></a>            {
-<a name="__line205"></a>                t-&gt;draw_text(terminal::coord(left().termspecific_id(),ypositions_[i].termspecific_id()),
-<a name="__line206"></a>                             tt,
-<a name="__line207"></a>                             sym::left,
-<a name="__line208"></a>                             sym::top,
-<a name="__line209"></a>                             0,
-<a name="__line210"></a>                             false);
-<a name="__line211"></a>            }
-<a name="__line212"></a>        }
-<a name="__line213"></a>    }
-<a name="__line214"></a>
-<a name="__line215"></a>    void text::prepare_for_draw()
-<a name="__line216"></a>    {
-<a name="__line217"></a>        if(print_me_&lt;1) return;
-<a name="__line218"></a>        box::prepare_for_draw();
-<a name="__line219"></a>        ypositions_.clear();
-<a name="__line220"></a>        ypositions_.resize(lines_.size());
-<a name="__line221"></a>        ypositions_[0] = box::top();
-<a name="__line222"></a>        ypositions_[0].register_me();
-<a name="__line223"></a>        for(unsigned int i=1; i&lt;lines_.size(); ++i)
-<a name="__line224"></a>        {
-<a name="__line225"></a>            ypositions_[i] = ypositions_[i-1]-blop::height(lines_[i-1])-gap_;
-<a name="__line226"></a>            ypositions_[i].register_me();
-<a name="__line227"></a>        }
-<a name="__line228"></a>    }
-<a name="__line229"></a>    
-<a name="__line230"></a>}
+<a name="__line73"></a>        smartptr&lt;text&gt; t = text::create(ttt);
+<a name="__line74"></a><span class=comment>//        text *t = new text(ttt);</span>
+<a name="__line75"></a><span class=comment>//        t-&gt;autodel(true);</span>
+<a name="__line76"></a>        parent-&gt;add(t);
+<a name="__line77"></a>        return *t;
+<a name="__line78"></a>    }
+<a name="__line79"></a>
+<a name="__line80"></a>    text &amp;text::fdraw(const var &amp;ttt)
+<a name="__line81"></a>    {
+<a name="__line82"></a>        return text::draw(&amp;frame::current(),ttt);
+<a name="__line83"></a>    }
+<a name="__line84"></a>    text &amp;text::pdraw(const var &amp;ttt)
+<a name="__line85"></a>    {
+<a name="__line86"></a>        return text::draw(&amp;pad::current(),ttt);
+<a name="__line87"></a>    }
+<a name="__line88"></a>    text &amp;text::cdraw(const var &amp;ttt)
+<a name="__line89"></a>    {
+<a name="__line90"></a>        return text::draw(&amp;canvas::current(),ttt);
+<a name="__line91"></a>    }
+<a name="__line92"></a>
+<a name="__line93"></a>    text::text(const var &amp;ttt) : verbatim_(false), color_(0,0,0), gap_(0.3*EX)
+<a name="__line94"></a>    {
+<a name="__line95"></a>        vector&lt;string&gt; lines;
+<a name="__line96"></a>        split(ttt,"\n",lines);
+<a name="__line97"></a>        for(unsigned int i=0; i&lt;lines.size(); ++i) add_line(lines[i]);
+<a name="__line98"></a>    }
+<a name="__line99"></a>
+<a name="__line100"></a>    void text::recalculate_size_()
+<a name="__line101"></a>    {
+<a name="__line102"></a>        fix_width(false);
+<a name="__line103"></a>        fix_height(false);
+<a name="__line104"></a>
+<a name="__line105"></a>        length height = 0.0;
+<a name="__line106"></a>
+<a name="__line107"></a>        vector&lt;string&gt; transformed_lines(lines_.size());
+<a name="__line108"></a>        for(unsigned int i=0; i&lt;lines_.size(); ++i) transformed_lines[i] = transform_text_(lines_[i]);
+<a name="__line109"></a>
+<a name="__line110"></a>        for(unsigned int i=0; i&lt;transformed_lines.size(); ++i) height += blop::height(transformed_lines[i],0);
+<a name="__line111"></a>        if(transformed_lines.size()&gt;1) height += gap_*(transformed_lines.size()-1);
+<a name="__line112"></a>        box::height(height);
+<a name="__line113"></a>
+<a name="__line114"></a>        box::width(maxwidth(transformed_lines));
+<a name="__line115"></a>
+<a name="__line116"></a>        fix_width(true);
+<a name="__line117"></a>        fix_height(true);
+<a name="__line118"></a>    }
+<a name="__line119"></a>
+<a name="__line120"></a>    text &amp;text::add_line(const var &amp;line)
+<a name="__line121"></a>    {
+<a name="__line122"></a>        lines_.push_back(line.str());
+<a name="__line123"></a>        recalculate_size_();
+<a name="__line124"></a>        return *this;
+<a name="__line125"></a>    }
+<a name="__line126"></a>
+<a name="__line127"></a>    text &amp;text::gap(const length &amp;l)
+<a name="__line128"></a>    {
+<a name="__line129"></a>        gap_ = l;
+<a name="__line130"></a>        recalculate_size_();
+<a name="__line131"></a>        return *this;
+<a name="__line132"></a>    }
+<a name="__line133"></a>
+<a name="__line134"></a>    text &amp;text::width(const length &amp;)
+<a name="__line135"></a>    {
+<a name="__line136"></a>        warning::print("The width of a text can not be set","text::width(const length &amp;)");
+<a name="__line137"></a>        return *this;
+<a name="__line138"></a>    }
+<a name="__line139"></a>    text &amp;text::height(const length &amp;)
+<a name="__line140"></a>    {
+<a name="__line141"></a>        warning::print("The height of a text can not be set","text::height(const length &amp;)");
+<a name="__line142"></a>        return *this;
+<a name="__line143"></a>    }
+<a name="__line144"></a>
+<a name="__line145"></a>    text &amp;text::left(const length &amp;l)
+<a name="__line146"></a>    {
+<a name="__line147"></a>        box::left(l);
+<a name="__line148"></a>        return *this;
+<a name="__line149"></a>    }
+<a name="__line150"></a>    text &amp;text::right(const length &amp;l)
+<a name="__line151"></a>    {
+<a name="__line152"></a>        box::right(l);
+<a name="__line153"></a>        return *this;
+<a name="__line154"></a>    }
+<a name="__line155"></a>    text &amp;text::xcenter(const length &amp;l)
+<a name="__line156"></a>    {
+<a name="__line157"></a>        box::xcenter(l);
+<a name="__line158"></a>        return *this;
+<a name="__line159"></a>    }
+<a name="__line160"></a>    text &amp;text::bottom(const length &amp;l)
+<a name="__line161"></a>    {
+<a name="__line162"></a>        box::bottom(l);
+<a name="__line163"></a>        return *this;
+<a name="__line164"></a>    }
+<a name="__line165"></a>    text &amp;text::top(const length &amp;l)
+<a name="__line166"></a>    {
+<a name="__line167"></a>        box::top(l);
+<a name="__line168"></a>        return *this;
+<a name="__line169"></a>    }
+<a name="__line170"></a>    text &amp;text::ycenter(const length &amp;l)
+<a name="__line171"></a>    {
+<a name="__line172"></a>        box::ycenter(l);
+<a name="__line173"></a>        return *this;
+<a name="__line174"></a>    }
+<a name="__line175"></a>
+<a name="__line176"></a>    void text::print(terminal *t)
+<a name="__line177"></a>    {
+<a name="__line178"></a>        if(print_me_&lt;2) return;
+<a name="__line179"></a>        t-&gt;set_color(color_);
+<a name="__line180"></a>        for(unsigned int i=0; i&lt;lines_.size(); ++i)
+<a name="__line181"></a>        {
+<a name="__line182"></a>            string tt = transform_text_(lines_[i]);
+<a name="__line183"></a>
+<a name="__line184"></a>            if(align_ == sym::right)
+<a name="__line185"></a>            {
+<a name="__line186"></a>                t-&gt;draw_text(terminal::coord(right().termspecific_id(),ypositions_[i].termspecific_id()),
+<a name="__line187"></a>                             tt,
+<a name="__line188"></a>                             sym::right,
+<a name="__line189"></a>                             sym::top,
+<a name="__line190"></a>                             0,
+<a name="__line191"></a>                             false);
+<a name="__line192"></a>
+<a name="__line193"></a>            }
+<a name="__line194"></a>            else if(align_ == sym::center)
+<a name="__line195"></a>            {
+<a name="__line196"></a>                t-&gt;draw_text(terminal::coord(xcenter().termspecific_id(),ypositions_[i].termspecific_id()),
+<a name="__line197"></a>                             tt,
+<a name="__line198"></a>                             sym::center,
+<a name="__line199"></a>                             sym::top,
+<a name="__line200"></a>                             0,
+<a name="__line201"></a>                             false);
+<a name="__line202"></a>
+<a name="__line203"></a>            }
+<a name="__line204"></a>            else
+<a name="__line205"></a>            {
+<a name="__line206"></a>                t-&gt;draw_text(terminal::coord(left().termspecific_id(),ypositions_[i].termspecific_id()),
+<a name="__line207"></a>                             tt,
+<a name="__line208"></a>                             sym::left,
+<a name="__line209"></a>                             sym::top,
+<a name="__line210"></a>                             0,
+<a name="__line211"></a>                             false);
+<a name="__line212"></a>            }
+<a name="__line213"></a>        }
+<a name="__line214"></a>    }
+<a name="__line215"></a>
+<a name="__line216"></a>    void text::prepare_for_draw()
+<a name="__line217"></a>    {
+<a name="__line218"></a>        if(print_me_&lt;1) return;
+<a name="__line219"></a>        box::prepare_for_draw();
+<a name="__line220"></a>        ypositions_.clear();
+<a name="__line221"></a>        ypositions_.resize(lines_.size());
+<a name="__line222"></a>        ypositions_[0] = box::top();
+<a name="__line223"></a>        ypositions_[0].register_me();
+<a name="__line224"></a>        for(unsigned int i=1; i&lt;lines_.size(); ++i)
+<a name="__line225"></a>        {
+<a name="__line226"></a>            ypositions_[i] = ypositions_[i-1]-blop::height(lines_[i-1])-gap_;
+<a name="__line227"></a>            ypositions_[i].register_me();
+<a name="__line228"></a>        }
+<a name="__line229"></a>    }
+<a name="__line230"></a>    
+<a name="__line231"></a>}
 
 </pre>
 <hr> 

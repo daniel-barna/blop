@@ -2,6 +2,8 @@
 #include "axis.h"
 #include "warning.h"
 #include "global.h"
+#include "graph_drawer.h"
+#include "logger.h"
 
 #include <fstream>
 #include <algorithm>
@@ -19,7 +21,7 @@ namespace blop
 	return o;
     }
 
-    void graph::prepare_for_draw(axis *,axis *, frame *f, int count)
+    void graph::prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame> f, int count)
     {
 	if(global::debug>0) cout<<"[blop] [graph] prepare_for_draw begins..."<<endl;
 	if(graph_drawer_) graph_drawer_->prepare_for_draw(this, f, count);

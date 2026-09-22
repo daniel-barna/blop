@@ -5,11 +5,11 @@
 
 namespace blop
 {
-    frame *mframe::operator()(int i, int j) { return frames_[ind(i,j)]; }
-    const frame *mframe::operator()(int i, int j) const { return frames_[ind(i,j)]; }
+    smartptr<frame> mframe::operator()(int i, int j) { return frames_[ind(i,j)]; }
+
     bool mframe::default_remove_conflicting_tic_ = true;
 
-    int mframe::row(const frame *f) const
+    int mframe::row(smartptr<frame> f)
     {
         for(int nx=1; nx<=nx_; ++nx)
         {
@@ -20,7 +20,7 @@ namespace blop
         }
         return 0;
     }
-    int mframe::col(const frame *f) const
+    int mframe::col(smartptr<frame> f)
     {
         for(int nx=1; nx<=nx_; ++nx)
         {
@@ -63,8 +63,8 @@ namespace blop
 
     mframe::~mframe()
     {
-	for(int i=0; i<nx_*ny_; ++i) delete frames_[i];
-	delete [] frames_;
+//	for(int i=0; i<nx_*ny_; ++i) delete frames_[i];
+//	delete [] frames_;
 
         delete [] show_subframe_;
 
@@ -73,29 +73,29 @@ namespace blop
 	delete [] rwidths_;
 	delete [] rheights_;
 
-	for(int i=0; i<nx_; ++i)
-	{
-	    delete x1axes_[i];
-	    delete x2axes_[i];
-	    delete bmarginboxes_[i];
-	    delete tmarginboxes_[i];
-	}
-	for(int i=0; i<ny_; ++i)
-	{
-	    delete y1axes_[i];
-	    delete y2axes_[i];
-	    delete lmarginboxes_[i];
-	    delete rmarginboxes_[i];
-	}
-	delete [] x1axes_;
-	delete [] x2axes_;
-	delete [] y1axes_;
-	delete [] y2axes_;
-	delete [] lmarginboxes_;
-	delete [] rmarginboxes_;
-	delete [] bmarginboxes_;
-	delete [] tmarginboxes_;
-        delete title_;
+	// for(int i=0; i<nx_; ++i)
+	// {
+	//     delete x1axes_[i];
+	//     delete x2axes_[i];
+	//     delete bmarginboxes_[i];
+	//     delete tmarginboxes_[i];
+	// }
+	// for(int i=0; i<ny_; ++i)
+	// {
+	//     delete y1axes_[i];
+	//     delete y2axes_[i];
+	//     delete lmarginboxes_[i];
+	//     delete rmarginboxes_[i];
+	// }
+	// delete [] x1axes_;
+	// delete [] x2axes_;
+	// delete [] y1axes_;
+	// delete [] y2axes_;
+	// delete [] lmarginboxes_;
+	// delete [] rmarginboxes_;
+	// delete [] bmarginboxes_;
+	// delete [] tmarginboxes_;
+        // delete title_;
     }
 
 
@@ -111,21 +111,20 @@ namespace blop
     mframe::mframe(int xdim, int ydim) : mcontainer(xdim,ydim,default_direction_), equal_ranges_(0)
     {
 	name("mframe");
-        title_ = 0;
-	frames_ = new frame*[nx_ * ny_];
+        frames_.resize(nx_*ny_);
 
         show_subframe_ = new bool[nx_*ny_];
         for(int i=0; i<nx_*ny_; ++i) show_subframe_[i] = true;
-        
-	x1axes_ = new axis*[nx_];
-	x2axes_ = new axis*[nx_];
-	y1axes_ = new axis*[ny_];
-	y2axes_ = new axis*[ny_];
 
-	lmarginboxes_ = new epad*[ny_];
-	rmarginboxes_ = new epad*[ny_];
-	bmarginboxes_ = new epad*[nx_];
-	tmarginboxes_ = new epad*[nx_];
+        x1axes_.resize(nx_);
+        x2axes_.resize(nx_);
+        y1axes_.resize(ny_);
+        y2axes_.resize(ny_);
+
+        lmarginboxes_.resize(ny_);
+        rmarginboxes_.resize(ny_);
+        bmarginboxes_.resize(nx_);
+        tmarginboxes_.resize(nx_);
 
 	widths_ = new length[nx_];
 	heights_ = new length[ny_];
@@ -149,7 +148,8 @@ namespace blop
 	{
 	    for(int b=1; b<=ny_; ++b)
 	    {
-		frames_[ind(a,b)] = new frame;
+                frames_[ind(a,b)] = frame::create();
+
 		var name=var("frame(") & a & var(",") & b & var(")");
 		frames_[ind(a,b)]->name(name);
 	    }
@@ -157,16 +157,18 @@ namespace blop
 
 	for(int a=0; a<nx_; ++a)
 	{
-	    x1axes_[a] = new axis(axis::x1);
+//	    x1axes_[a] = new axis(axis::x1);
+            x1axes_[a] = axis::create(axis::x1);
 	    x1m.push_back(!x1axes_[a]->scriptsize());
-	    x2axes_[a] = new axis(axis::x2);
+//	    x2axes_[a] = new axis(axis::x2);
+            x2axes_[a] = axis::create(axis::x2);
 	    x2m.push_back(!x2axes_[a]->scriptsize());
 
-	    bmarginboxes_[a] = new epad;
+            bmarginboxes_[a] = epad::create();
 	    bmarginboxes_[a]->name(var("bmarginbox(") & (a+1) & var(")"));
 	    bmarginboxes_[a]->borderwidth(0.0);
 	    add(bmarginboxes_[a]);
-	    tmarginboxes_[a] = new epad;
+	    tmarginboxes_[a] = epad::create();
 	    tmarginboxes_[a]->name(var("tmarginbox(") & (a+1) & var(")"));
 	    tmarginboxes_[a]->borderwidth(0.0);
 	    add(tmarginboxes_[a]);
@@ -176,15 +178,17 @@ namespace blop
 	}
 	for(int a=0; a<ny_; ++a)
 	{
-	    y1axes_[a] = new axis(axis::y1);
+//	    y1axes_[a] = new axis(axis::y1);
+            y1axes_[a] = axis::create(axis::y1);
 	    y1m.push_back(!y1axes_[a]->scriptsize());
-	    y2axes_[a] = new axis(axis::y2);
+//	    y2axes_[a] = new axis(axis::y2);
+            y2axes_[a] = axis::create(axis::y2);
 	    y2m.push_back(!y2axes_[a]->scriptsize());
-	    lmarginboxes_[a] = new epad;
+	    lmarginboxes_[a] = epad::create();
 	    lmarginboxes_[a]->name(var("lmarginbox(") & (a+1) & var(")"));
 	    lmarginboxes_[a]->borderwidth(0.0);
 	    add(lmarginboxes_[a]);
-	    rmarginboxes_[a] = new epad;
+	    rmarginboxes_[a] = epad::create();
 	    rmarginboxes_[a]->name(var("rmarginbox(") & (a+1) & var(")"));
 	    rmarginboxes_[a]->borderwidth(0.0);
 	    add(rmarginboxes_[a]);
@@ -193,9 +197,9 @@ namespace blop
 	}
 
 	left(0.0);
-	right(10*CM);
+        right(!parent_cwidth_);
 	bottom(0.0);
-	top(10*CM);
+        top(!parent_cheight_);
 
 	bmargin(length::max(x1m) + blop::height("X") + length::max(bmb));
 	tmargin(length::max(x2m) + blop::height("X") + length::max(tmb));
@@ -236,21 +240,30 @@ namespace blop
 	mcontainer::init_(xdim,ydim,default_direction_);
 
 	name("mframe");
-        title_ = 0;
-	frames_ = new frame*[nx_ * ny_];
+        frames_.resize(nx_*ny_);
 
         show_subframe_ = new bool[nx_*ny_];
         for(int i=0; i<nx_*ny_; ++i) show_subframe_[i] = true;
 
-	x1axes_ = new axis*[nx_];
-	x2axes_ = new axis*[nx_];
-	y1axes_ = new axis*[ny_];
-	y2axes_ = new axis*[ny_];
+        x1axes_.resize(nx_);
+        x2axes_.resize(nx_);
+        y1axes_.resize(ny_);
+        y2axes_.resize(ny_);
 
-	lmarginboxes_ = new epad*[ny_];
-	rmarginboxes_ = new epad*[ny_];
-	bmarginboxes_ = new epad*[nx_];
-	tmarginboxes_ = new epad*[nx_];
+        lmarginboxes_.resize(ny_);
+        rmarginboxes_.resize(ny_);
+        bmarginboxes_.resize(nx_);
+        tmarginboxes_.resize(nx_);
+
+	// x1axes_ = new axis*[nx_];
+	// x2axes_ = new axis*[nx_];
+	// y1axes_ = new axis*[ny_];
+	// y2axes_ = new axis*[ny_];
+
+	// lmarginboxes_ = new epad*[ny_];
+	// rmarginboxes_ = new epad*[ny_];
+	// bmarginboxes_ = new epad*[nx_];
+	// tmarginboxes_ = new epad*[nx_];
 
 	widths_ = new length[nx_];
 	heights_ = new length[ny_];
@@ -274,7 +287,7 @@ namespace blop
 	{
 	    for(int b=1; b<=ny_; ++b)
 	    {
-		frames_[ind(a,b)] = new frame;
+                frames_[ind(a,b)] = frame::create();
 		var name=var("frame(") & a & var(",") & b & var(")");
 		frames_[ind(a,b)]->name(name);
 	    }
@@ -282,16 +295,18 @@ namespace blop
 
 	for(int a=0; a<nx_; ++a)
 	{
-	    x1axes_[a] = new axis(axis::x1);
+//	    x1axes_[a] = new axis(axis::x1);
+	    x1axes_[a] = axis::create(axis::x1);
 	    x1m.push_back(!x1axes_[a]->scriptsize());
-	    x2axes_[a] = new axis(axis::x2);
+//	    x2axes_[a] = new axis(axis::x2);
+	    x2axes_[a] = axis::create(axis::x2);
 	    x2m.push_back(!x2axes_[a]->scriptsize());
 
-	    bmarginboxes_[a] = new epad;
+            bmarginboxes_[a] = epad::create();
 	    bmarginboxes_[a]->name(var("bmarginbox(") & (a+1) & var(")"));
 	    bmarginboxes_[a]->borderwidth(0.0);
 	    add(bmarginboxes_[a]);
-	    tmarginboxes_[a] = new epad;
+	    tmarginboxes_[a] = epad::create();
 	    tmarginboxes_[a]->name(var("tmarginbox(") & (a+1) & var(")"));
 	    tmarginboxes_[a]->borderwidth(0.0);
 	    add(tmarginboxes_[a]);
@@ -301,15 +316,17 @@ namespace blop
 	}
 	for(int a=0; a<ny_; ++a)
 	{
-	    y1axes_[a] = new axis(axis::y1);
+//	    y1axes_[a] = new axis(axis::y1);
+	    y1axes_[a] = axis::create(axis::y1);
 	    y1m.push_back(!y1axes_[a]->scriptsize());
-	    y2axes_[a] = new axis(axis::y2);
+//	    y2axes_[a] = new axis(axis::y2);
+	    y2axes_[a] = axis::create(axis::y2);
 	    y2m.push_back(!y2axes_[a]->scriptsize());
-	    lmarginboxes_[a] = new epad;
+	    lmarginboxes_[a] = epad::create();
 	    lmarginboxes_[a]->name(var("lmarginbox(") & (a+1) & var(")"));
 	    lmarginboxes_[a]->borderwidth(0.0);
 	    add(lmarginboxes_[a]);
-	    rmarginboxes_[a] = new epad;
+	    rmarginboxes_[a] = epad::create();
 	    rmarginboxes_[a]->name(var("rmarginbox(") & (a+1) & var(")"));
 	    rmarginboxes_[a]->borderwidth(0.0);
 	    add(rmarginboxes_[a]);
@@ -358,14 +375,13 @@ namespace blop
         // if an empty string, clear the title
         if(t.str() == "")
         {
-            if(title_) delete title_;
             title_ = 0;
             return *this;
         }
 
         if(!title_)
         {
-            title_ = new label(t);
+            title_ = label::create(t);
             add(title_);
         }
         else
@@ -377,7 +393,6 @@ namespace blop
 
         return *this;
     }
-    
 
     mframe &mframe::show_subframe(int i, int j, bool f)
     {
@@ -391,8 +406,7 @@ namespace blop
 
     mframe &mframe::mknew(int i, int j)
     {
-	mframe *f = new mframe(i,j);
-	f->autodel(true);
+        smartptr<mframe> f = mframe::create(i,j);
 	pad::current().add(f);
 
 	int ix, iy;
@@ -412,8 +426,9 @@ namespace blop
     {
 	int i=0,j=0;
 	mcontainer::get_gridsize_(n,i,j);
-	mframe *f = new mframe(i,j);
-	f->autodel(true);
+        return mknew(i,j);
+        /*
+        smartptr<mframe> f = mframe::create(i,j);
 	pad::current().add(f);
 
 	int ix, iy;
@@ -427,8 +442,8 @@ namespace blop
 	f->cd(ix,iy);
 	//f->frames_[0]->cd();
 	return *f;
+        */
     }
-
 
     void mframe::prepare_for_draw()
     {

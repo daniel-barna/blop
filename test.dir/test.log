@@ -1,0 +1,481 @@
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=latex 2026.9.18)  22 SEP 2026 17:06
+entering extended mode
+ restricted \write18 enabled.
+ %&-line parsing enabled.
+**test.tex
+(./test.tex
+LaTeX2e <2025-11-01>
+L3 programming layer <2026-01-19>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2025/01/22 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
+)
+\c@part=\count275
+\c@section=\count276
+\c@subsection=\count277
+\c@subsubsection=\count278
+\c@paragraph=\count279
+\c@subparagraph=\count280
+\c@figure=\count281
+\c@table=\count282
+\abovecaptionskip=\skip49
+\belowcaptionskip=\skip50
+\bibindent=\dimen148
+)
+(../latex/blopeps.sty
+
+LaTeX Warning: You have requested package `../latex/blopeps',
+               but the package provides `blopeps'.
+
+Package: blopeps 18/02/03 D.Barna
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/color.sty
+Package: color 2025/01/14 v1.3e Standard LaTeX Color (DPC)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package color Info: Driver file: dvips.def on input line 149.
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/dvips.def
+File: dvips.def 2025/01/21 v3.2a Graphics/color driver for dvips
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/dvipsnam.def
+File: dvipsnam.def 2016/06/17 v3.0m Driver-dependent file (DPC,SPQR)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/mathcolor.ltx))
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
+\KV@toks@=\toks17
+)
+\blopPW=\skip51
+\blopPH=\skip52
+\blopPS=\skip53
+\blopLW=\skip54
+\blop@tmplen@i=\skip55
+\blop@tmplen@ii=\skip56
+\blop@tmplen@iii=\skip57
+\blop@tmp@box=\box53
+\c@blop@counter@i=\count283
+\c@blop@counter@ii=\count284
+\c@blop@counter@iii=\count285
+\blop@dimen=\skip58
+\blop@tmp@dimen=\dimen149
+\c@blopdebugcounter=\count286
+\blop@input@file=\read2
+\bloptext@wd=\skip59
+\bloptext@ht=\skip60
+\bloptext@dp=\skip61
+\bloptext@th=\skip62
+\bloptext@dx=\skip63
+\bloptext@dy=\skip64
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: dvips.def on input line 106.
+)
+\Gin@req@height=\dimen150
+\Gin@req@width=\dimen151
+)
+(/usr/share/texlive/texmf-dist/tex/latex/pst-node/pst-node.sty
+Package: pst-node 2024/07/10 v1.02 LaTeX wrapper for `pst-node' (HV)
+
+(/usr/share/texlive/texmf-dist/tex/latex/pstricks/pstricks.sty
+Package: pstricks 2024/02/02 v0.75 LaTeX wrapper for `PSTricks' (RN,HV)
+
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty
+Package: iftex 2024/12/12 v1.0g TeX engine tests
+)
+(/usr/share/texlive/texmf-dist/tex/latex/xcolor/xcolor.sty
+Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/color.cfg
+File: color.cfg 2016/01/02 v1.6 sample color configuration
+)
+Package xcolor Info: Driver file: dvips.def on input line 274.
+LaTeX Info: Redefining \color on input line 762.
+
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
+Package xcolor Info: Model `RGB' extended on input line 1365.
+Package xcolor Info: Model `HTML' substituted by `rgb' on input line 1367.
+Package xcolor Info: Model `Hsb' substituted by `hsb' on input line 1368.
+Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
+Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
+Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
+Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
+)
+(/usr/share/texlive/texmf-dist/tex/generic/xkeyval/pst-xkey.tex
+File: pst-xkey.tex 2005/11/25 v1.6 PSTricks specialization of xkeyval (HA)
+
+(/usr/share/texlive/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+Package: xkeyval 2025/11/04 v2.10 package option processing (HA)
+
+(/usr/share/texlive/texmf-dist/tex/generic/xkeyval/xkeyval.tex
+(/usr/share/texlive/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+\XKV@toks=\toks18
+\XKV@tempa@toks=\toks19
+\XKV@tempb@toks=\toks20
+)
+\XKV@depth=\count287
+File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
+)))
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks.tex
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-fp.tex
+`pst-fp' v0.06, 2020/11/20 (hv)
+\pstFP@xs=\count288
+\pstFP@xia=\count289
+\pstFP@xib=\count290
+\pstFP@xfa=\count291
+\pstFP@xfb=\count292
+\pstFP@rega=\count293
+\pstFP@regb=\count294
+\pstFP@regs=\count295
+\pstFP@times=\count296
+)
+(/usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgffor.sty
+(/usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+\pgfutil@everybye=\toks21
+\pgfutil@tempdima=\dimen152
+\pgfutil@tempdimb=\dimen153
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+\pgfutil@abb=\box54
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/pgf.revision.tex)
+Package: pgfrcs 2025-08-29 v3.1.11a (3.1.11a)
+))
+(/usr/share/texlive/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+\pgfkeys@pathtoks=\toks22
+\pgfkeys@temptoks=\toks23
+
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered
+.code.tex
+\pgfkeys@tmptoks=\toks24
+))) (/usr/share/texlive/texmf-dist/tex/latex/pgf/math/pgfmath.sty
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex
+\pgf@x=\dimen154
+\pgf@xa=\dimen155
+\pgf@xb=\dimen156
+\pgf@xc=\dimen157
+\pgf@y=\dimen158
+\pgf@ya=\dimen159
+\pgf@yb=\dimen160
+\pgf@yc=\dimen161
+\c@pgf@counta=\count297
+\c@pgf@countb=\count298
+\c@pgf@countc=\count299
+\c@pgf@countd=\count300
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+\pgfmath@dimen=\dimen162
+\pgfmath@count=\count301
+\pgfmath@box=\box55
+\pgfmath@toks=\toks25
+\pgfmath@stack@operand=\toks26
+\pgfmath@stack@operation=\toks27
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code
+.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonomet
+ric.code.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.cod
+e.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison
+.code.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.
+tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code
+.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.
+tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerari
+thmetics.code.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+\c@pgfmathroundto@lastzeros=\count302
+)))
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
+\pgffor@iter=\dimen163
+\pgffor@skip=\dimen164
+\pgffor@stack=\toks28
+\pgffor@toks=\toks29
+))
+\psLoopIndex=\count303
+
+`PSTricks' v3.22A  <2025/12/13> (tvz,hv)
+\pst@dima=\dimen165
+\pst@dimb=\dimen166
+\pst@dimc=\dimen167
+\pst@dimd=\dimen168
+\pst@dimg=\dimen169
+\pst@dimh=\dimen170
+\pst@dimm=\dimen171
+\pst@dimn=\dimen172
+\pst@dimo=\dimen173
+\pst@dimp=\dimen174
+\pst@hbox=\box56
+\pst@ibox=\box57
+\pst@boxg=\box58
+\pst@cnta=\count304
+\pst@cntb=\count305
+\pst@cntc=\count306
+\pst@cntd=\count307
+\pst@cntg=\count308
+\pst@cnth=\count309
+\pst@cntm=\count310
+\pst@cntn=\count311
+\pst@cnto=\count312
+\pst@cntp=\count313
+\@zero=\count314
+\pst@toks=\toks30
+--- We are running latex or xelatex ---
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks.con)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks-color.tex)
+\psunit=\dimen175
+\psxunit=\dimen176
+\psyunit=\dimen177
+\pst@C@@rType=\count315
+\pslinewidth=\dimen178
+\psk@startLW=\dimen179
+\psk@endLW=\dimen180
+
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks-arrows.tex
+\pshooklength=\dimen181
+\pshookwidth=\dimen182
+)
+\pst@customdefs=\toks31
+
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks-dots.tex)
+\pslinearc=\dimen183
+\pst@symbolStep=\dimen184
+\pst@symbolWidth=\dimen185
+\pst@symbolLinewidth=\dimen186
+
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-grid.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-box.tex
+\everypsbox=\toks32
+\psframesep=\dimen187
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-arc.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-circle_ellipse.tex
+) (/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-ref_rot.tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-put.tex
+\pslabelsep=\dimen188
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-code-pspicture.tex
+\sh@wgridXunit=\dimen189
+\sh@wgridYunit=\dimen190
+\pst@shift=\dimen191
+\ps@imagectr=\count316
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pstricks.con))
+File: pstricks.tex 2025/12/13 v3.22A `PSTricks' (tvz,hv)
+
+(/usr/share/texlive/texmf-dist/tex/generic/pstricks/pst-fp.tex
+`pst-fp' v0.06, 2020/11/20 (hv))
+File: pst-fp.tex 2020/11/20 v0.06 `PST-fp' (hv)
+)
+Package: pst-node 2024/07/10 package wrapper for pst-node.tex
+
+(/usr/share/texlive/texmf-dist/tex/generic/pst-node/pst-node.tex
+ v1.45, 2024/07/10
+\psrow=\count317
+\pscol=\count318
+\psmatrixcnt=\count319
+\psrowsep=\skip65
+\pscolsep=\skip66
+\pst@args=\count320
+\num@pts=\count321
+\pst@argcnt=\count322
+)
+File: pst-node.tex 2024/07/10 1.45 `pst-node' (tvz,hv)
+)
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+Package: geometry 2020/01/02 v5.9 Page Geometry
+
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
+)
+\Gm@cnth=\count323
+\Gm@cntv=\count324
+\c@Gm@tempcnt=\count325
+\Gm@bindingoffset=\dimen192
+\Gm@wd@mp=\dimen193
+\Gm@odd@mp=\dimen194
+\Gm@even@mp=\dimen195
+\Gm@layoutwidth=\dimen196
+\Gm@layoutheight=\dimen197
+\Gm@layouthoffset=\dimen198
+\Gm@layoutvoffset=\dimen199
+\Gm@dimlist=\toks33
+)
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-dvips.def
+File: l3backend-dvips.def 2025-10-09 L3 backend support: dvips
+\l__pdfannot_backend_content_box=\box59
+\l__pdfannot_backend_model_box=\box60
+\g__pdfannot_backend_int=\count326
+\g__pdfannot_backend_link_int=\count327
+\g__pdfannot_backend_link_sf_int=\count328
+)
+(./test.aux)
+\openout1 = `test.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 8.
+LaTeX Font Info:    ... okay on input line 8.
+
+*geometry* driver: auto-detecting
+*geometry* detected driver: dvips
+*geometry* verbose mode - [ preamble ] result:
+* driver: dvips
+* paper: a4paper
+* layout: <same size as paper>
+* layoutoffset:(h,v)=(0.0pt,0.0pt)
+* modes: 
+* h-part:(L,W,R)=(29.87721pt, 537.75343pt, 29.87723pt)
+* v-part:(T,H,B)=(16.90195pt, 802.79192pt, 25.35298pt)
+* \paperwidth=597.50787pt
+* \paperheight=845.04684pt
+* \textwidth=537.75343pt
+* \textheight=802.79192pt
+* \oddsidemargin=-42.39278pt
+* \evensidemargin=-42.39278pt
+* \topmargin=-92.36804pt
+* \headheight=12.0pt
+* \headsep=25.0pt
+* \topskip=10.0pt
+* \footskip=30.0pt
+* \marginparwidth=57.0pt
+* \marginparsep=11.0pt
+* \columnsep=10.0pt
+* \skip\footins=9.0pt plus 4.0pt minus 2.0pt
+* \hoffset=0.0pt
+* \voffset=0.0pt
+* \mag=1000
+* \@twocolumnfalse
+* \@twosidefalse
+* \@mparswitchfalse
+* \@reversemarginfalse
+* (1in=72.27pt=25.4mm, 1cm=28.453pt)
+
+
+Overfull \hbox (5.2778pt too wide) detected at line 19
+\OT1/cmr/m/n/10 x
+ []
+
+
+Overfull \hbox (5.00002pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (17.77783pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (12.77782pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (17.77783pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (5.00002pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (5.00002pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (17.77783pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (12.77782pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (17.77783pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (5.00002pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (0.79999pt too wide) in paragraph at lines 19--21
+[][]
+ []
+
+LaTeX Font Info:    Trying to load font information for OMS+cmr on input line 3
+3.
+(/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2024/11/19 v2.5n Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 33.
+
+Overfull \hbox (62.88809pt too wide) in paragraph at lines 33--34
+[]\OMS/cmsy/m/n/12 n\OT1/cmr/m/n/12 blopeps[loff=grid,lon=2,text=\OMS/cmsy/m/n/
+12 f\OT1/cmr/m/n/12 annotation\OMS/cmsy/m/n/12 g\OT1/cmr/m/n/12 ,width=0.8\OMS/
+cmsy/m/n/12 n\OT1/cmr/m/n/12 linewidth,height=11cm,ps=3mm,lw=0.5mm]\OMS/cmsy/m/
+n/12 f\OT1/cmr/m/n/12 picture.beps\OMS/cmsy/m/n/12 gg 
+ []
+
+[1
+
+] (./test.aux)
+ ***********
+LaTeX2e <2025-11-01>
+L3 programming layer <2026-01-19>
+ ***********
+ ) 
+Here is how much of TeX's memory you used:
+ 9876 strings out of 468904
+ 181102 string characters out of 5452097
+ 602273 words of memory out of 5000000
+ 38445 multiletter control sequences out of 15000+600000
+ 628276 words of font info for 42 fonts, out of 8000000 for 9000
+ 350 hyphenation exceptions out of 8191
+ 90i,6n,90p,584b,140s stack positions out of 10000i,1000n,20000p,200000b,200000s
+
+Output written on test.dvi (1 page, 10460 bytes).

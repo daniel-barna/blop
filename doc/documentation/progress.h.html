@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: progress.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_PROGRESS_H__
+<a name="__line1"></a>#define __BLOP_PROGRESS_H__
+<a name="__line2"></a>
+<a name="__line3"></a><span class=comment>/*
+<a name="__line4"></a>
+<a name="__line5"></a>  A utility class to display progress of a long process on the terminal. Usage:
+<a name="__line6"></a>
+<a name="__line7"></a>  const int N = 10000;
+<a name="__line8"></a>  progress prog("Looping to " + std::to_string(N) + "... ",2);   // Print the text to the screen, and then show status in steps of 2 (percent)
+<a name="__line9"></a>  for(int i=0; i&lt;N; ++i)
+<a name="__line10"></a>  {
+<a name="__line11"></a>     prog(double(i)/N*100);      // The default 'unit' to be written after the value is %, so we multiply by 100
+<a name="__line12"></a>     prog(double(i)/N*100,"%");  // Same as the previous line, the default is written explicitely
+<a name="__line13"></a>     prog(i," (current value)"); // report the current value simply, without trailing '%'
+<a name="__line14"></a>  }
+<a name="__line15"></a>
+<a name="__line16"></a>  
+<a name="__line17"></a>*/</span>
+<a name="__line18"></a>
+<a name="__line19"></a>namespace blop
+<a name="__line20"></a>{
+<a name="__line21"></a>
+<a name="__line22"></a>class progress
+<a name="__line23"></a>{
+<a name="__line24"></a><span class=private>private:
+<a name="__line25"></a>    double last_value_ = 0;
+<a name="__line26"></a>    double step_ = 1;
+<a name="__line27"></a>    std::string before_;
+<a name="__line28"></a>    int last_width_ = -1;  <span class=comment>// -1 indicates we have not written anything yet, &gt;=0 means we have written something (possibly also 0-length, if last_width_==0)</span>
+<a name="__line29"></a>
+<a name="__line30"></a>
+<a name="__line31"></a>    <span class=comment>// Was meant to handle utf-8 characters, for example checkmark ✅, but it doesn't work, </span>
+<a name="__line32"></a>    size_t utf8_length(const std::string&amp; s)
+<a name="__line33"></a>        {
+<a name="__line34"></a>            size_t count = 0;
+<a name="__line35"></a>            for (unsigned char c : s)
+<a name="__line36"></a>                if ((c &amp; 0xC0) != 0x80)  <span class=comment>// not a continuation byte</span>
+<a name="__line37"></a>                    ++count;
+<a name="__line38"></a>            return count;
+<a name="__line39"></a>        }    
+<a name="__line40"></a>
+<a name="__line41"></a></span><span class=public>public:
+<a name="__line42"></a>
+<a name="__line43"></a>    progress(const std::string &amp;before="", double step=1) : step_(step), before_(before)
+<a name="__line44"></a>        {
+<a name="__line45"></a>            <span class=comment>//std::cerr&lt;&lt;before_;</span>
+<a name="__line46"></a>            logger::indent()&lt;&lt;before_;
+<a name="__line47"></a>        }
+<a name="__line48"></a>    void operator()(double value, const std::string &amp;after = "%")
+<a name="__line49"></a>        {
+<a name="__line50"></a>            if(value &gt;= last_value_ + step_)
+<a name="__line51"></a>            {
+<a name="__line52"></a>                if(last_width_ &gt;= 0) for(int i=0; i&lt;last_width_; ++i) std::cerr&lt;&lt;"\b";
+<a name="__line53"></a>                std::ostringstream s;
+<a name="__line54"></a>                s&lt;&lt;value&lt;&lt;after&lt;&lt;" ";
+<a name="__line55"></a>                std::cerr&lt;&lt;s.str();
+<a name="__line56"></a>                last_value_ = value;
+<a name="__line57"></a>                last_width_ = s.str().size();
+<a name="__line58"></a>                <span class=comment>//last_width_ = utf8_length(s.str());</span>
+<a name="__line59"></a>            }
+<a name="__line60"></a>        }
+<a name="__line61"></a>};
+<a name="__line62"></a>
+<a name="__line63"></a>}
+<a name="__line64"></a>
+<a name="__line65"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

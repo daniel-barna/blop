@@ -5,6 +5,8 @@
 #include "function.h"
 #include "array.h"
 #include "sym.h"
+#include "factory.h"
+#include "plottables.h"
 #include <iostream>
 
 namespace blop
@@ -12,13 +14,14 @@ namespace blop
 
     class dgraph : public graph
 	{
+            FACTORY(dgraph);
 	private:
 	    var filename_;
 
 	    void init_defaults();
 
 	    static length default_pointsize_;
-	    static point_drawer  *default_point_drawer_;
+//	    static point_drawer  *default_point_drawer_;
 	    static color  default_pointcolor_;
 	    static color default_linecolor_;
 	    static length default_linewidth_;
@@ -26,7 +29,7 @@ namespace blop
 	    static color default_fillcolor_;
 	    static bool  default_fill_;
 	    static color default_legendcolor_;
-	    static graph_drawer* &default_graph_drawer_();
+//	    static smartptr<graph_drawer> &default_graph_drawer_();
 	    static var default_legend_;
 	    static bool  falsecondition_break_;
             static std::string default_comment_chars_;
@@ -46,7 +49,12 @@ namespace blop
 	    // --------------------  default properties --------------------------------
 	    static void default_legend(const var &);  // %f in this string is replaced by the filename
 	    static void default_pointsize(length l);
-	    static void default_pointtype(const point_drawer &);
+
+
+            static smartptr<point_drawer> &default_pointtype();
+	    static void default_pointtype(const point_drawer &p);
+	    static void default_pointtype(smartptr<point_drawer> p);
+
 	    static void default_pointcolor(const color &);
 	    static void default_linecolor(const color &);
 	    static void default_linewidth(length l);
@@ -54,7 +62,11 @@ namespace blop
 	    static void default_fillcolor(const color &);
 	    static void default_fill(bool);
 	    static void default_legendcolor(const color &);
-	    static void default_drawstyle(const graph_drawer &);
+
+            static smartptr<graph_drawer> &default_drawstyle();
+	    static void default_drawstyle(const graph_drawer &d);
+            static void default_drawstyle(smartptr<graph_drawer> d);
+
 	    static void falsecondition_break(bool b) { falsecondition_break_ = b; }
             static void default_comment_chars(const std::string &s);
             static std::string default_comment_chars() { return default_comment_chars_; }
@@ -260,7 +272,7 @@ namespace blop
 
 	    dgraph &dup();
 
-	    void prepare_for_draw(axis *,axis *, frame *, int count);
+	    void prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame>, int count);
 
 	    dgraph &layer(const var & l) { plottable::layer(l); return *this; }
 
@@ -269,8 +281,9 @@ namespace blop
             // -------------- filter ----------------------------------------------
             // Filter the graph: create a new one (using 'new') containing only those
             // datapoints for which the function returns true
-            dgraph *filter(const blop::function &filt);
-            dgraph *filter(const blop::function &filt, const blop::function &trans);
+            smartptr<dgraph> filter(const blop::function &filt);
+            smartptr<dgraph> filter(const blop::function &filt, const blop::function &trans);
+
 	};
 
 

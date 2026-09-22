@@ -19,18 +19,20 @@ const double R_bending = 500*unit::mm;
 const double r0 = 20*unit::mm;
 
 
-
 int main()
 {
-    blop::function f(cos(_1),cos(_1));
-    std::vector<blop::var> args, results;
-    const double a = 60*unit::deg;
-    args.push_back(a);
-//    f.meval(args,results);
-    cerr<<"------------"<<endl;
-    cerr<<f[0](a)<<endl; //<<"   "<<results[1]<<" "<<f[1](a)<<endl;
-    return 0;
+    
+    set::xrange(0,1);
+    set::yrange(0,1);
+    line::fdraw(0.1,0.1)(0.5,0.1)(0.5,0.5)(0.1,0.5).fill(true).fillcolor(red).linecolor(green%0.5).linewidth(2*MM);
+    line::fdraw(0.2,0.2)(0.6,0.2)(0.6,0.6)(0.2,0.6).fill(true).fillcolor(blue%0.5);
 
+/*
+    mf.cd_next();
+    plot(_1*_1);
+    mf.cd_next();
+    plot(_1*_1*_1);
+*/
 
 
 //    plot_if("data.dat",between_lines(_1=="most" && _2=="mehet",_1=="vege"));
@@ -154,7 +156,7 @@ int main()
     frame::current().foreground(true);
 */
 
-    blopeps::print("picture.beps");
+    blopeps::print(var("picture.beps"));
 
     return 0;
 }

@@ -2,6 +2,7 @@
 #include "frame.h"
 #include "exc.hh"
 #include "warning.h"
+#include "logger.h"
 
 namespace blop
 {
@@ -79,19 +80,17 @@ namespace blop
 	{
 	    content_[i]->prepare_for_draw();
 	}
-
 	term->picture_begin();
 
 	length::specialize_regs(term);
 
 	draw_border_bg(term);
 
-	for(vector<grob *>::size_type i=0; i<content_.size(); ++i)
+	for(int i=0; i<content_.size(); ++i)
 	{
 	    term->reset_transformation();
 	    content_[i]->print(term);
 	}
-
 	term->picture_end();
 	modified(false);
     }

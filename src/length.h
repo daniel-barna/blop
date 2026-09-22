@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <cstdlib>
+#include "smartptr.h"
 #include "var.h"
 #include "terminal.h"
 #include "constants.h"
@@ -74,10 +75,10 @@ namespace blop
 	    class base_axis_t : public base_t
 		{
 		private:
-		    axis *axis_;
+		    smartptr<axis> axis_;
 		    double value1_,value2_;
 		public:
-		    base_axis_t(axis *, double, double);
+		    base_axis_t(smartptr<axis>, double, double);
 		    ~base_axis_t() {}
 
 		    bool specialize(terminal *);

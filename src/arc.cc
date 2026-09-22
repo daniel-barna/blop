@@ -99,15 +99,16 @@ namespace blop
     }
 
     
-    arc &arc::draw (container *parent,
-		      const length &x, const length &y,
-		      const length &rx,
-		      const length &ry,
-		      double angle1,
-		      double angle2)
+    arc &arc::draw (container::ptr parent,
+                    const length &x, const length &y,
+                    const length &rx,
+                    const length &ry,
+                    double angle1,
+                    double angle2)
     {
-	arc *a = new arc(x,y,rx,ry,angle1,angle2);
-	a->autodel(true);
+        auto a = arc::create(x,y,rx,ry,angle1,angle2);
+//	arc *a = new arc(x,y,rx,ry,angle1,angle2);
+//	a->autodel(true);
 	parent->add(a);
 	return *a;
     }

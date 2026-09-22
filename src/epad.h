@@ -7,6 +7,7 @@ namespace blop
 {
     class epad : public pad
     {
+        FACTORY(epad);
     private:
 	bool width_fixed_, height_fixed_;
 	void recalculate_size_();
@@ -18,8 +19,8 @@ namespace blop
 	// and resize this epad also, to the maximum of the widths/heights
 	// of its contents
 
-	void add(grob *g);
-	bool remove(grob *g);
+	void add   (smartptr<grob> g);
+	bool remove(smartptr<grob> g);
 	void prepare_for_draw();
 
 

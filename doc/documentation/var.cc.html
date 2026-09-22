@@ -616,657 +616,679 @@
 <a name="__line598"></a>	double_ = atof(string_.c_str());
 <a name="__line599"></a>	return *this;
 <a name="__line600"></a>    }
-<a name="__line601"></a>
-<a name="__line602"></a>    const var &amp;var::operator&amp;= (const var &amp;v)
-<a name="__line603"></a>    {
-<a name="__line604"></a>	operator&amp;=(v.string_);
-<a name="__line605"></a>	return *this;
-<a name="__line606"></a>    }
-<a name="__line607"></a>
-<a name="__line608"></a>    var::operator bool () const
-<a name="__line609"></a>    {
-<a name="__line610"></a>	if(string_ == "" ||
-<a name="__line611"></a>	   string_ == "0") return false;
-<a name="__line612"></a>	return true;
-<a name="__line613"></a>    }
-<a name="__line614"></a>
-<a name="__line615"></a>    int var::integer() const
-<a name="__line616"></a>    {
-<a name="__line617"></a>	return (int)(double_);
-<a name="__line618"></a>    }
-<a name="__line619"></a>
-<a name="__line620"></a>
-<a name="__line621"></a>    const char *var::c_str() const
-<a name="__line622"></a>    {
-<a name="__line623"></a>	return string_.c_str();
-<a name="__line624"></a>    }
-<a name="__line625"></a>
-<a name="__line626"></a>    var &amp;var::round(int n) 
-<a name="__line627"></a>    {
-<a name="__line628"></a>        int scale = 1;
-<a name="__line629"></a>        for(int i=0; i&lt;n; ++i) scale *= 10;
-<a name="__line630"></a>        operator=(std::round(double_*scale)/scale);
-<a name="__line631"></a>        return *this;
+<a name="__line601"></a>    const var &amp;var::operator&amp;= (unsigned int i)
+<a name="__line602"></a>    {
+<a name="__line603"></a>	char s[100];
+<a name="__line604"></a>	std::sprintf(s,"%i",i);
+<a name="__line605"></a>	string_ += s;
+<a name="__line606"></a>	double_ = atof(string_.c_str());
+<a name="__line607"></a>	return *this;
+<a name="__line608"></a>    }
+<a name="__line609"></a>
+<a name="__line610"></a>    const var &amp;var::operator&amp;= (const var &amp;v)
+<a name="__line611"></a>    {
+<a name="__line612"></a>	operator&amp;=(v.string_);
+<a name="__line613"></a>	return *this;
+<a name="__line614"></a>    }
+<a name="__line615"></a>
+<a name="__line616"></a>    var::operator bool () const
+<a name="__line617"></a>    {
+<a name="__line618"></a>	if(string_ == "" ||
+<a name="__line619"></a>	   string_ == "0") return false;
+<a name="__line620"></a>	return true;
+<a name="__line621"></a>    }
+<a name="__line622"></a>
+<a name="__line623"></a>    int var::integer() const
+<a name="__line624"></a>    {
+<a name="__line625"></a>	return (int)(double_);
+<a name="__line626"></a>    }
+<a name="__line627"></a>
+<a name="__line628"></a>
+<a name="__line629"></a>    const char *var::c_str() const
+<a name="__line630"></a>    {
+<a name="__line631"></a>	return string_.c_str();
 <a name="__line632"></a>    }
 <a name="__line633"></a>
-<a name="__line634"></a>    var replace_re(const var &amp;pattern, const var &amp;replacement, const var &amp;in)
+<a name="__line634"></a>    var &amp;var::round(int n) 
 <a name="__line635"></a>    {
-<a name="__line636"></a>	var tmp = in;
-<a name="__line637"></a>	tmp.replace_re(pattern, replacement);
-<a name="__line638"></a>	return tmp;
-<a name="__line639"></a>    }
-<a name="__line640"></a>
-<a name="__line641"></a>    var replace(const var &amp;from, const var &amp;to, const var &amp;in)
-<a name="__line642"></a>    {
-<a name="__line643"></a>	var tmp = in;
-<a name="__line644"></a>	tmp.replace(from,to);
-<a name="__line645"></a>	return tmp;
-<a name="__line646"></a>    }
-<a name="__line647"></a>
-<a name="__line648"></a>    var replace1(const var &amp;from, const var &amp;to, const var &amp;in)
-<a name="__line649"></a>    {
-<a name="__line650"></a>	var tmp = in;
-<a name="__line651"></a>	tmp.replace1(from,to);
-<a name="__line652"></a>	return tmp;
-<a name="__line653"></a>    }
-<a name="__line654"></a>
-<a name="__line655"></a>    var abs(var v)
-<a name="__line656"></a>    {
-<a name="__line657"></a>	if(v.string_[0] != '-' &amp;&amp; v.double_ &gt;= 0) return v;
-<a name="__line658"></a>	if(v.string_[0] == '-' &amp;&amp; v.double_ &lt; 0)
-<a name="__line659"></a>	{
-<a name="__line660"></a>	    v.double_ = -v.double_;
-<a name="__line661"></a>	    v.string_.erase(0,1);
-<a name="__line662"></a>	    return v;
-<a name="__line663"></a>	}
-<a name="__line664"></a>	warning::print("Inconsistency between string/double representation ",
-<a name="__line665"></a>		       "abs(const var &amp;)");
-<a name="__line666"></a>	return v;
-<a name="__line667"></a>    }
-<a name="__line668"></a>
-<a name="__line669"></a>    bool operator&lt; (const blop::var &amp;v,double d)
-<a name="__line670"></a>    {
-<a name="__line671"></a>	return v.dbl() &lt; d;
-<a name="__line672"></a>    }
-<a name="__line673"></a>    bool operator&lt; (const blop::var &amp;v,int i)
-<a name="__line674"></a>    {
-<a name="__line675"></a>	return v.dbl() &lt; i;
-<a name="__line676"></a>    }
-<a name="__line677"></a>    bool operator&lt; (double d,const blop::var &amp;v)
+<a name="__line636"></a>        int scale = 1;
+<a name="__line637"></a>        for(int i=0; i&lt;n; ++i) scale *= 10;
+<a name="__line638"></a>        operator=(std::round(double_*scale)/scale);
+<a name="__line639"></a>        return *this;
+<a name="__line640"></a>    }
+<a name="__line641"></a>
+<a name="__line642"></a>    var replace_re(const var &amp;pattern, const var &amp;replacement, const var &amp;in)
+<a name="__line643"></a>    {
+<a name="__line644"></a>	var tmp = in;
+<a name="__line645"></a>	tmp.replace_re(pattern, replacement);
+<a name="__line646"></a>	return tmp;
+<a name="__line647"></a>    }
+<a name="__line648"></a>
+<a name="__line649"></a>    var replace(const var &amp;from, const var &amp;to, const var &amp;in)
+<a name="__line650"></a>    {
+<a name="__line651"></a>	var tmp = in;
+<a name="__line652"></a>	tmp.replace(from,to);
+<a name="__line653"></a>	return tmp;
+<a name="__line654"></a>    }
+<a name="__line655"></a>
+<a name="__line656"></a>    var replace1(const var &amp;from, const var &amp;to, const var &amp;in)
+<a name="__line657"></a>    {
+<a name="__line658"></a>	var tmp = in;
+<a name="__line659"></a>	tmp.replace1(from,to);
+<a name="__line660"></a>	return tmp;
+<a name="__line661"></a>    }
+<a name="__line662"></a>
+<a name="__line663"></a>    var abs(var v)
+<a name="__line664"></a>    {
+<a name="__line665"></a>	if(v.string_[0] != '-' &amp;&amp; v.double_ &gt;= 0) return v;
+<a name="__line666"></a>	if(v.string_[0] == '-' &amp;&amp; v.double_ &lt; 0)
+<a name="__line667"></a>	{
+<a name="__line668"></a>	    v.double_ = -v.double_;
+<a name="__line669"></a>	    v.string_.erase(0,1);
+<a name="__line670"></a>	    return v;
+<a name="__line671"></a>	}
+<a name="__line672"></a>	warning::print("Inconsistency between string/double representation ",
+<a name="__line673"></a>		       "abs(const var &amp;)");
+<a name="__line674"></a>	return v;
+<a name="__line675"></a>    }
+<a name="__line676"></a>
+<a name="__line677"></a>    bool operator&lt; (const blop::var &amp;v,double d)
 <a name="__line678"></a>    {
-<a name="__line679"></a>	return d &lt; v.dbl();
+<a name="__line679"></a>	return v.dbl() &lt; d;
 <a name="__line680"></a>    }
-<a name="__line681"></a>    bool operator&lt; (int i,const blop::var &amp;v)
+<a name="__line681"></a>    bool operator&lt; (const blop::var &amp;v,int i)
 <a name="__line682"></a>    {
-<a name="__line683"></a>	return i &lt; v.dbl();
+<a name="__line683"></a>	return v.dbl() &lt; i;
 <a name="__line684"></a>    }
-<a name="__line685"></a>    bool operator&lt; (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line685"></a>    bool operator&lt; (double d,const blop::var &amp;v)
 <a name="__line686"></a>    {
-<a name="__line687"></a>	return v1.dbl() &lt; v2.dbl();
+<a name="__line687"></a>	return d &lt; v.dbl();
 <a name="__line688"></a>    }
-<a name="__line689"></a>
-<a name="__line690"></a>    bool operator&lt;= (const blop::var &amp;v,double d)
-<a name="__line691"></a>    {
-<a name="__line692"></a>	return v.dbl() &lt;= d;
-<a name="__line693"></a>    }
-<a name="__line694"></a>    bool operator&lt;= (const blop::var &amp;v,int i)
-<a name="__line695"></a>    {
-<a name="__line696"></a>	return v.dbl() &lt;= i;
-<a name="__line697"></a>    }
-<a name="__line698"></a>    bool operator&lt;= (double d,const blop::var &amp;v)
+<a name="__line689"></a>    bool operator&lt; (int i,const blop::var &amp;v)
+<a name="__line690"></a>    {
+<a name="__line691"></a>	return i &lt; v.dbl();
+<a name="__line692"></a>    }
+<a name="__line693"></a>    bool operator&lt; (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line694"></a>    {
+<a name="__line695"></a>	return v1.dbl() &lt; v2.dbl();
+<a name="__line696"></a>    }
+<a name="__line697"></a>
+<a name="__line698"></a>    bool operator&lt;= (const blop::var &amp;v,double d)
 <a name="__line699"></a>    {
-<a name="__line700"></a>	return d &lt;= v.dbl();
+<a name="__line700"></a>	return v.dbl() &lt;= d;
 <a name="__line701"></a>    }
-<a name="__line702"></a>    bool operator&lt;= (int i,const blop::var &amp;v)
+<a name="__line702"></a>    bool operator&lt;= (const blop::var &amp;v,int i)
 <a name="__line703"></a>    {
-<a name="__line704"></a>	return i &lt;= v.dbl();
+<a name="__line704"></a>	return v.dbl() &lt;= i;
 <a name="__line705"></a>    }
-<a name="__line706"></a>    bool operator&lt;= (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line706"></a>    bool operator&lt;= (double d,const blop::var &amp;v)
 <a name="__line707"></a>    {
-<a name="__line708"></a>	return v1.dbl() &lt;= v2.dbl();
+<a name="__line708"></a>	return d &lt;= v.dbl();
 <a name="__line709"></a>    }
-<a name="__line710"></a>
-<a name="__line711"></a>
-<a name="__line712"></a>    bool operator&gt; (const blop::var &amp;v,double d)
-<a name="__line713"></a>    {
-<a name="__line714"></a>	return v.dbl() &gt; d;
-<a name="__line715"></a>    }
-<a name="__line716"></a>    bool operator&gt; (const blop::var &amp;v,int i)
-<a name="__line717"></a>    {
-<a name="__line718"></a>	return v.dbl() &gt; i;
-<a name="__line719"></a>    }
-<a name="__line720"></a>    bool operator&gt; (double d,const blop::var &amp;v)
+<a name="__line710"></a>    bool operator&lt;= (int i,const blop::var &amp;v)
+<a name="__line711"></a>    {
+<a name="__line712"></a>	return i &lt;= v.dbl();
+<a name="__line713"></a>    }
+<a name="__line714"></a>    bool operator&lt;= (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line715"></a>    {
+<a name="__line716"></a>	return v1.dbl() &lt;= v2.dbl();
+<a name="__line717"></a>    }
+<a name="__line718"></a>
+<a name="__line719"></a>
+<a name="__line720"></a>    bool operator&gt; (const blop::var &amp;v,double d)
 <a name="__line721"></a>    {
-<a name="__line722"></a>	return d &gt; v.dbl();
+<a name="__line722"></a>	return v.dbl() &gt; d;
 <a name="__line723"></a>    }
-<a name="__line724"></a>    bool operator&gt; (int i,const blop::var &amp;v)
+<a name="__line724"></a>    bool operator&gt; (const blop::var &amp;v,int i)
 <a name="__line725"></a>    {
-<a name="__line726"></a>	return i &gt; v.dbl();
+<a name="__line726"></a>	return v.dbl() &gt; i;
 <a name="__line727"></a>    }
-<a name="__line728"></a>    bool operator&gt; (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line728"></a>    bool operator&gt; (double d,const blop::var &amp;v)
 <a name="__line729"></a>    {
-<a name="__line730"></a>	return v1.dbl() &gt; v2.dbl();
+<a name="__line730"></a>	return d &gt; v.dbl();
 <a name="__line731"></a>    }
-<a name="__line732"></a>
-<a name="__line733"></a>    bool operator&gt;= (const blop::var &amp;v,double d)
-<a name="__line734"></a>    {
-<a name="__line735"></a>	return v.dbl() &gt;= d;
-<a name="__line736"></a>    }
-<a name="__line737"></a>    bool operator&gt;= (const blop::var &amp;v,int i)
-<a name="__line738"></a>    {
-<a name="__line739"></a>	return v.dbl() &gt;= i;
-<a name="__line740"></a>    }
-<a name="__line741"></a>    bool operator&gt;= (double d,const blop::var &amp;v)
+<a name="__line732"></a>    bool operator&gt; (int i,const blop::var &amp;v)
+<a name="__line733"></a>    {
+<a name="__line734"></a>	return i &gt; v.dbl();
+<a name="__line735"></a>    }
+<a name="__line736"></a>    bool operator&gt; (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line737"></a>    {
+<a name="__line738"></a>	return v1.dbl() &gt; v2.dbl();
+<a name="__line739"></a>    }
+<a name="__line740"></a>
+<a name="__line741"></a>    bool operator&gt;= (const blop::var &amp;v,double d)
 <a name="__line742"></a>    {
-<a name="__line743"></a>	return d &gt;= v.dbl();
+<a name="__line743"></a>	return v.dbl() &gt;= d;
 <a name="__line744"></a>    }
-<a name="__line745"></a>    bool operator&gt;= (int i,const blop::var &amp;v)
+<a name="__line745"></a>    bool operator&gt;= (const blop::var &amp;v,int i)
 <a name="__line746"></a>    {
-<a name="__line747"></a>	return i &gt;= v.dbl();
+<a name="__line747"></a>	return v.dbl() &gt;= i;
 <a name="__line748"></a>    }
-<a name="__line749"></a>    bool operator&gt;= (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line749"></a>    bool operator&gt;= (double d,const blop::var &amp;v)
 <a name="__line750"></a>    {
-<a name="__line751"></a>	return v1.dbl() &gt;= v2.dbl();
+<a name="__line751"></a>	return d &gt;= v.dbl();
 <a name="__line752"></a>    }
-<a name="__line753"></a>
-<a name="__line754"></a>    bool operator == (const blop::var &amp;v1,const blop::var &amp;v2)
-<a name="__line755"></a>    {
-<a name="__line756"></a>	return v1.str() == v2.str();
-<a name="__line757"></a>    }
-<a name="__line758"></a>    bool operator == (const blop::var &amp;v1,const char *v2)
-<a name="__line759"></a>    {
-<a name="__line760"></a>	return v1.str() == v2;
-<a name="__line761"></a>    }
-<a name="__line762"></a>    bool operator == (const char *v1,const blop::var &amp;v2)
+<a name="__line753"></a>    bool operator&gt;= (int i,const blop::var &amp;v)
+<a name="__line754"></a>    {
+<a name="__line755"></a>	return i &gt;= v.dbl();
+<a name="__line756"></a>    }
+<a name="__line757"></a>    bool operator&gt;= (const blop::var &amp;v1,const blop::var &amp;v2)
+<a name="__line758"></a>    {
+<a name="__line759"></a>	return v1.dbl() &gt;= v2.dbl();
+<a name="__line760"></a>    }
+<a name="__line761"></a>
+<a name="__line762"></a>    bool operator == (const blop::var &amp;v1,const blop::var &amp;v2)
 <a name="__line763"></a>    {
-<a name="__line764"></a>	return v1 == v2.str();
+<a name="__line764"></a>	return v1.str() == v2.str();
 <a name="__line765"></a>    }
-<a name="__line766"></a>    bool operator == (const blop::var &amp;v1,const string &amp;v2)
+<a name="__line766"></a>    bool operator == (const blop::var &amp;v1,const char *v2)
 <a name="__line767"></a>    {
 <a name="__line768"></a>	return v1.str() == v2;
 <a name="__line769"></a>    }
-<a name="__line770"></a>    bool operator == (const string &amp;v1,const blop::var &amp;v2)
+<a name="__line770"></a>    bool operator == (const char *v1,const blop::var &amp;v2)
 <a name="__line771"></a>    {
 <a name="__line772"></a>	return v1 == v2.str();
 <a name="__line773"></a>    }
-<a name="__line774"></a>    bool operator == (const blop::var &amp;v1, double d)
+<a name="__line774"></a>    bool operator == (const blop::var &amp;v1,const string &amp;v2)
 <a name="__line775"></a>    {
-<a name="__line776"></a>	return v1.dbl() == d;
+<a name="__line776"></a>	return v1.str() == v2;
 <a name="__line777"></a>    }
-<a name="__line778"></a>    bool operator == (double d, const blop::var &amp;v2)
+<a name="__line778"></a>    bool operator == (const string &amp;v1,const blop::var &amp;v2)
 <a name="__line779"></a>    {
-<a name="__line780"></a>	return d == v2.dbl();
+<a name="__line780"></a>	return v1 == v2.str();
 <a name="__line781"></a>    }
-<a name="__line782"></a>    bool operator == (const blop::var &amp;v1, int i)
+<a name="__line782"></a>    bool operator == (const blop::var &amp;v1, double d)
 <a name="__line783"></a>    {
-<a name="__line784"></a>	return v1.dbl() == i;
+<a name="__line784"></a>	return v1.dbl() == d;
 <a name="__line785"></a>    }
-<a name="__line786"></a>    bool operator == (int d, const blop::var &amp;v2)
+<a name="__line786"></a>    bool operator == (double d, const blop::var &amp;v2)
 <a name="__line787"></a>    {
 <a name="__line788"></a>	return d == v2.dbl();
 <a name="__line789"></a>    }
-<a name="__line790"></a>
-<a name="__line791"></a>
-<a name="__line792"></a>    bool operator != (const blop::var &amp;v1,const blop::var &amp;v2)
-<a name="__line793"></a>    {
-<a name="__line794"></a>	return !operator==((var)v1,(var)v2);
-<a name="__line795"></a>    }
-<a name="__line796"></a>    bool operator != (const blop::var &amp;v1,const char *v2)
-<a name="__line797"></a>    {
-<a name="__line798"></a>	return !operator==(v1,v2);
-<a name="__line799"></a>    }
-<a name="__line800"></a>    bool operator != (const char *v1,const blop::var &amp;v2)
+<a name="__line790"></a>    bool operator == (const blop::var &amp;v1, int i)
+<a name="__line791"></a>    {
+<a name="__line792"></a>	return v1.dbl() == i;
+<a name="__line793"></a>    }
+<a name="__line794"></a>    bool operator == (int d, const blop::var &amp;v2)
+<a name="__line795"></a>    {
+<a name="__line796"></a>	return d == v2.dbl();
+<a name="__line797"></a>    }
+<a name="__line798"></a>
+<a name="__line799"></a>
+<a name="__line800"></a>    bool operator != (const blop::var &amp;v1,const blop::var &amp;v2)
 <a name="__line801"></a>    {
-<a name="__line802"></a>	return !operator==(v1,v2);
+<a name="__line802"></a>	return !operator==((var)v1,(var)v2);
 <a name="__line803"></a>    }
-<a name="__line804"></a>    bool operator != (const blop::var &amp;v1,const string &amp;v2)
+<a name="__line804"></a>    bool operator != (const blop::var &amp;v1,const char *v2)
 <a name="__line805"></a>    {
 <a name="__line806"></a>	return !operator==(v1,v2);
 <a name="__line807"></a>    }
-<a name="__line808"></a>    bool operator != (const string &amp;v1,const blop::var &amp;v2)
+<a name="__line808"></a>    bool operator != (const char *v1,const blop::var &amp;v2)
 <a name="__line809"></a>    {
 <a name="__line810"></a>	return !operator==(v1,v2);
 <a name="__line811"></a>    }
-<a name="__line812"></a>    bool operator != (const blop::var &amp;v1, double d)
+<a name="__line812"></a>    bool operator != (const blop::var &amp;v1,const string &amp;v2)
 <a name="__line813"></a>    {
-<a name="__line814"></a>	return !operator==(v1,d);
+<a name="__line814"></a>	return !operator==(v1,v2);
 <a name="__line815"></a>    }
-<a name="__line816"></a>    bool operator != (double d, const blop::var &amp;v2)
+<a name="__line816"></a>    bool operator != (const string &amp;v1,const blop::var &amp;v2)
 <a name="__line817"></a>    {
-<a name="__line818"></a>	return !operator==(d,v2);
+<a name="__line818"></a>	return !operator==(v1,v2);
 <a name="__line819"></a>    }
-<a name="__line820"></a>    bool operator != (const blop::var &amp;v1, int d)
+<a name="__line820"></a>    bool operator != (const blop::var &amp;v1, double d)
 <a name="__line821"></a>    {
 <a name="__line822"></a>	return !operator==(v1,d);
 <a name="__line823"></a>    }
-<a name="__line824"></a>    bool operator != (int d, const blop::var &amp;v2)
+<a name="__line824"></a>    bool operator != (double d, const blop::var &amp;v2)
 <a name="__line825"></a>    {
 <a name="__line826"></a>	return !operator==(d,v2);
 <a name="__line827"></a>    }
-<a name="__line828"></a>
-<a name="__line829"></a>
-<a name="__line830"></a>    var &amp;var::replace(size_type pos, size_type n, const var &amp;s)
-<a name="__line831"></a>    {
-<a name="__line832"></a>	string_.replace(pos,n,s.str());
-<a name="__line833"></a>	double_ = atof(string_.c_str());
-<a name="__line834"></a>	return *this;
+<a name="__line828"></a>    bool operator != (const blop::var &amp;v1, int d)
+<a name="__line829"></a>    {
+<a name="__line830"></a>	return !operator==(v1,d);
+<a name="__line831"></a>    }
+<a name="__line832"></a>    bool operator != (int d, const blop::var &amp;v2)
+<a name="__line833"></a>    {
+<a name="__line834"></a>	return !operator==(d,v2);
 <a name="__line835"></a>    }
 <a name="__line836"></a>
-<a name="__line837"></a>    var &amp;var::replace(const var &amp;from,const var &amp;to)
-<a name="__line838"></a>    {
-<a name="__line839"></a>	string::size_type s1 = from.length();
-<a name="__line840"></a>	string::size_type s2 = to.length();
-<a name="__line841"></a>
-<a name="__line842"></a>	for(string::size_type ind = 0;
-<a name="__line843"></a>	    (ind = string_.find(from.str(), ind)) != std::string::npos;
-<a name="__line844"></a>	    ind += s2)
-<a name="__line845"></a>	{
-<a name="__line846"></a>	    string_.replace(ind, s1, to.str());
-<a name="__line847"></a>	}
-<a name="__line848"></a>	
-<a name="__line849"></a>	double_ = atof(string_.c_str());
-<a name="__line850"></a>	return *this;
-<a name="__line851"></a>    }
-<a name="__line852"></a>
-<a name="__line853"></a>    var &amp;var::replace1(const var &amp;from,const var &amp;to)
-<a name="__line854"></a>    {
-<a name="__line855"></a>	string::size_type ind = 0;
-<a name="__line856"></a>	if( (ind = string_.find(from.str(), ind)) != std::string::npos )
-<a name="__line857"></a>	{
-<a name="__line858"></a>	    string_.replace(ind, from.length(), to.str());
-<a name="__line859"></a>	}
-<a name="__line860"></a>	
-<a name="__line861"></a>	double_ = atof(string_.c_str());
-<a name="__line862"></a>	return *this;
-<a name="__line863"></a>    }
-<a name="__line864"></a>
-<a name="__line865"></a>    const var::size_type var::npos = std::string::npos;
-<a name="__line866"></a>
-<a name="__line867"></a>    var::size_type var::size() const
-<a name="__line868"></a>    {
-<a name="__line869"></a>	return string_.size(); 
-<a name="__line870"></a>    }
-<a name="__line871"></a>
-<a name="__line872"></a>    var::size_type var::length() const
-<a name="__line873"></a>    {
-<a name="__line874"></a>	return string_.length();
-<a name="__line875"></a>    }
-<a name="__line876"></a>
-<a name="__line877"></a>    var::size_type var::find(const var &amp;o, var::size_type i) const
-<a name="__line878"></a>    {
-<a name="__line879"></a>	return string_.find(o.str(),i);
-<a name="__line880"></a>    }
-<a name="__line881"></a>
-<a name="__line882"></a>    var::size_type var::rfind(const var &amp;o, var::size_type i) const
-<a name="__line883"></a>    {
-<a name="__line884"></a>	return string_.rfind(o.str(),i);
-<a name="__line885"></a>    }
-<a name="__line886"></a>
-<a name="__line887"></a>    var::size_type var::find_first_of(const var &amp;o, size_type i) const
-<a name="__line888"></a>    {
-<a name="__line889"></a>	return string_.find_first_of(o.str(), i);
-<a name="__line890"></a>    }
-<a name="__line891"></a>
-<a name="__line892"></a>    var::size_type var::find_last_of(const var &amp;o, size_type i) const
-<a name="__line893"></a>    {
-<a name="__line894"></a>	return string_.find_last_of(o.str(), i);
-<a name="__line895"></a>    }
-<a name="__line896"></a>
-<a name="__line897"></a>    var::size_type var::find_first_not_of(const var &amp;o, size_type i) const
-<a name="__line898"></a>    {
-<a name="__line899"></a>	return string_.find_first_not_of(o.str(), i);
-<a name="__line900"></a>    }
-<a name="__line901"></a>
-<a name="__line902"></a>    var::size_type var::find_last_not_of(const var &amp;o, size_type i) const
-<a name="__line903"></a>    {
-<a name="__line904"></a>	return string_.find_last_not_of(o.str(), i);
-<a name="__line905"></a>    }
-<a name="__line906"></a>
-<a name="__line907"></a>    void var::subvar::update_var()
-<a name="__line908"></a>    {
-<a name="__line909"></a>	var result;
-<a name="__line910"></a>	if(from_ &gt; 0) result &amp;= var_-&gt;string_.substr(0,from_);
-<a name="__line911"></a>	result &amp;= *this;
-<a name="__line912"></a>	if(to_ != std::string::npos) result &amp;= var_-&gt;string_.substr(to_+1,std::string::npos);
-<a name="__line913"></a>	*var_ = result;
-<a name="__line914"></a>    }
-<a name="__line915"></a>
-<a name="__line916"></a>    var::subvar::subvar(var *v,std::string::size_type from,std::string::size_type to)
-<a name="__line917"></a>    {
-<a name="__line918"></a>	var_ = v;
-<a name="__line919"></a>	from_ = from;
-<a name="__line920"></a>	to_   = to;
-<a name="__line921"></a>	var::operator=( v-&gt;string_.substr(from,to-from+1) );
+<a name="__line837"></a>
+<a name="__line838"></a>    var &amp;var::replace(size_type pos, size_type n, const var &amp;s)
+<a name="__line839"></a>    {
+<a name="__line840"></a>	string_.replace(pos,n,s.str());
+<a name="__line841"></a>	double_ = atof(string_.c_str());
+<a name="__line842"></a>	return *this;
+<a name="__line843"></a>    }
+<a name="__line844"></a>
+<a name="__line845"></a>    var &amp;var::replace(const var &amp;from,const var &amp;to)
+<a name="__line846"></a>    {
+<a name="__line847"></a>	string::size_type s1 = from.length();
+<a name="__line848"></a>	string::size_type s2 = to.length();
+<a name="__line849"></a>
+<a name="__line850"></a>	for(string::size_type ind = 0;
+<a name="__line851"></a>	    (ind = string_.find(from.str(), ind)) != std::string::npos;
+<a name="__line852"></a>	    ind += s2)
+<a name="__line853"></a>	{
+<a name="__line854"></a>	    string_.replace(ind, s1, to.str());
+<a name="__line855"></a>	}
+<a name="__line856"></a>	
+<a name="__line857"></a>	double_ = atof(string_.c_str());
+<a name="__line858"></a>	return *this;
+<a name="__line859"></a>    }
+<a name="__line860"></a>
+<a name="__line861"></a>    var &amp;var::replace1(const var &amp;from,const var &amp;to)
+<a name="__line862"></a>    {
+<a name="__line863"></a>	string::size_type ind = 0;
+<a name="__line864"></a>	if( (ind = string_.find(from.str(), ind)) != std::string::npos )
+<a name="__line865"></a>	{
+<a name="__line866"></a>	    string_.replace(ind, from.length(), to.str());
+<a name="__line867"></a>	}
+<a name="__line868"></a>	
+<a name="__line869"></a>	double_ = atof(string_.c_str());
+<a name="__line870"></a>	return *this;
+<a name="__line871"></a>    }
+<a name="__line872"></a>
+<a name="__line873"></a>    const var::size_type var::npos = std::string::npos;
+<a name="__line874"></a>
+<a name="__line875"></a>    var::size_type var::size() const
+<a name="__line876"></a>    {
+<a name="__line877"></a>	return string_.size(); 
+<a name="__line878"></a>    }
+<a name="__line879"></a>
+<a name="__line880"></a>    var::size_type var::length() const
+<a name="__line881"></a>    {
+<a name="__line882"></a>	return string_.length();
+<a name="__line883"></a>    }
+<a name="__line884"></a>
+<a name="__line885"></a>    var::size_type var::find(const var &amp;o, var::size_type i) const
+<a name="__line886"></a>    {
+<a name="__line887"></a>	return string_.find(o.str(),i);
+<a name="__line888"></a>    }
+<a name="__line889"></a>
+<a name="__line890"></a>    var::size_type var::rfind(const var &amp;o, var::size_type i) const
+<a name="__line891"></a>    {
+<a name="__line892"></a>	return string_.rfind(o.str(),i);
+<a name="__line893"></a>    }
+<a name="__line894"></a>
+<a name="__line895"></a>    var::size_type var::find_first_of(const var &amp;o, size_type i) const
+<a name="__line896"></a>    {
+<a name="__line897"></a>	return string_.find_first_of(o.str(), i);
+<a name="__line898"></a>    }
+<a name="__line899"></a>
+<a name="__line900"></a>    var::size_type var::find_last_of(const var &amp;o, size_type i) const
+<a name="__line901"></a>    {
+<a name="__line902"></a>	return string_.find_last_of(o.str(), i);
+<a name="__line903"></a>    }
+<a name="__line904"></a>
+<a name="__line905"></a>    var::size_type var::find_first_not_of(const var &amp;o, size_type i) const
+<a name="__line906"></a>    {
+<a name="__line907"></a>	return string_.find_first_not_of(o.str(), i);
+<a name="__line908"></a>    }
+<a name="__line909"></a>
+<a name="__line910"></a>    var::size_type var::find_last_not_of(const var &amp;o, size_type i) const
+<a name="__line911"></a>    {
+<a name="__line912"></a>	return string_.find_last_not_of(o.str(), i);
+<a name="__line913"></a>    }
+<a name="__line914"></a>
+<a name="__line915"></a>    void var::subvar::update_var()
+<a name="__line916"></a>    {
+<a name="__line917"></a>	var result;
+<a name="__line918"></a>	if(from_ &gt; 0) result &amp;= var_-&gt;string_.substr(0,from_);
+<a name="__line919"></a>	result &amp;= *this;
+<a name="__line920"></a>	if(to_ != std::string::npos) result &amp;= var_-&gt;string_.substr(to_+1,std::string::npos);
+<a name="__line921"></a>	*var_ = result;
 <a name="__line922"></a>    }
 <a name="__line923"></a>
-<a name="__line924"></a>    var::subvar::subvar(const subvar &amp;o) : var(o)
+<a name="__line924"></a>    var::subvar::subvar(var *v,std::string::size_type from,std::string::size_type to)
 <a name="__line925"></a>    {
-<a name="__line926"></a>	var_ = o.var_;
-<a name="__line927"></a>	from_ = o.from_;
-<a name="__line928"></a>	to_   = o.to_;
-<a name="__line929"></a>    }
-<a name="__line930"></a>
-<a name="__line931"></a>    var::subvar var::operator() (std::string::size_type from, std::string::size_type to)
-<a name="__line932"></a>    {
-<a name="__line933"></a>	return subvar(this,from,to);
-<a name="__line934"></a>    }
-<a name="__line935"></a>
-<a name="__line936"></a>    ostream &amp;operator&lt;&lt;(ostream &amp;out,const blop::var &amp;v)
-<a name="__line937"></a>    {
-<a name="__line938"></a>	out&lt;&lt;v.str();
-<a name="__line939"></a>	return out;
-<a name="__line940"></a>    }
-<a name="__line941"></a>
-<a name="__line942"></a>    istream &amp;operator&gt;&gt;(istream &amp;in,blop::var &amp;v)
-<a name="__line943"></a>    {
-<a name="__line944"></a>	string s;
-<a name="__line945"></a>	in&gt;&gt;s;
-<a name="__line946"></a>	v = s;
-<a name="__line947"></a>	return in;
+<a name="__line926"></a>	var_ = v;
+<a name="__line927"></a>	from_ = from;
+<a name="__line928"></a>	to_   = to;
+<a name="__line929"></a>	var::operator=( v-&gt;string_.substr(from,to-from+1) );
+<a name="__line930"></a>    }
+<a name="__line931"></a>
+<a name="__line932"></a>    var::subvar::subvar(const subvar &amp;o) : var(o)
+<a name="__line933"></a>    {
+<a name="__line934"></a>	var_ = o.var_;
+<a name="__line935"></a>	from_ = o.from_;
+<a name="__line936"></a>	to_   = o.to_;
+<a name="__line937"></a>    }
+<a name="__line938"></a>
+<a name="__line939"></a>    var::subvar var::operator() (std::string::size_type from, std::string::size_type to)
+<a name="__line940"></a>    {
+<a name="__line941"></a>	return subvar(this,from,to);
+<a name="__line942"></a>    }
+<a name="__line943"></a>
+<a name="__line944"></a>    ostream &amp;operator&lt;&lt;(ostream &amp;out,const blop::var &amp;v)
+<a name="__line945"></a>    {
+<a name="__line946"></a>	out&lt;&lt;v.str();
+<a name="__line947"></a>	return out;
 <a name="__line948"></a>    }
 <a name="__line949"></a>
-<a name="__line950"></a>
-<a name="__line951"></a>    var operator&amp; (const var &amp;v1,const var &amp;v2)
-<a name="__line952"></a>    {
-<a name="__line953"></a>	var result = v1;
-<a name="__line954"></a>	result &amp;= v2;
-<a name="__line955"></a>	return result;
+<a name="__line950"></a>    istream &amp;operator&gt;&gt;(istream &amp;in,blop::var &amp;v)
+<a name="__line951"></a>    {
+<a name="__line952"></a>	string s;
+<a name="__line953"></a>	in&gt;&gt;s;
+<a name="__line954"></a>	v = s;
+<a name="__line955"></a>	return in;
 <a name="__line956"></a>    }
-<a name="__line957"></a>    var operator&amp; (const var &amp;v1,const string &amp;s    )
-<a name="__line958"></a>    {
-<a name="__line959"></a>	var result = v1;
-<a name="__line960"></a>	result &amp;= s;
-<a name="__line961"></a>	return result;
-<a name="__line962"></a>    }
-<a name="__line963"></a>    var operator&amp; (const string &amp;s    ,const var &amp;v2)
-<a name="__line964"></a>    {
-<a name="__line965"></a>	var result = s;
-<a name="__line966"></a>	result += v2;
-<a name="__line967"></a>	return result;
-<a name="__line968"></a>    }
-<a name="__line969"></a>    var operator&amp; (const var &amp;v1,const char *s      )
-<a name="__line970"></a>    {
-<a name="__line971"></a>	var result = v1;
-<a name="__line972"></a>	result &amp;= s;
-<a name="__line973"></a>	return result;
-<a name="__line974"></a>    }
-<a name="__line975"></a>    var operator&amp; (const char *s      ,const var &amp;v2)
-<a name="__line976"></a>    {
-<a name="__line977"></a>	var result = s;
-<a name="__line978"></a>	result &amp;= v2;
-<a name="__line979"></a>	return result;
-<a name="__line980"></a>    }
-<a name="__line981"></a>    var operator&amp; (const var &amp;v1,double d           )
-<a name="__line982"></a>    {
-<a name="__line983"></a>	var result = v1;
-<a name="__line984"></a>	result &amp;= d;
-<a name="__line985"></a>	return result;
-<a name="__line986"></a>    }
-<a name="__line987"></a>    var operator&amp; (double d           ,const var &amp;v2)
-<a name="__line988"></a>    {
-<a name="__line989"></a>	var result = d;
-<a name="__line990"></a>	result &amp;= v2;
-<a name="__line991"></a>	return result;
-<a name="__line992"></a>    }
-<a name="__line993"></a>    var operator&amp; (const string &amp;s1,const string &amp;s2)
-<a name="__line994"></a>    {
-<a name="__line995"></a>	var result = s1;
-<a name="__line996"></a>	result &amp;= s2;
-<a name="__line997"></a>	return result;
-<a name="__line998"></a>    }
-<a name="__line999"></a>    var operator&amp; (const string &amp;s1,const char   *s2)
-<a name="__line1000"></a>    {
-<a name="__line1001"></a>	var result = s1;
-<a name="__line1002"></a>	result &amp;= s2;
-<a name="__line1003"></a>	return result;
-<a name="__line1004"></a>    }
-<a name="__line1005"></a>    var operator&amp; (const char   *s1,const string &amp;s2)
-<a name="__line1006"></a>    {
-<a name="__line1007"></a>	var result = s1;
-<a name="__line1008"></a>	result &amp;= s2;
-<a name="__line1009"></a>	return result;
-<a name="__line1010"></a>    }
-<a name="__line1011"></a>
-<a name="__line1012"></a>    var operator&amp; (double d,const string &amp;s)
-<a name="__line1013"></a>    {
-<a name="__line1014"></a>	var result = d;
-<a name="__line1015"></a>	result &amp;= s;
-<a name="__line1016"></a>	return result;
-<a name="__line1017"></a>    }
-<a name="__line1018"></a>
-<a name="__line1019"></a>    var operator&amp; (const string &amp;s,double d)
-<a name="__line1020"></a>    {
-<a name="__line1021"></a>	var result = s;
-<a name="__line1022"></a>	result &amp;= d;
-<a name="__line1023"></a>	return result;
-<a name="__line1024"></a>    }
-<a name="__line1025"></a>
-<a name="__line1026"></a>    var operator&amp; (const var &amp;v, int i)
-<a name="__line1027"></a>    {
-<a name="__line1028"></a>	var result = v;
-<a name="__line1029"></a>	result &amp;= i;
-<a name="__line1030"></a>	return result;
-<a name="__line1031"></a>    }
-<a name="__line1032"></a>
-<a name="__line1033"></a>    var operator&amp; (int i, const var &amp;v)
-<a name="__line1034"></a>    {
-<a name="__line1035"></a>	var result = i;
-<a name="__line1036"></a>	result &amp;= v;
-<a name="__line1037"></a>	return result;
-<a name="__line1038"></a>    }
-<a name="__line1039"></a>
-<a name="__line1040"></a>    var operator&amp; (const var &amp;v, char c)
-<a name="__line1041"></a>    {
-<a name="__line1042"></a>	var result = v;
-<a name="__line1043"></a>	result &amp;= c;
-<a name="__line1044"></a>	return result;
-<a name="__line1045"></a>    }
-<a name="__line1046"></a>
-<a name="__line1047"></a>    var operator&amp; (char c, const var &amp;v)
-<a name="__line1048"></a>    {
-<a name="__line1049"></a>	var result = c;
-<a name="__line1050"></a>	result &amp;= v;
-<a name="__line1051"></a>	return result;
-<a name="__line1052"></a>    }
-<a name="__line1053"></a>}
+<a name="__line957"></a>
+<a name="__line958"></a>
+<a name="__line959"></a>    var operator&amp; (const var &amp;v1,const var &amp;v2)
+<a name="__line960"></a>    {
+<a name="__line961"></a>	var result = v1;
+<a name="__line962"></a>	result &amp;= v2;
+<a name="__line963"></a>	return result;
+<a name="__line964"></a>    }
+<a name="__line965"></a>    var operator&amp; (const var &amp;v1,const string &amp;s    )
+<a name="__line966"></a>    {
+<a name="__line967"></a>	var result = v1;
+<a name="__line968"></a>	result &amp;= s;
+<a name="__line969"></a>	return result;
+<a name="__line970"></a>    }
+<a name="__line971"></a>    var operator&amp; (const string &amp;s    ,const var &amp;v2)
+<a name="__line972"></a>    {
+<a name="__line973"></a>	var result = s;
+<a name="__line974"></a>	result += v2;
+<a name="__line975"></a>	return result;
+<a name="__line976"></a>    }
+<a name="__line977"></a>    var operator&amp; (const var &amp;v1,const char *s      )
+<a name="__line978"></a>    {
+<a name="__line979"></a>	var result = v1;
+<a name="__line980"></a>	result &amp;= s;
+<a name="__line981"></a>	return result;
+<a name="__line982"></a>    }
+<a name="__line983"></a>    var operator&amp; (const char *s      ,const var &amp;v2)
+<a name="__line984"></a>    {
+<a name="__line985"></a>	var result = s;
+<a name="__line986"></a>	result &amp;= v2;
+<a name="__line987"></a>	return result;
+<a name="__line988"></a>    }
+<a name="__line989"></a>    var operator&amp; (const var &amp;v1,double d           )
+<a name="__line990"></a>    {
+<a name="__line991"></a>	var result = v1;
+<a name="__line992"></a>	result &amp;= d;
+<a name="__line993"></a>	return result;
+<a name="__line994"></a>    }
+<a name="__line995"></a>    var operator&amp; (double d           ,const var &amp;v2)
+<a name="__line996"></a>    {
+<a name="__line997"></a>	var result = d;
+<a name="__line998"></a>	result &amp;= v2;
+<a name="__line999"></a>	return result;
+<a name="__line1000"></a>    }
+<a name="__line1001"></a>    var operator&amp; (const string &amp;s1,const string &amp;s2)
+<a name="__line1002"></a>    {
+<a name="__line1003"></a>	var result = s1;
+<a name="__line1004"></a>	result &amp;= s2;
+<a name="__line1005"></a>	return result;
+<a name="__line1006"></a>    }
+<a name="__line1007"></a>    var operator&amp; (const string &amp;s1,const char   *s2)
+<a name="__line1008"></a>    {
+<a name="__line1009"></a>	var result = s1;
+<a name="__line1010"></a>	result &amp;= s2;
+<a name="__line1011"></a>	return result;
+<a name="__line1012"></a>    }
+<a name="__line1013"></a>    var operator&amp; (const char   *s1,const string &amp;s2)
+<a name="__line1014"></a>    {
+<a name="__line1015"></a>	var result = s1;
+<a name="__line1016"></a>	result &amp;= s2;
+<a name="__line1017"></a>	return result;
+<a name="__line1018"></a>    }
+<a name="__line1019"></a>
+<a name="__line1020"></a>    var operator&amp; (double d,const string &amp;s)
+<a name="__line1021"></a>    {
+<a name="__line1022"></a>	var result = d;
+<a name="__line1023"></a>	result &amp;= s;
+<a name="__line1024"></a>	return result;
+<a name="__line1025"></a>    }
+<a name="__line1026"></a>
+<a name="__line1027"></a>    var operator&amp; (const string &amp;s,double d)
+<a name="__line1028"></a>    {
+<a name="__line1029"></a>	var result = s;
+<a name="__line1030"></a>	result &amp;= d;
+<a name="__line1031"></a>	return result;
+<a name="__line1032"></a>    }
+<a name="__line1033"></a>
+<a name="__line1034"></a>    var operator&amp; (const var &amp;v, int i)
+<a name="__line1035"></a>    {
+<a name="__line1036"></a>	var result = v;
+<a name="__line1037"></a>	result &amp;= i;
+<a name="__line1038"></a>	return result;
+<a name="__line1039"></a>    }
+<a name="__line1040"></a>
+<a name="__line1041"></a>    var operator&amp; (int i, const var &amp;v)
+<a name="__line1042"></a>    {
+<a name="__line1043"></a>	var result = i;
+<a name="__line1044"></a>	result &amp;= v;
+<a name="__line1045"></a>	return result;
+<a name="__line1046"></a>    }
+<a name="__line1047"></a>
+<a name="__line1048"></a>    var operator&amp; (const var &amp;v, unsigned int i)
+<a name="__line1049"></a>    {
+<a name="__line1050"></a>	var result = v;
+<a name="__line1051"></a>	result &amp;= i;
+<a name="__line1052"></a>	return result;
+<a name="__line1053"></a>    }
 <a name="__line1054"></a>
-<a name="__line1055"></a>
-<a name="__line1056"></a>ostream &amp;operator&lt;&lt;(ostream &amp;out,const blop::var &amp;v)
-<a name="__line1057"></a>{
-<a name="__line1058"></a>    blop::operator&lt;&lt;(out,v);
-<a name="__line1059"></a>    return out;
-<a name="__line1060"></a>}
-<a name="__line1061"></a>
-<a name="__line1062"></a>istream &amp;operator&gt;&gt;(istream &amp;in,blop::var &amp;v)
-<a name="__line1063"></a>{
-<a name="__line1064"></a>    blop::operator&gt;&gt;(in,v);
-<a name="__line1065"></a>    return in;
-<a name="__line1066"></a>}
-<a name="__line1067"></a>
+<a name="__line1055"></a>    var operator&amp; (unsigned int i, const var &amp;v)
+<a name="__line1056"></a>    {
+<a name="__line1057"></a>	var result = i;
+<a name="__line1058"></a>	result &amp;= v;
+<a name="__line1059"></a>	return result;
+<a name="__line1060"></a>    }
+<a name="__line1061"></a>    
+<a name="__line1062"></a>    var operator&amp; (const var &amp;v, char c)
+<a name="__line1063"></a>    {
+<a name="__line1064"></a>	var result = v;
+<a name="__line1065"></a>	result &amp;= c;
+<a name="__line1066"></a>	return result;
+<a name="__line1067"></a>    }
 <a name="__line1068"></a>
-<a name="__line1069"></a>
-<a name="__line1070"></a>
-<a name="__line1071"></a>
-<a name="__line1072"></a><span class=comment>// ---------- mathematical functions for vars -------------------------------------</span>
-<a name="__line1073"></a>
-<a name="__line1074"></a>blop::var pow  (const blop::var &amp;a,const blop::var &amp;b)
-<a name="__line1075"></a>{
-<a name="__line1076"></a>    return pow(a.dbl(),b.dbl());
-<a name="__line1077"></a>}
-<a name="__line1078"></a>blop::var exp  (const blop::var &amp;a)
+<a name="__line1069"></a>    var operator&amp; (char c, const var &amp;v)
+<a name="__line1070"></a>    {
+<a name="__line1071"></a>	var result = c;
+<a name="__line1072"></a>	result &amp;= v;
+<a name="__line1073"></a>	return result;
+<a name="__line1074"></a>    }
+<a name="__line1075"></a>}
+<a name="__line1076"></a>
+<a name="__line1077"></a>
+<a name="__line1078"></a>ostream &amp;operator&lt;&lt;(ostream &amp;out,const blop::var &amp;v)
 <a name="__line1079"></a>{
-<a name="__line1080"></a>    return exp(a.dbl());
-<a name="__line1081"></a>}
-<a name="__line1082"></a>blop::var log  (const blop::var &amp;a)
-<a name="__line1083"></a>{
-<a name="__line1084"></a>    return log(a.dbl());
-<a name="__line1085"></a>}
-<a name="__line1086"></a>blop::var log10(const blop::var &amp;a)
-<a name="__line1087"></a>{
-<a name="__line1088"></a>    return log10(a.dbl());
-<a name="__line1089"></a>}
-<a name="__line1090"></a>blop::var sqrt (const blop::var &amp;a)
-<a name="__line1091"></a>{
-<a name="__line1092"></a>    return sqrt(a.dbl());
-<a name="__line1093"></a>}
-<a name="__line1094"></a>blop::var sin  (const blop::var &amp;a)
-<a name="__line1095"></a>{
-<a name="__line1096"></a>    return sin(a.dbl());
-<a name="__line1097"></a>}
-<a name="__line1098"></a>blop::var cos  (const blop::var &amp;a)
-<a name="__line1099"></a>{
-<a name="__line1100"></a>    return cos(a.dbl());
-<a name="__line1101"></a>}
-<a name="__line1102"></a>blop::var asin (const blop::var &amp;a)
-<a name="__line1103"></a>{
-<a name="__line1104"></a>    return asin(a.dbl());
-<a name="__line1105"></a>}
-<a name="__line1106"></a>blop::var acos (const blop::var &amp;a)
-<a name="__line1107"></a>{
-<a name="__line1108"></a>    return acos(a.dbl());
-<a name="__line1109"></a>}
-<a name="__line1110"></a>blop::var tan  (const blop::var &amp;a)
-<a name="__line1111"></a>{
-<a name="__line1112"></a>    return tan(a.dbl());
-<a name="__line1113"></a>}
-<a name="__line1114"></a>blop::var atan (const blop::var &amp;a)
-<a name="__line1115"></a>{
-<a name="__line1116"></a>    return atan(a.dbl());
-<a name="__line1117"></a>}
-<a name="__line1118"></a>blop::var sinh (const blop::var &amp;a)
-<a name="__line1119"></a>{
-<a name="__line1120"></a>    return sinh(a.dbl());
-<a name="__line1121"></a>}
-<a name="__line1122"></a>blop::var asinh(const blop::var &amp;a)
-<a name="__line1123"></a>{
-<a name="__line1124"></a>    return asinh(a.dbl());
-<a name="__line1125"></a>}
-<a name="__line1126"></a>blop::var cosh (const blop::var &amp;a)
-<a name="__line1127"></a>{
-<a name="__line1128"></a>    return cosh(a.dbl());
-<a name="__line1129"></a>}
-<a name="__line1130"></a>blop::var acosh(const blop::var &amp;a)
-<a name="__line1131"></a>{
-<a name="__line1132"></a>    return acosh(a.dbl());
-<a name="__line1133"></a>}
-<a name="__line1134"></a>
-<a name="__line1135"></a>#ifdef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
-<a name="__line1136"></a>namespace blop
+<a name="__line1080"></a>    blop::operator&lt;&lt;(out,v);
+<a name="__line1081"></a>    return out;
+<a name="__line1082"></a>}
+<a name="__line1083"></a>
+<a name="__line1084"></a>istream &amp;operator&gt;&gt;(istream &amp;in,blop::var &amp;v)
+<a name="__line1085"></a>{
+<a name="__line1086"></a>    blop::operator&gt;&gt;(in,v);
+<a name="__line1087"></a>    return in;
+<a name="__line1088"></a>}
+<a name="__line1089"></a>
+<a name="__line1090"></a>
+<a name="__line1091"></a>
+<a name="__line1092"></a>
+<a name="__line1093"></a>
+<a name="__line1094"></a><span class=comment>// ---------- mathematical functions for vars -------------------------------------</span>
+<a name="__line1095"></a>
+<a name="__line1096"></a>blop::var pow  (const blop::var &amp;a,const blop::var &amp;b)
+<a name="__line1097"></a>{
+<a name="__line1098"></a>    return pow(a.dbl(),b.dbl());
+<a name="__line1099"></a>}
+<a name="__line1100"></a>blop::var exp  (const blop::var &amp;a)
+<a name="__line1101"></a>{
+<a name="__line1102"></a>    return exp(a.dbl());
+<a name="__line1103"></a>}
+<a name="__line1104"></a>blop::var log  (const blop::var &amp;a)
+<a name="__line1105"></a>{
+<a name="__line1106"></a>    return log(a.dbl());
+<a name="__line1107"></a>}
+<a name="__line1108"></a>blop::var log10(const blop::var &amp;a)
+<a name="__line1109"></a>{
+<a name="__line1110"></a>    return log10(a.dbl());
+<a name="__line1111"></a>}
+<a name="__line1112"></a>blop::var sqrt (const blop::var &amp;a)
+<a name="__line1113"></a>{
+<a name="__line1114"></a>    return sqrt(a.dbl());
+<a name="__line1115"></a>}
+<a name="__line1116"></a>blop::var sin  (const blop::var &amp;a)
+<a name="__line1117"></a>{
+<a name="__line1118"></a>    return sin(a.dbl());
+<a name="__line1119"></a>}
+<a name="__line1120"></a>blop::var cos  (const blop::var &amp;a)
+<a name="__line1121"></a>{
+<a name="__line1122"></a>    return cos(a.dbl());
+<a name="__line1123"></a>}
+<a name="__line1124"></a>blop::var asin (const blop::var &amp;a)
+<a name="__line1125"></a>{
+<a name="__line1126"></a>    return asin(a.dbl());
+<a name="__line1127"></a>}
+<a name="__line1128"></a>blop::var acos (const blop::var &amp;a)
+<a name="__line1129"></a>{
+<a name="__line1130"></a>    return acos(a.dbl());
+<a name="__line1131"></a>}
+<a name="__line1132"></a>blop::var tan  (const blop::var &amp;a)
+<a name="__line1133"></a>{
+<a name="__line1134"></a>    return tan(a.dbl());
+<a name="__line1135"></a>}
+<a name="__line1136"></a>blop::var atan (const blop::var &amp;a)
 <a name="__line1137"></a>{
-<a name="__line1138"></a>#endif    
-<a name="__line1139"></a>    blop::var operator+ (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() + v2.dbl();}
-<a name="__line1140"></a>    blop::var operator+ (const blop::var &amp;v1,double d) {return v1.dbl() + d;}
-<a name="__line1141"></a>    blop::var operator+ (double d, const blop::var &amp;v2) {return d + v2.dbl();}
-<a name="__line1142"></a>    blop::var operator+ (const blop::var &amp;v1, int d) { return v1.dbl() + d; }
-<a name="__line1143"></a>    blop::var operator+ (int d, const blop::var &amp;v2) { return d + v2.dbl(); }
-<a name="__line1144"></a>    blop::var operator+ (const blop::var &amp;v1,const string &amp;s)
-<a name="__line1145"></a>    {
-<a name="__line1146"></a>        blop::var result = v1;
-<a name="__line1147"></a>        result += s;
-<a name="__line1148"></a>        return result;
-<a name="__line1149"></a>    }
-<a name="__line1150"></a>    blop::var operator+ (const string &amp;s,const blop::var &amp;v2)
-<a name="__line1151"></a>    {
-<a name="__line1152"></a>        blop::var result = s;
-<a name="__line1153"></a>        result += v2;
-<a name="__line1154"></a>        return result;
-<a name="__line1155"></a>    }
-<a name="__line1156"></a>    blop::var operator+ (const char *s,const blop::var &amp;v2)
-<a name="__line1157"></a>    {
-<a name="__line1158"></a>        return string(s) + v2;
-<a name="__line1159"></a>    }
-<a name="__line1160"></a>    blop::var operator+ (const blop::var &amp;v2,const char *s)
-<a name="__line1161"></a>    {
-<a name="__line1162"></a>        return v2 + string(s);
-<a name="__line1163"></a>    }
-<a name="__line1164"></a>    
-<a name="__line1165"></a>    blop::var operator- (const blop::var &amp;v)
-<a name="__line1166"></a>    {
-<a name="__line1167"></a>        return - v.dbl();
-<a name="__line1168"></a>    }
-<a name="__line1169"></a>    
-<a name="__line1170"></a>    blop::var operator- (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() - v2.dbl();}
-<a name="__line1171"></a>    blop::var operator- (const blop::var &amp;v1,double d) {return v1.dbl() - d;}
-<a name="__line1172"></a>    blop::var operator- (double d, const blop::var &amp;v2) {return d - v2.dbl();}
-<a name="__line1173"></a>    blop::var operator- (const blop::var &amp;v1, int d) { return v1.dbl() - d; }
-<a name="__line1174"></a>    blop::var operator- (int d, const blop::var &amp;v2) { return d - v2.dbl(); }
-<a name="__line1175"></a>    blop::var operator- (const blop::var &amp;v1,const string &amp;s)
-<a name="__line1176"></a>    {
-<a name="__line1177"></a>        blop::var result = v1;
-<a name="__line1178"></a>        result -= s;
-<a name="__line1179"></a>        return result;
-<a name="__line1180"></a>    }
-<a name="__line1181"></a>    blop::var operator- (const string &amp;s,const blop::var &amp;v2)
-<a name="__line1182"></a>    {
-<a name="__line1183"></a>        blop::var result = s;
-<a name="__line1184"></a>        result -= v2;
-<a name="__line1185"></a>        return result;
-<a name="__line1186"></a>    }
-<a name="__line1187"></a>    blop::var operator- (const char *s,const blop::var &amp;v2)
+<a name="__line1138"></a>    return atan(a.dbl());
+<a name="__line1139"></a>}
+<a name="__line1140"></a>blop::var sinh (const blop::var &amp;a)
+<a name="__line1141"></a>{
+<a name="__line1142"></a>    return sinh(a.dbl());
+<a name="__line1143"></a>}
+<a name="__line1144"></a>blop::var asinh(const blop::var &amp;a)
+<a name="__line1145"></a>{
+<a name="__line1146"></a>    return asinh(a.dbl());
+<a name="__line1147"></a>}
+<a name="__line1148"></a>blop::var cosh (const blop::var &amp;a)
+<a name="__line1149"></a>{
+<a name="__line1150"></a>    return cosh(a.dbl());
+<a name="__line1151"></a>}
+<a name="__line1152"></a>blop::var acosh(const blop::var &amp;a)
+<a name="__line1153"></a>{
+<a name="__line1154"></a>    return acosh(a.dbl());
+<a name="__line1155"></a>}
+<a name="__line1156"></a>
+<a name="__line1157"></a>#ifdef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
+<a name="__line1158"></a>namespace blop
+<a name="__line1159"></a>{
+<a name="__line1160"></a>#endif    
+<a name="__line1161"></a>    blop::var operator+ (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() + v2.dbl();}
+<a name="__line1162"></a>    blop::var operator+ (const blop::var &amp;v1,double d) {return v1.dbl() + d;}
+<a name="__line1163"></a>    blop::var operator+ (double d, const blop::var &amp;v2) {return d + v2.dbl();}
+<a name="__line1164"></a>    blop::var operator+ (const blop::var &amp;v1, int d) { return v1.dbl() + d; }
+<a name="__line1165"></a>    blop::var operator+ (int d, const blop::var &amp;v2) { return d + v2.dbl(); }
+<a name="__line1166"></a>    blop::var operator+ (const blop::var &amp;v1,const string &amp;s)
+<a name="__line1167"></a>    {
+<a name="__line1168"></a>        blop::var result = v1;
+<a name="__line1169"></a>        result += s;
+<a name="__line1170"></a>        return result;
+<a name="__line1171"></a>    }
+<a name="__line1172"></a>    blop::var operator+ (const string &amp;s,const blop::var &amp;v2)
+<a name="__line1173"></a>    {
+<a name="__line1174"></a>        blop::var result = s;
+<a name="__line1175"></a>        result += v2;
+<a name="__line1176"></a>        return result;
+<a name="__line1177"></a>    }
+<a name="__line1178"></a>    blop::var operator+ (const char *s,const blop::var &amp;v2)
+<a name="__line1179"></a>    {
+<a name="__line1180"></a>        return string(s) + v2;
+<a name="__line1181"></a>    }
+<a name="__line1182"></a>    blop::var operator+ (const blop::var &amp;v2,const char *s)
+<a name="__line1183"></a>    {
+<a name="__line1184"></a>        return v2 + string(s);
+<a name="__line1185"></a>    }
+<a name="__line1186"></a>    
+<a name="__line1187"></a>    blop::var operator- (const blop::var &amp;v)
 <a name="__line1188"></a>    {
-<a name="__line1189"></a>        return string(s) - v2;
+<a name="__line1189"></a>        return - v.dbl();
 <a name="__line1190"></a>    }
-<a name="__line1191"></a>    blop::var operator- (const blop::var &amp;v2,const char *s)
-<a name="__line1192"></a>    {
-<a name="__line1193"></a>        return v2 - string(s);
-<a name="__line1194"></a>    }
-<a name="__line1195"></a>
-<a name="__line1196"></a>    blop::var operator* (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() * v2.dbl();}
-<a name="__line1197"></a>    blop::var operator* (const blop::var &amp;v1,double d) {return v1.dbl() * d;}
-<a name="__line1198"></a>    blop::var operator* (double d, const blop::var &amp;v2) {return d * v2.dbl();}
-<a name="__line1199"></a>    blop::var operator* (const blop::var &amp;v1, int d) { return v1.dbl() * d; }
-<a name="__line1200"></a>    blop::var operator* (int d, const blop::var &amp;v2) { return d * v2.dbl(); }
-<a name="__line1201"></a>    blop::var operator* (const blop::var &amp;v1,const string &amp;s)
-<a name="__line1202"></a>    {
-<a name="__line1203"></a>        blop::var result = v1;
-<a name="__line1204"></a>        result *= s;
-<a name="__line1205"></a>        return result;
-<a name="__line1206"></a>    }
-<a name="__line1207"></a>    blop::var operator* (const string &amp;s,const blop::var &amp;v2)
-<a name="__line1208"></a>    {
-<a name="__line1209"></a>        blop::var result = s;
-<a name="__line1210"></a>        result *= v2;
-<a name="__line1211"></a>        return result;
+<a name="__line1191"></a>    
+<a name="__line1192"></a>    blop::var operator- (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() - v2.dbl();}
+<a name="__line1193"></a>    blop::var operator- (const blop::var &amp;v1,double d) {return v1.dbl() - d;}
+<a name="__line1194"></a>    blop::var operator- (double d, const blop::var &amp;v2) {return d - v2.dbl();}
+<a name="__line1195"></a>    blop::var operator- (const blop::var &amp;v1, int d) { return v1.dbl() - d; }
+<a name="__line1196"></a>    blop::var operator- (int d, const blop::var &amp;v2) { return d - v2.dbl(); }
+<a name="__line1197"></a>    blop::var operator- (const blop::var &amp;v1,const string &amp;s)
+<a name="__line1198"></a>    {
+<a name="__line1199"></a>        blop::var result = v1;
+<a name="__line1200"></a>        result -= s;
+<a name="__line1201"></a>        return result;
+<a name="__line1202"></a>    }
+<a name="__line1203"></a>    blop::var operator- (const string &amp;s,const blop::var &amp;v2)
+<a name="__line1204"></a>    {
+<a name="__line1205"></a>        blop::var result = s;
+<a name="__line1206"></a>        result -= v2;
+<a name="__line1207"></a>        return result;
+<a name="__line1208"></a>    }
+<a name="__line1209"></a>    blop::var operator- (const char *s,const blop::var &amp;v2)
+<a name="__line1210"></a>    {
+<a name="__line1211"></a>        return string(s) - v2;
 <a name="__line1212"></a>    }
-<a name="__line1213"></a>    blop::var operator* (const char *s,const blop::var &amp;v2)
+<a name="__line1213"></a>    blop::var operator- (const blop::var &amp;v2,const char *s)
 <a name="__line1214"></a>    {
-<a name="__line1215"></a>        return string(s) + v2;
+<a name="__line1215"></a>        return v2 - string(s);
 <a name="__line1216"></a>    }
-<a name="__line1217"></a>    blop::var operator* (const blop::var &amp;v2,const char *s)
-<a name="__line1218"></a>    {
-<a name="__line1219"></a>        return v2 * string(s);
-<a name="__line1220"></a>    }
-<a name="__line1221"></a>    
-<a name="__line1222"></a>    blop::var operator/ (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() / v2.dbl();}
-<a name="__line1223"></a>    blop::var operator/ (const blop::var &amp;v1,double d)  {return v1.dbl() / d;}
-<a name="__line1224"></a>    blop::var operator/ (double d, const blop::var &amp;v2) {return d / v2.dbl();}
-<a name="__line1225"></a>    blop::var operator/ (const blop::var &amp;v1, int d)    { return v1.dbl() / d; }
-<a name="__line1226"></a>    blop::var operator/ (int d, const blop::var &amp;v2)    { return d / v2.dbl(); }
-<a name="__line1227"></a>    blop::var operator/ (const blop::var &amp;v1,const string &amp;s)
-<a name="__line1228"></a>    {
-<a name="__line1229"></a>        blop::var result = v1;
-<a name="__line1230"></a>        result /= s;
-<a name="__line1231"></a>        return result;
-<a name="__line1232"></a>    }
-<a name="__line1233"></a>    blop::var operator/ (const string &amp;s,const blop::var &amp;v2)
-<a name="__line1234"></a>    {
-<a name="__line1235"></a>        blop::var result = s;
-<a name="__line1236"></a>        result /= v2;
-<a name="__line1237"></a>        return result;
+<a name="__line1217"></a>
+<a name="__line1218"></a>    blop::var operator* (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() * v2.dbl();}
+<a name="__line1219"></a>    blop::var operator* (const blop::var &amp;v1,double d) {return v1.dbl() * d;}
+<a name="__line1220"></a>    blop::var operator* (double d, const blop::var &amp;v2) {return d * v2.dbl();}
+<a name="__line1221"></a>    blop::var operator* (const blop::var &amp;v1, int d) { return v1.dbl() * d; }
+<a name="__line1222"></a>    blop::var operator* (int d, const blop::var &amp;v2) { return d * v2.dbl(); }
+<a name="__line1223"></a>    blop::var operator* (const blop::var &amp;v1,const string &amp;s)
+<a name="__line1224"></a>    {
+<a name="__line1225"></a>        blop::var result = v1;
+<a name="__line1226"></a>        result *= s;
+<a name="__line1227"></a>        return result;
+<a name="__line1228"></a>    }
+<a name="__line1229"></a>    blop::var operator* (const string &amp;s,const blop::var &amp;v2)
+<a name="__line1230"></a>    {
+<a name="__line1231"></a>        blop::var result = s;
+<a name="__line1232"></a>        result *= v2;
+<a name="__line1233"></a>        return result;
+<a name="__line1234"></a>    }
+<a name="__line1235"></a>    blop::var operator* (const char *s,const blop::var &amp;v2)
+<a name="__line1236"></a>    {
+<a name="__line1237"></a>        return string(s) + v2;
 <a name="__line1238"></a>    }
-<a name="__line1239"></a>    blop::var operator/ (const char *s,const blop::var &amp;v2)
+<a name="__line1239"></a>    blop::var operator* (const blop::var &amp;v2,const char *s)
 <a name="__line1240"></a>    {
-<a name="__line1241"></a>        return string(s) / v2;
+<a name="__line1241"></a>        return v2 * string(s);
 <a name="__line1242"></a>    }
-<a name="__line1243"></a>    blop::var operator/ (const blop::var &amp;v2,const char *s)
-<a name="__line1244"></a>    {
-<a name="__line1245"></a>        return v2 / string(s);
-<a name="__line1246"></a>    }
-<a name="__line1247"></a>#ifdef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
-<a name="__line1248"></a>}
-<a name="__line1249"></a>#endif
-<a name="__line1250"></a>
-<a name="__line1251"></a>
+<a name="__line1243"></a>    
+<a name="__line1244"></a>    blop::var operator/ (const blop::var &amp;v1,const blop::var &amp;v2) {return v1.dbl() / v2.dbl();}
+<a name="__line1245"></a>    blop::var operator/ (const blop::var &amp;v1,double d)  {return v1.dbl() / d;}
+<a name="__line1246"></a>    blop::var operator/ (double d, const blop::var &amp;v2) {return d / v2.dbl();}
+<a name="__line1247"></a>    blop::var operator/ (const blop::var &amp;v1, int d)    { return v1.dbl() / d; }
+<a name="__line1248"></a>    blop::var operator/ (int d, const blop::var &amp;v2)    { return d / v2.dbl(); }
+<a name="__line1249"></a>    blop::var operator/ (const blop::var &amp;v1,const string &amp;s)
+<a name="__line1250"></a>    {
+<a name="__line1251"></a>        blop::var result = v1;
+<a name="__line1252"></a>        result /= s;
+<a name="__line1253"></a>        return result;
+<a name="__line1254"></a>    }
+<a name="__line1255"></a>    blop::var operator/ (const string &amp;s,const blop::var &amp;v2)
+<a name="__line1256"></a>    {
+<a name="__line1257"></a>        blop::var result = s;
+<a name="__line1258"></a>        result /= v2;
+<a name="__line1259"></a>        return result;
+<a name="__line1260"></a>    }
+<a name="__line1261"></a>    blop::var operator/ (const char *s,const blop::var &amp;v2)
+<a name="__line1262"></a>    {
+<a name="__line1263"></a>        return string(s) / v2;
+<a name="__line1264"></a>    }
+<a name="__line1265"></a>    blop::var operator/ (const blop::var &amp;v2,const char *s)
+<a name="__line1266"></a>    {
+<a name="__line1267"></a>        return v2 / string(s);
+<a name="__line1268"></a>    }
+<a name="__line1269"></a>#ifdef _BLOP_VAR_ARITHMETIC_OPERATORS_IN_NAMESPACE
+<a name="__line1270"></a>}
+<a name="__line1271"></a>#endif
+<a name="__line1272"></a>
+<a name="__line1273"></a>
 
 </pre>
 <hr> 

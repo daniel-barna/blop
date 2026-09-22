@@ -51,7 +51,7 @@
 <a name="__line33"></a>    legendbox &amp;legendbox::mknew(container &amp;parent)
 <a name="__line34"></a>    {
 <a name="__line35"></a>	legendbox *l = new legendbox;
-<a name="__line36"></a>	l-&gt;autodel(true);
+<a name="__line36"></a><span class=comment>//	l-&gt;autodel(true);</span>
 <a name="__line37"></a>	parent.add(l);
 <a name="__line38"></a>	return *l;
 <a name="__line39"></a>    }
@@ -116,7 +116,7 @@
 <a name="__line98"></a>
 <a name="__line99"></a>	    if(entries_[i]-&gt;multi_number &gt;= 1 &amp;&amp; entries_[i]-&gt;gr)
 <a name="__line100"></a>	    {
-<a name="__line101"></a>		graph_drawer *d = entries_[i]-&gt;gr-&gt;drawstyle();
+<a name="__line101"></a>		auto d = entries_[i]-&gt;gr-&gt;drawstyle();
 <a name="__line102"></a>		d-&gt;draw_sample(entries_[i]-&gt;sample_x,
 <a name="__line103"></a>			       entries_[i]-&gt;sample_y,
 <a name="__line104"></a>			       sample_length_,
@@ -183,7 +183,7 @@
 <a name="__line165"></a>        return e-&gt;legend;
 <a name="__line166"></a>    }
 <a name="__line167"></a>
-<a name="__line168"></a>    void legendbox::add(blop::plottable *g)
+<a name="__line168"></a>    void legendbox::add(blop::plottable::ptr g)
 <a name="__line169"></a>    {
 <a name="__line170"></a>	entry *e = new entry;
 <a name="__line171"></a>        e-&gt;line = false;
@@ -192,7 +192,7 @@
 <a name="__line174"></a>	entries_.push_back(e);
 <a name="__line175"></a>    }
 <a name="__line176"></a>
-<a name="__line177"></a>    bool legendbox::remove(blop::plottable *g)
+<a name="__line177"></a>    bool legendbox::remove(blop::plottable::ptr g)
 <a name="__line178"></a>    {
 <a name="__line179"></a>	for(unsigned int i=0; i&lt;entries_.size(); ++i)
 <a name="__line180"></a>	{
@@ -231,8 +231,8 @@
 <a name="__line213"></a>        <span class=comment>// never skip simple text entries (i.e. no graph)</span>
 <a name="__line214"></a>        if(e-&gt;gr == 0) return false;
 <a name="__line215"></a>
-<a name="__line216"></a>        plottable *g = e-&gt;gr;
-<a name="__line217"></a>	graph_drawer *d = g-&gt;drawstyle();
+<a name="__line216"></a>        auto g = e-&gt;gr;
+<a name="__line217"></a>	auto d = g-&gt;drawstyle();
 <a name="__line218"></a>	if(d == 0 || !d-&gt;draws_sample()) return true;
 <a name="__line219"></a>	if(g-&gt;legend().str() == "") return true;
 <a name="__line220"></a>	return false;
@@ -269,8 +269,8 @@
 <a name="__line251"></a>		    {
 <a name="__line252"></a>			if(prev &lt; 0) prev = j;
 <a name="__line253"></a>
-<a name="__line254"></a>			plottable *g1 = entries[i]-&gt;gr;
-<a name="__line255"></a>			plottable *g2 = entries[j]-&gt;gr;
+<a name="__line254"></a>			auto g1 = entries[i]-&gt;gr;
+<a name="__line255"></a>			auto g2 = entries[j]-&gt;gr;
 <a name="__line256"></a>			    
 <a name="__line257"></a>			string p1, p2, l1, l2;
 <a name="__line258"></a>			{
@@ -581,7 +581,7 @@
 <a name="__line563"></a>	return *f;
 <a name="__line564"></a>    }
 <a name="__line565"></a>
-<a name="__line566"></a>    void legendbox::remove_from_all(plottable *p)
+<a name="__line566"></a>    void legendbox::remove_from_all(plottable::ptr p)
 <a name="__line567"></a>    {
 <a name="__line568"></a>	for(unsigned int i=0; i&lt;all().size(); ++i)
 <a name="__line569"></a>	{

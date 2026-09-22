@@ -418,13 +418,15 @@ namespace blop
 
 	inline replot_request  grid(int which_directions)
 	    {
-                if(frame *f = frame::check_current()) f->grid(which_directions);
+//                if(frame *f = frame::check_current()) f->grid(which_directions);
+                if(auto f = frame::check_current()) f->grid(which_directions);
 		else frame::default_grid(which_directions);
 		return replot_request();
 	    }
 	inline replot_request grid(bool g=true)
 	    {
-                if(frame *f = frame::check_current())
+//                if(frame *f = frame::check_current())
+                if(auto f = frame::check_current())
                 {
                     if(g) f->grid(axis::x1|axis::y1);
                     else  f->grid(0);
@@ -438,13 +440,15 @@ namespace blop
 	    }
         inline replot_request grid_at_minor_tics(int which_directions)
             {
-                if(frame *f = frame::check_current()) f->grid_at_minor_tics(which_directions);
+//                if(frame *f = frame::check_current()) f->grid_at_minor_tics(which_directions);
+                if(auto f = frame::check_current()) f->grid_at_minor_tics(which_directions);
                 else frame::default_grid_at_minor_tics(which_directions);
                 return replot_request();
             }
         inline replot_request grid_at_minor_tics(bool g)
             {
-                if(frame *f = frame::check_current())
+//                if(frame *f = frame::check_current())
+                if(auto f = frame::check_current())
                 {
                     if(g) f->grid_at_minor_tics(axis::x1|axis::y1);
                     else  f->grid_at_minor_tics(0);
@@ -478,13 +482,15 @@ namespace blop
 
         inline replot_request gridwidth(const length &l)
         {
-            if(frame *f = frame::check_current()) f->gridwidth(l);
+//            if(frame *f = frame::check_current()) f->gridwidth(l);
+            if(auto f = frame::check_current()) f->gridwidth(l);
             else frame::default_gridwidth(l);
             return replot_request();
         }
         inline replot_request minor_gridwidth(const length &l)
         {
-            if(frame *f = frame::check_current()) f->minor_gridwidth(l);
+//            if(frame *f = frame::check_current()) f->minor_gridwidth(l);
+            if(auto f = frame::check_current()) f->minor_gridwidth(l);
             else frame::default_minor_gridwidth(l);
             return replot_request();
         }
@@ -493,13 +499,15 @@ namespace blop
 
         inline replot_request gridcolor(const color &c)
         {
-            if(frame *f = frame::check_current()) f->gridcolor(c);
+//            if(frame *f = frame::check_current()) f->gridcolor(c);
+            if(auto f = frame::check_current()) f->gridcolor(c);
             else frame::default_gridcolor(c);
             return replot_request();
         }
         inline replot_request minor_gridcolor(const color &c)
         {
-            if(frame *f = frame::check_current()) f->minor_gridcolor(c);
+//            if(frame *f = frame::check_current()) f->minor_gridcolor(c);
+            if(auto f = frame::check_current()) f->minor_gridcolor(c);
             else frame::default_minor_gridcolor(c);
             return replot_request();
         }
@@ -518,13 +526,14 @@ namespace blop
 
         inline replot_request gridstyle(sym::linestyle s)
         {
-            if(frame *f = frame::check_current()) f->gridstyle(s);
+//            if(frame *f = frame::check_current()) f->gridstyle(s);
+            if(auto f = frame::check_current()) f->gridstyle(s);
             else frame::default_gridstyle(s);
             return replot_request();
         }
         inline replot_request minor_gridstyle(sym::linestyle s)
         {
-            if(frame *f = frame::check_current()) f->minor_gridstyle(s);
+            if(auto f = frame::check_current()) f->minor_gridstyle(s);
             else frame::default_minor_gridstyle(s);
             return replot_request();
         }
@@ -546,10 +555,12 @@ namespace blop
 	inline replot_request title(const var &t)
 	    {
                 // If there is a current frame...
-                if(frame *f = frame::check_current())
+//                if(frame *f = frame::check_current())
+                if(smartptr<frame> f = frame::check_current())
                 {
                     // check if it is part of an mframe. If yes, set the title of the mframe
-                    if(mframe *mf = dynamic_cast<mframe*>(f->parent()))
+//                    if(mframe *mf = dynamic_cast<mframe*>(f->parent()))
+                    if(smartptr<mframe> mf = f->parent().dyncast<mframe>())
                     {
                         mf->title(t);
                     }
@@ -591,7 +602,7 @@ namespace blop
         //html <a name='legend_sample_length'>
         inline replot_request legend_sample_length(const length &len)
         {
-            if(legendbox *l = frame::current().legend()) l->sample_length(len);
+            if(auto l = frame::current().legend()) l->sample_length(len);
             return replot_request();
         }
 
@@ -618,9 +629,9 @@ namespace blop
 
         inline replot_request fill_legend(bool f)
         {
-            if(frame *current_frame = frame::check_current())
+            if(auto current_frame = frame::check_current())
             {
-                if(legendbox *l = current_frame->legend()) l->fill(f);
+                if(auto l = current_frame->legend()) l->fill(f);
             }
             else legendbox::default_fill(f);
             return replot_request();
@@ -900,6 +911,8 @@ namespace blop
 #ifndef __MAKECINT__
         auto aline(double d,int ax, var label, const length &x=-0.5*EX, const length &y=0.05, sym::position halign=sym::right, sym::position valign=sym::bottom, double angle=unset);
 #endif
+
+        line &vband(double d1, double d2);
 
         inline line &vline(double d) {return line::fdraw(x1len(d),0.0)(x1len(d),1.0);}
         inline line &v1line(double d) {return line::fdraw(x1len(d),0.0)(x1len(d),1.0);}

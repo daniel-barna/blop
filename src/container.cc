@@ -8,20 +8,25 @@
 namespace blop
 {
 
-    grob *container::find(const var &name)
+//    grob *container::find(const var &name)
+    smartptr<grob> container::find(const var &name)
     {
 	for(unsigned int i=0; i<content_.size(); ++i)
 	{
 	    if(content_[i]->name() == name.str()) return content_[i];
-	    if(container *c = dynamic_cast<container*>(content_[i]))
+//	    if(container *c = dynamic_cast<container*>(content_[i]))
+	    if(container *c = dynamic_cast<container*>(content_[i].get()))
 	    {
-		grob *r = c->find(name);
+//		grob *r = c->find(name);
+		smartptr<grob> r = c->find(name);
 		if(r) return r;
 	    }
 	}
 	return 0;
     }
-    bool container::find(const grob *p)
+
+//    bool container::find(const grob *p)
+    bool container::find(smartptr<grob> p)
     {
         return( std::find(content_.begin(), content_.end(), p) != content_.end() );
     }
@@ -839,8 +844,8 @@ namespace blop
 
     void container::cd()
     {
-	std::stack<container *> s;
-	for(container *p = this; p; p = p->parent())
+	std::stack<smartptr<container>> s;
+	for(smartptr<container> p = this; p; p = p->parent())
 	{
 	    s.push(p);
 	}
@@ -894,16 +899,18 @@ namespace blop
 	term->subpicture_end();
     }
 
-    std::vector<blop::container *> &container::all()
+    std::vector<blop::container *> &container::all_containers()
     {
 	static std::vector<blop::container*> *f= new std::vector<blop::container*>;
 	return *f;
+//	static std::vector<blop::container*> f;
+//        return f;
     }
 
     container::container()
     {
 	name("container");
-	all().push_back(this);
+	all_containers().push_back(this);
 
 	caspect_ = -1;
 	cx_lock_ = sym::left;
@@ -949,29 +956,24 @@ namespace blop
 
     container::~container()
     {
-	vector<container *>::iterator i =
-	    std::find(all().begin(), all().end(), this);
-
-	if(i == all().end())
-	    err("Unregistered container (programming error)");
-
-	all().erase(i);
-
+	vector<container *>::iterator i = std::find(all_containers().begin(), all_containers().end(), this);
+	if(i == all_containers().end()) err("Unregistered container (programming error)");
+	all_containers().erase(i);
 	clear();
     }
 
-    void container::remove_from_all(grob *g)
+    void container::remove_from_all(grob::ptr g)
     {
-	for(unsigned int i=0; i<all().size(); ++i)
+	for(unsigned int i=0; i<all_containers().size(); ++i)
 	{
-	    all()[i] -> remove(g);
+	    all_containers()[i] -> remove(g);
 	}
     }
 
-    bool container::remove(grob *g)
+    bool container::remove(grob::ptr g)
     {
-	vector<grob *>::iterator i =
-	    std::find(content_.begin(), content_.end(), g);
+//	vector<grob *>::iterator i = std::find(content_.begin(), content_.end(), g);
+	auto i = std::find(content_.begin(), content_.end(), g);
 	if(i == content_.end()) return false;
 	g->parent(0);
 	content_.erase(i);
@@ -981,6 +983,10 @@ namespace blop
 
     void container::clear()
     {
+        
+        content_.clear();
+
+        /*
 	// first copy the pointers to a temporary vector
 	vector<grob*> content = content_;
 
@@ -994,11 +1000,13 @@ namespace blop
 	{
 	    if(content[i]->autodel()) delete content[i];
 	}
+        */
 
 	modified(true);
     }
 
-    void container::add(grob *g)
+//    void container::add(grob *g)
+    void container::add(smartptr<grob> g)
     {
 	if(g == 0) return;
 	if(g->parent(this)) content_.push_back(g);

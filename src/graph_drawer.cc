@@ -13,6 +13,7 @@
 #include "mframe.h"
 #include "global.h"
 #include "blop_gts.h"
+#include "logger.h"
 #include <iostream>
 #include <cstdio>
 #include <map>
@@ -929,27 +930,25 @@ namespace blop
         return cold_warm(val,mini,maxi);
     }
 
-    function graph_drawer::get_x(const plottable *g) const
+    function graph_drawer::get_x(smartptr<plottable> g) const
     {
 	function result = g->x_hint();
 	if(!result.initialized()) result = _1;
 	return result;
     }
-    function graph_drawer::get_y(const plottable *g) const
+    function graph_drawer::get_y(smartptr<plottable> g) const
     {
 	function result = g->y_hint();
 	if(!result.initialized()) result = _2;
 	return result;
     }
 
-    void set_ranges_default(plottable *g,axis *xaxis,axis *yaxis,int i1,int i2)
+    void set_ranges_default(plottable::ptr g,smartptr<axis> xaxis, smartptr<axis> yaxis,int i1,int i2)
 	TRY
     {
-
 	if(!g) err("Plottable to draw not set");
 	if(!xaxis) err("Xaxis not set");
 	if(!yaxis) err("Yaxis not set");
-
 
 	if(g->empty())
 	{                                                                       
@@ -958,10 +957,22 @@ namespace blop
 	    return;                                                             
 	}
 
-	if(g->xmin()!=unset) { xaxis->extend_range(g->xmin()); }
-	if(g->xmax()!=unset) { xaxis->extend_range(g->xmax()); }
-        if(g->ymin()!=unset) { yaxis->extend_range(g->ymin()); }
-        if(g->ymax()!=unset) { yaxis->extend_range(g->ymax()); }
+	if(g->xmin()!=unset) 
+        { 
+            if(!xaxis->logscale() || g->xmin()>0) xaxis->extend_range(g->xmin()); 
+        }
+	if(g->xmax()!=unset) 
+        { 
+            if(!xaxis->logscale() || g->xmax()>0) xaxis->extend_range(g->xmax()); 
+        }
+        if(g->ymin()!=unset) 
+        { 
+            if(!yaxis->logscale() || g->ymin()>0) yaxis->extend_range(g->ymin()); 
+        }
+        if(g->ymax()!=unset) 
+        { 
+            if(!yaxis->logscale() || g->ymax()>0) yaxis->extend_range(g->ymax()); 
+        }
 
 	// if all ranges are defined, then simply return at this point
 	if(g->xmin()!=unset && g->xmax()!=unset &&
@@ -1017,12 +1028,12 @@ namespace blop
 
     // ------------------ graphd_dots ---------------------------
 
-    void dots::set_ranges(plottable *g, axis *x, axis *y)
+    void dots::set_ranges(plottable::ptr g, smartptr<axis> x, smartptr<axis> y)
     {
 	set_ranges_default(g,x,y,1,2);
     }
 
-    void dots::draw(plottable *g,frame *f,terminal *term)
+    void dots::draw(plottable::ptr g,smartptr<frame> f,terminal *term)
     {
 	if(!g) err("Plottable to draw not set");
 	if(g->empty()) return;
@@ -1035,9 +1046,9 @@ namespace blop
 	term->set_color(g->pointcolor());
 	term->reset_transformation();
 
-	axis *xaxis =
+	smartptr<axis> xaxis =
 	    (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis =
+	smartptr<axis> yaxis =
 	    (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	for(plottable::size_type i=0; i<g->size(); ++i)
@@ -1066,7 +1077,7 @@ namespace blop
     void dots::draw_sample(const length &x,
 			   const length &y,
 			   const length &size,
-			   const plottable *style,
+			   smartptr<plottable> style,
 			   terminal *t)
     {
 	t->set_color(style->pointcolor());
@@ -1080,28 +1091,28 @@ namespace blop
 	}
     }
     
-    graph_drawer *dots::clone() const
+    smartptr<graph_drawer> dots::clone() const
     {
-	return new dots;
+	return dots::create();
     }
 
     // ---------------  lines -------------------------------
 
-    void lines::prepare_for_draw(plottable *g, frame *, int count)
+    void lines::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1) g->linewidth().register_me();
     }
 
-    void lines::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void lines::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	set_ranges_default(g,xaxis,yaxis,1,2);
     }
     CATCH("lines::set_ranges(...)")
 
-    graph_drawer *lines::clone() const
+    smartptr<graph_drawer> lines::clone() const
     {
-	return new lines(*this);
+	return lines::create(*this);
     }
 
     void draw_lines_raw(const vector<double> &x, const vector<double> &y,
@@ -1240,7 +1251,7 @@ namespace blop
         if(global::debug) cerr<<"[blop] [draw_lines_raw] starts"<<endl;
     }
 
-    void lines::draw(plottable *g,frame *f,terminal *term)
+    void lines::draw(plottable::ptr g,smartptr<frame> f,terminal *term)
 	TRY
     {
         if(global::debug) cerr<<"[blop] [lines] draw(...) starts"<<endl;
@@ -1252,8 +1263,8 @@ namespace blop
 	if(!getx.initialized()) getx = _1;
 	if(!gety.initialized()) gety = _2;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin() != unset && g->xmin() > xmin) xmin = g->xmin();
@@ -1335,7 +1346,7 @@ namespace blop
     void lines::draw_sample(const length &x,
 			    const length &y,
 			    const length &size,
-			    const plottable *s,
+			    smartptr<plottable> s,
 			    terminal *t)
     {
 	t->set_linewidth(s->linewidth().termspecific_id());
@@ -1356,14 +1367,14 @@ namespace blop
 
     // --------  splines ----------------
 
-    graph_drawer *splines::clone() const
+    smartptr<graph_drawer> splines::clone() const
     {
-	return new splines(*this);
+	return splines::create(*this);
     }
 
     void splines::draw_sample(const length &x,const length &y,
 			      const length &size,
-			      const plottable *g,terminal *t)
+			      smartptr<plottable> g,terminal *t)
     {
 	if(g->fill())
 	{
@@ -1396,7 +1407,7 @@ namespace blop
     }
 
 
-    void splines::draw(plottable *g,frame *f,terminal *term)
+    void splines::draw(plottable::ptr g,smartptr<frame> f,terminal *term)
     {
 	if(!g) err("Plottable to draw not set");
 	if(g->size() < 2)
@@ -1425,8 +1436,8 @@ namespace blop
 	}
 	term->reset_transformation();
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin() != unset && g->xmin() > xmin) xmin = g->xmin();
@@ -1516,23 +1527,23 @@ namespace blop
 
     // ------   graphd_symbol -----
 
-    graph_drawer *points::clone() const
+    smartptr<graph_drawer> points::clone() const
     {
-	return new points(*this);
+	return points::create(*this);
     }
 
-    void points::prepare_for_draw(plottable *g, frame *, int count)
+    void points::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1)
 	{
 	    point_drawer_ = g->pointtype();
-	    if(point_drawer_ == 0) point_drawer_ = new square;
+	    if(point_drawer_ == 0) point_drawer_ = square::create();
 	    point_drawer_->prepare_for_draw(g->pointsize());
 	    g->linewidth().register_me();
 	}
     }
 
-    void points::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void points::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	set_ranges_default(g,xaxis,yaxis,1,2);
@@ -1540,7 +1551,7 @@ namespace blop
     CATCH("points::set_ranges(...)")
 
 
-    void points::draw(plottable *g,frame *f,terminal *term)
+    void points::draw(plottable::ptr g,smartptr<frame> f,terminal *term)
     TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -1551,8 +1562,8 @@ namespace blop
 	if(!getx.initialized()) getx = _1;
 	if(!gety.initialized()) gety = _2;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -1595,7 +1606,7 @@ namespace blop
     void points::draw_sample(const length &x,
 			     const length &y,
 			     const length &size,
-			     const plottable *s,terminal *t)
+			     smartptr<plottable> s,terminal *t)
     {
 	t->set_color(s->pointcolor());
 	t->set_linewidth(s->linewidth().termspecific_id());
@@ -1608,23 +1619,23 @@ namespace blop
 
     // ------   linespoints -----
 
-    graph_drawer *linespoints::clone() const
+    smartptr<graph_drawer> linespoints::clone() const
     {
-	return new linespoints(*this);
+	return linespoints::create(*this);
     }
 
-    void linespoints::prepare_for_draw(plottable *g, frame *, int count)
+    void linespoints::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1)
 	{
 	    point_drawer_ = g->pointtype();
-	    if(point_drawer_ == 0) point_drawer_ = new square;
+	    if(point_drawer_ == 0) point_drawer_ = square::create();
 	    point_drawer_->prepare_for_draw(g->pointsize());
 	    g->linewidth().register_me();
 	}
     }
 
-    void linespoints::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void linespoints::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	set_ranges_default(g,xaxis,yaxis,1,2);
@@ -1632,7 +1643,7 @@ namespace blop
     CATCH("linespoints::set_ranges(...)")
 
 
-    void linespoints::draw(plottable *g,frame *f,terminal *term)
+    void linespoints::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
     TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -1643,8 +1654,8 @@ namespace blop
 	if(!getx.initialized()) getx = _1;
 	if(!gety.initialized()) gety = _2;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin() != unset && g->xmin() > xmin) xmin = g->xmin();
@@ -1727,7 +1738,7 @@ namespace blop
     void linespoints::draw_sample(const length &x,
 				  const length &y,
 				  const length &size,
-				  const plottable *s,terminal *t)
+				  smartptr<plottable> s,terminal *t)
     {
 	t->set_color(s->pointcolor());
 	t->set_linewidth(s->linewidth().termspecific_id());
@@ -1747,12 +1758,12 @@ namespace blop
 
     // ------------------------------------------------------
 
-    graph_drawer *cpoints::clone() const
+    smartptr<graph_drawer> cpoints::clone() const
     {
-	return new cpoints(*this);
+	return cpoints::create(*this);
     }
 
-    void cpoints::draw(plottable *g,frame *f,terminal *term)
+    void cpoints::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -1767,8 +1778,8 @@ namespace blop
 	if(!getx.initialized()) getx = _1;
 	if(!gety.initialized()) gety = _2;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -1819,12 +1830,12 @@ namespace blop
 
     // ------------------------------------------------------
 
-    graph_drawer *spoints::clone() const
+    smartptr<graph_drawer> spoints::clone() const
     {
-	return new spoints(*this);
+	return spoints::create(*this);
     }
 
-    void spoints::draw(plottable *g,frame *f,terminal *term)
+    void spoints::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -1837,8 +1848,8 @@ namespace blop
 	if(!gety.initialized()) gety = _2;
 	if(!getz.initialized()) getz = _3;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -1889,12 +1900,12 @@ namespace blop
 
     // ---------- histo -------------------------------
 
-    graph_drawer *histo::clone() const
+    smartptr<graph_drawer> histo::clone() const
     {
-	return new histo(*this);
+	return histo::create(*this);
     }
 
-    void histo::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void histo::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -2057,10 +2068,10 @@ namespace blop
 	}
 
     }
-    CATCH("histo::set_ranges(plottable *,axis *,axis *)")
+    CATCH("histo::set_ranges(plottable::ptr, smartptr<axis>, smartptr<axis>)")
 
     
-    void histo::draw(plottable *g,frame *f,terminal *term)
+    void histo::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
     TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -2090,8 +2101,8 @@ namespace blop
 	term->set_linewidth(g->linewidth().termspecific_id());
 	term->reset_transformation();
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	
 	vector<double>  xxx,yyy;
 
@@ -2283,7 +2294,7 @@ namespace blop
 	draw_lines_raw(xxx, yyy, xmin_a, xmax_a, ymin_a, ymax_a, term, g->fill());
 
     }
-    CATCH("histo::draw(plottable *,frame *,terminal *)")
+    CATCH("histo::draw(plottable::ptr , smartptr<frame>,terminal *)")
 
 
     // ---------------  bars -----------------------
@@ -2303,7 +2314,7 @@ namespace blop
 	return *this;
     }
 
-    void bars::set_ranges(plottable *g,axis *x,axis *y)
+    void bars::set_ranges(plottable::ptr g, smartptr<axis> x, smartptr<axis> y)
     {
 	set_ranges_default(g,x,y,1,2);
 	if(!y->logscale()) y->extend_range(0);
@@ -2312,7 +2323,7 @@ namespace blop
     void bars::draw_sample(const length &x,
 			   const length &y,
 			   const length &size,
-			   const plottable *style,
+			   smartptr<plottable> style,
 			   terminal *t)
     {
 	length x1 = -0.5*!size;
@@ -2338,7 +2349,7 @@ namespace blop
 	t->reset_transformation();
     }
 
-    void bars::draw(plottable *g,frame *f,terminal *term)
+    void bars::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
     {
 	if(!g) err("Plottable to draw not set");
 	if(g->empty()) return;
@@ -2348,8 +2359,8 @@ namespace blop
 	if(!getx.initialized()) getx = _1;
 	if(!gety.initialized()) gety = _2;
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -2392,12 +2403,12 @@ namespace blop
 	}
     }
 
-    graph_drawer *bars::clone() const
+    smartptr<graph_drawer> bars::clone() const
     {
-	return new bars(*this);
+	return bars::create(*this);
     }
 
-    void bars::prepare_for_draw(plottable *, frame *, int count)
+    void bars::prepare_for_draw(plottable::ptr , smartptr<frame>, int count)
     {
 	if(count==1)
 	{
@@ -2446,7 +2457,7 @@ namespace blop
 	return *this;
     }
 
-    void labels::prepare_for_draw(plottable *g, frame *, int count)
+    void labels::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1)
 	{
@@ -2455,19 +2466,19 @@ namespace blop
 	}
     }
 
-    void labels::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void labels::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	set_ranges_default(g,xaxis,yaxis,1,2);
     }
     CATCH("labels::set_ranges(...)")
 
-    graph_drawer *labels::clone() const
+    smartptr<graph_drawer> labels::clone() const
     {
-	return new labels(*this);
+	return labels::create(*this);
     }
 
-    void labels::draw(plottable *g,frame *f,terminal *term)
+    void labels::draw(plottable::ptr g, smartptr<frame> f,terminal *term)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -2482,8 +2493,8 @@ namespace blop
 
 	term->set_color(g->linecolor());
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 
 	double xmin = xaxis->min();
@@ -2545,7 +2556,7 @@ namespace blop
     void labels::draw_sample(const length &x,
 			     const length &y,
 			     const length &size,
-			     const plottable *s,
+			     smartptr<plottable> s,
 			     terminal *t)
     {
     }
@@ -2571,7 +2582,7 @@ namespace blop
 	return n;
     }
 
-    void errorbars::get_functions(const plottable *g,
+    void errorbars::get_functions(smartptr<plottable> g,
 				  function &getx, function &getx1, function &getx2,
 				  function &gety, function &gety1, function &gety2)
     {
@@ -2593,7 +2604,7 @@ namespace blop
 		// if plottable did not specify a dx_hint, or if it's an fgraph, then
 		// use the 3rd column. 
 		// This is a dirty code. Think it over!!!!
-		if(!getdx.initialized() || dynamic_cast<const fgraph *>(g))
+		if(!getdx.initialized() || g.dyncast<fgraph>())
 		{
 		    getx1 = getx - _3;
 		    getx2 = getx + _3;
@@ -2651,7 +2662,7 @@ namespace blop
 	if(!gety2.initialized()) gety2 = gety;
     }
 
-    void errorbars::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void errorbars::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
     {
 	if(!g) return;
 
@@ -2715,10 +2726,10 @@ namespace blop
 	if(g->ymax()==unset && ymax!=unset) yaxis->extend_range(ymax);
     }
 
-    void errorbars::draw(plottable *g,frame *f,terminal *t)
+    void errorbars::draw(plottable::ptr g, smartptr<frame> f,terminal *t)
     {
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin() != unset) xmin = ::max(xmin, g->xmin());
@@ -2885,7 +2896,7 @@ namespace blop
     }
 
     void errorbars::draw_sample(const length &x,const length &y,const length &size,
-				const plottable *style, terminal *t)
+				smartptr<plottable> style, terminal *t)
     {
 	t->set_color(style->linecolor());
 	t->set_linewidth(style->linewidth().termspecific_id());
@@ -2923,9 +2934,9 @@ namespace blop
 
     
 
-    graph_drawer *errorbars::clone() const
+    smartptr<graph_drawer> errorbars::clone() const
     {
-	return new errorbars(*this);
+	return errorbars::create(*this);
     }
 
     errorbars::errorbars(bool x,bool sx,bool y,bool sy)
@@ -2950,7 +2961,7 @@ namespace blop
         endmarker_size_ = rhs.endmarker_size_;
     }
 
-    void errorbars::prepare_for_draw(plottable *g, frame *, int count)
+    void errorbars::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1)
 	{
@@ -2983,7 +2994,7 @@ namespace blop
 	return *this;
     }
 
-    void ticlabels::set_ranges(plottable *g, axis *xaxis, axis *yaxis)
+    void ticlabels::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
     {
 	if(drawer_ == 0)
 	{
@@ -3109,23 +3120,23 @@ namespace blop
 	}
     }
 
-    void ticlabels::draw(plottable *g, frame *f, terminal *t)
+    void ticlabels::draw(plottable::ptr g, smartptr<frame> f, terminal *t)
     {
 	drawer_->draw(g,f,t);
     }
 
     void ticlabels::draw_sample(const length &x, const length &y,
-				const length &size, const plottable *style, terminal *t)
+				const length &size, smartptr<plottable> style, terminal *t)
     {
 	drawer_->draw_sample(x,y,size,style,t);
     }
 
-    graph_drawer *ticlabels::clone() const
+    smartptr<graph_drawer> ticlabels::clone() const
     {
-	return new ticlabels(*this);
+	return ticlabels::create(*this);
     }
 
-    void ticlabels::prepare_for_draw(plottable *g, frame *f, int count)
+    void ticlabels::prepare_for_draw(plottable::ptr g, smartptr<frame> f, int count)
     {
 	if(count==1) drawer_->prepare_for_draw(g,f,count);
     }
@@ -3173,8 +3184,8 @@ namespace blop
 
     graphd_colorscale &graphd_colorscale::color_range(const color &startcolor, const color &endcolor)
     {
-        if(color_mapping_) delete color_mapping_;
-        color_mapping_ = new color_mapping_interpolated({startcolor,endcolor});
+//        if(color_mapping_) delete color_mapping_;
+        color_mapping_ = color_mapping_interpolated::create(std::vector<blop::color>({startcolor,endcolor}));
 	return *this; 
     }
 
@@ -3185,8 +3196,8 @@ namespace blop
 	if(colorlegend_)
 	{
 	    colorlegend_->remove_owner(this);
-	    if(colorlegend_->owners_.empty() && colorlegend_->autodel())
-		delete colorlegend_;
+//	    if(colorlegend_->owners_.empty() && colorlegend_->autodel())
+//		delete colorlegend_;
 	    colorlegend_ = 0;
 	}
 
@@ -3195,7 +3206,7 @@ namespace blop
 	if(colorlegend_) colorlegend_->owners_.push_back(this);
     }
 
-    void graphd_colorscale::setup_when_added(plottable *p, frame *f)
+    void graphd_colorscale::setup_when_added(smartptr<plottable> p, smartptr<frame> f)
     {
 	// If the colorlegend has already been specified, we have
 	// nothing to do here...
@@ -3208,8 +3219,8 @@ namespace blop
 	    if(colorlegend_)
 	    {
 		colorlegend_->remove_owner(this);
-		if(colorlegend_->owners_.empty() && colorlegend_->autodel())
-		    delete colorlegend_;
+//		if(colorlegend_->owners_.empty() && colorlegend_->autodel())
+//		    delete colorlegend_;
 		colorlegend_ = 0;
 	    }
 	    return;
@@ -3220,12 +3231,12 @@ namespace blop
 	if(legendname_ != "")
 	{
 	    // Search for the topmost container, i.e. the canvas
-	    container *topcanvas = f;
+            container::ptr topcanvas = f;
 	    for(; topcanvas->parent(); topcanvas=topcanvas->parent());
 
 	    // If a colorlegend with this name is already present in the canvas,
 	    // use that one, and return.
-	    if(color_legend *l = dynamic_cast<color_legend*>(topcanvas->find("colorlegend_" + legendname_)))
+	    if(color_legend *l = dynamic_cast<color_legend*>(topcanvas->find("colorlegend_" + legendname_).get()))
 	    {
 		colorlegend_ = l;
 		colorlegend_->owners_.push_back(this);
@@ -3236,11 +3247,12 @@ namespace blop
 	// loop over all the graphs in the given frame
 	for(int i=0; i<f->ngraphs(); ++i)
 	{
-	    plottable *g = f->get_graph(i);
+	    auto g = f->get_graph(i);
 
 	    // Check if the drawstyle of this graph is a graphd_colorscale type
 	    // if so, share the color_legend with that graph
-	    if(graphd_colorscale *c = dynamic_cast<graphd_colorscale*>(g->drawstyle()))
+//	    if(graphd_colorscale *c = dynamic_cast<graphd_colorscale*>(g->drawstyle()))
+            if(auto c = g->drawstyle().dyncast<graphd_colorscale>())
 	    {
 		if(c->colorlegend_)
 		{
@@ -3257,7 +3269,8 @@ namespace blop
 	{
             // If we are within an mframe, check all graphs in the same row of the mframe
             // whether they have a colorlegend. If they do, just share it.
-            if(mframe *mf = dynamic_cast<mframe*>(f->parent()))
+//            if(mframe *mf = dynamic_cast<mframe*>(f->parent()))
+            if(smartptr<mframe> mf = f->parent().dyncast<mframe>())
             {
                 int row = mf->row(f);
                 if(row==0) warning::print("This should never happen","graphd_colorscale::setup_when_added(...)");
@@ -3267,8 +3280,9 @@ namespace blop
                     {
                         for(int i=0; i<(*mf)(col,row)->ngraphs(); ++i)
                         {
-                            plottable *g = (*mf)(col,row)->get_graph(i);
-                            if(graphd_colorscale *c = dynamic_cast<graphd_colorscale*>(g->drawstyle()))
+                            auto g = (*mf)(col,row)->get_graph(i);
+//                            if(graphd_colorscale *c = dynamic_cast<graphd_colorscale*>(g->drawstyle()))
+                            if(auto c = g->drawstyle().dyncast<graphd_colorscale>())
                             {
                                 if(c->colorlegend_)
                                 {
@@ -3284,8 +3298,8 @@ namespace blop
         }
         if(!colorlegend_)
         {
-            colorlegend_ = new color_legend(this);
-            colorlegend_->autodel(true);
+            colorlegend_ = color_legend::create(this);
+//            colorlegend_->autodel(true);
             f->rmarginobject(colorlegend_);
             
             // if the legendname (for sharing) is specified, but it did not exist before,
@@ -3302,7 +3316,7 @@ namespace blop
 	    colorlegend_->remove_owner(this);
 	    
 	    // If there are no more owners of the colorlegend, delete it.
-	    if(colorlegend_->owners_.empty()) delete colorlegend_;
+//	    if(colorlegend_->owners_.empty()) delete colorlegend_;
 	}
     }
 
@@ -3312,7 +3326,7 @@ namespace blop
 	colorlegend_ = 0;
 	color_min_ = color_max_ = unset;
 	color_min_fixed_ = color_max_fixed_ = false;
-        color_mapping_ = new color_mapping_function();
+        color_mapping_ = color_mapping_function::create();
 	color_logscale_ = false;
 	color_samples_ = 80;
 	underflow_color_ = transparent;
@@ -3416,7 +3430,7 @@ namespace blop
     void cbox_base::draw_sample(const length &x,
 				const length &y,
 				const length &size,
-				const plottable *s,
+				smartptr<plottable> s,
 				terminal *t)
     {
 	vector<terminal::coord> c;
@@ -3464,7 +3478,7 @@ namespace blop
   }
 
 
-  void cboxes::prepare_for_draw(plottable *g, frame *f, int count)
+  void cboxes::prepare_for_draw(plottable::ptr g, frame *f, int count)
   {
   if(global::debug>0) cout<<"[blop] [cboxes] prepare_for_draw starts... pass="<<count<<endl;
   if(count==1)
@@ -3472,9 +3486,9 @@ namespace blop
   if(frame_foreground_) f->foreground(true);
   if(grid_foreground_) f->grid_foreground(true);
 	    
-  axis *xaxis =
+  smartptr<axis> xaxis =
   (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-  axis *yaxis =
+  smartptr<axis> yaxis =
   (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	    
   calc(g,xaxis,yaxis);
@@ -3542,7 +3556,7 @@ namespace blop
   skip_outrange_ = true;
   }
 
-  void cboxes::set_ranges(plottable *g,axis *x,axis *y)
+  void cboxes::set_ranges(plottable::ptr g,smartptr<axis> x,smartptr<axis> y)
   {
   // prepare_for_draw is called before this function, so everything
   // is set up already
@@ -3650,7 +3664,7 @@ namespace blop
   }
   }
 
-  void cboxes::calc(plottable *g,axis *xaxis,axis *yaxis)
+  void cboxes::calc(plottable *g,smartptr<axis> xaxis, smartptr<axis> yaxis)
   TRY
   {
 
@@ -3766,15 +3780,15 @@ namespace blop
   }
   CATCH("cboxes::calc(...)")
 
-  void cboxes::draw(plottable *g,frame *f,terminal *t)
+  void cboxes::draw(plottable::ptr g,frame *f,terminal *t)
   TRY
   {
   if(!g || g->empty())  return;
 	
   t->reset_transformation();
 	
-  axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-  axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+  smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+  smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	
   double xmin = xaxis->min();
   if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -3859,9 +3873,9 @@ namespace blop
   }
   CATCH("cboxes::draw(...)")
 
-  graph_drawer *cboxes::clone() const
+  smartptr<graph_drawer> cboxes::clone() const
   {
-  cboxes *r =  new cboxes(*this);
+  cboxes *r =  cboxes::create(*this);
   return r;
   }
 
@@ -4010,7 +4024,7 @@ namespace blop
 	return *this;
     }
 
-    void csboxes::prepare_for_draw(plottable *g, frame *f, int count)
+    void csboxes::prepare_for_draw(plottable::ptr g, smartptr<frame> f, int count)
     {
 	if(global::debug>0) cout<<"[blop] [csboxes] prepare_for_draw("<<g<<","<<f<<","<<count<<")"<<endl;
 	if(count==1)
@@ -4020,9 +4034,9 @@ namespace blop
 	    if(frame_foreground_) f->foreground(true);
 	    if(grid_foreground_) f->grid_foreground(true);
 	    
-	    axis *xaxis =
+	    smartptr<axis> xaxis =
 		(g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	    axis *yaxis =
+	    smartptr<axis> yaxis =
 		(g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	    
 	    calc(g,xaxis,yaxis);
@@ -4149,7 +4163,7 @@ namespace blop
     }
 
 
-    void csboxes::get_functions(plottable *g,
+    void csboxes::get_functions(smartptr<plottable> g,
 				function &getx, 
 				function &gety,
 				function &getboxsizex,
@@ -4172,7 +4186,7 @@ namespace blop
 	if(getboxsizey.nargs() > g->columns()) getboxsizey = getboxsizex;
     }
 
-    void csboxes::set_ranges(plottable *g,axis *x,axis *y)
+    void csboxes::set_ranges(plottable::ptr g, smartptr<axis> x, smartptr<axis> y)
     {
 	// prepare_for_draw is already called, so everything is set up now.
 	x->autoextend_min_soft(false);
@@ -4202,7 +4216,7 @@ namespace blop
 	    (normalize_ysize_ ? (a*dy+b)*cell_dy_ : dy )/2;
     }
 
-    void csboxes::calc(plottable *g,axis *xaxis,axis *yaxis)
+    void csboxes::calc(smartptr<plottable> g,smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -4384,7 +4398,7 @@ namespace blop
     CATCH("csboxes::calc(...)")
 
 
-    void csboxes::draw(plottable *g,frame *f,terminal *t)
+    void csboxes::draw(plottable::ptr g, smartptr<frame> f,terminal *t)
     TRY
     {
 
@@ -4397,8 +4411,8 @@ namespace blop
 
 	t->reset_transformation();
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();                                         
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -4525,9 +4539,9 @@ namespace blop
     }
     CATCH("csboxes::draw(...)")
 
-    graph_drawer *csboxes::clone() const
+    smartptr<graph_drawer> csboxes::clone() const
     {
-	return new csboxes(*this);
+	return csboxes::create(*this);
     }
 
     // ----------------------- cboxes  ------------------------------------
@@ -4595,7 +4609,7 @@ namespace blop
     void sboxes::draw_sample(const length &x,
 			     const length &y,
 			     const length &size,
-			     const plottable *s,
+			     smartptr<plottable> s,
 			     terminal *t)
     {
 	vector<terminal::coord> cc;
@@ -4629,12 +4643,12 @@ namespace blop
 /*
 // ----------------------  sboxes  ------------------------------------
 
-void sboxes::prepare_for_draw(plottable *g, frame *f, int count)
+void sboxes::prepare_for_draw(plottable::ptr g, frame *f, int count)
 {
 if(count==1)
 {
-axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 g->linewidth().register_me();
 calc(g,xaxis,yaxis);
 }
@@ -4663,7 +4677,7 @@ else max_fixed_ = true;
 }
 
 
-void sboxes::set_ranges(plottable *g,axis *x,axis *y)
+void sboxes::set_ranges(plottable::ptr g,smartptr<axis> x,smartptr<axis> y)
 {
 // As prepare_for_draw is already called, everything is set up.
 x->autoextend_min_soft(false);
@@ -4673,7 +4687,7 @@ y->autoextend_max_soft(false);
 }
 
 
-void sboxes::calc(plottable *g,axis *xaxis,axis *yaxis)
+void sboxes::calc(plottable *g,smartptr<axis> xaxis, smartptr<axis> yaxis)
 TRY
 {
 if(!g) err("Plottable to draw not set");
@@ -4851,7 +4865,7 @@ if(max_fixed_==false && vmax!=unset) max_=vmax;
 }
 CATCH("sboxes::calc(...)")
 
-void sboxes::draw(plottable *g,frame *f,terminal *t)
+void sboxes::draw(plottable::ptr g,frame *f,terminal *t)
 TRY
 {
 if(!g || g->empty())  return;
@@ -4874,8 +4888,8 @@ t->set_color(g->linecolor());
 
 t->reset_transformation();
 
-axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 double xmin = xaxis->min();
 if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -4944,9 +4958,9 @@ else t->draw_lines(cc);
 }
 CATCH("sboxes::draw(...)")
 
-graph_drawer *sboxes::clone() const
+smartptr<graph_drawer> sboxes::clone() const
 {
-return new sboxes(*this);
+return sboxes::create(*this);
 }
 
 void sboxes::set_range_(double mini, double maxi)
@@ -4965,13 +4979,13 @@ else max_fixed_ = true;
 
 // -----------------      band   ----------------------------------
 
-function bands::get_x1_(plottable *g) const
-{
-    function result = g->x1_hint();
-    if(!result.initialized()) result = _1;
-    return result;
-}
-    function bands::get_x2_(plottable *g) const
+    function bands::get_x1_(smartptr<plottable> g) const
+    {
+        function result = g->x1_hint();
+        if(!result.initialized()) result = _1;
+        return result;
+    }
+    function bands::get_x2_(smartptr<plottable> g) const
     {
 	function result = g->x2_hint();
 	if(!result.initialized())
@@ -4981,7 +4995,7 @@ function bands::get_x1_(plottable *g) const
 	}
 	return result;
     }
-    function bands::get_y1_(plottable *g) const
+    function bands::get_y1_(smartptr<plottable> g) const
     {
 	function result = g->y1_hint();
 	if(!result.initialized())
@@ -4991,7 +5005,7 @@ function bands::get_x1_(plottable *g) const
 	}
 	return result;
     }
-    function bands::get_y2_(plottable *g) const
+    function bands::get_y2_(smartptr<plottable> g) const
     {
 	function result = g->y2_hint();
 	if(!result.initialized())
@@ -5011,7 +5025,7 @@ function bands::get_x1_(plottable *g) const
     }
 
 
-    void bands::set_ranges(plottable *g,axis *xaxis,axis *yaxis)
+    void bands::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
 	TRY
     {
 	if(!g) err("Plottable to draw not set");
@@ -5108,13 +5122,13 @@ function bands::get_x1_(plottable *g) const
     }
     CATCH("bands::set_ranges()")
 
-    void bands::draw(plottable *g,frame *f,terminal *t)
+    void bands::draw(plottable::ptr g, smartptr<frame> f,terminal *t)
     TRY
     {
 	if(!g) err("Plottable to draw not set");
 	if(g->empty())  return;
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	if(xaxis == 0 || yaxis == 0) return;
 
 	double xmin = xaxis->min();
@@ -5183,11 +5197,11 @@ function bands::get_x1_(plottable *g) const
 	t->fill_polygon(cc);
 	if(termclip) t->noclip();
     }
-    CATCH("bands::draw(plottable *,frame *,terminal *)")
+    CATCH("bands::draw(plottable::ptr ,smartptr<frame>,terminal *)")
 
     void bands::draw_sample(const length &x,const length &y,
 			    const length &size,
-			    const plottable *g,terminal *t)
+			    smartptr<plottable> g,terminal *t)
     {
 	length x1 = -0.5*!size;
 	length x2 =  0.5*!size;
@@ -5213,9 +5227,9 @@ function bands::get_x1_(plottable *g) const
 
     }
 
-    graph_drawer *bands::clone() const
+    smartptr<graph_drawer> bands::clone() const
     {
-	return new bands(*this);
+	return bands::create(*this);
     }
 
 
@@ -5245,7 +5259,7 @@ function bands::get_x1_(plottable *g) const
     {
     }
 
-    void mosaic::set_ranges(plottable *g, axis *x, axis *y)
+    void mosaic::set_ranges(plottable::ptr g, smartptr<axis> x, smartptr<axis> y)
     {
 	vector<var> params(2), xy(2);
 	for(unsigned int i=0; i<g->size(); ++i)
@@ -5259,7 +5273,7 @@ function bands::get_x1_(plottable *g) const
 	}
     }
 
-    void mosaic::prepare_for_draw(plottable *g, frame *f, int count)
+    void mosaic::prepare_for_draw(plottable::ptr g, smartptr<frame> f, int count)
     {
 	if(count==1)
 	{
@@ -5299,12 +5313,12 @@ function bands::get_x1_(plottable *g) const
 	}
     }
 
-    void mosaic::draw(plottable *g, frame *f, terminal *term)
+    void mosaic::draw(plottable::ptr g, smartptr<frame> f, terminal *term)
     {
 	if(!g || g->empty()) return;
 	term->reset_transformation();
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	std::map<double,bool> p1map, p2map;
 	double zmin = unset, zmax = unset;
@@ -5545,7 +5559,7 @@ function bands::get_x1_(plottable *g) const
 	return *this;
     }
 
-    void isolines::set_ranges(plottable *g, axis *x, axis *y)
+    void isolines::set_ranges(plottable::ptr g, smartptr<axis> x, smartptr<axis> y)
     {
 	set_ranges_default(g,x,y,1,2);
     }
@@ -5553,8 +5567,8 @@ function bands::get_x1_(plottable *g) const
     bool isolines::skip_(const var &xorig_var,
 			 const var &yorig_var,
 			 const var &zorig_var,
-			 axis *xaxis,
-			 axis *yaxis,
+			 smartptr<axis> xaxis,
+			 smartptr<axis> yaxis,
 			 double xmin, double xmax,
 			 double ymin, double ymax )
     {
@@ -5580,13 +5594,13 @@ function bands::get_x1_(plottable *g) const
     }
 
 
-    void isolines::draw(plottable *g, frame *f, terminal *term)
+    void isolines::draw(plottable::ptr g, smartptr<frame> f, terminal *term)
     {
 #ifdef HAVE_GTS_H
 
 	if(!g || g->empty()) return;
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	double xmin = xaxis->min();
 	if(g->xmin()!=unset && g->xmin()>xmin) xmin = g->xmin();
@@ -5971,12 +5985,12 @@ function bands::get_x1_(plottable *g) const
 	return *this;
     }
 
-    graph_drawer *isolines::clone() const
+    smartptr<graph_drawer> isolines::clone() const
     {
-	return new isolines(*this);
+	return isolines::create(*this);
     }
 
-    void isolines::prepare_for_draw(plottable *g, frame *, int count)
+    void isolines::prepare_for_draw(plottable::ptr g, smartptr<frame>, int count)
     {
 	if(count==1) g->linewidth().register_me();
     }
@@ -5984,7 +5998,7 @@ function bands::get_x1_(plottable *g) const
     void isolines::draw_sample(const length &x,
 			       const length &y,
 			       const length &size,
-			       const plottable *style,
+			       smartptr<plottable> style,
 			       terminal *t)
     {
 	t->set_linewidth(style->linewidth().termspecific_id());
@@ -6010,10 +6024,10 @@ function bands::get_x1_(plottable *g) const
 
     vectors::~vectors()
     {
-	delete arrow_;
+//	delete arrow_;
     }
 
-    void vectors::setup_when_added(plottable *g,frame *f)
+    void vectors::setup_when_added(smartptr<plottable> g, smartptr<frame> f)
     {
 	if(g && f && use_color_) graphd_colorscale::setup_when_added(g,f);
 	else colorlegend_ = 0;
@@ -6042,7 +6056,7 @@ function bands::get_x1_(plottable *g) const
 
     vectors::vectors()
     {
-	arrow_ = new arrowhead::simple(EX);
+        arrow_ = arrowhead::simple::create(EX);
 	dx_ = dy_ = norm_ = unset;
 	min_length_cut_ = unset;
 	max_length_cut_ = unset;
@@ -6057,9 +6071,9 @@ function bands::get_x1_(plottable *g) const
 	clip_ = true;
     }
 
-    graph_drawer *vectors::clone() const
+    smartptr<graph_drawer> vectors::clone() const
     {
-	return new vectors(*this);
+	return vectors::create(*this);
     }
 
     int vectors::req_components() const
@@ -6069,7 +6083,7 @@ function bands::get_x1_(plottable *g) const
 	return result;
     }
 
-    void vectors::prepare_for_draw(plottable *g, frame *f, int count)
+    void vectors::prepare_for_draw(plottable::ptr g, smartptr<frame> f, int count)
     {
 	if(g->empty()) return;
 
@@ -6077,8 +6091,8 @@ function bands::get_x1_(plottable *g) const
 	{
 	    g->linewidth().register_me();
 	    
-	    axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	    axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	    smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	    smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 	    
 	    function getx=g->x_hint();
 	    if (!getx.initialized()) getx=ARG(1);
@@ -6219,7 +6233,7 @@ function bands::get_x1_(plottable *g) const
 
     vectors &vectors::arrow(const arrowhead &a)
     {
-	delete arrow_;
+//	delete arrow_;
 	arrow_ = a.clone();
 	return *this; 
     }
@@ -6247,7 +6261,7 @@ function bands::get_x1_(plottable *g) const
     }
 
 
-    void vectors::set_ranges(plottable *g, axis *xaxis, axis *yaxis)
+    void vectors::set_ranges(plottable::ptr g, smartptr<axis> xaxis, smartptr<axis> yaxis)
     {
 	if(!g) err("Plottagle to draw is zero");
 	if(!xaxis) err("Xaxis not set");
@@ -6310,7 +6324,7 @@ function bands::get_x1_(plottable *g) const
 	if (g->ymax()==unset && ymax!=unset) yaxis->extend_range(ymax);	
     }
 
-    void vectors::draw(plottable *g, frame *f, terminal *t)
+    void vectors::draw(plottable::ptr g, smartptr<frame> f, terminal *t)
     {
 	if(g->empty()) return;
 
@@ -6318,8 +6332,8 @@ function bands::get_x1_(plottable *g) const
 	if(clip_) call_noclip = t->clip(terminal::coord(terminal::id(0,1),terminal::id(0,2)),
 					terminal::coord(terminal::id(1,1),terminal::id(1,2)));
 
-	axis *xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
-	axis *yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
+	smartptr<axis> xaxis = (g->xaxis() == axis::x1 ? f->x1axis() : f->x2axis());
+	smartptr<axis> yaxis = (g->yaxis() == axis::y1 ? f->y1axis() : f->y2axis());
 
 	function getx=g->x_hint();
 	if (!getx.initialized()) getx=ARG(1);
@@ -6449,7 +6463,7 @@ function bands::get_x1_(plottable *g) const
 
 
     void vectors::draw_sample(const length &x, const length &y, const length &size,
-			      const plottable *g, terminal *t)
+			      smartptr<plottable> g, terminal *t)
     {
 	t->set_linewidth(g->linewidth().termspecific_id());
 	t->set_color(g->linecolor());

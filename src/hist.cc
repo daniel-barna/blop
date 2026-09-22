@@ -326,7 +326,8 @@ namespace blop
 
     hist &hist::dup()
     {
-        hist *result = new hist(*this);
+//        hist *result = new hist(*this);
+        auto result = hist::create(*this);
         if(parent_) parent_->add(result);
         return *result;
     }
@@ -335,7 +336,7 @@ namespace blop
     hist::hist()
         : plottable(), buffer_size_(0), dim_(0)
     {
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -343,7 +344,7 @@ namespace blop
         : plottable(), dim_(0)
     {
         reinit(hopt);
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -352,7 +353,7 @@ namespace blop
         : plottable(), dim_(0)
     {
         reinit(histopt().min(1,Min).max(1,Max).bins(1,Bins).axistitle(1,Title).rangetitle(rTitle).legend(Legend));
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -362,7 +363,7 @@ namespace blop
         : plottable(), dim_(0)
     {
         reinit(histopt().min(1,Min1).max(1,Max1).bins(1,Bins1).min(2,Min2).max(2,Max2).bins(2,Bins2));
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
     hist::hist(const double Min1, const double Max1, const int Bins1, const var &Title1, 
@@ -371,7 +372,7 @@ namespace blop
         : plottable(), dim_(0)
     {
         reinit(histopt().min(1,Min1).max(1,Max1).bins(1,Bins1).axistitle(1,Title1).min(2,Min2).max(2,Max2).bins(2,Bins2).axistitle(2,Title2).rangetitle(rTitle).legend(Legend));
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -383,7 +384,7 @@ namespace blop
         reinit(histopt().min(1,Min1).max(1,Max1).bins(1,Bins1)
                .min(2,Min2).max(2,Max2).bins(2,Bins2)
                .min(3,Min3).max(3,Max3).bins(3,Bins3));
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -394,7 +395,7 @@ namespace blop
         : plottable(), dim_(0)
     {
         reinit(histopt().min(1,Min1).max(1,Max1).bins(1,Bins1).axistitle(1,Title1).min(2,Min2).max(2,Max2).bins(2,Bins2).axistitle(2,Title2).min(3,Min3).max(3,Max3).bins(3,Bins3).axistitle(3,Title3).rangetitle(rTitle).legend(Legend));
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -408,7 +409,7 @@ namespace blop
           sequence_(h_other.sequence_), invsequence_(h_other.invsequence_), 
           datapoint_(h_other.datapoint_)
     {
-        pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
     }
 
 
@@ -471,50 +472,52 @@ namespace blop
 
     }
 
-    point_drawer *hist::default_point_drawer_ = new autopoint;
+//    point_drawer *hist::default_point_drawer_ = new autopoint;
 
+    smartptr<point_drawer> &hist::default_pointtype()
+    {
+        static smartptr<point_drawer> p = autopoint::create();
+        return p;
+    }
+    void hist::default_pointtype(smartptr<point_drawer> p)
+    {
+        default_pointtype() = p->clone();
+    }
     void hist::default_pointtype(const point_drawer &p)
     {
-        delete default_point_drawer_;
-        if(dynamic_cast<const autopoint *>(&p)) default_point_drawer_ = new autopoint();
-        else default_point_drawer_ = p.clone();
+        default_pointtype() = p.clone();
     }
 
-    graph_drawer * &hist::default_graph_drawer_1_()
-    {
-        static graph_drawer *d = sxyerrorbars().clip_errorbars(true).clone();
-        return d;
-    }
-    graph_drawer * &hist::default_graph_drawer_2_()
-    {
-        static graph_drawer *d = 0;
-        if(d == 0)
-        {
-            d=csboxes().grid_foreground(true).clone();
-        }
-        return d;
-    }
 
+    smartptr<graph_drawer> &hist::default_drawstyle_1()
+    {
+        static smartptr<graph_drawer> f = sxyerrorbars().clip_errorbars(true).clone();
+        return f;
+    }
+    smartptr<graph_drawer> &hist::default_drawstyle_2()
+    {
+        static smartptr<graph_drawer> f = csboxes().grid_foreground(true).clone();
+        return f;
+    }
     void hist::default_drawstyle_1(const graph_drawer &d)
     {
-        delete default_graph_drawer_1_();
-        default_graph_drawer_1_() = d.clone();
+        default_drawstyle_1() = d.clone();
     }
     void hist::default_drawstyle_2(const graph_drawer &d)
     {
-        delete default_graph_drawer_2_();
-        default_graph_drawer_2_() = d.clone();
+        default_drawstyle_2() = d.clone();
     }
 
     void hist::set_graph_drawer_() const
     {
-        if ( graph_drawer_!=0 ) delete graph_drawer_;
+//        if ( graph_drawer_!=0 ) delete graph_drawer_;
         graph_drawer_=0;
-        if ( dim_==1 )      graph_drawer_ = default_graph_drawer_1_()->clone();
+        if ( dim_==1 )      graph_drawer_ = default_drawstyle_1()->clone();
         else if ( dim_==2 )
         {
-            graph_drawer_ = default_graph_drawer_2_()->clone();
-            if(csboxes *sc = dynamic_cast<csboxes*>(graph_drawer_))
+            graph_drawer_ = default_drawstyle_2()->clone();
+//            if(csboxes *sc = dynamic_cast<csboxes*>(graph_drawer_))
+            if(auto sc = graph_drawer_.dyncast<csboxes>())
             {
                 if(rangetitle_.str() != "")
                 {
@@ -522,7 +525,8 @@ namespace blop
                 }
             }
         }
-        else graph_drawer_=new lines;
+        else graph_drawer_ = lines::create();
+//        else graph_drawer_=new lines;
     }
 
 
@@ -800,7 +804,6 @@ namespace blop
         if ( dim_!=h_other.dim_ )
         {
             axistitle_.resize(h_other.dim_);
-            if ( graph_drawer_!=0 ) delete graph_drawer_;
             graph_drawer_=h_other.graph_drawer_->clone();
         }
         dim_=h_other.dim_;
@@ -2761,36 +2764,30 @@ namespace blop
     hist& hist::rangetitle(const var &title)
     {
         rangetitle_=title;
-        if ( dynamic_cast<cboxes*>(graph_drawer_) )
+//        if ( dynamic_cast<cboxes*>(graph_drawer_) )
+        if(graph_drawer_.dyncast<cboxes>())
         {
-            cboxes *graphd_cbox_tmp=0;
-            if ( rangetitle_.str()!="" ) graphd_cbox_tmp=new cboxes(dynamic_cast<cboxes*>(graph_drawer_)->title(rangetitle_));
-            else graphd_cbox_tmp=new cboxes(*(dynamic_cast<cboxes*>(graph_drawer_)));
-            if ( graph_drawer_!=0 ) delete graph_drawer_;
-            graph_drawer_=0;
-            graph_drawer_=new cboxes(*graphd_cbox_tmp);
-            delete graphd_cbox_tmp;
+            cboxes::ptr graphd_cbox_tmp=0;
+            if ( rangetitle_.str()!="" ) graphd_cbox_tmp=cboxes::create(graph_drawer_.dyncast<cboxes>()->title(rangetitle_));
+            else graphd_cbox_tmp=cboxes::create(*(graph_drawer_.dyncast<cboxes>()));
+            graph_drawer_=cboxes::create(*graphd_cbox_tmp);
         }
-        else if ( dynamic_cast<csboxes*>(graph_drawer_) )
+//        else if ( dynamic_cast<csboxes*>(graph_drawer_) )
+        else if(graph_drawer_.dyncast<csboxes>())
         {
-            csboxes *graphd_scbox_tmp=0;
-            if ( rangetitle_.str()!="" ) graphd_scbox_tmp=new csboxes(dynamic_cast<csboxes*>(graph_drawer_)->title(rangetitle_));
-            else graphd_scbox_tmp=new csboxes(*(dynamic_cast<csboxes*>(graph_drawer_)));
-            if ( graph_drawer_!=0 ) delete graph_drawer_;
-            graph_drawer_=0;
-            graph_drawer_=new csboxes(*graphd_scbox_tmp);
-            delete graphd_scbox_tmp;
+            csboxes::ptr graphd_scbox_tmp=0;
+            if ( rangetitle_.str()!="" ) graphd_scbox_tmp=csboxes::create(graph_drawer_.dyncast<csboxes>()->title(rangetitle_));
+            else graphd_scbox_tmp=csboxes::create(*(graph_drawer_.dyncast<csboxes>()));
+            graph_drawer_=csboxes::create(*graphd_scbox_tmp);
         }
-        else if ( dynamic_cast<isolines*>(graph_drawer_) )
+//        else if ( dynamic_cast<isolines*>(graph_drawer_) )
+        else if(graph_drawer_.dyncast<isolines>())
         {
-            isolines *graphd_isolines_tmp=0;
+            isolines::ptr graphd_isolines_tmp=0;
 //	if ( rangetitle_.str()!="" ) graphd_isolines_tmp=new graphd_isolines(dynamic_cast<graphd_isolines*>(graph_drawer_)->title(rangetitle_));
 //	else
-            graphd_isolines_tmp=new isolines(*(dynamic_cast<isolines*>(graph_drawer_)));
-            if ( graph_drawer_!=0 ) delete graph_drawer_;
-            graph_drawer_=0;
-            graph_drawer_=new isolines(*graphd_isolines_tmp);
-            delete graphd_isolines_tmp;
+            graphd_isolines_tmp=isolines::create(*(graph_drawer_.dyncast<isolines>()));
+            graph_drawer_=isolines::create(*graphd_isolines_tmp);
         }
         return *this;
     }
@@ -3188,7 +3185,8 @@ namespace blop
     hist::read_many& hist::read_many::operator>>(hist &h)
     {
         int number_of_histo=iHistos_.size()+1;
-        iHistos_.push_back(std::pair<hist*, int>(&h, number_of_histo));
+//        iHistos_.push_back(std::pair<hist*, int>(&h, number_of_histo));
+        iHistos_.push_back({&h, number_of_histo});
         isFlushed_=false;
         return *this;
     }
@@ -3204,7 +3202,8 @@ namespace blop
 
     hist::read_many& hist::read_many::get(hist &h, const int number_of_histo)
     {
-        iHistos_.push_back(std::pair<hist*, int>(&h, number_of_histo));
+//        iHistos_.push_back(std::pair<hist*, int>(&h, number_of_histo));
+        iHistos_.push_back({&h, number_of_histo});
         isFlushed_=false;
         return *this;
     }
@@ -4096,7 +4095,7 @@ namespace blop
         return dim_*2+2;
     }
 
-    void hist::prepare_for_draw(axis *,axis *, frame *f, int count)
+    void hist::prepare_for_draw(smartptr<axis>, smartptr<axis>, smartptr<frame> f, int count)
     {
         flush_buffer();
         if ( dim_<1 || dim_>2 ) warning::print("Only can draw 1 or 2 dimensional histograms!", "void hist::prepare_for_draw(axis*, axis*, frame*)");
@@ -4818,7 +4817,8 @@ namespace blop
             {
                 for ( k=0 ; k<numStuff ; ++k )
                 {
-                    fgraph *fg=0;
+//                    fgraph *fg=0;
+                    smartptr<fgraph> fg;
                     if ( oStuff_[k].h!=NULL )
                     {
                         if ( oStuff_[k].h->rangetitle_.str()!="" ) oStuff_[k].h->drawstyle(csboxes()(color_mapping)(rmin, rmax).title(oStuff_[k].h->rangetitle_).grid_foreground(true).color_logscale(rlog));
@@ -4827,8 +4827,11 @@ namespace blop
                     }
                     else
                     {
-                        if ( fg!=0 ) { delete fg; fg=0; }
-                        fg=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+//                        if ( fg!=0 ) {delete fg; fg=0;}
+//                        fg=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+                        fg = 0;
+                        fg = fgraph::create(function(_1, _2, oStuff_[k].f(_1, _2)));
+                      
                         fg->drawstyle(cboxes()(color_mapping)(rmin, rmax).grid_foreground(true).color_logscale(rlog));
                         if ( oStuff_[k].l.str()!="__NULL" ) fg->legend(oStuff_[k].l);
                         frame::current().add(fg);
@@ -4846,7 +4849,8 @@ namespace blop
                         }
                     }
                     frame::current().clear_graphs();
-                    if ( fg!=0 ) { delete fg; fg=0; }
+//                    if ( fg!=0 ) { delete fg; fg=0; }
+                    fg = 0;
                     frame::current().x1axis()->clear_autosettings();
                     frame::current().x2axis()->clear_autosettings();
                     frame::current().y1axis()->clear_autosettings();
@@ -4857,8 +4861,8 @@ namespace blop
             }
             else
             {
-                fgraph *fg0=0;
-                fgraph *fg1=0;
+                smartptr<fgraph> fg0=0;
+                smartptr<fgraph> fg1=0;
                 for ( k=0 ; k<numStuff ; ++k )
                 {
                     if ( oStuff_[k].h!=NULL )
@@ -4883,16 +4887,21 @@ namespace blop
                     {
                         if ( k==0 )
                         {
-                            if ( fg0!=0 ) { delete fg0 ; fg0=0; }
-                            fg0=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+//                            if ( fg0!=0 ) {delete fg0 ; fg0=0;}
+//                            fg0=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+                            fg0 = 0;
+                            fg0=fgraph::create(function(_1, _2, oStuff_[k].f(_1, _2)));
+
                             fg0->drawstyle(cboxes()(color_mapping)(rmin, rmax).grid_foreground(true).color_logscale(rlog));
                             if ( oStuff_[k].l.str()!="__NULL" ) fg0->legend(oStuff_[k].l);
                             frame::current().add(fg0);
                         }
                         else
                         {
-                            if ( fg1!=0 ) { delete fg1 ; fg1=0; }
-                            fg1=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+//                            if ( fg1!=0 ) {delete fg1 ; fg1=0;}
+//                            fg1=new fgraph(function(_1, _2, oStuff_[k].f(_1, _2)));
+                            fg1 = 0;
+                            fg1=fgraph::create(function(_1, _2, oStuff_[k].f(_1, _2)));
                             fg1->drawstyle(isolines().min(cmin).max(cmax).logscale(clog));
                             if ( oStuff_[k].l.str()!="__NULL" ) fg1->legend(oStuff_[k].l);
                             frame::current().add(fg1);
@@ -4903,8 +4912,10 @@ namespace blop
                 else if ( blopEpsName_.str()!="" ) blopeps::print(blopEpsName_);
                 else x11_ps::print();
                 frame::current().clear_graphs();
-                if ( fg0!=0 ) { delete fg0; fg0=0; }
-                if ( fg1!=0 ) { delete fg1; fg1=0; }
+                fg0 = 0;
+                fg1 = 0;
+//                if ( fg0!=0 ) {delete fg0; fg0=0;}
+//                if ( fg1!=0 ) {delete fg1; fg1=0;}
                 frame::current().x1axis()->clear_autosettings();
                 frame::current().x2axis()->clear_autosettings();
                 frame::current().y1axis()->clear_autosettings();
@@ -4971,7 +4982,8 @@ namespace blop
                                 if ( max_[j].first==1 ) if ( pos>max_[j].second ) { skip=true; break; }
                             }
                             if ( skip==true ) continue;
-                            hist *ohist=new hist(oStuff_[k].h->slice(1, pos));
+//                            hist *ohist=new hist(oStuff_[k].h->slice(1, pos));
+                            smartptr<hist> ohist = hist::create(oStuff_[k].h->slice(1, pos));
                             ohist->legend_=oStuff_[k].h->legend_&" at axis("&1&")="&pos;
                             if ( oStuff_[k].h->rangetitle_.str()!="" ) ohist->drawstyle(csboxes()(color_mapping)(rmin, rmax).title(oStuff_[k].h->rangetitle_).grid_foreground(true).color_logscale(rlog));
                             else ohist->drawstyle(csboxes()(color_mapping)(rmin, rmax).grid_foreground(true).color_logscale(rlog));
@@ -4989,7 +5001,8 @@ namespace blop
                                 }
                             }
                             frame::current().clear_graphs();
-                            delete ohist; ohist=0;
+//                            delete ohist; 
+                            ohist=0;
                             frame::current().x1axis()->clear_autosettings();
                             frame::current().x2axis()->clear_autosettings();
                             frame::current().y1axis()->clear_autosettings();
@@ -5015,7 +5028,8 @@ namespace blop
                             else if ( min==unset && max!=unset ) { min=max-(defmax-defmin); }
                             else if ( min!=unset && max==unset ) { max=min+(defmax-defmin); }
                             pos=(max-min)/bins0*(i+0.5)+min;
-                            fgraph *ofunc=new fgraph(function(_1, _2, oStuff_[k].f(function(pos), _1, _2)));
+//                            fgraph *ofunc=new fgraph(function(_1, _2, oStuff_[k].f(function(pos), _1, _2)));
+                            smartptr<fgraph> ofunc = fgraph::create(function(_1, _2, oStuff_[k].f(function(pos), _1, _2)));
                             if ( oStuff_[k].l.str()!="__NULL" ) ofunc->legend(oStuff_[k].l&" at axis("&1&")="&pos);
                             ofunc->drawstyle(cboxes()(color_mapping)(rmin, rmax).grid_foreground(true).color_logscale(rlog));
                             frame::current().add(ofunc);
@@ -5032,7 +5046,8 @@ namespace blop
                                 }
                             }
                             frame::current().clear_graphs();
-                            delete ofunc; ofunc=0;
+//                            delete ofunc;
+                            ofunc=0;
                             frame::current().x1axis()->clear_autosettings();
                             frame::current().x2axis()->clear_autosettings();
                             frame::current().y1axis()->clear_autosettings();
@@ -5065,7 +5080,9 @@ namespace blop
                             if ( max_[j].first==1 ) if ( pos>max_[j].second ) { skip=true; break; }
                         }
                         if ( skip==true ) continue;
-                        hist *ohist=new hist(oStuff_[kok].h->slice(1, pos));
+//                        hist *ohist=new hist(oStuff_[kok].h->slice(1, pos));
+                        smartptr<hist> ohist=hist::create(oStuff_[kok].h->slice(1, pos));
+                        
                         ohist->legend_=oStuff_[kok].h->legend_&" at axis("&1&")="&pos;
                         if ( kok==0 )
                         {
@@ -5084,7 +5101,8 @@ namespace blop
                         hist *ofuncother=0;
                         if ( oStuff_[kother].h!=NULL )
                         {
-                            hist *ohistother=new hist(oStuff_[kother].h->slice(1, pos));
+//                            hist *ohistother=new hist(oStuff_[kother].h->slice(1, pos));
+                            smartptr<hist> ohistother=hist::create(oStuff_[kother].h->slice(1, pos));
                             ohistother->legend_=oStuff_[kother].h->legend_&" at axis("&1&")="&pos;
                             if ( kother==0 )
                             {
@@ -5102,7 +5120,8 @@ namespace blop
                         }
                         else
                         {
-                            fgraph *ofuncother=new fgraph(function(_1, _2, oStuff_[kother].f(function(pos), _1, _2)));
+//                            fgraph *ofuncother=new fgraph(function(_1, _2, oStuff_[kother].f(function(pos), _1, _2)));
+                            smartptr<fgraph> ofuncother=fgraph::create(function(_1, _2, oStuff_[kother].f(function(pos), _1, _2)));
                             if ( oStuff_[kother].l.str()!="__NULL" ) ofuncother->legend(oStuff_[kother].l&" at axis("&1&")="&pos);
                             if ( kother==0 )
                             {
@@ -5138,9 +5157,13 @@ namespace blop
                             }
                         }
                         frame::current().clear_graphs();
-                        delete ohist; ohist=0;
-                        if ( ohistother!=0 ) { delete ohistother; ohistother=0; }
-                        if ( ofuncother!=0 ) { delete ofuncother; ofuncother=0; }
+//                        delete ohist;
+                        ohist=0;
+//                        if ( ohistother!=0 ) { delete ohistother; ohistother=0; }
+//                        if ( ofuncother!=0 ) { delete ofuncother; ofuncother=0; }
+                        ohistother = 0;
+                        ofuncother = 0;
+                        
                         frame::current().x1axis()->clear_autosettings();
                         frame::current().x2axis()->clear_autosettings();
                         frame::current().y1axis()->clear_autosettings();
@@ -5168,11 +5191,13 @@ namespace blop
                         else if ( min==unset && max!=unset ) { min=max-(defmax-defmin); }
                         else if ( min!=unset && max==unset ) { max=min+(defmax-defmin); }
                         pos=(max-min)/bins0*(i+0.5)+min;
-                        fgraph *ofunc=new fgraph(function(_1, _2, oStuff_[0].f(function(pos), _1, _2)));
+//                        fgraph *ofunc=new fgraph(function(_1, _2, oStuff_[0].f(function(pos), _1, _2)));
+                        smartptr<fgraph> ofunc=fgraph::create(function(_1, _2, oStuff_[0].f(function(pos), _1, _2)));
                         if ( oStuff_[0].l.str()!="__NULL" ) ofunc->legend(oStuff_[0].l&" at axis("&1&")="&pos);
                         ofunc->drawstyle(cboxes()(color_mapping)(rmin, rmax).grid_foreground(true).color_logscale(rlog));
                         frame::current().add(ofunc);
-                        fgraph *ofuncother=new fgraph(function(_1, _2, oStuff_[1].f(function(pos), _1, _2)));
+//                        fgraph *ofuncother=new fgraph(function(_1, _2, oStuff_[1].f(function(pos), _1, _2)));
+                        smartptr<fgraph> ofuncother=fgraph::create(function(_1, _2, oStuff_[1].f(function(pos), _1, _2)));
                         if ( oStuff_[1].l.str()!="__NULL" ) ofuncother->legend(oStuff_[1].l&" at axis("&1&")="&pos);
                         ofuncother->drawstyle(isolines().min(cmin).max(cmax).logscale(clog));
                         frame::current().add(ofuncother);
@@ -5189,8 +5214,10 @@ namespace blop
                             }
                         }
                         frame::current().clear_graphs();
-                        delete ofunc; ofunc=0;
-                        delete ofuncother; ofuncother=0;
+//                        delete ofunc;
+                        ofunc=0;
+//                        delete ofuncother;
+                        ofuncother=0;
                         frame::current().x1axis()->clear_autosettings();
                         frame::current().x2axis()->clear_autosettings();
                         frame::current().y1axis()->clear_autosettings();
@@ -5214,7 +5241,8 @@ namespace blop
 
     hist& mkhist(istream &input, const histopt &hopt)
     {
-        hist *h=new hist(hopt);
+//        hist *h=new hist(hopt);
+        smartptr<hist> h=hist::create(hopt);
         h->fill_from(input, hopt);
         return *h;
     }
@@ -5222,7 +5250,8 @@ namespace blop
 
     hist& mkhist(const var &filename, const histopt &hopt)
     {
-        hist *h=new hist(hopt);
+//        hist *h=new hist(hopt);
+        smartptr<hist> h=hist::create(hopt);
         h->fill_from(filename, hopt);
         return *h;
     }
@@ -5230,7 +5259,8 @@ namespace blop
 
     hist& mkhist(const dgraph &dg, const histopt &hopt)
     {
-        hist *h=new hist(hopt);
+//        hist *h=new hist(hopt);
+        smartptr<hist> h=hist::create(hopt);
         h->fill_from(dg, hopt);
         return *h;
     }
@@ -5239,7 +5269,7 @@ namespace blop
     hist& histplot(istream &input, const histopt &hopt)
     {
         hist &h=mkhist(input, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().clear_graphs();
         frame::current().add(&h);
         return h;
@@ -5249,7 +5279,7 @@ namespace blop
     hist& mhistplot(istream &input, const histopt &hopt)
     {
         hist &h=mkhist(input, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().add(&h);
         return h;
     }
@@ -5258,7 +5288,7 @@ namespace blop
     hist& histplot(const var &filename, const histopt &hopt)
     {
         hist &h=mkhist(filename, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().clear_graphs();
         frame::current().add(&h);
         return h;
@@ -5268,7 +5298,7 @@ namespace blop
     hist& mhistplot(const var &filename, const histopt &hopt)
     {
         hist &h=mkhist(filename, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().add(&h);
         return h;
     }
@@ -5277,7 +5307,7 @@ namespace blop
     hist& histplot(const dgraph &dg, const histopt &hopt)
     {
         hist &h=mkhist(dg, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().clear_graphs();
         frame::current().add(&h);
         return h;
@@ -5287,7 +5317,7 @@ namespace blop
     hist& mhistplot(const dgraph &dg, const histopt &hopt)
     {
         hist &h=mkhist(dg, hopt);
-        h.autodel(true);
+//        h.autodel(true);
         frame::current().add(&h);
         return h;
     }

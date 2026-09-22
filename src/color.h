@@ -9,24 +9,26 @@ namespace blop
 class color
 {
  private:
-    double red_,green_,blue_;
+    double red_,green_,blue_,alpha_=1.0;
     friend bool operator== (const color &c1, const color &c2);
     friend bool operator!= (const color &c1, const color &c2);
  public:
-    color(double r,double g,double b) : red_(r), green_(g), blue_(b) {}
-    color() : red_(0), green_(0), blue_(0) {}
-    color(const color &o) : red_(o.red_), green_(o.green_), blue_(o.blue_) {}
+    color(double r,double g,double b,double alpha=1.0) : red_(r), green_(g), blue_(b), alpha_(alpha) {}
+    color() : red_(0), green_(0), blue_(0), alpha_(1) {}
+    color(const color &o) : red_(o.red_), green_(o.green_), blue_(o.blue_), alpha_(o.alpha_) {}
 
     double red() const {return red_;}
     double green() const {return green_;}
     double blue() const {return blue_;}
+    double alpha() const  {return alpha_; }
 
     color &red(double d) {red_ = d; return *this;}
     color &green(double d) {green_ = d; return *this;}
     color &blue(double d) {blue_ = d; return *this;}
+    color &alpha(double d) {alpha_ = d; return *this; }
 
-    void set(double r,double g,double b)
-	{red_ = r; green_ = g; blue_ = b;}
+    color &set(double r,double g,double b, double a)
+	{red_ = r; green_ = g; blue_ = b; alpha_ = a; return *this;}
 
     //static color get(const var &);
 
@@ -51,9 +53,10 @@ ostream &operator<<(ostream &out, const color &c);
 inline bool operator== (const color &c1, const color &c2)
 {
     return
-    c1.red_ == c2.red_ &&
-    c1.green_ == c2.green_ &&
-    c1.blue_ == c2.blue_;
+        c1.red_ == c2.red_ &&
+        c1.green_ == c2.green_ &&
+        c1.blue_ == c2.blue_ &&
+        c1.alpha_ == c2.alpha_;
 }
 
 inline bool operator!= (const color &c1, const color &c2)
@@ -69,6 +72,8 @@ inline bool operator< (const color &c1, const color &c2)
     if(c1.green() > c2.green()) return false;
     if(c1.blue() < c2.blue()) return true;
     if(c1.blue() > c2.blue()) return false;
+    if(c1.alpha() < c2.alpha()) return true;
+    if(c1.alpha() > c2.alpha()) return false;
     return false;
 }
 
@@ -77,7 +82,7 @@ color operator- (const color &c1, const color &c2);
 color operator* (const color &c1, double f);
 color operator* (double f, const color &c2);
 color operator/ (const color &c1, double f);
-
+color operator% (const color &c, double f);  // Multiply the alpha(opacity) by the given factor .
 
 extern color black;
 extern color red;

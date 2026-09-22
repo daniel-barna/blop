@@ -1,0 +1,505 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: logger.h </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#ifndef __BLOP_LOGGER_H__
+<a name="__line1"></a>#define __BLOP_LOGGER_H__
+<a name="__line2"></a>
+<a name="__line3"></a>#include &lt;vector&gt;
+<a name="__line4"></a>#include &lt;utility&gt;
+<a name="__line5"></a>#include &lt;type_traits&gt;
+<a name="__line6"></a>#include &lt;concepts&gt;
+<a name="__line7"></a>#include &lt;cassert&gt;
+<a name="__line8"></a>
+<a name="__line9"></a><span class=comment>/*
+<a name="__line10"></a>
+<a name="__line11"></a>A utility class to write hierarchical and well organized logfiles in an easy way.
+<a name="__line12"></a>
+<a name="__line13"></a>Usage example:
+<a name="__line14"></a>
+<a name="__line15"></a>void f(double d, int i)
+<a name="__line16"></a>{
+<a name="__line17"></a>  logger log("f(" + std::to_string(d) + "," + std::to_string(i) + ")");  // Creates an indented block in the logfile
+<a name="__line18"></a>  log&lt;&lt;"First log in this function"&lt;&lt;endl;
+<a name="__line19"></a>}
+<a name="__line20"></a>
+<a name="__line21"></a>int main()
+<a name="__line22"></a>{
+<a name="__line23"></a>  logger::file       logger_file("my_log.txt");       // Until the end of the scope of this helper variable (i.e. program termination), output will also be written to the file
+<a name="__line24"></a>  logger::html_file  logger_html_file("my_log.html"); // Until the end of the scoope of this helper variable, output will also be written in a dynamic, structured html file
+<a name="__line25"></a>
+<a name="__line26"></a>  logger log("My program");  // creates an indented block until the end of this variable. Send output to this at this level
+<a name="__line27"></a>
+<a name="__line28"></a>  // Set the font color to red for one item (i.e. the following "First log" text), and print text. If no number is given in parenthesis,
+<a name="__line29"></a>  // the style change is permanent until the end of lifetime.
+<a name="__line30"></a>  log&lt;&lt;logger:red(1)&lt;&lt;"First log"&lt;&lt;endl;  
+<a name="__line31"></a>
+<a name="__line32"></a>  // Note that a larger lifetime limit overrides previous ones in the following sense:
+<a name="__line33"></a>  // log&lt;&lt;logger:red(1)&lt;&lt;logger::underline(3)&lt;&lt;"first "&lt;&lt;"second "&lt;&lt;"third "&lt;&lt;"fourth ";
+<a name="__line34"></a>  // then "first", "second" and "third" will all be printed with red, underlined
+<a name="__line35"></a>
+<a name="__line36"></a>  log&lt;&lt;"Second level"&lt;&lt;endl;
+<a name="__line37"></a>
+<a name="__line38"></a>  {
+<a name="__line39"></a>    logger log("Some sub-block, indented");
+<a name="__line40"></a>    log&lt;&lt;"Indented first log"&lt;&lt;endl;
+<a name="__line41"></a>  }
+<a name="__line42"></a>  
+<a name="__line43"></a>}
+<a name="__line44"></a>
+<a name="__line45"></a> */</span>
+<a name="__line46"></a>
+<a name="__line47"></a>#include &lt;string&gt;
+<a name="__line48"></a>#include &lt;iostream&gt;
+<a name="__line49"></a>#include &lt;fstream&gt;
+<a name="__line50"></a>#include &lt;filesystem&gt;
+<a name="__line51"></a>#include &lt;chrono&gt;
+<a name="__line52"></a>
+<a name="__line53"></a>namespace blop{
+<a name="__line54"></a>
+<a name="__line55"></a>    class logger 
+<a name="__line56"></a>    {
+<a name="__line57"></a><span class=public>    public:
+<a name="__line58"></a>        class file
+<a name="__line59"></a>        {
+<a name="__line60"></a></span><span class=private>        private:
+<a name="__line61"></a>            std::ofstream file_;
+<a name="__line62"></a>            std::filesystem::path filename_;
+<a name="__line63"></a>            void init_()
+<a name="__line64"></a>            {
+<a name="__line65"></a>                if(file_) logger::indent()&lt;&lt;"SAVING LOGS TO: "&lt;&lt;filename_&lt;&lt;std::endl;
+<a name="__line66"></a>                else      logger::indent()&lt;&lt;"FAILED TO OPEN "&lt;&lt;filename_&lt;&lt;std::endl;
+<a name="__line67"></a>            }
+<a name="__line68"></a>
+<a name="__line69"></a>            bool shared_ = false;
+<a name="__line70"></a>
+<a name="__line71"></a>            file(const std::string &amp;filename, bool shared)           : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line72"></a>            file(const std::filesystem::path &amp;filename, bool shared) : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line73"></a>            file(const char *filename, bool shared)                  : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line74"></a>
+<a name="__line75"></a></span><span class=public>        public:
+<a name="__line76"></a>            std::ofstream &amp;stream() { return file_; }
+<a name="__line77"></a>
+<a name="__line78"></a>            <span class=comment>// Constructors. All of them automatically store a shared_ptr in the global logger::files_ array. </span>
+<a name="__line79"></a>            file(const std::string &amp;filename)           : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr&lt;logger::file&gt;(this,[](auto*){})); }
+<a name="__line80"></a>            file(const std::filesystem::path &amp;filename) : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr&lt;logger::file&gt;(this,[](auto*){})); }
+<a name="__line81"></a>            file(const char *filename)                  : file_(filename), filename_(filename) { init_(); logger::add_file(std::shared_ptr&lt;logger::file&gt;(this,[](auto*){})); }
+<a name="__line82"></a>
+<a name="__line83"></a>            <span class=comment>// Destructor. Only removes the referencing pointer from logger::files_ if it was not created by make_shared (i.e. it is</span>
+<a name="__line84"></a>            <span class=comment>// a local variable, which is deleted at the end of its scope, in which case the referencing shared_ptr's deleter function is</span>
+<a name="__line85"></a>            <span class=comment>// set to do nothing). If it is created by make_shared, the lifetime control is fully up to the stored shared_ptr, this object</span>
+<a name="__line86"></a>            <span class=comment>// is deleted when the shared_ptr is removed, and the destructor must not remove the pointer</span>
+<a name="__line87"></a>            ~file() { if(!shared_) logger::remove_file(this); }
+<a name="__line88"></a>
+<a name="__line89"></a>            <span class=comment>// Create an unnamed instance of this file (not referenced directly by a stack variable). Set the 'created_by_make_shared_' flag, so that the destructor </span>
+<a name="__line90"></a>            static std::shared_ptr&lt;logger::file&gt; make_shared(const std::string &amp;filename)           { auto result = std::shared_ptr&lt;logger::file&gt;(new logger::file(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line91"></a>            static std::shared_ptr&lt;logger::file&gt; make_shared(const std::filesystem::path &amp;filename) { auto result = std::shared_ptr&lt;logger::file&gt;(new logger::file(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line92"></a>            static std::shared_ptr&lt;logger::file&gt; make_shared(const char *filename)                  { auto result = std::shared_ptr&lt;logger::file&gt;(new logger::file(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line93"></a>
+<a name="__line94"></a>            bool shared() const { return shared_; }
+<a name="__line95"></a>        };
+<a name="__line96"></a>
+<a name="__line97"></a>        class html
+<a name="__line98"></a>        {
+<a name="__line99"></a></span><span class=private>        private:
+<a name="__line100"></a>            std::ofstream file_;
+<a name="__line101"></a>            std::filesystem::path filename_;
+<a name="__line102"></a>            void init_();
+<a name="__line103"></a>
+<a name="__line104"></a>            bool shared_ = false;
+<a name="__line105"></a>
+<a name="__line106"></a>            html(const std::string &amp;filename, bool shared)           : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line107"></a>            html(const std::filesystem::path &amp;filename, bool shared) : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line108"></a>            html(const char *filename, bool shared)                  : file_(filename), filename_(filename) { assert(shared); init_();}
+<a name="__line109"></a>
+<a name="__line110"></a></span><span class=public>        public:
+<a name="__line111"></a>            std::ofstream &amp;stream() { return file_; }
+<a name="__line112"></a>
+<a name="__line113"></a>            <span class=comment>// Constructors. All of them automatically store a shared_ptr in the global logger::files_ array. </span>
+<a name="__line114"></a>            html(const std::string &amp;filename)           : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr&lt;logger::html&gt;(this,[](auto*){})); }
+<a name="__line115"></a>            html(const std::filesystem::path &amp;filename) : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr&lt;logger::html&gt;(this,[](auto*){})); }
+<a name="__line116"></a>            html(const char *filename)                  : file_(filename), filename_(filename) { init_(); logger::add_html(std::shared_ptr&lt;logger::html&gt;(this,[](auto*){})); }
+<a name="__line117"></a>
+<a name="__line118"></a>            <span class=comment>// Destructor. Only removes the referencing pointer from logger::files_ if it was not created by make_shared (i.e. it is</span>
+<a name="__line119"></a>            <span class=comment>// a local variable, which is deleted at the end of its scope, in which case the referencing shared_ptr's deleter function is</span>
+<a name="__line120"></a>            <span class=comment>// set to do nothing). If it is created by make_shared, the lifetime control is fully up to the stored shared_ptr, this object</span>
+<a name="__line121"></a>            <span class=comment>// is deleted when the shared_ptr is removed, and the destructor must not remove the pointer</span>
+<a name="__line122"></a>            ~html();
+<a name="__line123"></a>
+<a name="__line124"></a>            <span class=comment>// Create an unnamed instance of this file (not referenced directly by a stack variable). Set the 'created_by_make_shared_' flag, so that the destructor </span>
+<a name="__line125"></a>            static std::shared_ptr&lt;logger::html&gt; make_shared(const std::string &amp;filename)           { auto result = std::shared_ptr&lt;logger::html&gt;(new logger::html(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line126"></a>            static std::shared_ptr&lt;logger::html&gt; make_shared(const std::filesystem::path &amp;filename) { auto result = std::shared_ptr&lt;logger::html&gt;(new logger::html(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line127"></a>            static std::shared_ptr&lt;logger::html&gt; make_shared(const char *filename)                  { auto result = std::shared_ptr&lt;logger::html&gt;(new logger::html(filename,true)); result-&gt;shared_ = true; return result; }
+<a name="__line128"></a>
+<a name="__line129"></a>            bool shared() const { return shared_; }
+<a name="__line130"></a>        };
+<a name="__line131"></a>
+<a name="__line132"></a>        
+<a name="__line133"></a></span><span class=private>    private:
+<a name="__line134"></a>
+<a name="__line135"></a>        static std::vector&lt;std::shared_ptr&lt;file&gt;&gt; &amp;files_();
+<a name="__line136"></a>        static std::vector&lt;std::shared_ptr&lt;html&gt;&gt; &amp;htmls_();
+<a name="__line137"></a>
+<a name="__line138"></a>        <span class=comment>// html character codes for the "expand all" and "collapse all" buttons</span>
+<a name="__line139"></a>        const std::string collapse_ = "&amp;#9195;&amp;#xFE0E;";
+<a name="__line140"></a>        const std::string expand_   = "&amp;#9196;&amp;#xFE0E;";
+<a name="__line141"></a>
+<a name="__line142"></a>        void init_();
+<a name="__line143"></a>
+<a name="__line144"></a>        static std::vector&lt;logger*&gt; &amp;stack_()
+<a name="__line145"></a>            {
+<a name="__line146"></a>                static std::vector&lt;logger*&gt; the_stack;
+<a name="__line147"></a>                return the_stack;
+<a name="__line148"></a>            }
+<a name="__line149"></a>
+<a name="__line150"></a>        std::string name_;
+<a name="__line151"></a>        unsigned int my_level_ = 0;
+<a name="__line152"></a>        static unsigned int level_;
+<a name="__line153"></a>
+<a name="__line154"></a>        unsigned int flag_=0;
+<a name="__line155"></a>
+<a name="__line156"></a>        <span class=comment>// A flag indicating whether there have already been messages printed to the streams.</span>
+<a name="__line157"></a>        bool had_messages_ = false;
+<a name="__line158"></a>
+<a name="__line159"></a>        static bool indented_;
+<a name="__line160"></a>
+<a name="__line161"></a>        typedef std::chrono::steady_clock clock;
+<a name="__line162"></a>        std::chrono::time_point&lt;clock&gt; start_;
+<a name="__line163"></a>
+<a name="__line164"></a>
+<a name="__line165"></a>        template &lt;typename T&gt;
+<a name="__line166"></a>        static void write_escaped(std::ostream &amp;os, const T &amp;t) {os&lt;&lt;t;}
+<a name="__line167"></a>
+<a name="__line168"></a>        static void write_escaped(std::ostream &amp;os, std::string_view s)
+<a name="__line169"></a>            {
+<a name="__line170"></a>                for(char c : s)
+<a name="__line171"></a>                {
+<a name="__line172"></a>                    switch(c)
+<a name="__line173"></a>                    {
+<a name="__line174"></a>                    case '&amp;':  os &lt;&lt; "&amp;amp;";  break;
+<a name="__line175"></a>                    case '&lt;':  os &lt;&lt; "&amp;lt;";   break;
+<a name="__line176"></a>                    case '&gt;':  os &lt;&lt; "&amp;gt;";   break;
+<a name="__line177"></a>                    case '"':  os &lt;&lt; "&amp;quot;"; break;
+<a name="__line178"></a>                    case '\n': os &lt;&lt; "&lt;br&gt;";   break;
+<a name="__line179"></a>                    default:   os &lt;&lt; c;        break;
+<a name="__line180"></a>                    }
+<a name="__line181"></a>                }
+<a name="__line182"></a>            }    
+<a name="__line183"></a>        static void write_escaped(std::ostream &amp;os, const std::string &amp;s) { write_escaped(os,std::string_view(s)); }
+<a name="__line184"></a>        static void write_escaped(std::ostream &amp;os, const char *s) { write_escaped(os,std::string_view(s)); }
+<a name="__line185"></a>        static void write_escaped(std::ostream &amp;os, char c) { write_escaped(os,std::string_view(&amp;c,1)); }
+<a name="__line186"></a>
+<a name="__line187"></a>        unsigned int n_formats_ = 0;
+<a name="__line188"></a>
+<a name="__line189"></a>        void apply_format();
+<a name="__line190"></a>
+<a name="__line191"></a></span><span class=public>    public:
+<a name="__line192"></a>        <span class=comment>// Add a new file to the list of files, into which output is written</span>
+<a name="__line193"></a>        static void add_file(std::shared_ptr&lt;file&gt; file) { files_().push_back(file); }
+<a name="__line194"></a>        static void add_html(std::shared_ptr&lt;html&gt; file) { htmls_().push_back(file); }
+<a name="__line195"></a>
+<a name="__line196"></a>        <span class=comment>// Remove the given file from the list of output files</span>
+<a name="__line197"></a>        static void remove_file(logger::file *ptr) 
+<a name="__line198"></a>            { 
+<a name="__line199"></a>                for(int i=0; i&lt;files_().size(); ++i)
+<a name="__line200"></a>                {
+<a name="__line201"></a>                    if(files_()[i].get()==ptr)
+<a name="__line202"></a>                    {
+<a name="__line203"></a>                        files_().erase(files_().begin()+i);
+<a name="__line204"></a>                        break;
+<a name="__line205"></a>                    }
+<a name="__line206"></a>                }
+<a name="__line207"></a>
+<a name="__line208"></a>            }
+<a name="__line209"></a>        static void remove_html(logger::html *ptr) 
+<a name="__line210"></a>            { 
+<a name="__line211"></a>                for(int i=0; i&lt;htmls_().size(); ++i)
+<a name="__line212"></a>                {
+<a name="__line213"></a>                    if(htmls_()[i].get()==ptr)
+<a name="__line214"></a>                    {
+<a name="__line215"></a>                        htmls_().erase(htmls_().begin()+i);
+<a name="__line216"></a>                        break;
+<a name="__line217"></a>                    }
+<a name="__line218"></a>                }
+<a name="__line219"></a>
+<a name="__line220"></a>            }
+<a name="__line221"></a>
+<a name="__line222"></a>        class format_setter
+<a name="__line223"></a>        {
+<a name="__line224"></a></span><span class=private>        private:
+<a name="__line225"></a>            std::string console_set_, html_set_;
+<a name="__line226"></a>            friend class logger;
+<a name="__line227"></a>            int n_ = 0;
+<a name="__line228"></a>            int max_ = 0;
+<a name="__line229"></a></span><span class=public>        public:
+<a name="__line230"></a>            format_setter(const std::string &amp;console_set, const std::string &amp;html_set)
+<a name="__line231"></a>                : console_set_(console_set), html_set_(html_set) {}
+<a name="__line232"></a>            format_setter operator()(int max)
+<a name="__line233"></a>                {
+<a name="__line234"></a>                    format_setter result(*this);
+<a name="__line235"></a>                    result.max_ = max;
+<a name="__line236"></a>                    return result;
+<a name="__line237"></a>                }
+<a name="__line238"></a>        };
+<a name="__line239"></a>
+<a name="__line240"></a>        class format_resetter
+<a name="__line241"></a>        {
+<a name="__line242"></a>        };
+<a name="__line243"></a>
+<a name="__line244"></a></span><span class=private>    private:
+<a name="__line245"></a>        std::vector&lt;format_setter&gt; format_setters_;
+<a name="__line246"></a>    
+<a name="__line247"></a></span><span class=public>    public:
+<a name="__line248"></a>
+<a name="__line249"></a>        class option
+<a name="__line250"></a>        {
+<a name="__line251"></a></span><span class=public>        public:
+<a name="__line252"></a>            unsigned int flag = 0;
+<a name="__line253"></a>            option(unsigned int f) : flag(f) {}
+<a name="__line254"></a>        };
+<a name="__line255"></a>        static option one_line, silent;
+<a name="__line256"></a>    
+<a name="__line257"></a>
+<a name="__line258"></a>        static format_setter black;
+<a name="__line259"></a>        static format_setter red;
+<a name="__line260"></a>        static format_setter orange;
+<a name="__line261"></a>        static format_setter green;
+<a name="__line262"></a>        static format_setter yellow;
+<a name="__line263"></a>        static format_setter blue;
+<a name="__line264"></a>        static format_setter magenta;
+<a name="__line265"></a>        static format_setter cyan;
+<a name="__line266"></a>        static format_setter white;
+<a name="__line267"></a>
+<a name="__line268"></a>        static format_setter black_bg;
+<a name="__line269"></a>        static format_setter red_bg;
+<a name="__line270"></a>        static format_setter green_bg;
+<a name="__line271"></a>        static format_setter yellow_bg;
+<a name="__line272"></a>        static format_setter blue_bg;
+<a name="__line273"></a>        static format_setter magenta_bg;
+<a name="__line274"></a>        static format_setter cyan_bg;
+<a name="__line275"></a>        static format_setter white_bg;
+<a name="__line276"></a>
+<a name="__line277"></a>        static format_setter bold;
+<a name="__line278"></a><span class=comment>//    static format_setter italic;  // doesn't seem to work in WSL at least</span>
+<a name="__line279"></a>        static format_setter underline;
+<a name="__line280"></a>
+<a name="__line281"></a>        static format_resetter reset;
+<a name="__line282"></a>
+<a name="__line283"></a>        logger &amp;operator&lt;&lt;(const format_setter &amp;f);
+<a name="__line284"></a>        logger &amp;operator&lt;&lt;(const format_resetter &amp;r);
+<a name="__line285"></a>
+<a name="__line286"></a>        <span class=comment>// Create a logger instance that does not print any header, only increases the indentation level for its lifetime</span>
+<a name="__line287"></a>        logger() : name_("") { init_(); }
+<a name="__line288"></a>
+<a name="__line289"></a>        <span class=comment>// A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated</span>
+<a name="__line290"></a>        <span class=comment>// to give the header line of this logger instance</span>
+<a name="__line291"></a>        template&lt;typename... Args&gt;
+<a name="__line292"></a>        requires (sizeof...(Args) &gt; 0 &amp;&amp; !(std::same_as&lt;std::decay_t&lt;Args&gt;, blop::logger::option&gt; || ...))
+<a name="__line293"></a>        logger(Args&amp;&amp;... args)
+<a name="__line294"></a>            {
+<a name="__line295"></a>                std::ostringstream oss;
+<a name="__line296"></a>                (oss &lt;&lt; ... &lt;&lt; std::forward&lt;Args&gt;(args)); <span class=comment>// Fold expression over operator&lt;&lt;</span>
+<a name="__line297"></a>                name_ = oss.str();
+<a name="__line298"></a>                init_();
+<a name="__line299"></a>            }        
+<a name="__line300"></a>
+<a name="__line301"></a>        <span class=comment>// A constructor with an arbitrary number and type of arguments (except logger::option), which are concatenated</span>
+<a name="__line302"></a>        <span class=comment>// to give the header line of this logger instance, and a final logger::option argument (logger::silent, logger::one_line or</span>
+<a name="__line303"></a>        <span class=comment>// logger::silent|logger::one_line) which controls is behavior</span>
+<a name="__line304"></a>        template&lt;typename... Args&gt;
+<a name="__line305"></a>        requires (sizeof...(Args) &gt; 0 &amp;&amp; !(std::same_as&lt;std::decay_t&lt;Args&gt;, blop::logger::option&gt; || ...))
+<a name="__line306"></a>        logger(logger::option opt, Args&amp;&amp;... args) : flag_(opt.flag)
+<a name="__line307"></a>            {
+<a name="__line308"></a>                std::ostringstream oss;
+<a name="__line309"></a>                (oss &lt;&lt; ... &lt;&lt; std::forward&lt;Args&gt;(args)); <span class=comment>// Fold expression over operator&lt;&lt;</span>
+<a name="__line310"></a>                name_ = oss.str();
+<a name="__line311"></a>                init_();
+<a name="__line312"></a>            }        
+<a name="__line313"></a>
+<a name="__line314"></a>        
+<a name="__line315"></a>        ~logger();
+<a name="__line316"></a>
+<a name="__line317"></a>        static void newline();
+<a name="__line318"></a>
+<a name="__line319"></a>        <span class=comment>// Open a plain text log file (it will still contain formatting ASCII commands so</span>
+<a name="__line320"></a>        <span class=comment>// we recommend viewing it with "less -R"</span>
+<a name="__line321"></a>        <span class=comment>// Send subsequent input into that file as well</span>
+<a name="__line322"></a>        <span class=comment>// The text file is valid and can be viewed during the process for monitoring.</span>
+<a name="__line323"></a>        static void open_file(const std::filesystem::path &amp;filename) { add_file(file::make_shared(filename)); }
+<a name="__line324"></a>
+<a name="__line325"></a>        <span class=comment>// Close the last output file created by file::make_shared (i.e. not a local variable on the stack)</span>
+<a name="__line326"></a>        static void close_file();
+<a name="__line327"></a>
+<a name="__line328"></a>        <span class=comment>// Open a structured, interactive (collapsible/expandable) html output file, send</span>
+<a name="__line329"></a>        <span class=comment>// subsequent input into that file as well.</span>
+<a name="__line330"></a>        <span class=comment>// The html file is structured, and is not complete (valid) before it is fully created</span>
+<a name="__line331"></a>        <span class=comment>// and closed, so you can not open/view it before</span>
+<a name="__line332"></a>        <span class=comment>// This function (the starting of the structured html file) will badly interfere with the structured</span>
+<a name="__line333"></a>        <span class=comment>// log output if this function is not called before any output. So call it at the beginning of your code,</span>
+<a name="__line334"></a>        <span class=comment>// before any log output (this is anyway the most realistic case)</span>
+<a name="__line335"></a>        static void open_html(const std::filesystem::path &amp;filename) { add_html(html::make_shared(filename)); }
+<a name="__line336"></a>
+<a name="__line337"></a>        static void close_html();
+<a name="__line338"></a>
+<a name="__line339"></a>        <span class=comment>// Open both a text and a html output. Provide the name without extension.</span>
+<a name="__line340"></a>        static void open(const std::filesystem::path &amp;basename) { open_file(basename.string() + ".txt"); open_html(basename.string() + ".html"); }
+<a name="__line341"></a>        static void close() { close_file(); close_html(); }
+<a name="__line342"></a>
+<a name="__line343"></a>        <span class=comment>// Print indentation to the streams corresponding to the actual indentation level ,</span>
+<a name="__line344"></a>        <span class=comment>// and return a reference to the global topmost logger instance so that subsequent &lt;&lt; operations appear indented</span>
+<a name="__line345"></a>        <span class=comment>// This can be used to emit messages at the actual indentation level without having a local logger instance</span>
+<a name="__line346"></a>        <span class=comment>// logger::indent()&lt;&lt;"This text appears indented at the actual level"&lt;&lt;endl;</span>
+<a name="__line347"></a>        static logger &amp;indent(unsigned int level=level_);
+<a name="__line348"></a>
+<a name="__line349"></a>        <span class=comment>// Return reference to the global topmost logger instance. Following operations by &lt;&lt; appear unindented:</span>
+<a name="__line350"></a>        <span class=comment>// logger::top()&lt;&lt;"Unindented text starting at the beginning of the line"&lt;&lt;endl;</span>
+<a name="__line351"></a>        static logger &amp;top(); 
+<a name="__line352"></a>
+<a name="__line353"></a>        template &lt;typename T&gt;
+<a name="__line354"></a>        logger &amp;operator&lt;&lt;(const T &amp;t)
+<a name="__line355"></a>            {
+<a name="__line356"></a>                <span class=comment>//if(silent_ &amp;&amp; !had_messages_)</span>
+<a name="__line357"></a>                <span class=comment>// If we are silent (i.e. header is not printed upon creation by the constructor) and we had</span>
+<a name="__line358"></a>                <span class=comment>// no messages so far (so the header was really not printed), then print the header</span>
+<a name="__line359"></a>                if((flag_&amp;silent.flag) &amp;&amp; !had_messages_)
+<a name="__line360"></a>                {
+<a name="__line361"></a>                    std::cerr&lt;&lt;"\e[0m";  <span class=comment>// reset the format</span>
+<a name="__line362"></a>                    <span class=comment>// Print the indentation</span>
+<a name="__line363"></a>                    for(unsigned int i=0; i&lt;my_level_-1; ++i)
+<a name="__line364"></a>                    {
+<a name="__line365"></a>                        std::cerr&lt;&lt;"   ";
+<a name="__line366"></a>                        for(auto f : files_()) f-&gt;stream()&lt;&lt;"  ";
+<a name="__line367"></a>                    }
+<a name="__line368"></a>                    <span class=comment>// print the header</span>
+<a name="__line369"></a>                    if(flag_&amp;one_line.flag)
+<a name="__line370"></a>                    {
+<a name="__line371"></a>                        std::cerr&lt;&lt;name_&lt;&lt;"... ";
+<a name="__line372"></a>                        for(auto f : files_()) f-&gt;stream()&lt;&lt;name_&lt;&lt;"... ";
+<a name="__line373"></a>                    }
+<a name="__line374"></a>                    else
+<a name="__line375"></a>                    {
+<a name="__line376"></a>                        std::cerr&lt;&lt;"&gt;&gt; "&lt;&lt;name_&lt;&lt;" started"&lt;&lt;std::endl;
+<a name="__line377"></a>                        for(auto f : files_()) f-&gt;stream()&lt;&lt;"&gt;&gt; "&lt;&lt;name_&lt;&lt;" started"&lt;&lt;std::endl;
+<a name="__line378"></a>                    }
+<a name="__line379"></a>                    for(auto h : htmls_())
+<a name="__line380"></a>                    {
+<a name="__line381"></a>                        h-&gt;stream()&lt;&lt;"&lt;div class='expandable'&gt;&lt;div class='header'&gt;"&lt;&lt;name_;
+<a name="__line382"></a>                        h-&gt;stream()&lt;&lt;"&lt;div class='expandbutton'&gt;"&lt;&lt;expand_&lt;&lt;"&lt;/div&gt; &lt;div class='collapsebutton'&gt;"&lt;&lt;collapse_&lt;&lt;"&lt;/div&gt;&lt;/div&gt;";
+<a name="__line383"></a>                        h-&gt;stream()&lt;&lt;"&lt;div class='content'&gt;"&lt;&lt;std::endl;
+<a name="__line384"></a>                    }
+<a name="__line385"></a>                }
+<a name="__line386"></a>                had_messages_ = true;
+<a name="__line387"></a>
+<a name="__line388"></a>                if(!indented_)
+<a name="__line389"></a>                {
+<a name="__line390"></a>                    indent(my_level_);
+<a name="__line391"></a>                    indented_ = true;
+<a name="__line392"></a>                }
+<a name="__line393"></a>                std::cerr&lt;&lt;t;
+<a name="__line394"></a>                for(auto f : files_()) f-&gt;stream()&lt;&lt;t;
+<a name="__line395"></a>                for(auto h : htmls_()) write_escaped(h-&gt;stream(),t);
+<a name="__line396"></a>
+<a name="__line397"></a>                <span class=comment>// Increment the number of calls for all setters</span>
+<a name="__line398"></a>                for(auto &amp;f : format_setters_) ++f.n_;
+<a name="__line399"></a>
+<a name="__line400"></a>                <span class=comment>// From the top of the stack, check which format has been called the specified amount of times</span>
+<a name="__line401"></a>                <span class=comment>// and remove it</span>
+<a name="__line402"></a>                bool removed_format = false;
+<a name="__line403"></a>                while(!format_setters_.empty() &amp;&amp; format_setters_.back().max_ &gt; 0 &amp;&amp; format_setters_.back().n_ &gt;= format_setters_.back().max_)
+<a name="__line404"></a>                {
+<a name="__line405"></a>                    for(auto h : htmls_()) h-&gt;stream()&lt;&lt;"&lt;/span&gt;";
+<a name="__line406"></a>                    format_setters_.pop_back();
+<a name="__line407"></a>                    removed_format = true;
+<a name="__line408"></a>                }
+<a name="__line409"></a>                if(removed_format)
+<a name="__line410"></a>                {
+<a name="__line411"></a>                    std::cerr&lt;&lt;"\e[0m";  <span class=comment>// Reset</span>
+<a name="__line412"></a>                    for(const auto &amp;f : format_setters_) std::cerr&lt;&lt;f.console_set_;  <span class=comment>// reapply the remaining formats</span>
+<a name="__line413"></a>                }
+<a name="__line414"></a>                return *this;
+<a name="__line415"></a>            }
+<a name="__line416"></a>
+<a name="__line417"></a>        logger &amp;operator&lt;&lt;(std::ostream&amp; (*manip)(std::ostream&amp;)) 
+<a name="__line418"></a>            {
+<a name="__line419"></a>                if (manip == static_cast&lt;std::ostream&amp; (*)(std::ostream&amp;)&gt;(std::endl)) 
+<a name="__line420"></a>                {
+<a name="__line421"></a>                    indented_ = false;
+<a name="__line422"></a>                    for(auto h : htmls_()) h-&gt;stream()&lt;&lt;"&lt;br&gt;"&lt;&lt;std::endl;
+<a name="__line423"></a>                } 
+<a name="__line424"></a>                std::cerr&lt;&lt;manip;
+<a name="__line425"></a>                for(auto f : files_()) f-&gt;stream()&lt;&lt;manip;
+<a name="__line426"></a>                return *this;
+<a name="__line427"></a>            }    
+<a name="__line428"></a>
+<a name="__line429"></a>        static void print() {}
+<a name="__line430"></a>    
+<a name="__line431"></a>        <span class=comment>// Recursive case</span>
+<a name="__line432"></a>        template &lt;typename T, typename... Args&gt;
+<a name="__line433"></a>        static void print(T first, Args... rest) 
+<a name="__line434"></a>            {
+<a name="__line435"></a>                std::cerr&lt;&lt;first;
+<a name="__line436"></a>                for(auto f : files_()) f-&gt;stream()&lt;&lt;first;
+<a name="__line437"></a>                print(rest...);
+<a name="__line438"></a>            }    
+<a name="__line439"></a>
+<a name="__line440"></a>        <span class=comment>// Utility class to redirect the logger's output to a given file (as well), and automatically close this file</span>
+<a name="__line441"></a>        <span class=comment>// when its scope exists. </span>
+<a name="__line442"></a>        <span class=comment>// Use it within a code block as follows:</span>
+<a name="__line443"></a>        <span class=comment>// {</span>
+<a name="__line444"></a>        <span class=comment>//   logger::file logger_redirector("my-log.txt");</span>
+<a name="__line445"></a>        <span class=comment>//   ... your code comes here, with log redirected into the file (besides being shown on the terminal)</span>
+<a name="__line446"></a>        <span class=comment>// } // local variable goes out of scope and gets deleted, closing the output files</span>
+<a name="__line447"></a>
+<a name="__line448"></a>        <span class=comment>/*
+<a name="__line449"></a>        class file
+<a name="__line450"></a>        {
+<a name="__line451"></a>        public:
+<a name="__line452"></a>            file(const std::filesystem::path &amp;filename) {logger::open_file(filename);}
+<a name="__line453"></a>            ~file() {logger::close_file();}
+<a name="__line454"></a>        };
+<a name="__line455"></a>        */</span>
+<a name="__line456"></a><span class=comment>/*
+<a name="__line457"></a>        class html
+<a name="__line458"></a>        {
+<a name="__line459"></a>        public:
+<a name="__line460"></a>            html(const std::filesystem::path &amp;filename) {logger::open_html(filename);}
+<a name="__line461"></a>            ~html() {logger::close_html();}
+<a name="__line462"></a>        };
+<a name="__line463"></a>*/</span>
+<a name="__line464"></a>    };
+<a name="__line465"></a>
+<a name="__line466"></a>    <span class=comment>// bitwise OR operator to concatenate several options</span>
+<a name="__line467"></a>    inline logger::option operator| (logger::option o1, logger::option o2)
+<a name="__line468"></a>    {
+<a name="__line469"></a>        return o1.flag|o2.flag;
+<a name="__line470"></a>    }
+<a name="__line471"></a>
+<a name="__line472"></a>}
+<a name="__line473"></a>
+<a name="__line474"></a>
+<a name="__line475"></a>#endif
+</span>
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

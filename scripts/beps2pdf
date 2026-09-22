@@ -147,7 +147,7 @@ else
        BBCorrected = 1;                                                                          
     }                                                                                            
     else { print }                                                                               
-  }' $tmp1  | gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$outputfile -
+  }' $tmp1  | gs -dALLOWPSTRANSPARENCY -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$outputfile -
   epstopdf_code=$?
 fi
 

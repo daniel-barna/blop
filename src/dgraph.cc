@@ -8,6 +8,7 @@
 #include "warning.h"
 #include "bloputils.h"
 #include "ignore.h"
+#include "logger.h"
 
 namespace blop
 {
@@ -103,7 +104,9 @@ namespace blop
     std::string dgraph::default_comment_chars_ = "#%";
     bool dgraph::default_autotitles_ = true;
     length dgraph::default_pointsize_ = PS; //(new length::base_id_t(terminal::PS));
-    point_drawer *dgraph::default_point_drawer_ = new autopoint;
+
+//    point_drawer *dgraph::default_point_drawer_ = new autopoint;
+
     color dgraph::default_pointcolor_(0,0,0);
     color dgraph::default_linecolor_(0,0,0);
     length dgraph::default_linewidth_ = LW; //(new length::base_id_t(terminal::LW));
@@ -113,21 +116,28 @@ namespace blop
     color dgraph::default_legendcolor_(0,0,0);
     bool dgraph::falsecondition_break_ = true;
 
-    graph_drawer* &dgraph::default_graph_drawer_()
-    {
-	static graph_drawer *d = new points;
-	return d;
-    }
     var dgraph::default_legend_ = "%f %C";
 
     void dgraph::default_comment_chars(const std::string &s) { default_comment_chars_ = s; }
     void dgraph::default_pointsize(length l) { default_pointsize_ = l; }
+
+    smartptr<point_drawer> &dgraph::default_pointtype()
+    {
+        static smartptr<point_drawer> p = autopoint::create();
+        return p;
+    }
     void dgraph::default_pointtype(const point_drawer &p)
     {
-	delete default_point_drawer_;
-	if(dynamic_cast<const autopoint *>(&p)) default_point_drawer_ = new autopoint();
-	else default_point_drawer_ = p.clone();
+//	delete default_point_drawer_;
+//	if(dynamic_cast<const autopoint *>(&p)) default_point_drawer_ = new autopoint();
+//	else default_point_drawer_ = p.clone();
+        default_pointtype() = p.clone();
     }
+    void dgraph::default_pointtype(smartptr<point_drawer> p)
+    {
+        default_pointtype() = p->clone();
+    }
+
     void dgraph::default_pointcolor(const color &c) { default_pointcolor_ = c; }
     void dgraph::default_linecolor(const color &c) { default_linecolor_ = c; }
     void dgraph::default_linewidth(length l) { default_linewidth_ = l; }
@@ -135,11 +145,25 @@ namespace blop
     void dgraph::default_fillcolor(const color &c) { default_fillcolor_ = c; }
     void dgraph::default_fill(bool f) { default_fill_ = f; }
     void dgraph::default_legendcolor(const color &c) { default_legendcolor_ = c; }
+
+
+    smartptr<graph_drawer> &dgraph::default_drawstyle()
+    {
+	static smartptr<graph_drawer> d = points::create();
+	return d;
+    }
     void dgraph::default_drawstyle(const graph_drawer &d)
     {
-	delete default_graph_drawer_();
-	default_graph_drawer_() = d.clone();
+//	delete default_graph_drawer_();
+        default_drawstyle() = d.clone();
     }
+    void dgraph::default_drawstyle(smartptr<graph_drawer> d)
+    {
+//	delete default_graph_drawer_();
+        default_drawstyle() = d->clone();
+    }
+
+
     void dgraph::default_legend(const var &l) { default_legend_ = l.str(); }
 
     graph &dgraph::smooth(int col_index, double weight1, double weight2, double weight3)
@@ -210,7 +234,8 @@ namespace blop
 	autotitles_ = default_autotitles_;
 	title_hints_latex_ = false;
 	pointsize(default_pointsize_);
-	pointtype(*default_point_drawer_);
+//	pointtype(*default_point_drawer_);
+        pointtype(default_pointtype());
 	pointcolor(default_pointcolor_);
 	linecolor(default_linecolor_);
 	linewidth(default_linewidth_);
@@ -218,7 +243,8 @@ namespace blop
 	fillcolor(default_fillcolor_);
 	fill(default_fill_);
 	legendcolor(default_legendcolor_);
-	drawstyle(*default_graph_drawer_());
+//	drawstyle(*default_graph_drawer_());
+        drawstyle(default_drawstyle());
         comment_chars_ = default_comment_chars_;
     }
 
@@ -751,7 +777,7 @@ namespace blop
 	return colors[index%7];
     }
 
-    point_drawer *sequential_point(var p, bool all = true)
+    smartptr<point_drawer> sequential_point(var p, bool all = true)
     {
 	const char *names_all[14] = {"circle","fcircle",
 				     "square","fsquare",
@@ -773,34 +799,31 @@ namespace blop
 	    int index = (int)(p.dbl()+1.0);
 	    p = (all?names_all[index%14]:names_empty[index%8]);
 	}
-	if(p.str() == "circle") return new circle;
-	if(p.str() == "fcircle") return new fcircle;
-	if(p.str() == "square") return new square;
-	if(p.str() == "fsquare") return new fsquare;
-	if(p.str() == "triangle") return new triangle;
-	if(p.str() == "ftriangle") return new ftriangle;
-	if(p.str() == "triangledown") return new triangledown;
-	if(p.str() == "ftriangledown") return new ftriangledown;
-	if(p.str() == "diamond") return new diamond;
-	if(p.str() == "fdiamond") return new fdiamond;
-	if(p.str() == "star4") return new star4;
-	if(p.str() == "fstar4") return new fstar4;
-	if(p.str() == "cross") return new cross;
-	if(p.str() == "plus") return new blop::plus;
+	if(p.str() == "circle") return circle::create();;
+	if(p.str() == "fcircle") return fcircle::create();
+	if(p.str() == "square") return square::create();
+	if(p.str() == "fsquare") return fsquare::create();
+	if(p.str() == "triangle") return triangle::create();
+	if(p.str() == "ftriangle") return ftriangle::create();
+	if(p.str() == "triangledown") return triangledown::create();
+	if(p.str() == "ftriangledown") return ftriangledown::create();
+	if(p.str() == "diamond") return diamond::create();
+	if(p.str() == "fdiamond") return fdiamond::create();
+	if(p.str() == "star4") return star4::create();
+	if(p.str() == "fstar4") return fstar4::create();
+	if(p.str() == "cross") return cross::create();
+	if(p.str() == "plus") return blop::plus::create();
 	cerr<<"This should never happen!"<<endl;
-	return new circle;
+	return circle::create();
     }
 
-    void dgraph::prepare_for_draw(axis *xaxis,axis *yaxis, frame *f, int count)
+    void dgraph::prepare_for_draw(smartptr<axis> xaxis, smartptr<axis> yaxis, smartptr<frame> f, int count)
     {
-	graph::prepare_for_draw(xaxis,yaxis,f, count);
+	graph::prepare_for_draw(xaxis, yaxis, f, count);
 
 	if(count != 1) return;
 
-	if(!autotitles_ || title_hints_.empty())
-	{
-	    return;
-	}
+	if(!autotitles_ || title_hints_.empty()) return;
 
 	const function x = graph_drawer_->get_x(this);
 	const function y = graph_drawer_->get_y(this);
@@ -880,9 +903,7 @@ namespace blop
 	    {
 		the_graph = the_map[the_grouping_value.str()] = new dgraph;
 		the_graph->legend(the_grouping_value);
-		point_drawer *pt = sequential_point(index);
-		the_graph->pointtype(*pt);
-		delete pt;
+		the_graph->pointtype(sequential_point(index));
 		the_graph->allcolor(sequential_color(index));
 		++index;
 	    }
@@ -1433,18 +1454,18 @@ namespace blop
         return *this;
     }
 
-    dgraph *dgraph::filter(const blop::function &filt)
+    smartptr<dgraph> dgraph::filter(const blop::function &filt)
     {
-        dgraph *result = new dgraph;
+        auto result = dgraph::create();
         for(unsigned int i=0; i<size(); ++i)
         {
             if(filt.eval((*this)[i])) result->add((*this)[i]);
         }
         return result;
     }
-    dgraph *dgraph::filter(const blop::function &filt, const blop::function &trans)
+    smartptr<dgraph> dgraph::filter(const blop::function &filt, const blop::function &trans)
     {
-        dgraph *result = new dgraph;
+        auto result = dgraph::create();
         std::vector<var> out;
         for(unsigned int i=0; i<size(); ++i)
         {
@@ -1456,7 +1477,6 @@ namespace blop
         }
         return result;
     }
-
 }
 
 

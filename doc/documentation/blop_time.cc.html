@@ -16,69 +16,185 @@
  <hr>
 <pre>
 <a name="__line0"></a>#include "<a href="blop_time.hh.html">blop_time.hh</a>"
-<a name="__line1"></a>#include &lt;cstdio&gt;
-<a name="__line2"></a>
-<a name="__line3"></a>using namespace std;
-<a name="__line4"></a>
-<a name="__line5"></a>namespace blop
-<a name="__line6"></a>{
+<a name="__line1"></a>#include "<a href="warning.h.html">warning.h</a>"
+<a name="__line2"></a>#include &lt;cstdio&gt;
+<a name="__line3"></a>#include &lt;iomanip&gt;
+<a name="__line4"></a>#include &lt;sstream&gt;
+<a name="__line5"></a>#include &lt;cmath&gt;
+<a name="__line6"></a>#include &lt;cstring&gt;
 <a name="__line7"></a>
-<a name="__line8"></a>chrono::system_clock::time_point date2timepoint(int year, int mon, int day, int hour, int min, int sec)
-<a name="__line9"></a>{
-<a name="__line10"></a>   struct std::tm t;
-<a name="__line11"></a>   t.tm_sec = sec;        <span class=comment>// second of minute (0 .. 59 and 60 for leap seconds)</span>
-<a name="__line12"></a>   t.tm_min = min;        <span class=comment>// minute of hour (0 .. 59)</span>
-<a name="__line13"></a>   t.tm_hour = hour;      <span class=comment>// hour of day (0 .. 23)</span>
-<a name="__line14"></a>   t.tm_mday = day;       <span class=comment>// day of month (0 .. 31)</span>
-<a name="__line15"></a>   t.tm_mon = mon-1;      <span class=comment>// month of year (0 .. 11)</span>
-<a name="__line16"></a>   t.tm_year = year-1900; <span class=comment>// year since 1900</span>
-<a name="__line17"></a>   t.tm_isdst = 0;       <span class=comment>// no daylight saving time</span>
-<a name="__line18"></a>   std::time_t tt = std::mktime(&amp;t);
-<a name="__line19"></a>   if (tt == -1) {
-<a name="__line20"></a>       throw "no valid system time";
-<a name="__line21"></a>   }
-<a name="__line22"></a>   return std::chrono::system_clock::from_time_t(tt);
-<a name="__line23"></a>}
-<a name="__line24"></a>
-<a name="__line25"></a>chrono::system_clock::time_point date2timepoint(const var &amp;datestr, const var &amp;format)
-<a name="__line26"></a>{
-<a name="__line27"></a>    int values[7];
-<a name="__line28"></a>    for(int i=0; i&lt;7; ++i) values[i] = 0;
-<a name="__line29"></a>    int year_index=6;
-<a name="__line30"></a>    int month_index=6;
-<a name="__line31"></a>    int day_index=6;
-<a name="__line32"></a>    int hour_index=6;
-<a name="__line33"></a>    int minute_index=6;
-<a name="__line34"></a>    int second_index=6;
-<a name="__line35"></a>
-<a name="__line36"></a>    int index=0;
-<a name="__line37"></a>    string sscanf_format="";
-<a name="__line38"></a>    for(unsigned int i=0; i&lt;format.size(); ++i)
-<a name="__line39"></a>    {
-<a name="__line40"></a>        if(format[i]=='%')
-<a name="__line41"></a>        {
-<a name="__line42"></a>            if(i+1&lt;format.size())
-<a name="__line43"></a>            {
-<a name="__line44"></a>                if(format[i+1]=='y')      { year_index=index++;   sscanf_format += "%d"; ++i; }
-<a name="__line45"></a>                else if(format[i+1]=='m') { month_index=index++;  sscanf_format += "%d"; ++i; }
-<a name="__line46"></a>                else if(format[i+1]=='d') { day_index=index++;    sscanf_format += "%d"; ++i; }
-<a name="__line47"></a>                else if(format[i+1]=='H') { hour_index=index++;   sscanf_format += "%d"; ++i; }
-<a name="__line48"></a>                else if(format[i+1]=='M') { minute_index=index++; sscanf_format += "%d"; ++i; }
-<a name="__line49"></a>                else if(format[i+1]=='S') { second_index=index++; sscanf_format += "%d"; ++i; }
-<a name="__line50"></a>                else if(format[i+1]=='%') { sscanf_format += "%%"; ++i; }
-<a name="__line51"></a>                <span class=comment>//else warning::print("Non-allowed specifier in format string");</span>
-<a name="__line52"></a>            }
-<a name="__line53"></a>            <span class=comment>//else warning::print("Trailing % in format");</span>
-<a name="__line54"></a>        }
-<a name="__line55"></a>        else sscanf_format += format[i];
-<a name="__line56"></a>    }
-<a name="__line57"></a>
-<a name="__line58"></a>    sscanf(datestr.c_str(),sscanf_format.c_str(),values+0, values+1, values+2, values+3, values+4, values+5);
-<a name="__line59"></a>
-<a name="__line60"></a>    return date2timepoint(values[year_index], values[month_index], values[day_index], values[hour_index], values[minute_index], values[second_index]);
-<a name="__line61"></a>}
-<a name="__line62"></a>
-<a name="__line63"></a>}
+<a name="__line8"></a>using namespace std;
+<a name="__line9"></a>
+<a name="__line10"></a>namespace blop
+<a name="__line11"></a>{
+<a name="__line12"></a>    namespace time
+<a name="__line13"></a>    {
+<a name="__line14"></a>        double date2epoch(const var &amp;datetime, const var &amp;format)
+<a name="__line15"></a>        {
+<a name="__line16"></a><span class=comment>/*
+<a name="__line17"></a>            std::tm tm{};
+<a name="__line18"></a>            
+<a name="__line19"></a>            std::istringstream is(datetime.str());
+<a name="__line20"></a>
+<a name="__line21"></a>            is &gt;&gt; std::get_time(&amp;tm, format.c_str());
+<a name="__line22"></a>            
+<a name="__line23"></a>            if (is.fail()) warning::print(var("Failed to parse date '") &amp; datetime &amp; "'");
+<a name="__line24"></a>            
+<a name="__line25"></a>            std::chrono::year_month_day ymd{
+<a name="__line26"></a>                std::chrono::year{tm.tm_year + 1900},
+<a name="__line27"></a>                std::chrono::month{static_cast&lt;unsigned&gt;(tm.tm_mon + 1)},
+<a name="__line28"></a>                std::chrono::day{static_cast&lt;unsigned&gt;(tm.tm_mday)}
+<a name="__line29"></a>            };
+<a name="__line30"></a>            
+<a name="__line31"></a>            std::chrono::sys_days days{ymd};
+<a name="__line32"></a>            
+<a name="__line33"></a>            auto tp =
+<a name="__line34"></a>                days
+<a name="__line35"></a>                + std::chrono::hours{tm.tm_hour}
+<a name="__line36"></a>                + std::chrono::minutes{tm.tm_min}
+<a name="__line37"></a>                + std::chrono::seconds{tm.tm_sec};
+<a name="__line38"></a>            
+<a name="__line39"></a>            return duration_cast&lt;std::chrono::seconds&gt;(tp.time_since_epoch()).count();
+<a name="__line40"></a>*/</span>
+<a name="__line41"></a>
+<a name="__line42"></a>            int year, month, day, hour, minute;
+<a name="__line43"></a>            double second;
+<a name="__line44"></a>
+<a name="__line45"></a>            void *ptr[6] = {0,0,0,0,0,0};
+<a name="__line46"></a>
+<a name="__line47"></a>            int index=0;
+<a name="__line48"></a>            string sscanf_format="";
+<a name="__line49"></a>            for(unsigned int i=0; i&lt;format.size(); ++i)
+<a name="__line50"></a>            {
+<a name="__line51"></a>                if(format[i]=='%')
+<a name="__line52"></a>                {
+<a name="__line53"></a>                    if(i+1&lt;format.size())
+<a name="__line54"></a>                    {
+<a name="__line55"></a>                        if(format[i+1]=='Y')      { if(index&lt;6) { ptr[index++] = &amp;year;   sscanf_format += "%d"; } ++i; }
+<a name="__line56"></a>                        else if(format[i+1]=='m') { if(index&lt;6) { ptr[index++] = &amp;month;  sscanf_format += "%d"; } ++i; }
+<a name="__line57"></a>                        else if(format[i+1]=='d') { if(index&lt;6) { ptr[index++] = &amp;day;    sscanf_format += "%d"; } ++i; }
+<a name="__line58"></a>                        else if(format[i+1]=='H') { if(index&lt;6) { ptr[index++] = &amp;hour;   sscanf_format += "%d"; } ++i; }
+<a name="__line59"></a>                        else if(format[i+1]=='M') { if(index&lt;6) { ptr[index++] = &amp;minute; sscanf_format += "%d"; } ++i; }
+<a name="__line60"></a>                        else if(format[i+1]=='S') { if(index&lt;6) { ptr[index++] = &amp;second; sscanf_format += "%lf"; } ++i; }
+<a name="__line61"></a>                        else if(format[i+1]=='%') { sscanf_format += "%%"; ++i; }
+<a name="__line62"></a>                        <span class=comment>//else warning::print("Non-allowed specifier in format string");</span>
+<a name="__line63"></a>                    }
+<a name="__line64"></a>                    <span class=comment>//else warning::print("Trailing % in format");</span>
+<a name="__line65"></a>                }
+<a name="__line66"></a>                else sscanf_format += format[i];
+<a name="__line67"></a>            }
+<a name="__line68"></a>            sscanf(datetime.c_str(),sscanf_format.c_str(),ptr[0],ptr[1],ptr[2],ptr[3],ptr[4],ptr[5]);
+<a name="__line69"></a>
+<a name="__line70"></a>            int ns = round((second-std::floor(second))*1e9);
+<a name="__line71"></a>
+<a name="__line72"></a>            std::chrono::year_month_day ymd{
+<a name="__line73"></a>                std::chrono::year{year},
+<a name="__line74"></a>                std::chrono::month{month},
+<a name="__line75"></a>                std::chrono::day{day}
+<a name="__line76"></a>            };
+<a name="__line77"></a>            
+<a name="__line78"></a>            std::chrono::sys_days days{ymd};
+<a name="__line79"></a>
+<a name="__line80"></a>            auto tp =
+<a name="__line81"></a>                days
+<a name="__line82"></a>                + std::chrono::hours{hour}
+<a name="__line83"></a>                + std::chrono::minutes{minute}
+<a name="__line84"></a>                + std::chrono::seconds{(int)floor(second)}
+<a name="__line85"></a>                + std::chrono::nanoseconds{ns};
+<a name="__line86"></a>
+<a name="__line87"></a>            return std::chrono::duration&lt;double&gt;(tp.time_since_epoch()).count();
+<a name="__line88"></a>          
+<a name="__line89"></a><span class=comment>//            return duration_cast&lt;std::chrono::seconds&gt;(tp.time_since_epoch()).count();</span>
+<a name="__line90"></a>
+<a name="__line91"></a><span class=comment>//            return date2timepoint(values[year_index], values[month_index], values[day_index], values[hour_index], values[minute_index], values[second_index]);            </span>
+<a name="__line92"></a>
+<a name="__line93"></a>
+<a name="__line94"></a>        }
+<a name="__line95"></a>
+<a name="__line96"></a>        std::string epoch2date(double epoch_seconds, const var &amp;format)
+<a name="__line97"></a>        {
+<a name="__line98"></a>            const std::int64_t  seconds_int  = std::floor(epoch_seconds);
+<a name="__line99"></a>            const double        seconds_frac = epoch_seconds - seconds_int;
+<a name="__line100"></a>
+<a name="__line101"></a>
+<a name="__line102"></a>            <span class=comment>// This does not support fractional seconds</span>
+<a name="__line103"></a>            std::chrono::sys_seconds tp{std::chrono::seconds{seconds_int}};
+<a name="__line104"></a>            auto days = floor&lt;chrono::days&gt;(tp);
+<a name="__line105"></a>            std::chrono::year_month_day ymd{days};
+<a name="__line106"></a>            std::chrono::hh_mm_ss tod{tp - days};
+<a name="__line107"></a>
+<a name="__line108"></a>            std::tm tm{};
+<a name="__line109"></a>
+<a name="__line110"></a>            const int year  = int(ymd.year());
+<a name="__line111"></a>            const int month = unsigned(ymd.month());
+<a name="__line112"></a>            const int day   = unsigned(ymd.day());
+<a name="__line113"></a>            const int hour = int(tod.hours().count());
+<a name="__line114"></a>            const int min  = int(tod.minutes().count());
+<a name="__line115"></a>            const double sec = int(tod.seconds().count()) + seconds_frac;
+<a name="__line116"></a>
+<a name="__line117"></a>            <span class=comment>/*
+<a name="__line118"></a>            tm.tm_year = int(ymd.year()) - 1900;
+<a name="__line119"></a>            tm.tm_mon  = unsigned(ymd.month()) - 1;
+<a name="__line120"></a>            tm.tm_mday = unsigned(ymd.day());
+<a name="__line121"></a>            
+<a name="__line122"></a>            tm.tm_hour = int(tod.hours().count());
+<a name="__line123"></a>            tm.tm_min  = int(tod.minutes().count());
+<a name="__line124"></a>            tm.tm_sec  = int(tod.seconds().count());
+<a name="__line125"></a>            */</span>
+<a name="__line126"></a>
+<a name="__line127"></a>            std::string result;
+<a name="__line128"></a>            char tmp[30];
+<a name="__line129"></a>            for(unsigned int i=0; i&lt;format.size(); ++i)
+<a name="__line130"></a>            {
+<a name="__line131"></a>                if(format[i]=='%')
+<a name="__line132"></a>                {
+<a name="__line133"></a>                    if(i+1&lt;format.size())
+<a name="__line134"></a>                    {
+<a name="__line135"></a>                        if(format[i+1]=='Y')      {sprintf(tmp,"%4d",year);   result += tmp; ++i;}
+<a name="__line136"></a>                        else if(format[i+1]=='m') {sprintf(tmp,"%02d",month); result += tmp; ++i;}
+<a name="__line137"></a>                        else if(format[i+1]=='d') {sprintf(tmp,"%02d",day);   result += tmp; ++i;}
+<a name="__line138"></a>                        else if(format[i+1]=='H') {sprintf(tmp,"%02d",hour);  result += tmp; ++i;}
+<a name="__line139"></a>                        else if(format[i+1]=='M') {sprintf(tmp,"%02d",min);   result += tmp; ++i;}
+<a name="__line140"></a>                        else if(format[i+1]=='S') 
+<a name="__line141"></a>                        {
+<a name="__line142"></a>                            if(seconds_frac&gt;=0.9999e-9) 
+<a name="__line143"></a>                            {
+<a name="__line144"></a>                                sprintf(tmp,"%.9f",sec);
+<a name="__line145"></a>
+<a name="__line146"></a>                                <span class=comment>// Check if there is a decimal point</span>
+<a name="__line147"></a>                                auto dot = strchr(tmp,'.');
+<a name="__line148"></a>
+<a name="__line149"></a>                                if(dot)
+<a name="__line150"></a>                                {
+<a name="__line151"></a>                                    <span class=comment>// discard trailing zeros</span>
+<a name="__line152"></a>                                    for(int j=strlen(tmp)-1; j&gt;=0; --j)
+<a name="__line153"></a>                                    {
+<a name="__line154"></a>                                        if(tmp[j]!='0') break;
+<a name="__line155"></a>                                        tmp[j]='\0';
+<a name="__line156"></a>                                    }
+<a name="__line157"></a>                                    for(int j=0; j&lt;2-(dot-tmp); ++j) result += "0";
+<a name="__line158"></a>                                }
+<a name="__line159"></a>                                else
+<a name="__line160"></a>                                {
+<a name="__line161"></a>                                    for(int j=0; j&lt;2-strlen(tmp); ++j) result += "0";
+<a name="__line162"></a>                                }
+<a name="__line163"></a>                            }
+<a name="__line164"></a>                            else sprintf(tmp,"%02d",(int)floor(sec));
+<a name="__line165"></a>                            result += tmp; 
+<a name="__line166"></a>                            ++i;
+<a name="__line167"></a>                        }
+<a name="__line168"></a>                        else if(format[i+1]=='%') {result += "%"; }
+<a name="__line169"></a>                    }
+<a name="__line170"></a>                }
+<a name="__line171"></a>                else result += format[i];
+<a name="__line172"></a>            }
+<a name="__line173"></a>
+<a name="__line174"></a>            return result;
+<a name="__line175"></a>        }
+<a name="__line176"></a>
+<a name="__line177"></a>    
+<a name="__line178"></a>    }
+<a name="__line179"></a>}
 
 </pre>
 <hr> 

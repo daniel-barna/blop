@@ -5,7 +5,6 @@
 
 namespace blop
 {
-    point_drawer *point::default_type_ = new circle(true);
     color point::default_color_(0,0,0);
     length point::default_size_(new length::base_id_t(terminal::PS));
 
@@ -18,17 +17,19 @@ namespace blop
 
     point::~point()
     {
-	delete type_;
     }
 
+    smartptr<point_drawer> &point::default_pointtype()
+    {
+        static smartptr<point_drawer> f = circle::create();
+        return f;
+    }
     void point::default_pointtype(const point_drawer &t)
     {
-	delete default_type_;
-	default_type_ = t.clone();
+	default_pointtype() = t.clone();
     }
     point &point::pointtype(const point_drawer &t)
     {
-	delete type_;
 	type_ = t.clone();
 	return *this;
     }
@@ -82,13 +83,14 @@ namespace blop
 	t->close_layer(layer_);
     }
 
-    point &point::draw(container *parent, length x, length y)
+    point &point::draw(smartptr<container> parent, length x, length y)
     {
 	if(parent == 0) err("point::draw ==> parent t== 0");
 
-	point *p = new point();
+	smartptr<point> p = point::create();
+//	point *p = new point();
 	p->x(x).y(y);
-	p->autodel(true);
+//	p->autodel(true);
 	parent->add(p);
 	return *p;
     }

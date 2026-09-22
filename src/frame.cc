@@ -6,6 +6,7 @@
 #include "epad.h"
 #include "warning.h"
 #include "global.h"
+#include "logger.h"
 
 #include <cstdio>
 #include <algorithm>
@@ -38,7 +39,7 @@ namespace blop
 
         show_legend_ = default_show_legend_;
 
-	frame::all().push_back(this);
+	all_frames().push_back(this);
 
 	marginobjectsep_ = default_marginobjectsep_;
 	for(int i=0; i<4; ++i)
@@ -47,7 +48,8 @@ namespace blop
 	    owns_marginboxes_[i] = true;
 	}
 
-	legendbox_ = new legendbox;
+//	legendbox_ = new legendbox;
+        legendbox_ = legendbox::create();
         legendbox_->fix_width(true).fix_height(true);
 	add(legendbox_);
 	owns_legendbox_ = true;
@@ -75,10 +77,14 @@ namespace blop
 	gridcut_ = default_gridcut_;
 	linewidth_ = default_linewidth_;
 
-	x1axis_ = new axis(axis::x1); owns_x1axis_ = true;
-	y1axis_ = new axis(axis::y1); owns_y1axis_ = true;
-	x2axis_ = new axis(axis::x2); owns_x2axis_ = true;
-	y2axis_ = new axis(axis::y2); owns_y2axis_ = true;
+//	x1axis_ = new axis(axis::x1); owns_x1axis_ = true;
+//	y1axis_ = new axis(axis::y1); owns_y1axis_ = true;
+//	x2axis_ = new axis(axis::x2); owns_x2axis_ = true;
+//	y2axis_ = new axis(axis::y2); owns_y2axis_ = true;
+	x1axis_ = axis::create(axis::x1); owns_x1axis_ = true;
+	y1axis_ = axis::create(axis::y1); owns_y1axis_ = true;
+	x2axis_ = axis::create(axis::x2); owns_x2axis_ = true;
+	y2axis_ = axis::create(axis::y2); owns_y2axis_ = true;
 
 	/*
 	  x1axis_->pos(!container::cbottom(),!container::cleft(),!container::cright());
@@ -114,38 +120,35 @@ namespace blop
 
     frame::~frame()
     {
-	// remove this frame from the all() vector
+	// remove this frame from the all_frames() vector
 	{
-	    std::vector<frame*>::iterator i=std::find(frame::all().begin(),
-						      frame::all().end(),
-						      this);
-	    if(i==frame::all().end())
-		err("Unregistered frame (programming error, please report)");
-	    frame::all().erase(i);
+	    auto i=std::find(all_frames().begin(), all_frames().end(), this);
+	    if(i==all_frames().end()) { err("Unregistered frame (programming error, please report)"); }
+	    else all_frames().erase(i);
 	}
 
-	if(owns_legendbox_) delete legendbox_;
+//	if(owns_legendbox_) delete legendbox_;
 
-	if(owns_x1axis_) delete x1axis_;
-	if(owns_x2axis_) delete x2axis_;
-	if(owns_y1axis_) delete y1axis_;
-	if(owns_y2axis_) delete y2axis_;
+//	if(owns_x1axis_) delete x1axis_;
+//	if(owns_x2axis_) delete x2axis_;
+//	if(owns_y1axis_) delete y1axis_;
+//	if(owns_y2axis_) delete y2axis_;
 
 	if(current_ == this) current_ = 0;
 
-        delete title_;
+//        delete title_;
 
-	for(int i=0; i<4; ++i)
-	{
-	    if(owns_marginboxes_[i] && marginboxes_[i] != 0)
-		delete marginboxes_[i];
-	}
+//	for(int i=0; i<4; ++i)
+//	{
+//	    if(owns_marginboxes_[i] && marginboxes_[i] != 0)
+//		delete marginboxes_[i];
+//	}
 
         // Delete those plottables which have their autodel flag set
-        for(unsigned int i=0; i<graphs_.size(); ++i)
-        {
-            if(graphs_[i]->autodel()) delete graphs_[i];
-        }
+//        for(unsigned int i=0; i<graphs_.size(); ++i)
+//        {
+//            if(graphs_[i]->autodel()) delete graphs_[i];
+//        }
     }
 
     frame::frame(const frame &)
@@ -158,19 +161,20 @@ namespace blop
 	err("frame::operator=(const frame &) should not be called");
     }
 
-    void frame::remove_from_all(plottable *p)
+    void frame::remove_from_all(plottable::ptr p)
     {
         if(p==0) return;
-	for(unsigned int i=0; i<all().size(); ++i)
-	{
-	    all()[i]->remove(p);
-	}
+	for(unsigned int i=0; i<all_frames().size(); ++i) all_frames()[i]->remove(p);
     }
 
-    std::vector<frame*> &frame::all()
+    std::vector<frame*> &frame::all_frames()
     {
 	static std::vector<frame*> *f = new std::vector<frame*>;
 	return *f;
+// This code does not work, if a single frame is created and then destroyed,
+// the vector's content changes between...
+//        static std::vector<frame*> f;
+//        return f;
     }
 
     frame *frame::current_ = 0;
@@ -231,12 +235,12 @@ namespace blop
 	return *this;
     }
 
-    frame &frame::lmarginbox(epad *p)
+    frame &frame::lmarginbox(smartptr<epad> p)
     {
 	// If there was a previous marginbox, and it is owned by this frame,
 	// first delete it
-	if(marginboxes_[Left] != 0 && owns_marginboxes_[Left])
-	    delete marginboxes_[Left];
+//	if(marginboxes_[Left] != 0 && owns_marginboxes_[Left])
+//	    delete marginboxes_[Left];
 
 	// This is an external marginbox, so we do not own it!
 	owns_marginboxes_[Left] = false;
@@ -249,51 +253,52 @@ namespace blop
 	modified_ = true;
 	return *this;
     }
-    epad *frame::lmarginbox() const { return marginboxes_[Left]; }
+    smartptr<epad> frame::lmarginbox() const { return marginboxes_[Left]; }
 
-    frame &frame::rmarginbox(epad *p)
+    frame &frame::rmarginbox(smartptr<epad> p)
     {
-	if(marginboxes_[Right] != 0 && owns_marginboxes_[Right])
-	    delete marginboxes_[Right];
+//	if(marginboxes_[Right] != 0 && owns_marginboxes_[Right])
+//	    delete marginboxes_[Right];
 	owns_marginboxes_[Right] = false;
 	marginboxes_[Right] = p;
 	lmargin(!y2axis_->scriptsize()+!marginobjectsep_+!p->width());
 	modified_ = true;
 	return *this;
     }
-    epad *frame::rmarginbox() const { return marginboxes_[Right]; }
+    smartptr<epad> frame::rmarginbox() const { return marginboxes_[Right]; }
 
-    frame &frame::bmarginbox(epad *p)
+    frame &frame::bmarginbox(smartptr<epad> p)
     {
-	if(marginboxes_[Bottom] != 0 && owns_marginboxes_[Bottom])
-	    delete marginboxes_[Bottom];
+//	if(marginboxes_[Bottom] != 0 && owns_marginboxes_[Bottom])
+//	    delete marginboxes_[Bottom];
 	owns_marginboxes_[Bottom] = false;
 	marginboxes_[Bottom] = p;
 	lmargin(!x1axis_->scriptsize()+!marginobjectsep_+!p->height());
 	modified_ = true;
 	return *this;
     }
-    epad *frame::bmarginbox() const { return marginboxes_[Bottom]; }
+    smartptr<epad> frame::bmarginbox() const { return marginboxes_[Bottom]; }
 
-    frame &frame::tmarginbox(epad *p)
+    frame &frame::tmarginbox(smartptr<epad> p)
     {
-	if(marginboxes_[Top] != 0 && owns_marginboxes_[Top])
-	    delete marginboxes_[Top];
+//	if(marginboxes_[Top] != 0 && owns_marginboxes_[Top])
+//	    delete marginboxes_[Top];
 	owns_marginboxes_[Top] = false;
 	marginboxes_[Top] = p;
 	lmargin(!x2axis_->scriptsize()+!marginobjectsep_+!p->height());
 	modified_ = true;
 	return *this;
     }
-    epad *frame::tmarginbox() const { return marginboxes_[Top]; }
+    smartptr<epad> frame::tmarginbox() const { return marginboxes_[Top]; }
 
-    frame &frame::lmarginobject(box *b)
+    frame &frame::lmarginobject(smartptr<box> b)
     {
 	if(marginboxes_[Left] == 0)
 	{
 	    owns_marginboxes_[Left] = true;
-	    marginboxes_[Left] = new epad;
-	    marginboxes_[Left]->autodel(false);
+            marginboxes_[Left] = epad::create();
+//	    marginboxes_[Left] = new epad;
+//	    marginboxes_[Left]->autodel(false);
 	    marginboxes_[Left]->right(-!y1axis_->scriptsize()-!marginobjectsep_);
 	    marginboxes_[Left]->width(!b->width());
 	    marginboxes_[Left]->bottom(0.0);
@@ -307,13 +312,14 @@ namespace blop
 	modified_ = true;
 	return *this;
     }
-    frame &frame::rmarginobject(box *b)
+    frame &frame::rmarginobject(smartptr<box> b)
     {
 	if(marginboxes_[Right] == 0)
 	{
 	    owns_marginboxes_[Right] = true;
-	    marginboxes_[Right] = new epad;
-	    marginboxes_[Right]->autodel(false);
+            marginboxes_[Right] = epad::create();
+//	    marginboxes_[Right] = new epad;
+//	    marginboxes_[Right]->autodel(false);
 	    marginboxes_[Right]->left(1.0+!y2axis_->scriptsize()+!marginobjectsep_);
 	    marginboxes_[Right]->width(!b->width());
 	    marginboxes_[Right]->bottom(0.0);
@@ -329,13 +335,14 @@ namespace blop
 	modified_ = true;
 	return *this;
     }
-    frame &frame::bmarginobject(box *b)
+    frame &frame::bmarginobject(smartptr<box> b)
     {
 	if(marginboxes_[Bottom] == 0)
 	{
 	    owns_marginboxes_[Bottom] = true;
-	    marginboxes_[Bottom] = new epad;
-	    marginboxes_[Bottom]->autodel(false);
+	    marginboxes_[Bottom] = epad::create();
+//	    marginboxes_[Bottom] = new epad;
+//	    marginboxes_[Bottom]->autodel(false);
 	    marginboxes_[Bottom]->left(0.0);
 	    marginboxes_[Bottom]->right(1.0);
 	    marginboxes_[Bottom]->fix_width(true);
@@ -349,13 +356,14 @@ namespace blop
 	modified_ = true;
 	return *this;
     }
-    frame &frame::tmarginobject(box *b)
+    frame &frame::tmarginobject(smartptr<box> b)
     {
 	if(marginboxes_[Top] == 0)
 	{
 	    owns_marginboxes_[Top] = true;
-	    marginboxes_[Top] = new epad;
-	    marginboxes_[Top]->autodel(false);
+	    marginboxes_[Top] = epad::create();
+//	    marginboxes_[Top] = new epad;
+//	    marginboxes_[Top]->autodel(false);
 	    marginboxes_[Top]->left(0.0);
 	    marginboxes_[Top]->right(1.0);
 	    marginboxes_[Top]->fix_width(true);
@@ -377,7 +385,7 @@ namespace blop
     }
 
 
-    frame &frame::legend(legendbox *l)
+    frame &frame::legend(legendbox::ptr l)
     {
         if(!l)
         {
@@ -391,29 +399,28 @@ namespace blop
     {
 	owns_legendbox_ = false;
 	remove(legendbox_);
-	delete legendbox_;
+//	delete legendbox_;
 	legendbox_ = &l;
-	for(std::vector<plottable*>::iterator i = graphs_.begin();
-	    i != graphs_.end(); ++i)
-	{
-	    l.add(*i);
-	}
+//	for(std::vector<plottable*>::iterator i = graphs_.begin();
+	for(auto i = graphs_.begin(); i != graphs_.end(); ++i) l.add(*i);
 	return *this;
     }
 
     frame &frame::own_legend()
     {
 	if(owns_legendbox_) return *this;
-	legendbox *new_legendbox = new legendbox;
+//	legendbox *new_legendbox = new legendbox;
+        auto new_legendbox = legendbox::create();
         new_legendbox->fix_width(true).fix_height(true);
 
-	for(std::vector<plottable*>::iterator i = graphs_.begin();
-	    i != graphs_.end(); ++i)
+//	for(std::vector<plottable*>::iterator i = graphs_.begin();
+	for(auto i = graphs_.begin(); i != graphs_.end(); ++i)
 	{
 	    if(legendbox_) legendbox_->remove(*i);
 	    new_legendbox->add(*i);
 	}
-	add(legendbox_ = new_legendbox);
+        legendbox_ = new_legendbox;
+	add(new_legendbox);
 	owns_legendbox_ = true;
 	return *this;
     }
@@ -455,14 +462,15 @@ namespace blop
 	// if an empty string, clear the title
 	if(t.str() == "")
 	{
-	    if(title_) delete title_;
+//	    if(title_) delete title_;
             title_ = 0;
 	    return *this; 
 	}
 
 	if(!title_)
 	{
-	    title_ = new label(t);
+//	    title_ = new label(t);
+	    title_ = label::create(t);
 	    tmarginobject(title_);
 	}
 	else title_->text(t);
@@ -512,8 +520,9 @@ namespace blop
 
     frame &frame::mknew(container &parent)
     {
-	frame *f = new frame;
-	f->autodel(true);
+        smartptr<frame> f = frame::create();
+//	frame *f = new frame;
+//	f->autodel(true);
 	parent.add(f);
 	f->cd();
 	return *f;
@@ -531,7 +540,7 @@ namespace blop
     CATCH("frame::current()")
 
 
-    bool frame::parent(container *p)
+    bool frame::parent(smartptr<container> p)
     {
 	grob::parent(p);
 	parent_width_ = !p->cwidth();
@@ -539,7 +548,7 @@ namespace blop
 	return true;
     }
 
-    frame &frame::remove(plottable *g)
+    frame &frame::remove(plottable::ptr g)
     {
         if(g==0) return *this;
 	for(unsigned int i=0; i<graphs_.size(); ++i)
@@ -564,12 +573,12 @@ namespace blop
 	return *this;
     }
 
-    void frame::add(grob *g)
+    void frame::add(grob::ptr g)
     {
 	ordering_.push_back(grob_plottable(g,0));
 	container::add(g);
     }
-    bool frame::remove(grob *g)
+    bool frame::remove(grob::ptr g)
     {
         if(g==0) return false;
 	for(unsigned int i=0; i<ordering_.size(); ++i)
@@ -583,11 +592,11 @@ namespace blop
 	return container::remove(g);
     }
 
-    frame &frame::add(plottable *p)
+    frame &frame::add(plottable::ptr p)
     {
 	if(p == 0) return *this; 
 	graphs_.push_back(p);
-	legendbox_->add(p);
+	if(legendbox_) legendbox_->add(p);
 	p->parent(this);
 	modified_ = true;
 	ordering_.push_back(grob_plottable(0,p));
@@ -606,12 +615,12 @@ namespace blop
 	{
 	    if(!graphs_[i]->permanent() || all==true)
 	    {
-		plottable *p = graphs_[i];
+		auto p = graphs_[i];
 		p->parent(0);
-		legendbox_->remove(p);
-		graphs_.erase(graphs_.begin()+i);
-		if(p->autodel()) delete p;
-		--i;
+		if(legendbox_) legendbox_->remove(p);
+//		graphs_.erase(graphs_.begin()+i);
+//		if(p->autodel()) delete p;
+//		--i;
 		for(unsigned int j=0; j<ordering_.size(); ++j)
 		{
 		    if(ordering_[j].plottable_ == p)
@@ -622,6 +631,12 @@ namespace blop
 		}
 	    }
 	}
+        // Clear the contained graphs vector. Shared objects may get deleted now
+        graphs_.clear();
+
+        // now tmp goes out of scope, and eventual last shared references to objects
+        // will go out of scope too, destroying their object
+        
 	return *this;
     }
 
@@ -638,6 +653,8 @@ namespace blop
     void frame::clear()
     {
 	container::clear();
+        graphs_.clear();
+        ordering_.clear();
 
 	// re-add the marginboxes 
 	for(int i=0; i<4; ++i)
@@ -653,42 +670,29 @@ namespace blop
 	if(owns_legendbox_) legendbox_->clear();
 	else
 	{
-	    for(unsigned int i=0; i<graphs_.size(); ++i)
-	    {
-		legendbox_->remove(graphs_[i]);
-	    }
+	    for(unsigned int i=0; i<graphs_.size(); ++i) legendbox_->remove(graphs_[i]);
 	}
 	modified_ = true;
 
-	// first copy all the plottable pointers (because when deleting them,
-	// their destructor will try to remove them again from the graphs_
-	// vector, making a problem)
-	vector<plottable*> graphs = graphs_;
-
-	// then clear the graphs_ vector, so the destructor of the plottables
-	// will not do anything
-	graphs_.clear();
 
 	// then delete all the graphs with the autodel flag set to true.
 	// They will try to remove themselves, but they are already removed,
 	// so no problem
-	for(unsigned int i=0; i<graphs.size(); ++i)
-	{
-	    if(graphs[i]->autodel()) delete graphs[i];
-	}
+//	for(unsigned int i=0; i<graphs.size(); ++i)
+//	{
+//	    if(graphs[i]->autodel()) delete graphs[i];
+//	}
 
 	// Finally, remove all graphs from the ordering_ array
-	for(unsigned int i=0; i<ordering_.size(); ++i)
-	{
-	    if(ordering_[i].plottable_)
-	    {
-		ordering_.erase(ordering_.begin()+i);
-		--i;
-	    }
-	}
-	
+//	for(unsigned int i=0; i<ordering_.size(); ++i)
+//	{
+//	    if(ordering_[i].plottable_)
+//	    {
+//		ordering_.erase(ordering_.begin()+i);
+//		--i;
+//	    }
+//	}
     }
-
 
     static bool length_depends_on_any(const length &l, const length* d[], int n)
     {
@@ -710,61 +714,89 @@ namespace blop
 	    if(marginboxes_[i] && marginboxes_[i]->empty()) marginboxes_[i]->off();
 	}
 
+        const int N = 14;
+
 	// Set the autopoints
 	{
-	    std::vector<int> n(14,0);
+            // A vector of size 14 (the number of available point types), to keep track the number of graphs
+            // using the specifid pointtype. That is, n[0] is the number of graphs using fsquare, etc. 
+	    std::vector<int> n(N,0);
 	    for(vector<plottable*>::size_type i=0; i<graphs_.size(); ++i)
 	    {
 		// now only check those which do not have autopoint, and which are drawn
 		// with points
 		if(!graphs_[i]->drawstyle() || !graphs_[i]->drawstyle()->draws_points()) continue;
-		point_drawer *pt = graphs_[i]->pointtype();
-		if(dynamic_cast<autopoint*>(pt)) continue;
 
-		if(dynamic_cast<fsquare*>(pt)) ++n[0];
-		if(dynamic_cast<square*>(pt)) ++n[1];
-		if(dynamic_cast<fdiamond*>(pt)) ++n[2];
-		if(dynamic_cast<diamond*>(pt)) ++n[3];
-		if(dynamic_cast<ftriangledown*>(pt)) ++n[4];
-		if(dynamic_cast<triangledown*>(pt)) ++n[5];
-		if(dynamic_cast<ftriangle*>(pt)) ++n[6];
-		if(dynamic_cast<triangle*>(pt)) ++n[7];
-		if(dynamic_cast<fcircle*>(pt)) ++n[8];
-		if(dynamic_cast<circle*>(pt)) ++n[9];
-		if(dynamic_cast<plus*>(pt)) ++n[10];
-		if(dynamic_cast<cross*>(pt)) ++n[11];
-		if(dynamic_cast<fstar4*>(pt)) ++n[12];
-		if(dynamic_cast<star4*>(pt)) ++n[13];
+		// point_drawer *pt = graphs_[i]->pointtype();
+		// if(dynamic_cast<autopoint*>(pt)) continue;
+		// if(dynamic_cast<fsquare*>(pt)) ++n[0];
+		// if(dynamic_cast<square*>(pt)) ++n[1];
+		// if(dynamic_cast<fdiamond*>(pt)) ++n[2];
+		// if(dynamic_cast<diamond*>(pt)) ++n[3];
+		// if(dynamic_cast<ftriangledown*>(pt)) ++n[4];
+		// if(dynamic_cast<triangledown*>(pt)) ++n[5];
+		// if(dynamic_cast<ftriangle*>(pt)) ++n[6];
+		// if(dynamic_cast<triangle*>(pt)) ++n[7];
+		// if(dynamic_cast<fcircle*>(pt)) ++n[8];
+		// if(dynamic_cast<circle*>(pt)) ++n[9];
+		// if(dynamic_cast<plus*>(pt)) ++n[10];
+		// if(dynamic_cast<cross*>(pt)) ++n[11];
+		// if(dynamic_cast<fstar4*>(pt)) ++n[12];
+		// if(dynamic_cast<star4*>(pt)) ++n[13];
+
+                smartptr<point_drawer> pt = graphs_[i]->pointtype();
+                if(pt.dyncast<autopoint>()) continue;
+		if(pt.dyncast<fsquare>()) ++n[0];
+		if(pt.dyncast<square>()) ++n[1];
+		if(pt.dyncast<fdiamond>()) ++n[2];
+		if(pt.dyncast<diamond>()) ++n[3];
+		if(pt.dyncast<ftriangledown>()) ++n[4];
+		if(pt.dyncast<triangledown>()) ++n[5];
+		if(pt.dyncast<ftriangle>()) ++n[6];
+		if(pt.dyncast<triangle>()) ++n[7];
+		if(pt.dyncast<fcircle>()) ++n[8];
+		if(pt.dyncast<circle>()) ++n[9];
+		if(pt.dyncast<plus>()) ++n[10];
+		if(pt.dyncast<cross>()) ++n[11];
+		if(pt.dyncast<fstar4>()) ++n[12];
+		if(pt.dyncast<star4>()) ++n[13];
 	    }
 
 	    for(vector<plottable*>::size_type i=0; i<graphs_.size(); ++i)
 	    {
-		autopoint *pt = dynamic_cast<autopoint*>(graphs_[i]->pointtype());
+//		autopoint *pt = dynamic_cast<autopoint*>(graphs_[i]->pointtype());
+                smartptr<autopoint> pt = graphs_[i]->pointtype().dyncast<autopoint>();
 
 		// now only check those which have autopoint
 		if(!pt) continue;
 
+                // Now figure out, which pointtype is used by the least number of graphs
 		vector<int>::size_type min = 0;
 		for(vector<int>::size_type p=0; p<n.size(); ++p) if(n[p]<n[min]) min=p;
 
+                // update the number of graphs using the chosen pointtype
 		if(graphs_[i]->drawstyle() && graphs_[i]->drawstyle()->draws_points()) ++n[min];
+
+                pt->drawer(point_drawer::get(min));
+/*
 		switch(min) {
-		case 0: pt->drawer(new fsquare()); break;
-		case 1: pt->drawer(new square()); break;
-		case 2: pt->drawer(new fdiamond()); break; 
-		case 3: pt->drawer(new diamond()); break; 
-		case 4: pt->drawer(new ftriangledown()); break; 
-		case 5: pt->drawer(new triangledown()); break;
-		case 6: pt->drawer(new ftriangle()); break;
-		case 7: pt->drawer(new triangle()); break;
-		case 8: pt->drawer(new fcircle()); break;
-		case 9: pt->drawer(new circle()); break;
-		case 10: pt->drawer(new plus()); break;
-		case 11: pt->drawer(new cross()); break;
-		case 12: pt->drawer(new fstar4()); break; 
-		case 13: pt->drawer(new star4()); break;
-		default: pt->drawer(new fsquare()); 
+		case 0: pt->drawer(fsquare::create()); break;
+		case 1: pt->drawer(square::create()); break;
+		case 2: pt->drawer(fdiamond::create()); break; 
+		case 3: pt->drawer(diamond::create()); break; 
+		case 4: pt->drawer(ftriangledown::create()); break; 
+		case 5: pt->drawer(triangledown::create()); break;
+		case 6: pt->drawer(ftriangle::create()); break;
+		case 7: pt->drawer(triangle::create()); break;
+		case 8: pt->drawer(fcircle::create()); break;
+		case 9: pt->drawer(circle::create()); break;
+		case 10: pt->drawer(plus::create()); break;
+		case 11: pt->drawer(cross::create()); break;
+		case 12: pt->drawer(fstar4::create()); break; 
+		case 13: pt->drawer(star4::create()); break;
+		default: pt->drawer(fsquare::create()); 
 		}
+*/
 	    }
 	}
 
@@ -782,7 +814,7 @@ namespace blop
 		}
 	    }
 	    
-	    for(vector<plottable*>::size_type i=0; i<graphs_.size(); ++i)
+	    for(int i=0; i<graphs_.size(); ++i)
 	    {
 		if(!graphs_[i]->drawstyle()) continue;
 		if(graphs_[i]->drawstyle()->uses_linecolor() && graphs_[i]->linecolor() == autocolor)
@@ -816,19 +848,18 @@ namespace blop
 	    // when the requested axis ranges are set up, so that
 	    // fgraphs can estimate their parameter ranges (if undefined)
 	    // from the axis ranges
-	    if(dynamic_cast<fgraph*>(graphs_[i]) != 0) continue;
+	    if(dynamic_cast<fgraph*>(graphs_[i].get()) != 0) continue;
 
 	    if(global::debug>0) cout<<"[blop] [frame] processing data graph["<<i<<"]"<<endl;
 
-	    axis *xaxis =
-		(graphs_[i]->xaxis() == axis::x1 ? x1axis_ : x2axis_);
-	    axis *yaxis =
-		(graphs_[i]->yaxis() == axis::y1 ? y1axis_ : y2axis_);
+	    smartptr<axis> xaxis = (graphs_[i]->xaxis() == axis::x1 ? x1axis_ : x2axis_);
+	    smartptr<axis> yaxis = (graphs_[i]->yaxis() == axis::y1 ? y1axis_ : y2axis_);
 
 	    graphs_[i]->prepare_for_draw(xaxis,yaxis,this,1);
 
-	    graph_drawer *drawer = graphs_[i]->drawstyle();
+	    auto drawer = graphs_[i]->drawstyle();
 	    if(drawer == 0) err("No drawer specified");
+
 	    // stupid, this should be called from within plottable::prepare_for_draw...!
 	    drawer->set_ranges(graphs_[i],xaxis,yaxis);
 	}
@@ -836,14 +867,14 @@ namespace blop
 	// In a second loop process only the functions (fgraphs)
 	for(vector<plottable*>::size_type i=0; i<graphs_.size(); ++i)
 	{
-	    if(dynamic_cast<fgraph*>(graphs_[i]) == 0) continue;
+	    if(dynamic_cast<fgraph*>(graphs_[i].get()) == 0) continue;
 	    if(global::debug>0) cout<<"[blop] [frame] processing function graphs["<<i<<"]"<<endl;
-	    axis *xaxis =
+	    smartptr<axis> xaxis =
 		(graphs_[i]->xaxis() == axis::x1 ? x1axis_ : x2axis_);
-	    axis *yaxis =
+	    smartptr<axis> yaxis =
 		(graphs_[i]->yaxis() == axis::y1 ? y1axis_ : y2axis_);
 	    graphs_[i]->prepare_for_draw(xaxis,yaxis,this,1);
-	    graph_drawer *drawer = graphs_[i]->drawstyle();
+	    auto drawer = graphs_[i]->drawstyle();
 	    if(drawer == 0) err("No drawer specified");
 	    drawer->set_ranges(graphs_[i],xaxis,yaxis);
 	}
@@ -852,9 +883,9 @@ namespace blop
 	for(vector<plottable*>::size_type i=0; i<graphs_.size(); ++i)
 	{
 	    if(global::debug>0) cout<<"[blop] [frame] reprocessing graph["<<i<<"]"<<endl;
-	    axis *xaxis =
+	    smartptr<axis> xaxis =
 		(graphs_[i]->xaxis() == axis::x1 ? x1axis_ : x2axis_);
-	    axis *yaxis =
+	    smartptr<axis> yaxis =
 		(graphs_[i]->yaxis() == axis::y1 ? y1axis_ : y2axis_);
 	    graphs_[i]->prepare_for_draw(xaxis,yaxis,this,2);
 	}
@@ -1507,13 +1538,14 @@ namespace blop
     {
     public:
         bool operator()(plottable *g1, plottable *g2) { return g1->level()<g2->level(); }
+        bool operator()(smartptr<plottable> g1, smartptr<plottable> g2) { return g1->level()<g2->level(); }
     };
 
-    void frame::print_graph_(plottable *p, terminal *term)
+    void frame::print_graph_(smartptr<plottable> p, terminal *term)
     {
         if(global::debug) cerr<<"[blop] [frame] print_graph_ starts"<<endl;
 
-        graph_drawer *d = p->drawstyle();
+        auto d = p->drawstyle();
         if(d == 0)
         {
             warning::print("No drawer specified for graph","frame::print_graph_(plottable *,terminal *)");
@@ -1558,7 +1590,10 @@ namespace blop
                                terminal::coord(cright().termspecific_id(),
                                                ctop().termspecific_id()));
 
-        if(!grid_foreground_) draw_grid(term);
+        if(!grid_foreground_)
+        {
+            draw_grid(term);
+        }
         term->set_color(black);
         if(!foreground_)
         {
@@ -1568,7 +1603,7 @@ namespace blop
 
         term->set_color(black);
 
-        std::vector<blop::plottable *> graphs(graphs_);
+        std::vector<plottable::ptr> graphs(graphs_);
         std::sort(graphs.begin(), graphs.end(), compare_graphs_by_level());
 
         // first print the graphs with level<0
@@ -1773,30 +1808,32 @@ namespace blop
 
     bool frame::foreground() const { return foreground_; }
 
-    dgraph *frame::lastd()
+    smartptr<dgraph> frame::lastd()
     {
         for(unsigned int i=0; i<graphs_.size(); ++i)
         {
-            if(dgraph *p = dynamic_cast<dgraph *>(graphs_[i])) return p;
+            if(auto result = graphs_[i].dyncast<dgraph>()) return result;
+//            if(dgraph *p = dynamic_cast<dgraph *>(graphs_[i]).get()) return p;
         }
         return 0;
     }
-    fgraph *frame::lastf()
+    smartptr<fgraph> frame::lastf()
     {
         for(unsigned int i=0; i<graphs_.size(); ++i)
         {
-            if(fgraph *p = dynamic_cast<fgraph *>(graphs_[i])) return p;
+            if(auto result = graphs_[i].dyncast<fgraph>()) return result;
+//            if(fgraph *p = dynamic_cast<fgraph *>(graphs_[i])) return p;
         }
         return 0;
     }
 
-    plottable *frame::last()
+    smartptr<plottable> frame::last()
     {
         if(graphs_.empty()) return 0;
         return graphs_.back();
     }
 
-    plottable *frame::get_graph(int n)
+    smartptr<plottable> frame::get_graph(int n)
     {
         if(n<0 || (int)graphs_.size() <= n)
         {

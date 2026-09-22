@@ -1,0 +1,503 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<link href="../default.css" type="text/css" rel="stylesheet">
+<title> BLOP: logger.cc </title>
+</head>
+<body>
+
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+ <hr>
+<pre>
+<a name="__line0"></a>#include "<a href="logger.h.html">logger.h</a>"
+<a name="__line1"></a>#include &lt;chrono&gt;
+<a name="__line2"></a>#include &lt;iomanip&gt;
+<a name="__line3"></a>#include &lt;iostream&gt;
+<a name="__line4"></a>#include &lt;sstream&gt;
+<a name="__line5"></a>#include &lt;string&gt;
+<a name="__line6"></a>#include &lt;cmath&gt;
+<a name="__line7"></a>
+<a name="__line8"></a>using namespace std;
+<a name="__line9"></a>
+<a name="__line10"></a>
+<a name="__line11"></a>namespace blop {
+<a name="__line12"></a>
+<a name="__line13"></a>    std::vector&lt;std::shared_ptr&lt;logger::file&gt;&gt; &amp;logger::files_()
+<a name="__line14"></a>    {
+<a name="__line15"></a>        static std::vector&lt;std::shared_ptr&lt;logger::file&gt;&gt; f;
+<a name="__line16"></a>        return f;
+<a name="__line17"></a>    }
+<a name="__line18"></a>    std::vector&lt;std::shared_ptr&lt;logger::html&gt;&gt; &amp;logger::htmls_()
+<a name="__line19"></a>    {
+<a name="__line20"></a>        static std::vector&lt;std::shared_ptr&lt;logger::html&gt;&gt; f;
+<a name="__line21"></a>        return f;
+<a name="__line22"></a>    }
+<a name="__line23"></a>
+<a name="__line24"></a>
+<a name="__line25"></a>    template&lt;typename Rep, typename Period&gt;
+<a name="__line26"></a>    std::string format_duration(std::chrono::duration&lt;Rep, Period&gt; d)
+<a name="__line27"></a>    {
+<a name="__line28"></a>        using namespace std::chrono;
+<a name="__line29"></a>
+<a name="__line30"></a>        double seconds = duration&lt;double&gt;(d).count();
+<a name="__line31"></a>
+<a name="__line32"></a>        std::ostringstream oss;
+<a name="__line33"></a>
+<a name="__line34"></a>        if (seconds &lt; 1.0) oss &lt;&lt; std::round(seconds * 1000.0) &lt;&lt; " ms";
+<a name="__line35"></a>        else if (seconds &lt; 10) oss &lt;&lt; std::fixed &lt;&lt; std::setprecision(2) &lt;&lt; seconds &lt;&lt; " s";
+<a name="__line36"></a>        else if (seconds &lt; 30) oss &lt;&lt; std::fixed &lt;&lt; std::setprecision(1) &lt;&lt; seconds &lt;&lt; " s";
+<a name="__line37"></a>        else oss &lt;&lt; std::round(seconds) &lt;&lt; " s";
+<a name="__line38"></a>
+<a name="__line39"></a>        return oss.str();
+<a name="__line40"></a>    }
+<a name="__line41"></a>
+<a name="__line42"></a>    logger::option logger::one_line(1);
+<a name="__line43"></a>    logger::option logger::silent(2);
+<a name="__line44"></a>
+<a name="__line45"></a>    logger::format_resetter logger::reset;
+<a name="__line46"></a>    logger::format_setter logger::black("\e[30m","&lt;span style='color:black;'&gt;");
+<a name="__line47"></a>    logger::format_setter logger::red("\e[31m","&lt;span style='color:red;'&gt;");
+<a name="__line48"></a>    logger::format_setter logger::orange("\033[38;5;208m","&lt;span style='color:orange;'&gt;");
+<a name="__line49"></a>    logger::format_setter logger::green("\e[32m","&lt;span style='color:green;'&gt;");
+<a name="__line50"></a>    logger::format_setter logger::yellow("\e[33m","&lt;span style='color:yellow;'&gt;");
+<a name="__line51"></a>    logger::format_setter logger::blue("\e[34m","&lt;span style='color:blue;'&gt;");
+<a name="__line52"></a>    logger::format_setter logger::magenta("\e[35m","&lt;span style='color:magenta;'&gt;");
+<a name="__line53"></a>    logger::format_setter logger::cyan("\e[36m","&lt;span style='color:cyan;'&gt;");
+<a name="__line54"></a>    logger::format_setter logger::white("\e[37m","&lt;span style='color:white;'&gt;");
+<a name="__line55"></a>
+<a name="__line56"></a>    logger::format_setter logger::black_bg("\e[40m","&lt;span style='background-color:black;'&gt;");
+<a name="__line57"></a>    logger::format_setter logger::red_bg("\e[41m","&lt;span style='background-color:red;'&gt;");
+<a name="__line58"></a>    logger::format_setter logger::green_bg("\e[42m","&lt;span style='background-color:green;'&gt;");
+<a name="__line59"></a>    logger::format_setter logger::yellow_bg("\e[43m","&lt;span style='background-color:yellow;'&gt;");
+<a name="__line60"></a>    logger::format_setter logger::blue_bg("\e[44m","&lt;span style='background-color:blue;'&gt;");
+<a name="__line61"></a>    logger::format_setter logger::magenta_bg("\e[45m","&lt;span style='background-color:magenta;'&gt;");
+<a name="__line62"></a>    logger::format_setter logger::cyan_bg("\e[46m","&lt;span style='background-color:cyan;'&gt;");
+<a name="__line63"></a>    logger::format_setter logger::white_bg("\e[47m","&lt;span style='background-color:white;'&gt;");
+<a name="__line64"></a>
+<a name="__line65"></a>    logger::format_setter logger::bold("\e[1m","&lt;span style='font-weight:bold;'&gt;");
+<a name="__line66"></a><span class=comment>//    logger::format_setter logger::italic("\e[3m","&lt;span style='font-style:italic;'&gt;");</span>
+<a name="__line67"></a>    logger::format_setter logger::underline("\e[4m","&lt;span style='text-decoration:underline;'&gt;");
+<a name="__line68"></a>
+<a name="__line69"></a>    logger &amp;logger::operator&lt;&lt;(const format_setter &amp;f)
+<a name="__line70"></a>    {
+<a name="__line71"></a>        format_setters_.push_back(f);
+<a name="__line72"></a>        format_setters_.back().n_ = 0;
+<a name="__line73"></a>        cerr&lt;&lt;format_setters_.back().console_set_;
+<a name="__line74"></a>        for(auto f : files_()) f-&gt;stream()&lt;&lt;format_setters_.back().console_set_;
+<a name="__line75"></a>        for(auto h : htmls_()) h-&gt;stream()&lt;&lt;format_setters_.back().html_set_;
+<a name="__line76"></a>        return *this;
+<a name="__line77"></a>    }
+<a name="__line78"></a>    logger &amp;logger::operator&lt;&lt;(const format_resetter &amp;)
+<a name="__line79"></a>    {
+<a name="__line80"></a>        cerr&lt;&lt;"\e[0m";
+<a name="__line81"></a>        for(auto f : files_()) f-&gt;stream()&lt;&lt;"\e[0m";
+<a name="__line82"></a>        for(auto h : htmls_()) for(unsigned int i=0; i&lt;format_setters_.size(); ++i) h-&gt;stream()&lt;&lt;"&lt;/span&gt;";
+<a name="__line83"></a>        format_setters_.clear();
+<a name="__line84"></a>        return *this;
+<a name="__line85"></a>    }
+<a name="__line86"></a>
+<a name="__line87"></a>    unsigned int logger::level_ = 0;
+<a name="__line88"></a>    bool logger::indented_ = false;
+<a name="__line89"></a>    
+<a name="__line90"></a>                                                                          
+<a name="__line91"></a>    void logger::init_()
+<a name="__line92"></a>    {
+<a name="__line93"></a>        my_level_ = ++level_;
+<a name="__line94"></a>        
+<a name="__line95"></a>        <span class=comment>// Reset the format of the console</span>
+<a name="__line96"></a>        if(!(flag_&amp;silent.flag)) std::cerr&lt;&lt;"\e[0m";
+<a name="__line97"></a>
+<a name="__line98"></a>        <span class=comment>// Create the indentation on cerr and the output streams</span>
+<a name="__line99"></a>        if(name_ != "")
+<a name="__line100"></a>        {
+<a name="__line101"></a>            for(unsigned int i=0; i&lt;my_level_-1; ++i) 
+<a name="__line102"></a>            {
+<a name="__line103"></a>                if(!(flag_&amp;silent.flag))
+<a name="__line104"></a>                {
+<a name="__line105"></a>                    std::cerr&lt;&lt;"   ";
+<a name="__line106"></a>                    for(auto f : files_()) f-&gt;stream()&lt;&lt;"  ";
+<a name="__line107"></a>                }
+<a name="__line108"></a>            }
+<a name="__line109"></a>        }
+<a name="__line110"></a>
+<a name="__line111"></a>        if(!(flag_&amp;one_line.flag))  <span class=comment>// If not a one-line message</span>
+<a name="__line112"></a>        {
+<a name="__line113"></a>            if(!(flag_&amp;silent.flag))
+<a name="__line114"></a>            {
+<a name="__line115"></a>                if(name_ != "")
+<a name="__line116"></a>                {
+<a name="__line117"></a>                    std::cerr&lt;&lt;"&gt;&gt; ";
+<a name="__line118"></a>                    std::cerr&lt;&lt;name_&lt;&lt;" started"&lt;&lt;std::endl;
+<a name="__line119"></a>                    for(auto f : files_())
+<a name="__line120"></a>                    {
+<a name="__line121"></a>                        f-&gt;stream()&lt;&lt;"&gt;&gt; ";
+<a name="__line122"></a>                        f-&gt;stream()&lt;&lt;name_&lt;&lt;" started"&lt;&lt;std::endl;
+<a name="__line123"></a>                    }
+<a name="__line124"></a>                }
+<a name="__line125"></a>                for(auto h : htmls_())
+<a name="__line126"></a>                {
+<a name="__line127"></a>                    h-&gt;stream()&lt;&lt;"&lt;div class='expandable'&gt;"&lt;&lt;endl;
+<a name="__line128"></a>                    h-&gt;stream()&lt;&lt;"&lt;div class='header'&gt;"&lt;&lt;name_;
+<a name="__line129"></a>                    h-&gt;stream()&lt;&lt;"&lt;div class='duration'&gt;&lt;/div&gt;";
+<a name="__line130"></a>                    h-&gt;stream()&lt;&lt;"&lt;div class='expandbutton'&gt;"&lt;&lt;expand_&lt;&lt;"&lt;/div&gt;&lt;div class='collapsebutton'&gt;"&lt;&lt;collapse_&lt;&lt;"&lt;/div&gt;&lt;/div&gt;"&lt;&lt;endl;
+<a name="__line131"></a>                    h-&gt;stream()&lt;&lt;"&lt;div class='content'&gt;"&lt;&lt;endl;
+<a name="__line132"></a>                }
+<a name="__line133"></a>            }
+<a name="__line134"></a>        }
+<a name="__line135"></a>        else  <span class=comment>// one-line message</span>
+<a name="__line136"></a>        {
+<a name="__line137"></a>            if(!(flag_&amp;silent.flag))
+<a name="__line138"></a>            {
+<a name="__line139"></a>                if(name_ != "")
+<a name="__line140"></a>                {
+<a name="__line141"></a>                    std::cerr&lt;&lt;name_&lt;&lt;"... ";
+<a name="__line142"></a>                    for(auto f : files_()) f-&gt;stream()&lt;&lt;name_&lt;&lt;"... ";
+<a name="__line143"></a>                }
+<a name="__line144"></a>            }
+<a name="__line145"></a>        }
+<a name="__line146"></a>
+<a name="__line147"></a>        start_ = clock::now();
+<a name="__line148"></a>
+<a name="__line149"></a>        stack_().push_back(this);
+<a name="__line150"></a>    }
+<a name="__line151"></a>
+<a name="__line152"></a>    void logger::newline()
+<a name="__line153"></a>    {
+<a name="__line154"></a>        cerr&lt;&lt;endl;
+<a name="__line155"></a>        for(auto f : files_()) f-&gt;stream()&lt;&lt;endl;
+<a name="__line156"></a>        indented_ = false;
+<a name="__line157"></a>    }
+<a name="__line158"></a>    
+<a name="__line159"></a>    logger::~logger()
+<a name="__line160"></a>    {
+<a name="__line161"></a><span class=comment>//        if(name_ != "")</span>
+<a name="__line162"></a>        {
+<a name="__line163"></a>            auto stop = clock::now();
+<a name="__line164"></a>            auto duration = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(stop-start_);
+<a name="__line165"></a>            
+<a name="__line166"></a>            if(!(flag_&amp;silent.flag) || had_messages_)
+<a name="__line167"></a>            {
+<a name="__line168"></a>                if(!(flag_&amp;one_line.flag))
+<a name="__line169"></a>                {
+<a name="__line170"></a>                    if(name_ != "")
+<a name="__line171"></a>                    {
+<a name="__line172"></a>                        for(unsigned int i=0; i&lt;my_level_-1; ++i)
+<a name="__line173"></a>                        {
+<a name="__line174"></a>                            std::cerr&lt;&lt;"   ";
+<a name="__line175"></a>                            for(auto f : files_()) f-&gt;stream()&lt;&lt;"  ";
+<a name="__line176"></a>                        }
+<a name="__line177"></a>                    }
+<a name="__line178"></a>
+<a name="__line179"></a>                    cerr&lt;&lt;"\e[0m";
+<a name="__line180"></a>
+<a name="__line181"></a>                    for(auto h : htmls_())
+<a name="__line182"></a>                    {
+<a name="__line183"></a>                        while(!format_setters_.empty())
+<a name="__line184"></a>                        {
+<a name="__line185"></a>                            h-&gt;stream()&lt;&lt;"&lt;/span&gt;";
+<a name="__line186"></a>                            format_setters_.pop_back();
+<a name="__line187"></a>                        }
+<a name="__line188"></a>                    }                        
+<a name="__line189"></a>
+<a name="__line190"></a>                    if(name_ != "")
+<a name="__line191"></a>                    {
+<a name="__line192"></a>                        std::cerr&lt;&lt;"&lt;&lt; ";
+<a name="__line193"></a>                        std::cerr&lt;&lt;name_&lt;&lt;" finished ("&lt;&lt;format_duration(duration)&lt;&lt;")"&lt;&lt;std::endl;
+<a name="__line194"></a>
+<a name="__line195"></a>                        for(auto f : files_())
+<a name="__line196"></a>                        {
+<a name="__line197"></a>                            f-&gt;stream()&lt;&lt;"&lt;&lt; ";
+<a name="__line198"></a>                            f-&gt;stream()&lt;&lt;name_&lt;&lt;" finished ("&lt;&lt;format_duration(duration)&lt;&lt;")"&lt;&lt;std::endl;
+<a name="__line199"></a>                        }
+<a name="__line200"></a>                    }
+<a name="__line201"></a>
+<a name="__line202"></a>                    for(auto h : htmls_())
+<a name="__line203"></a>                    {
+<a name="__line204"></a>                        h-&gt;stream()&lt;&lt;"&lt;/div&gt;"&lt;&lt;endl;
+<a name="__line205"></a>                        if(name_ != "")
+<a name="__line206"></a>                        {
+<a name="__line207"></a>                            h-&gt;stream()&lt;&lt;"&lt;script&gt;document.currentScript.closest(\".expandable\").querySelector(\".duration\").innerHTML = \""&lt;&lt;format_duration(duration)&lt;&lt;"\";&lt;/script&gt;"&lt;&lt;endl;
+<a name="__line208"></a>                            h-&gt;stream()&lt;&lt;"&lt;div class='footer'&gt;"&lt;&lt;name_&lt;&lt;"&lt;/div&gt;";
+<a name="__line209"></a>                        }
+<a name="__line210"></a>                        h-&gt;stream()&lt;&lt;"&lt;/div&gt;"&lt;&lt;endl;
+<a name="__line211"></a>                    }
+<a name="__line212"></a>                }
+<a name="__line213"></a>                else 
+<a name="__line214"></a>                {
+<a name="__line215"></a>                    if(name_ != "")
+<a name="__line216"></a>                    {
+<a name="__line217"></a>                        std::cerr&lt;&lt;"done ("&lt;&lt;format_duration(duration)&lt;&lt;")"&lt;&lt;endl;
+<a name="__line218"></a>                        for(auto f : files_()) f-&gt;stream()&lt;&lt;"done ("&lt;&lt;format_duration(duration)&lt;&lt;")"&lt;&lt;endl;
+<a name="__line219"></a>                    }
+<a name="__line220"></a>                }
+<a name="__line221"></a>            }
+<a name="__line222"></a>            --level_;
+<a name="__line223"></a>        }
+<a name="__line224"></a>
+<a name="__line225"></a>        for(int i=stack_().size()-1; i&gt;=0; --i)
+<a name="__line226"></a>        {
+<a name="__line227"></a>            if(stack_()[i] == this) stack_().erase(stack_().begin()+i);
+<a name="__line228"></a>        }
+<a name="__line229"></a>        std::cerr&lt;&lt;"\e[0m";  <span class=comment>// Reset the format</span>
+<a name="__line230"></a>        <span class=comment>/*
+<a name="__line231"></a>        if(!stack_().empty() &amp;&amp; stack_().back() == this)
+<a name="__line232"></a>        {
+<a name="__line233"></a>            stack_().pop_back();
+<a name="__line234"></a>            std::cerr&lt;&lt;"\e[0m";  // Reset the format
+<a name="__line235"></a>        }
+<a name="__line236"></a>        */</span>
+<a name="__line237"></a>
+<a name="__line238"></a>        <span class=comment>// Reapply the format of the previous log levels</span>
+<a name="__line239"></a>        for(int i=0; i&lt;stack_().size(); ++i) stack_()[i]-&gt;apply_format();
+<a name="__line240"></a><span class=comment>/*
+<a name="__line241"></a>        if(!stack_().empty())
+<a name="__line242"></a>        {
+<a name="__line243"></a>            cerr&lt;&lt;"Applying format..."&lt;&lt;endl;
+<a name="__line244"></a>            stack_().back()-&gt;apply_format();
+<a name="__line245"></a>        }
+<a name="__line246"></a>*/</span>
+<a name="__line247"></a>
+<a name="__line248"></a>    }
+<a name="__line249"></a>
+<a name="__line250"></a>    void logger::apply_format() 
+<a name="__line251"></a>    { 
+<a name="__line252"></a>        for(const auto &amp;f : format_setters_)
+<a name="__line253"></a>        {
+<a name="__line254"></a>            std::cerr&lt;&lt;f.console_set_;
+<a name="__line255"></a>        }
+<a name="__line256"></a>    }
+<a name="__line257"></a>
+<a name="__line258"></a>    void logger::html::init_()
+<a name="__line259"></a>    {
+<a name="__line260"></a>        if(file_) 
+<a name="__line261"></a>        {
+<a name="__line262"></a>            logger::indent()&lt;&lt;"SAVING LOGS TO: "&lt;&lt;filename_&lt;&lt;std::endl;
+<a name="__line263"></a>            file_&lt;&lt;R"LIMIT(&lt;html&gt;
+<a name="__line264"></a>        &lt;head&gt;
+<a name="__line265"></a>&lt;style&gt;
+<a name="__line266"></a>
+<a name="__line267"></a>.header, .footer, .content {
+<a name="__line268"></a>  padding-left: 2em;
+<a name="__line269"></a>  position: relative;
+<a name="__line270"></a>}
+<a name="__line271"></a>
+<a name="__line272"></a>
+<a name="__line273"></a>.footer {
+<a name="__line274"></a>  display: flex;
+<a name="__line275"></a>  align-items: flex-end;
+<a name="__line276"></a>  opacity: 0.5;
+<a name="__line277"></a>}
+<a name="__line278"></a>
+<a name="__line279"></a>.expandable &gt; .header::before {
+<a name="__line280"></a>  content: "▼";
+<a name="__line281"></a>  <span class=comment>//  content: "▶";</span>
+<a name="__line282"></a>  position: absolute;
+<a name="__line283"></a>  left: 0;
+<a name="__line284"></a>  top: 0.2em;
+<a name="__line285"></a>  width: 1em;
+<a name="__line286"></a>  text-align: center;
+<a name="__line287"></a>  transform: rotate(-90deg);
+<a name="__line288"></a>}
+<a name="__line289"></a>
+<a name="__line290"></a>.expandable.open &gt; .header::before {
+<a name="__line291"></a>  content: "▼";
+<a name="__line292"></a>  position: absolute;
+<a name="__line293"></a>  left: 0;
+<a name="__line294"></a>  top: 0.15em;
+<a name="__line295"></a>  width: 1em;
+<a name="__line296"></a>  text-align: center;
+<a name="__line297"></a>  transform: rotate(0deg);
+<a name="__line298"></a>}
+<a name="__line299"></a>
+<a name="__line300"></a>.footer::before {
+<a name="__line301"></a>  content: "▲ ";
+<a name="__line302"></a>  position: absolute;
+<a name="__line303"></a>  left: 0;
+<a name="__line304"></a>  bottom: 0;
+<a name="__line305"></a>  width: 1em;
+<a name="__line306"></a>  text-align: center;
+<a name="__line307"></a>}
+<a name="__line308"></a>
+<a name="__line309"></a>.expandable {
+<a name="__line310"></a>    position: relative;
+<a name="__line311"></a>    color: black;
+<a name="__line312"></a>    background-color: white;
+<a name="__line313"></a>    font-weight: normal;
+<a name="__line314"></a>    text-decoration: none;
+<a name="__line315"></a>}
+<a name="__line316"></a>
+<a name="__line317"></a>.expandable.open::before {
+<a name="__line318"></a>    content: "";
+<a name="__line319"></a>
+<a name="__line320"></a>    position: absolute;
+<a name="__line321"></a>
+<a name="__line322"></a>    <span class=comment>/* center of triangle column */</span>
+<a name="__line323"></a>    left: 0.5em;
+<a name="__line324"></a>
+<a name="__line325"></a>    <span class=comment>/* start below top triangle */</span>
+<a name="__line326"></a>    top: 1.1em;
+<a name="__line327"></a>
+<a name="__line328"></a>    <span class=comment>/* end above bottom triangle */</span>
+<a name="__line329"></a>    bottom: 1.1em;
+<a name="__line330"></a>
+<a name="__line331"></a>    width: 1px;
+<a name="__line332"></a>    background: #888;
+<a name="__line333"></a>}
+<a name="__line334"></a>
+<a name="__line335"></a>.expandable &gt; .content, .expandable &gt; .footer {
+<a name="__line336"></a>  display: none;
+<a name="__line337"></a>}
+<a name="__line338"></a>
+<a name="__line339"></a>.expandable.open &gt; .content, .expandable.open &gt; .footer {
+<a name="__line340"></a>  display: block;
+<a name="__line341"></a>}
+<a name="__line342"></a>
+<a name="__line343"></a>.header, .footer {
+<a name="__line344"></a>  cursor: pointer;
+<a name="__line345"></a>}
+<a name="__line346"></a>
+<a name="__line347"></a>.expandbutton, .collapsebutton {
+<a name="__line348"></a>    color: blue;
+<a name="__line349"></a>    display: inline;
+<a name="__line350"></a>    margin: 0 2pt 0 2pt;
+<a name="__line351"></a>}
+<a name="__line352"></a>.expandbutton:hover, .collapsebutton:hover {
+<a name="__line353"></a>    color: red;
+<a name="__line354"></a>}
+<a name="__line355"></a>
+<a name="__line356"></a>.duration {
+<a name="__line357"></a>    color: green;
+<a name="__line358"></a>    display: inline;
+<a name="__line359"></a>}
+<a name="__line360"></a>.duration::before {
+<a name="__line361"></a>    content: " (";
+<a name="__line362"></a>}
+<a name="__line363"></a>.duration::after {
+<a name="__line364"></a>    content: ")";
+<a name="__line365"></a>}
+<a name="__line366"></a>
+<a name="__line367"></a>body {
+<a name="__line368"></a>    font-family: Consolas;
+<a name="__line369"></a>}
+<a name="__line370"></a>
+<a name="__line371"></a>&lt;/style&gt;      
+<a name="__line372"></a>      &lt;/head&gt;
+<a name="__line373"></a>      &lt;body&gt;)LIMIT"&lt;&lt;endl;
+<a name="__line374"></a>
+<a name="__line375"></a>            
+<a name="__line376"></a>        }
+<a name="__line377"></a>        else      logger::indent()&lt;&lt;"FAILED TO OPEN "&lt;&lt;filename_&lt;&lt;std::endl;
+<a name="__line378"></a>        
+<a name="__line379"></a>    }
+<a name="__line380"></a>    
+<a name="__line381"></a>
+<a name="__line382"></a>    void logger::close_file()
+<a name="__line383"></a>    {
+<a name="__line384"></a>        for(int i=files_().size()-1; i&gt;=0; --i)
+<a name="__line385"></a>        {
+<a name="__line386"></a>            if(files_()[i]-&gt;shared())
+<a name="__line387"></a>            {
+<a name="__line388"></a>                <span class=comment>// files marked as 'shared' have been created by std::make_shared, and their lifetime is</span>
+<a name="__line389"></a>                <span class=comment>// controlled by this shared_ptr. So simply erasing this shared_ptr will automatically</span>
+<a name="__line390"></a>                <span class=comment>// close the file</span>
+<a name="__line391"></a>                files_().erase(files_().begin()+i);
+<a name="__line392"></a>                break;
+<a name="__line393"></a>            }
+<a name="__line394"></a>        }
+<a name="__line395"></a>    }
+<a name="__line396"></a>    void logger::close_html()
+<a name="__line397"></a>    {
+<a name="__line398"></a>        for(int i=htmls_().size()-1; i&gt;=0; --i)
+<a name="__line399"></a>        {
+<a name="__line400"></a>            if(htmls_()[i]-&gt;shared())
+<a name="__line401"></a>            {
+<a name="__line402"></a>                <span class=comment>// files marked as 'shared' have been created by std::make_shared, and their lifetime is</span>
+<a name="__line403"></a>                <span class=comment>// controlled by this shared_ptr. So simply erasing this shared_ptr will automatically</span>
+<a name="__line404"></a>                <span class=comment>// close the file</span>
+<a name="__line405"></a>                htmls_().erase(htmls_().begin()+i);
+<a name="__line406"></a>                break;
+<a name="__line407"></a>            }
+<a name="__line408"></a>        }
+<a name="__line409"></a>    }
+<a name="__line410"></a>
+<a name="__line411"></a>    logger::html::~html()
+<a name="__line412"></a>    {
+<a name="__line413"></a>        file_&lt;&lt;R"LIMIT(
+<a name="__line414"></a>
+<a name="__line415"></a>&lt;script&gt;
+<a name="__line416"></a>  document.addEventListener("DOMContentLoaded", () =&gt; {
+<a name="__line417"></a>      document.querySelectorAll(".header").forEach(el=&gt;{
+<a name="__line418"></a>          el.addEventListener("click",event =&gt; {
+<a name="__line419"></a>              event.currentTarget.parentElement.classList.toggle("open");
+<a name="__line420"></a>          });
+<a name="__line421"></a>      });
+<a name="__line422"></a>      document.querySelectorAll(".footer").forEach(el=&gt;{
+<a name="__line423"></a>          el.addEventListener("click",event =&gt; {
+<a name="__line424"></a>              event.currentTarget.parentElement.classList.toggle("open");
+<a name="__line425"></a>          });
+<a name="__line426"></a>      });
+<a name="__line427"></a>      document.querySelectorAll(".expandbutton").forEach(el=&gt;{
+<a name="__line428"></a>          el.addEventListener("click",event =&gt; {
+<a name="__line429"></a>              o =event.currentTarget;
+<a name="__line430"></a>              o.parentElement.parentElement.classList.add("open");
+<a name="__line431"></a>              o.parentElement.parentElement.querySelectorAll(".expandable").forEach(a =&gt; {
+<a name="__line432"></a>                  a.classList.add("open");
+<a name="__line433"></a>              });
+<a name="__line434"></a>              event.stopPropagation();
+<a name="__line435"></a>          });
+<a name="__line436"></a>      });
+<a name="__line437"></a>      document.querySelectorAll(".collapsebutton").forEach(el=&gt;{
+<a name="__line438"></a>          el.addEventListener("click",event =&gt; {
+<a name="__line439"></a>              o =event.currentTarget;
+<a name="__line440"></a>              o.parentElement.parentElement.classList.remove("open");
+<a name="__line441"></a>              o.parentElement.parentElement.querySelectorAll(".expandable").forEach(a =&gt; {
+<a name="__line442"></a>                  a.classList.remove("open");
+<a name="__line443"></a>              });
+<a name="__line444"></a>              event.stopPropagation();
+<a name="__line445"></a>          });
+<a name="__line446"></a>      });
+<a name="__line447"></a>  });
+<a name="__line448"></a>&lt;/script&gt;
+<a name="__line449"></a>)LIMIT"&lt;&lt;endl;
+<a name="__line450"></a>
+<a name="__line451"></a>        file_&lt;&lt;"      &lt;/body&gt;"&lt;&lt;endl;
+<a name="__line452"></a>        file_&lt;&lt;"&lt;/html&gt;"&lt;&lt;endl;
+<a name="__line453"></a>        
+<a name="__line454"></a>        if(!shared_) logger::remove_html(this); 
+<a name="__line455"></a>    }
+<a name="__line456"></a>
+<a name="__line457"></a>    logger &amp;logger::indent(unsigned int level)
+<a name="__line458"></a>    {
+<a name="__line459"></a>        for(unsigned int i=0; i&lt;level; ++i)
+<a name="__line460"></a>        {
+<a name="__line461"></a>            std::cerr&lt;&lt;"   ";
+<a name="__line462"></a>            for(auto f : files_()) f-&gt;stream()&lt;&lt;"  ";
+<a name="__line463"></a>        }
+<a name="__line464"></a>        return top();
+<a name="__line465"></a>    }
+<a name="__line466"></a>
+<a name="__line467"></a>    logger &amp;logger::top()
+<a name="__line468"></a>    {
+<a name="__line469"></a>        static logger the_logger;
+<a name="__line470"></a>        the_logger.my_level_ = 0;
+<a name="__line471"></a>        return the_logger;
+<a name="__line472"></a>    }
+<a name="__line473"></a>
+<a name="__line474"></a>}
+
+</pre>
+<hr> 
+<a href="../index.html" title="Home"> 
+<img src="../home.png"  style="border-width:0cm;"> 
+</a>
+<a href="source.html" title="List of sourcefiles"> 
+<img src="../up.png"    style="border-width:0cm;"> 
+</a>
+
+</body></html>

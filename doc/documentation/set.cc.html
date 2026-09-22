@@ -27,59 +27,64 @@
 <a name="__line9"></a>    tic_setter set::y1tics(axis::y1);
 <a name="__line10"></a>    tic_setter set::y2tics(axis::y2);
 <a name="__line11"></a>
-<a name="__line12"></a>    auto aline(double d,int ax, var label, const length &amp;x, const length &amp;y, sym::position halign, sym::position valign, double angle)
+<a name="__line12"></a>    line &amp;vband(double d1, double d2)
 <a name="__line13"></a>    {
-<a name="__line14"></a>        struct _ { blop::line &amp;the_line; blop::label &amp;the_label; };
-<a name="__line15"></a>        if(ax == axis::x1)
-<a name="__line16"></a>        {
-<a name="__line17"></a>            if(angle==unset) angle=90*unit::deg;
-<a name="__line18"></a>            return _ {line::fdraw(x1len(d),0.0)(x1len(d),1.0),
-<a name="__line19"></a>                    label::fdraw(label,x1len(d)+x,y).align(halign,valign).angle(angle)};
-<a name="__line20"></a>        }
-<a name="__line21"></a>        if(ax == axis::x2)
-<a name="__line22"></a>        {
-<a name="__line23"></a>            if(angle==unset) angle=90*unit::deg;
-<a name="__line24"></a>            return _ {line::fdraw(x2len(d),0.0)(x2len(d),1.0),
-<a name="__line25"></a>                    label::fdraw(label,x2len(d)+x,y).align(halign,valign).angle(angle)};
-<a name="__line26"></a>        }
-<a name="__line27"></a>        if(ax == axis::y1)
-<a name="__line28"></a>        {
-<a name="__line29"></a>            if(angle==unset) angle=0;
-<a name="__line30"></a>            return _ {line::fdraw(0.0,y1len(d))(1.0,y1len(d)),
-<a name="__line31"></a>                    label::fdraw(label,x,y1len(d)+y).align(halign,valign).angle(angle)};
-<a name="__line32"></a>        }
-<a name="__line33"></a>        if(ax == axis::y2)
-<a name="__line34"></a>        {
-<a name="__line35"></a>            if(angle==unset) angle=0;
-<a name="__line36"></a>            return _ {line::fdraw(0.0,y2len(d))(1.0,y2len(d)),
-<a name="__line37"></a>                    label::fdraw(label,x,y2len(d)+y).align(halign,valign).angle(angle)};
-<a name="__line38"></a>        }
-<a name="__line39"></a>        static blop::line the_line;
-<a name="__line40"></a>        static blop::label the_label;
-<a name="__line41"></a>        return _ {the_line,the_label};
-<a name="__line42"></a>    }
-<a name="__line43"></a>    
-<a name="__line44"></a>    replot_request set::y2transform(const function &amp;to, const function &amp;back, bool own_tics)
-<a name="__line45"></a>    {
-<a name="__line46"></a>	frame::current().y2axis()-&gt;transform(frame::current().y1axis(), to, back, own_tics);
-<a name="__line47"></a>	return replot_request();
-<a name="__line48"></a>    }
-<a name="__line49"></a>    replot_request set::x2transform(const function &amp;to, const function &amp;back, bool own_tics)
+<a name="__line14"></a>        return line::fdraw(x1len(d1),0.0)(x1len(d1),1.0)(x1len(d2),1.0)(x1len(d2),0.0)(x1len(d1),0.0).fill(true);
+<a name="__line15"></a>    }
+<a name="__line16"></a>
+<a name="__line17"></a>    auto aline(double d,int ax, var label, const length &amp;x, const length &amp;y, sym::position halign, sym::position valign, double angle)
+<a name="__line18"></a>    {
+<a name="__line19"></a>        struct _ { blop::line &amp;the_line; blop::label &amp;the_label; };
+<a name="__line20"></a>        if(ax == axis::x1)
+<a name="__line21"></a>        {
+<a name="__line22"></a>            if(angle==unset) angle=90*unit::deg;
+<a name="__line23"></a>            return _ {line::fdraw(x1len(d),0.0)(x1len(d),1.0),
+<a name="__line24"></a>                    label::fdraw(label,x1len(d)+x,y).align(halign,valign).angle(angle)};
+<a name="__line25"></a>        }
+<a name="__line26"></a>        if(ax == axis::x2)
+<a name="__line27"></a>        {
+<a name="__line28"></a>            if(angle==unset) angle=90*unit::deg;
+<a name="__line29"></a>            return _ {line::fdraw(x2len(d),0.0)(x2len(d),1.0),
+<a name="__line30"></a>                    label::fdraw(label,x2len(d)+x,y).align(halign,valign).angle(angle)};
+<a name="__line31"></a>        }
+<a name="__line32"></a>        if(ax == axis::y1)
+<a name="__line33"></a>        {
+<a name="__line34"></a>            if(angle==unset) angle=0;
+<a name="__line35"></a>            return _ {line::fdraw(0.0,y1len(d))(1.0,y1len(d)),
+<a name="__line36"></a>                    label::fdraw(label,x,y1len(d)+y).align(halign,valign).angle(angle)};
+<a name="__line37"></a>        }
+<a name="__line38"></a>        if(ax == axis::y2)
+<a name="__line39"></a>        {
+<a name="__line40"></a>            if(angle==unset) angle=0;
+<a name="__line41"></a>            return _ {line::fdraw(0.0,y2len(d))(1.0,y2len(d)),
+<a name="__line42"></a>                    label::fdraw(label,x,y2len(d)+y).align(halign,valign).angle(angle)};
+<a name="__line43"></a>        }
+<a name="__line44"></a>        static blop::line the_line;
+<a name="__line45"></a>        static blop::label the_label;
+<a name="__line46"></a>        return _ {the_line,the_label};
+<a name="__line47"></a>    }
+<a name="__line48"></a>    
+<a name="__line49"></a>    replot_request set::y2transform(const function &amp;to, const function &amp;back, bool own_tics)
 <a name="__line50"></a>    {
-<a name="__line51"></a>	frame::current().x2axis()-&gt;transform(frame::current().x1axis(), to, back, own_tics);
+<a name="__line51"></a>	frame::current().y2axis()-&gt;transform(frame::current().y1axis(), to, back, own_tics);
 <a name="__line52"></a>	return replot_request();
 <a name="__line53"></a>    }
-<a name="__line54"></a>    replot_request set::y1transform(const function &amp;to, const function &amp;back, bool own_tics)
+<a name="__line54"></a>    replot_request set::x2transform(const function &amp;to, const function &amp;back, bool own_tics)
 <a name="__line55"></a>    {
-<a name="__line56"></a>	frame::current().y1axis()-&gt;transform(frame::current().y2axis(), to, back, own_tics);
+<a name="__line56"></a>	frame::current().x2axis()-&gt;transform(frame::current().x1axis(), to, back, own_tics);
 <a name="__line57"></a>	return replot_request();
 <a name="__line58"></a>    }
-<a name="__line59"></a>    replot_request set::x1transform(const function &amp;to, const function &amp;back, bool own_tics)
+<a name="__line59"></a>    replot_request set::y1transform(const function &amp;to, const function &amp;back, bool own_tics)
 <a name="__line60"></a>    {
-<a name="__line61"></a>	frame::current().x1axis()-&gt;transform(frame::current().x2axis(), to, back, own_tics);
+<a name="__line61"></a>	frame::current().y1axis()-&gt;transform(frame::current().y2axis(), to, back, own_tics);
 <a name="__line62"></a>	return replot_request();
 <a name="__line63"></a>    }
-<a name="__line64"></a>}
+<a name="__line64"></a>    replot_request set::x1transform(const function &amp;to, const function &amp;back, bool own_tics)
+<a name="__line65"></a>    {
+<a name="__line66"></a>	frame::current().x1axis()-&gt;transform(frame::current().x2axis(), to, back, own_tics);
+<a name="__line67"></a>	return replot_request();
+<a name="__line68"></a>    }
+<a name="__line69"></a>}
 
 </pre>
 <hr> 

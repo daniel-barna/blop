@@ -183,7 +183,7 @@
 <a name="__line165"></a>	frame::current_ = 0;
 <a name="__line166"></a>	for(unsigned int i=0; i&lt;content_.size(); ++i)
 <a name="__line167"></a>	{
-<a name="__line168"></a>	    if(frame *f = dynamic_cast&lt;frame *&gt;(content_[i])) frame::current_ = f;
+<a name="__line168"></a>	    if(frame *f = dynamic_cast&lt;frame *&gt;(content_[i].get())) frame::current_ = f;
 <a name="__line169"></a>	}
 <a name="__line170"></a>    }
 <a name="__line171"></a>
@@ -311,21 +311,22 @@
 <a name="__line293"></a>		    length x2, length y2,
 <a name="__line294"></a>		    container &amp;parent)
 <a name="__line295"></a>    {
-<a name="__line296"></a>	pad *p = new pad(x1,y1,x2,y2);
-<a name="__line297"></a>	p-&gt;autodel(true);
-<a name="__line298"></a>	parent.add(p);
-<a name="__line299"></a>	p-&gt;cd();
-<a name="__line300"></a>	return *p;
-<a name="__line301"></a>    }
-<a name="__line302"></a>
-<a name="__line303"></a>    pad &amp;pad::current()
-<a name="__line304"></a>    {
-<a name="__line305"></a>	if(current_pad_ == 0) return canvas::current();
-<a name="__line306"></a>	return *current_pad_;
-<a name="__line307"></a>    }
-<a name="__line308"></a>
+<a name="__line296"></a>        auto p = pad::create(x1,y1,x2,y2);
+<a name="__line297"></a><span class=comment>//	pad *p = new pad(x1,y1,x2,y2);</span>
+<a name="__line298"></a><span class=comment>//	p-&gt;autodel(true);</span>
+<a name="__line299"></a>	parent.add(p);
+<a name="__line300"></a>	p-&gt;cd();
+<a name="__line301"></a>	return *p;
+<a name="__line302"></a>    }
+<a name="__line303"></a>
+<a name="__line304"></a>    pad &amp;pad::current()
+<a name="__line305"></a>    {
+<a name="__line306"></a>	if(current_pad_ == 0) return canvas::current();
+<a name="__line307"></a>	return *current_pad_;
+<a name="__line308"></a>    }
 <a name="__line309"></a>
-<a name="__line310"></a>}
+<a name="__line310"></a>
+<a name="__line311"></a>}
 
 </pre>
 <hr> 

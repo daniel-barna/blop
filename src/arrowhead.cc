@@ -24,9 +24,10 @@ namespace blop
 	l_ = -1*!length_;
 	set_t_();
     }
-    arrowhead *arrowhead::simple::clone() const
+    smartptr<arrowhead> arrowhead::simple::clone() const
     {
-	return new arrowhead::simple(*this);
+//	return new arrowhead::simple(*this);
+	return arrowhead::simple::create(*this);
     }
     arrowhead::simple &arrowhead::simple::size(const length &l)
     {
@@ -115,9 +116,10 @@ namespace blop
 	l2_ = -1*!length2_;
 	set_t_();
     }
-    arrowhead *arrowhead::filled::clone() const
+    smartptr<arrowhead> arrowhead::filled::clone() const
     {
-	return new arrowhead::filled(*this);
+//	return new arrowhead::filled(*this);
+	return arrowhead::filled::create(*this);
     }
 
     arrowhead::filled &arrowhead::filled::size(const length &l)

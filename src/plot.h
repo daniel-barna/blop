@@ -99,7 +99,6 @@ namespace blop
 		  const function &f3=unset,
 		  const function &f4=unset);
 
-
     dgraph &plot (int n,
 		  var *x,
 		  const function &f1,
@@ -699,9 +698,9 @@ namespace blop
     // These functions plot already existing graphs (add it to the current frame, etc)
 
     plottable &plot(plottable &g);
-    inline plottable &plot(plottable *g) { return plot(*g); }
+    inline plottable &plot(smartptr<plottable> g) { return plot(*g); }
     plottable &mplot(plottable &g);
-    inline plottable &mplot(plottable *g) { return mplot(*g); }
+    inline plottable &mplot(smartptr<plottable> g) { return mplot(*g); }
 
 
     // plot already existing graphs transformed. the _0 function can be also
@@ -713,7 +712,7 @@ namespace blop
 		 const function &f2=unset,
 		 const function &f3=unset,
 		 const function &f4=unset);
-    inline dgraph &plot(dgraph *g,
+    inline dgraph &plot(smartptr<dgraph> g,
 		 const function &f1=unset,
 		 const function &f2=unset,
 		 const function &f3=unset,
@@ -729,7 +728,7 @@ namespace blop
 		  const function &f2=unset,
 		  const function &f3=unset,
 		  const function &f4=unset);
-    inline dgraph &mplot(dgraph *g,
+    inline dgraph &mplot(smartptr<dgraph> g,
 		  const function &f1=unset,
 		  const function &f2=unset,
 		  const function &f3=unset,
@@ -737,8 +736,6 @@ namespace blop
     {
         return mplot(*g,f1,f2,f3,f4);
     }
-
-    
 
     dgraph &plot_if(dgraph &g,
 		    const function &condition,
@@ -753,7 +750,8 @@ namespace blop
 		     const function &f2=unset,
 		     const function &f3=unset,
 		     const function &f4=unset);
-    inline dgraph &plot_if(dgraph *g,
+
+    inline dgraph &plot_if(smartptr<dgraph> g,
 		    const function &condition,
 		    const function &f1=unset,
 		    const function &f2=unset,
@@ -763,7 +761,7 @@ namespace blop
         return plot_if(*g,condition,f1,f2,f3,f4);
     }
 
-    inline dgraph &mplot_if(dgraph *g,
+    inline dgraph &mplot_if(smartptr<dgraph> g,
 		     const function &condition,
 		     const function &f1=unset,
 		     const function &f2=unset,

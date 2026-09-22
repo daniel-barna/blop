@@ -4,11 +4,13 @@
 #include "grob.h"
 #include "color.h"
 #include "sym.h"
+#include "factory.h"
+#include "container.h"
+#include "frame.h"
+#include "pad.h"
 
 namespace blop
 {
-    class container;
-
     class arc : public grob
     {
     private:
@@ -104,7 +106,7 @@ namespace blop
 			  const length &ry = default_ry(),
 			  double angle1 = default_angle1(),
 			  double angle2 = default_angle2());
-	static arc &draw (container *parent,
+	static arc &draw (container::ptr parent,
 			  const length &x, const length &y,
 			  const length &rx = default_rx(),
 			  const length &ry = default_ry(),
@@ -113,7 +115,8 @@ namespace blop
 
 	void prepare_for_draw();
 	void print(terminal *);
-	
+
+        FACTORY(arc);
     };
 }
 

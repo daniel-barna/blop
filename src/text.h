@@ -12,6 +12,7 @@ namespace blop
 {
     class text : public box
     {
+        FACTORY(text);
     private:
         bool verbatim_;
         color color_;
@@ -63,7 +64,7 @@ namespace blop
         const length &ycenter() const { return box::ycenter(); }
         const length &height() const { return box::height(); }
 
-        static text &draw(container *parent, const var &);
+        static text &draw(smartptr<container> parent, const var &);
         static text &fdraw(const var &);
         static text &pdraw(const var &);
         static text &cdraw(const var &);
