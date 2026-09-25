@@ -7,6 +7,34 @@
 
 namespace blop
 {
+    bool arc::default_arrow_fore_ = false;
+    bool arc::default_arrow_back_ = false;
+    double arc::default_arrowangle_  = 30*unit::deg;
+    length &arc::default_arrowlength()
+    {
+	static length l = 3*MM;
+	return l;
+    }
+
+    void arc::draw_arrow(terminal::id x0, terminal::id y0, const length &len, const length &width, double angle, terminal *t)
+    {
+        length a = 0.9*len;
+        a.specialize(t);
+	length width_minus = -1*width;
+	width_minus.specialize(t);
+
+        t->rotate(angle);
+	t->translate(x0,y0);
+        vector<terminal::coord> cc;
+        cc.push_back(terminal::coord(a.termspecific_id(), terminal::id(0,2)));
+	cc.push_back(terminal::coord(len.termspecific_id(), width.termspecific_id()));
+	cc.push_back(terminal::coord(terminal::id(0,1),terminal::id(0,2)));
+	cc.push_back(terminal::coord(len.termspecific_id(), width_minus.termspecific_id()));
+	t->fill_polygon(cc);
+        t->reset_transformation();
+    }
+
+
     double arc::default_angle1_ = 0;
     double arc::default_angle2_ = 360*unit::deg;
     sym::linestyle arc::default_linestyle_ = sym::solid;
@@ -96,6 +124,15 @@ namespace blop
 	fillcolor_ = default_fillcolor_();
 	draw_line_ = default_draw_line_;
 	fill_ = default_fill_;
+
+	arrow_length_fore_ = default_arrowlength();
+	arrow_length_back_ = default_arrowlength();
+	arrow_angle_fore_  = default_arrowangle_;
+	arrow_angle_back_  = default_arrowangle_;
+	arrow_width_fore_ = ::tan(arrow_angle_fore_/2) * !arrow_length_fore_;
+	arrow_width_back_ = ::tan(arrow_angle_back_/2) * !arrow_length_back_;
+	arrow_fore_ = default_arrow_fore_;
+	arrow_back_ = default_arrow_back_;
     }
 
     
@@ -157,6 +194,18 @@ namespace blop
 	rx_.register_me();
 	ry_.register_me();
 	linewidth_.register_me();
+
+        if(arrow_fore_)
+        {
+            arrow_length_fore_.register_me();
+            arrow_width_fore_.register_me();
+        }
+        
+	if(arrow_back_)
+	{
+	    arrow_length_back_.register_me();
+	    arrow_width_back_.register_me();
+	}
     }
 
     void arc::print(terminal *t)
@@ -174,6 +223,16 @@ namespace blop
 	t->set_linewidth(linewidth_.termspecific_id());
 	t->draw_arc(terminal::coord(x_.termspecific_id(), y_.termspecific_id()),
 		    rx_.termspecific_id(), angle1_, angle2_);
+
+
+        // Strange, I think the 90deg terms should have opposite signs here, but this is how it works
+	if(arrow_fore_) draw_arrow(t->lincombi(1.0,x_.termspecific_id(),::cos(angle2_),rx_.termspecific_id()),
+                                   t->lincombi(1.0,y_.termspecific_id(),::sin(angle2_),rx_.termspecific_id()),
+                                   arrow_length_fore_,arrow_width_fore_,angle2_-90*unit::deg,t);
+	if(arrow_back_) draw_arrow(t->lincombi(1.0,x_.termspecific_id(),::cos(angle1_),rx_.termspecific_id()),
+                                   t->lincombi(1.0,y_.termspecific_id(),::sin(angle1_),rx_.termspecific_id()),
+                                   arrow_length_back_,arrow_width_back_,angle1_+90*unit::deg,t);
+        
 	t->close_layer(layer_);
     }
 

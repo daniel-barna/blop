@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=latex 2026.9.18)  22 SEP 2026 17:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025/Debian) (preloaded format=latex 2026.9.18)  24 SEP 2026 16:46
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -392,6 +392,26 @@ Overfull \hbox (5.2778pt too wide) detected at line 19
  []
 
 
+Overfull \hbox (8.33334pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (21.11116pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (16.11115pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (21.11116pt too wide) detected at line 19
+[]
+ []
+
+
 Overfull \hbox (5.00002pt too wide) detected at line 19
 []
  []
@@ -413,6 +433,26 @@ Overfull \hbox (17.77783pt too wide) detected at line 19
 
 
 Overfull \hbox (5.00002pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (8.33334pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (21.11116pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (16.11115pt too wide) detected at line 19
+[]
+ []
+
+
+Overfull \hbox (21.11116pt too wide) detected at line 19
 []
  []
 
@@ -472,10 +512,10 @@ L3 programming layer <2026-01-19>
 Here is how much of TeX's memory you used:
  9876 strings out of 468904
  181102 string characters out of 5452097
- 602273 words of memory out of 5000000
+ 604569 words of memory out of 5000000
  38445 multiletter control sequences out of 15000+600000
  628276 words of font info for 42 fonts, out of 8000000 for 9000
  350 hyphenation exceptions out of 8191
  90i,6n,90p,584b,140s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on test.dvi (1 page, 10460 bytes).
+Output written on test.dvi (1 page, 15000 bytes).

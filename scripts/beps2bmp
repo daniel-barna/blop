@@ -153,9 +153,9 @@ height=`awk '$1=="%%BoundingBox:" {print $5; exit;}' $tmp1`
 PAPERSIZE="-dDEVICEWIDTHPOINTS=$width -dDEVICEHEIGHTPOINTS=$height"
 
 if [ $quiet = false ] ; then
-  gs $PAPERSIZE -dBATCH -dNOPAUSE -sDEVICE=pnmraw -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sOutputFile=$tmp2 $tmp1
+  gs $PAPERSIZE -dALLOWPSTRANSPARENCY -dBATCH -dNOPAUSE -sDEVICE=pnmraw -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sOutputFile=$tmp2 $tmp1
 else
-  gs_output=`gs $PAPERSIZE -dBATCH -dNOPAUSE -sDEVICE=pnmraw -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sOutputFile=$tmp2 $tmp1 2>&1`
+  gs_output=`gs $PAPERSIZE -dALLOWPSTRANSPARENCY -dBATCH -dNOPAUSE -sDEVICE=pnmraw -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sOutputFile=$tmp2 $tmp1 2>&1`
 fi
 
 if [ $? -ne 0 ] ; then

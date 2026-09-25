@@ -75,7 +75,7 @@ awk 'F==1	{
 #open HANDLE, "gs -q -sPAPERSIZE=a0 -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 $BlopBBox -sDEVICE=bbox '$infile' 2>&1 | grep BoundingBox |";
 
 export outfile=`mktemp /tmp/ps2eps-blop-bbox.XXXXXX`
-gs -q -sPAPERSIZE=a0 -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 $BlopBBox -sDEVICE=bit -sOutputFile=/dev/null "$tmpfile" ps2epsi.ps "$tmpfile" <"${infile}" 2>&1 
+gs -q -sPAPERSIZE=a0 -dALLOWPSTRANSPARENCY -dBATCH -dNOPAUSE -dSAFER -dDELAYSAFER -r72 $BlopBBox -sDEVICE=bit -sOutputFile=/dev/null "$tmpfile" ps2epsi.ps "$tmpfile" <"${infile}" 2>&1 
 bb=`grep '^%%.*BoundingBox' $outfile`
 rm -rf $outfile
 

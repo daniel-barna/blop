@@ -32,9 +32,7 @@ namespace blop
 	bool   draw_line_,fill_;
 
 	length arrow_length_fore_, arrow_length_back_, arrow_width_fore_, arrow_width_back_;
-
 	double arrow_angle_fore_, arrow_angle_back_;
-
 	bool   arrow_fore_, arrow_back_;
 
         bool clip_;

@@ -21,12 +21,11 @@ const double r0 = 20*unit::mm;
 
 int main()
 {
-    typedef mframe mm;
-    mm &m = mm::mknew(1,2);
+    set::xrange(-1,1);
+    set::yrange(-1,1);
+    set::nodistort(true);
+    arc::fdraw(x1len(0), y1len(0), x1len(0.9)-x1len(0), x1len(0.9)-x1len(0), 0, 45*unit::deg).arrow(true).arrow_back(true);
 
-    plot(_1);
-    m.cd_next();
-    plot(_1*_1);
 /*
     mf.cd_next();
     plot(_1*_1);

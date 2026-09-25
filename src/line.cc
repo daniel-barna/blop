@@ -16,7 +16,7 @@ namespace blop
 	static length l = 3*MM;
 	return l;
     }
-    double line::default_arrowangle_  = 30;
+    double line::default_arrowangle_  = 30*unit::deg;
     sym::linestyle    line::default_linestyle_ = sym::solid;
     color  line::default_linecolor_(0,0,0);
     bool   line::default_draw_line_ = true;
@@ -42,8 +42,10 @@ namespace blop
 	arrow_angle_fore_  = default_arrowangle_;
 	arrow_angle_back_  = default_arrowangle_;
 
-	arrow_width_fore_ = ::tan(arrow_angle_fore_/2*3.1415/180) * !arrow_length_fore_;
-	arrow_width_back_ = ::tan(arrow_angle_back_/2*3.1415/180) * !arrow_length_back_;
+//	arrow_width_fore_ = ::tan(arrow_angle_fore_/2*3.1415/180) * !arrow_length_fore_;
+//	arrow_width_back_ = ::tan(arrow_angle_back_/2*3.1415/180) * !arrow_length_back_;
+	arrow_width_fore_ = ::tan(arrow_angle_fore_/2) * !arrow_length_fore_;
+	arrow_width_back_ = ::tan(arrow_angle_back_/2) * !arrow_length_back_;
 
 	arrow_fore_ = default_arrow_fore_;
 	arrow_back_ = default_arrow_back_;

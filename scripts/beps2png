@@ -163,9 +163,9 @@ PAPERSIZE="-dDEVICEWIDTHPOINTS=$width -dDEVICEHEIGHTPOINTS=$height"
 echo papersize = $PAPERSIZE
 
 if [ $quiet = false ] ; then
-             gs -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1
+             gs -dALLOWPSTRANSPARENCY -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1
 else
-  gs_output=`gs -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1 2>&1`
+  gs_output=`gs -dALLOWPSTRANSPARENCY -dBATCH $PAPERSIZE -dNOPAUSE -dTextAlphaBits=4 -dGraphicsAlphaBits=0 -r$resolution -sDEVICE=pnmraw -sOutputFile=$tmp2 $tmp1 2>&1`
 fi
 
 if [ $? -ne 0 ] ; then

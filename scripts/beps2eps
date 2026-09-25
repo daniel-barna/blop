@@ -585,7 +585,7 @@ if [ "$psonly" = "false" ] ; then
      bboxarg="-dBlopCalculateBBox=1"
    fi
 
-   gsout=`gs -dSAFER -dNOPAUSE -r$bboxres -sDEVICE=pnmraw -sOutputFile=$pnmtmp $bboxarg \
+   gsout=`gs -dSAFER -dNOPAUSE -dALLOWPSTRANSPARENCY -r$bboxres -sDEVICE=pnmraw -sOutputFile=$pnmtmp $bboxarg \
        -f "$texfile.ps" -c showpage -c quit 2>&1`
 
    if [ $? != 0 ] ; then

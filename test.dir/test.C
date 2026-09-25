@@ -21,11 +21,10 @@ const double r0 = 20*unit::mm;
 
 int main()
 {
-    
-    set::xrange(0,1);
-    set::yrange(0,1);
-    line::fdraw(0.1,0.1)(0.5,0.1)(0.5,0.5)(0.1,0.5).fill(true).fillcolor(red).linecolor(green%0.5).linewidth(2*MM);
-    line::fdraw(0.2,0.2)(0.6,0.2)(0.6,0.6)(0.2,0.6).fill(true).fillcolor(blue%0.5);
+    set::xrange(-1,1);
+    set::yrange(-1,1);
+    set::nodistort(true);
+    arc::fdraw(x1len(0), y1len(0), x1len(0.9)-x1len(0), x1len(0.9)-x1len(0), 0, 45*unit::deg).arrow(true).arrow_back(true);
 
 /*
     mf.cd_next();

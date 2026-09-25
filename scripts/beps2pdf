@@ -126,7 +126,7 @@ if which epstopdf >/dev/null 2>&1 ; then
      echo "Using epstopdf .." 1>&2
      echo epstopdf --outfile=$outputfile $tmp1
   fi
-  epstopdf --outfile=$outputfile $tmp1
+  epstopdf --gsopt=-dALLOWPSTRANSPARENCY --outfile=$outputfile $tmp1
   epstopdf_code=$?
 else
   if [ $verbose_level -gt 0 ] ; then

@@ -14,6 +14,13 @@ namespace blop
     class arc : public grob
     {
     private:
+	static bool    default_arrow_fore_, default_arrow_back_;
+        static double default_arrowangle_;
+
+	length arrow_length_fore_, arrow_length_back_, arrow_width_fore_, arrow_width_back_;
+	double arrow_angle_fore_, arrow_angle_back_;
+	bool   arrow_fore_, arrow_back_;
+
 	static sym::linestyle default_linestyle_;
 	static length  &default_linewidth_();
 	static color   &default_linecolor_();
@@ -32,7 +39,17 @@ namespace blop
 	length x_,y_,rx_,ry_;
 	double angle1_,angle2_;
 
+        void draw_arrow(terminal::id x0, terminal::id y0, const length &len, const length &width, double angle, terminal *t);
+
     public:
+	static void default_arrow(bool f)                { default_arrow_fore_ = f; }
+	static void default_arrow_back(bool f)           { default_arrow_back_ = f; }
+
+        static length &default_arrowlength();
+	static void default_arrowlength(const length &l) { default_arrowlength() = l; }
+
+	static void default_arrowangle (double d)        { default_arrowangle_ = d;  }
+
 	static void default_linestyle(sym::linestyle);
 	static void default_linewidth(length l);
 	static void default_linecolor(color &c);
@@ -54,6 +71,22 @@ namespace blop
 	    length ry = default_ry(),
 	    double angle1=default_angle1(),
 	    double angle2=default_angle2());
+
+	// ---------   Set or read the arrowhead length  ----------------------
+
+	arc &arrow(bool b) {arrow_fore_ = b; return *this;}
+	arc &arrow_back(bool b) {arrow_back_ = b; return *this;}
+        arc &arrows(bool b) { arrow_fore_ = arrow_back_ = b; return *this; }
+
+	arc &arrowlength(const length &l) { arrow_length_fore_ = l; return *this; } // forward arrow
+	arc &al(const length &l) { return arrowlength(l); }
+	const length &arrowlength() const { return arrow_length_fore_; }
+
+	arc &arrowlength_back(const length &l) { arrow_length_back_ = l; return *this; } // backward arrow
+	arc &al_back(const length &l) { return arrowlength_back(l); }
+	const length &arrowlength_back() const { return arrow_length_back_; }
+
+        // ---------- set linestyle --------------------------------------------
 
 	arc &linestyle(sym::linestyle i) { linestyle_ = i; return *this; }
         sym::linestyle linestyle() const { return linestyle_; }

@@ -1036,8 +1036,6 @@ namespace blop
 	    file_tmp_<<"/Ra { /BLOP@CTM BLOP@CTM 3 2 roll [ 1 0 0 1 0 0 ] rotate "
 		       "[ 1 0 0 1 0 0 ] concatmatrix def } def"<<endl;
 	}
-//kaki
-//	file_tmp_<<angle<<" Ra"<<endl;
 	file_tmp_<<angle/unit::deg<<" Ra"<<endl;
     }
 

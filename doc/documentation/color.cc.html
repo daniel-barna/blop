@@ -171,13 +171,23 @@
 <a name="__line153"></a>		     c1.blue() /f);
 <a name="__line154"></a>    }
 <a name="__line155"></a>
-<a name="__line156"></a>    ostream &amp;operator&lt;&lt;(ostream &amp;out, const color &amp;c)
+<a name="__line156"></a>    color operator% (const color &amp;c, double f)
 <a name="__line157"></a>    {
-<a name="__line158"></a>	out&lt;&lt;c.red()&lt;&lt;","&lt;&lt;c.green()&lt;&lt;","&lt;&lt;c.blue();
-<a name="__line159"></a>	return out;
-<a name="__line160"></a>    }
-<a name="__line161"></a>
-<a name="__line162"></a>}
+<a name="__line158"></a>        color result(c);
+<a name="__line159"></a>        double a = c.alpha()*f;
+<a name="__line160"></a>        if(a&lt;0) a=0;
+<a name="__line161"></a>        if(a&gt;1) a=1;
+<a name="__line162"></a>        result.alpha(a);
+<a name="__line163"></a>        return result;
+<a name="__line164"></a>    }
+<a name="__line165"></a>
+<a name="__line166"></a>    ostream &amp;operator&lt;&lt;(ostream &amp;out, const color &amp;c)
+<a name="__line167"></a>    {
+<a name="__line168"></a>	out&lt;&lt;c.red()&lt;&lt;","&lt;&lt;c.green()&lt;&lt;","&lt;&lt;c.blue();
+<a name="__line169"></a>	return out;
+<a name="__line170"></a>    }
+<a name="__line171"></a>
+<a name="__line172"></a>}
 
 </pre>
 <hr> 
