@@ -6,6 +6,9 @@
 #include <type_traits>
 #include <concepts>
 #include <cassert>
+#include <iostream>
+#include <utility>
+#include <tuple>
 
 /*
 
@@ -40,7 +43,22 @@ int main()
     logger log("Some sub-block, indented");
     log<<"Indented first log"<<endl;
   }
-  
+}
+
+
+logger::args is a utility class that helps printing function arguments in the following way:
+
+void func(double a, std::string b, int c)
+{
+  logger log("func",logger::args(a,b,c)); // --> prints "func(value_of_a,value_of_b,value_of_c) started"
+}
+
+To make it even more simple, there is a dedicated class for function logging:
+
+void func(double a, int b, std::string c)
+{
+  logger::func log("func",a,b,c);  
+  log<<"1 ok"<<endl;
 }
 
  */
@@ -56,6 +74,32 @@ namespace blop{
     class logger 
     {
     public:
+        
+        template <typename... Args>
+        class args
+        {
+        private:
+            std::tuple<Args...> values_;
+
+        public:
+            explicit args(const Args&... the_args) : values_(the_args...) {}
+
+            friend std::ostream& operator<<(std::ostream& os, const args& list)
+                {
+                    os << "(";
+                    std::apply([&os](const auto&... values)
+                        {
+                            std::size_t n = 0;
+                            ((os << (n++ ? ", " : "") << values), ...);
+                        }, list.values_);
+                    os << ")";
+                    return os;
+                }
+
+        };
+
+        template <typename...Args> class func;
+        
         class file
         {
         private:
@@ -463,6 +507,25 @@ namespace blop{
         };
 */
     };
+
+    template <typename...Args> class logger::func : public logger
+        {
+        private:
+            //const std::string funcname_;
+            //args<Args...> args_;
+        public:
+            // friend std::ostream &operator<<(std::ostream &os, const func &f)
+            //     {
+            //         os<<f.funcname_<<f.args_;
+            //         return os;
+            //     }
+            explicit func(const std::string &funcname, const Args&... the_args) : logger(funcname,args(the_args...))
+                //funcname_(funcname), args_(the_args...) 
+                {
+                    
+                }
+        };
+    
 
     // bitwise OR operator to concatenate several options
     inline logger::option operator| (logger::option o1, logger::option o2)

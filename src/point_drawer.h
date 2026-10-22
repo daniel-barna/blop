@@ -231,7 +231,7 @@ namespace blop
 	    void drawer(smartptr<point_drawer> d) { drawer_ = d; }
 	};
 
-//    smartptr<point_drawer> point_by_index(unsigned int ind);
+    smartptr<point_drawer> point_by_index(unsigned int ind);
 
 #ifndef __MAKECINT__    
     typedef std::variant<blop::square,blop::fsquare,blop::diamond,blop::fdiamond,blop::triangle,blop::ftriangle,blop::triangledown,blop::ftriangledown,blop::circle,blop::fcircle,blop::plus,blop::cross,blop::star4,blop::fstar4,blop::autopoint> point_drawers;
