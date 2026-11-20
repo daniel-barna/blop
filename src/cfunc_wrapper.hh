@@ -305,7 +305,7 @@ namespace blop
     class complex_func_double_double : public cfunc_wrapper<complex<double>, complex<double> (*)(double,double)>
     {
     public:
-	complex_func_double_double(void *p) {init(p,"double");}
+	complex_func_double_double(void *p) {init(p,"double,double");}
 	complex_func_double_double(complex<double> (*p)(double,double)=0)
 	    { init(p); }
 	complex<double> operator() (double,double) const;
@@ -331,6 +331,36 @@ namespace blop
 	    }
     };
 
+    class complex_func_double_double_double : public cfunc_wrapper<complex<double>, complex<double> (*)(double,double,double)>
+    {
+    public:
+	complex_func_double_double_double(void *p) {init(p,"double,double,double");}
+	complex_func_double_double_double(complex<double> (*p)(double,double,double)=0)
+	    { init(p); }
+	complex<double> operator() (double,double,double) const;
+
+	cfunc_wrapper_base *clone() const { return new complex_func_double_double_double(*this); }
+	int n_out() const { return 2; }
+	int n_args () const { return 3; }
+	void eval(const std::vector<blop::var> &in,
+		  const std::vector<blop::var> &, //pars
+		  std::vector<blop::var>::iterator &out) const
+	    {
+		operator()(in[0].dbl(),in[1].dbl(),in[2].dbl());
+		(*(out++)) = result().real();
+		(*(out++)) = result().imag();
+	    }
+	void eval_dbl(const std::vector<blop::var> &in,
+		      const std::vector<blop::var> &, //pars
+		      std::vector<blop::var>::iterator &out) const
+	    {
+		operator()(in[0].dbl(),in[1].dbl(),in[2].dbl());
+		(*(out++)).dbl(result().real());
+		(*(out++)).dbl(result().imag());
+	    }
+    };
+
+    
     class double_func_double : public cfunc_wrapper<double,double (*)(double)>
     {
     public:

@@ -399,6 +399,8 @@ public:
 	    cfunc(double (*p)(double,double,double)); 
 	    cfunc(double (*p)(double,double,double,double)); 
 	    cfunc(complex<double> (*p)(double));
+	    cfunc(complex<double> (*p)(double,double));
+	    cfunc(complex<double> (*p)(double,double,double));
 
 	    cfunc(var (*p)(const std::vector<blop::var> &args,
 			   const std::vector<blop::var> &pars),

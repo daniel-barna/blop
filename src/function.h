@@ -272,6 +272,7 @@ namespace blop
         friend function     cfunc     (double (*p)(double,double,double,double));
         friend function     cfunc     (complex<double> (*p)(double));
         friend function     cfunc     (complex<double> (*p)(double,double));
+        friend function     cfunc     (complex<double> (*p)(double,double,double));
         friend function     cfunc     (var (*p)(const std::vector<blop::var> &args,
                                                 const std::vector<blop::var> &pars),
                                        int nargs,
@@ -937,6 +938,8 @@ namespace blop
     function     cfunc     (double (*p)(double,double,double));
     function     cfunc     (double (*p)(double,double,double,double));
     function     cfunc     (complex<double> (*p)(double));
+    function     cfunc     (complex<double> (*p)(double,double));
+    function     cfunc     (complex<double> (*p)(double,double,double));
     function     cfunc     (var (*p)(const std::vector<blop::var> &args,
                                      const std::vector<blop::var> &pars),
                             int nargs,

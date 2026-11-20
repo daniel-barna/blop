@@ -459,6 +459,7 @@ namespace blop{
                 return *this;
             }
 
+        // Handle std::endl and possibly other stream manipulators
         logger &operator<<(std::ostream& (*manip)(std::ostream&)) 
             {
                 if (manip == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)) 
@@ -470,6 +471,14 @@ namespace blop{
                 for(auto f : files_()) f->stream()<<manip;
                 return *this;
             }    
+
+        // Handle std::setw manipulator
+        logger &operator<<(decltype(std::setw(0)) manip)
+            {
+                std::cerr<<manip;
+                for(auto f : files_()) f->stream()<<manip;
+                return *this;
+            }
 
         static void print() {}
     

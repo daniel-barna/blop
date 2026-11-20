@@ -132,6 +132,12 @@ namespace blop
 	warning::print("Uninitialized cfunc_wrapper called");
 	return (result_=complex<double>(0,0));
     }
+    complex<double> complex_func_double_double_double::operator()(double v1, double v2, double v3) const
+    {
+	if(ptr_) return (result_=((function_type)ptr_)(v1,v2,v3));
+	warning::print("Uninitialized cfunc_wrapper called");
+	return (result_=complex<double>(0,0));
+    }
     double double_func_double::operator()(double v) const
     {
 	if(ptr_) return (result_=((function_type)ptr_)(v));

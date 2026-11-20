@@ -87,7 +87,6 @@ namespace blop {
 
     unsigned int logger::level_ = 0;
     bool logger::indented_ = false;
-    
                                                                           
     void logger::init_()
     {

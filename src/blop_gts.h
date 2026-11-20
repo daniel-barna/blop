@@ -133,6 +133,8 @@ namespace blop
 
     void isoline(const dgraph &g, double zcut, std::vector<double> &iso_x, std::vector<double> &iso_y);
 
+    void isoline(const dgraph &g, const blop::function &x, const blop::function &y, const blop::function &z, double zcut, std::vector<double> &iso_x, std::vector<double> &iso_y);
+
     void isoline_at_coords(const var &filename, double zcut, std::vector<double> &iso_x, std::vector<double> &iso_y,
                            const function &f1=unset, const function &f2=unset, const function &f3=unset);
 

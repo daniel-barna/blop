@@ -3869,6 +3869,9 @@ namespace blop
     function cfunc(double (*p)(double,double,double)) {  return function_core::cfunc(p); }
     function cfunc(double (*p)(double,double,double,double)) {  return function_core::cfunc(p); }
     function cfunc(complex<double> (*p)(double)) { return function_core::cfunc(p); }
+    function cfunc(complex<double> (*p)(double,double)) { return function_core::cfunc(p); }
+    function cfunc(complex<double> (*p)(double,double,double)) { return function_core::cfunc(p); }
+    
     function cfunc(var (*p)(const std::vector<blop::var> &args,
 			    const std::vector<blop::var> &pars),
 		   int nargs, int npars) { return function_core::cfunc(p,nargs,npars); }

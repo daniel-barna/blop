@@ -1258,6 +1258,16 @@ namespace blop
 	    wrapper_ = new complex_func_double(p);
 	    init_arrays_();
 	}
+	cfunc::cfunc(complex<double> (*p)(double,double))
+	{
+	    wrapper_ = new complex_func_double_double(p);
+	    init_arrays_();
+	}
+	cfunc::cfunc(complex<double> (*p)(double,double,double))
+	{
+	    wrapper_ = new complex_func_double_double_double(p);
+	    init_arrays_();
+	}
 
 	cfunc::cfunc(var (*p)(const std::vector<blop::var> &args,
 			      const std::vector<blop::var> &pars),

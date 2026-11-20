@@ -762,6 +762,17 @@ namespace blop
 	intersection_z(surf,zcut,iso_x,iso_y);
     }
 
+    void isoline(const dgraph &g,
+                 const blop::function &x, const blop::function &y, const blop::function &z,
+		 double zcut,
+		 vector<double> &iso_x, vector<double> &iso_y)
+    {
+	delaunay_surface surf;
+	for(unsigned int i=0; i<g.size(); ++i) surf.add_vertex(x.eval(g[i]), y.eval(g[i]), z.eval(g[i]));
+	intersection_z(surf,zcut,iso_x,iso_y);
+    }
+
+    
     void isoline(const array &x, const array &y, const array &z,
 		 double zcut,
 		 array &iso_x, array &iso_y)
