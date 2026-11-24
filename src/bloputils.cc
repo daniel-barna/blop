@@ -5,6 +5,7 @@
 #include "pstream.h"
 #include "warning.h"
 #include "canvas.h"
+#include "logger.h"
 
 #include <fstream>
 #include <sstream>
@@ -419,19 +420,22 @@ namespace blop
 	{
 	    switch(fn[i])
 	    {
-	    case '<': result += "$<$"; break;
-	    case '>': result += "$>$"; break;
+	    case '<': result += "\\ensuremath{<}"; break;
+	    case '>': result += "\\ensuremath{>}"; break;
 	    case '_': result += "\\_"; break;
             case '^': result += "\\^"; break;
 	    case '%': result += "\\%"; break;
 	    case '@': result += "\\@"; break;
-	    case '{': result += "$\\{$"; break;
-	    case '}': result += "$\\}$"; break;
+	    case '{': result += "\\ensuremath{\\{}"; break;
+	    case '}': result += "\\ensuremath{\\}}"; break;
 	    case '$': result += "\\$"; break;
 	    case '&': result += "\\&"; break;
 	    default: result += fn[i];
 	    }
 	}
+
+        result = replace_all("⌀","\\ensuremath{\\diameter}",result);
+
 	return result;
     }
 

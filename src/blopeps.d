@@ -301,4 +301,6 @@ blopeps.o: blopeps.cc /usr/include/stdc-predef.h blopeps.h terminal.h \
  /usr/include/c++/15/bits/move_only_function.h \
  /usr/include/c++/15/bits/mofunc_impl.h array.h meas.h warning.h \
  /usr/include/c++/15/complex config.h factory.h label.h blop_bookkeeper.h \
- units.h
+ units.h bloputils.h frame.h axis.h plottable.h point_drawer.h dgraph.h \
+ graph.h plottables.h graph_drawer.h arrowhead.h fgraph.h legendbox.h \
+ line.h text.h

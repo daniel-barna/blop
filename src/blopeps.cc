@@ -4,6 +4,7 @@
 #include "canvas.h"
 #include "blop_bookkeeper.h"
 #include "units.h"
+#include "bloputils.h"
 #include <cstdio>
 #include <unistd.h>
 #include <iomanip>
@@ -932,11 +933,10 @@ namespace blop
     }
 
 
-    void blopeps::convertstr(const std::string &s,int n,
-			     std::string &ps)
+    void blopeps::convertstr(const std::string &s, int n, std::string &ps)
     {
-	char sss[100];
-	sprintf(sss,"<%i>:",n);
+//	char sss[100];
+//	sprintf(sss,"<%i>:",n);
 	ps     = "";
 	for(unsigned int i=0; i<s.size(); ++i)
 	{
@@ -958,15 +958,21 @@ namespace blop
 	file_tmp_<<"Daa"<<endl;
     }
 
-
     void blopeps::draw_text(const coord &pos,
-			    const string &s,
+			    const string &s_orig,
 			    int xalign,int yalign,
 			    const blop::terminal::id &angle_dx,
 			    const blop::terminal::id &angle_dy,
 			    bool rotatedsystem)
     {
-	if(s == "") return;
+	if(s_orig == "") return;
+
+        var s = s_orig;
+
+        // Count the number of trailing spaces, and transform them to \hspace
+        int n_ws = 0;
+        for(; n_ws<s_orig.size() && s_orig[n_ws]==' '; ++n_ws);
+        if(n_ws>0) s = var("\\hspace*{") & (n_ws*0.7) & "em}" & s;
 
 	++n_texts_;
 
@@ -977,7 +983,7 @@ namespace blop
 	}
 
 	string ps;
-	convertstr(s,n_texts_,ps);
+	convertstr(s.str(),n_texts_,ps);
 
 	write(pos);
 	file_tmp_<<"M ";

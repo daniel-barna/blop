@@ -14,6 +14,17 @@
 
 namespace blop
 {
+    inline std::string replace_all(const std::string &from,  const std::string &to, std::string in)
+    {
+        if(from.empty()) return in;
+        std::size_t pos=0;
+        while((pos=in.find(from,pos)) != std::string::npos)
+        {
+            in.replace(pos, from.length(), to);
+            pos += to.length();
+        }
+        return in;
+    }
 
     inline bool file_exists(const string &filename)
     {

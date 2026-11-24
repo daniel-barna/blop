@@ -44,9 +44,7 @@ namespace blop
 
         auto l = label::create(text); 
         last_ = l.get_shared();
-//	last_ = new label(text);
 	l->x(x).y(y);
-//	last_->autodel(true);
 	parent->add(l);
 	return *l;
     }
@@ -182,13 +180,6 @@ namespace blop
 	if(print_me_ < 2) return;
 	t->open_layer(layer_);
 	t->set_color(color_);
-/*
-  // debugging
-	vector<terminal::coord> c;
-	c.push_back(terminal::coord(x_.termspecific_id(),y_.termspecific_id()));
-	c.push_back(terminal::coord(x_.termspecific_id(),terminal::id(1,2)));
-	t->draw_lines(c);
-*/
 	t->draw_text(terminal::coord(x_.termspecific_id(),
 				     y_.termspecific_id()),
 		     text_.str(),
